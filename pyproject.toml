@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eccpool"
+version = "1.0.0"
+description = "Distributed Pollard rho for ECDLP challenges with verifiable distinguished-point shares"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+eccpool = "eccpool.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["eccpool*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

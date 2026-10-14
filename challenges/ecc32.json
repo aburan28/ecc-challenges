@@ -1,0 +1,16 @@
+{
+  "curve": {
+    "p": "0xdb264e03",
+    "a": "0x3e3855da",
+    "b": "0xbc9c8808",
+    "gx": "0x8920b7fd",
+    "gy": "0x3faf8d02",
+    "n": "0xdb265b3b"
+  },
+  "Q": [
+    "0x12a78f57",
+    "0x80931f2"
+  ],
+  "seed": "ECC-challenges/v1/ecc32",
+  "name": "ecc32"
+}

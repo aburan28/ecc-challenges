@@ -1,0 +1,16 @@
+{
+  "curve": {
+    "p": "0xa78aa5ce2feb68af",
+    "a": "0x882b16f3d6ad0577",
+    "b": "0x667dc8314cf9d517",
+    "gx": "0x76cf3e8d2236f514",
+    "gy": "0x2452a0b6af6843ef",
+    "n": "0xa78aa5cfa2b14d97"
+  },
+  "Q": [
+    "0x33c065b3c2995a6c",
+    "0x4aec7d667e3d1555"
+  ],
+  "seed": "ECC-challenges/v1/ecc64",
+  "name": "ecc64"
+}
