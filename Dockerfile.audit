@@ -1,0 +1,27 @@
+FROM debian:bookworm-slim AS verifier-build
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  ca-certificates make g++ gcc && rm -rf /var/lib/apt/lists/*
+COPY vendor/cryptanalysis/ /src/cryptanalysis/
+RUN cd /src/cryptanalysis && sha256sum -c SHA256SUMS
+COPY vendor/crypto/ /src/crypto/
+RUN cd /src/crypto && sha256sum -c SHA256SUMS
+COPY verifier/replay.cpp /src/replay.cpp
+RUN cd /src/cryptanalysis/ecc2k130 && make test \
+  && cc -O2 -std=c11 -c ../fpga/model/ecc2k130.c -o /src/model.o \
+  && g++ -O3 -std=c++17 -DECC_WALK_TABLE=0 -DECC_BATCH=16 -DECC_THREADS=256 -DECC_MINBLOCKS=2 \
+       -I/src/cryptanalysis/ecc2k130/src /src/replay.cpp /src/model.o -o /src/replay
+RUN cd /src/crypto/ecc2k130 && make cpu MARCH=x86-64 && ./ecc2k130-cpu --test
+
+FROM python:3.12-slim-bookworm
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY pyproject.toml /app/
+COPY src/ /app/src/
+COPY infra/rds-ca.pem /app/rds-ca.pem
+RUN pip install --no-cache-dir . && useradd --uid 10001 --create-home --shell /usr/sbin/nologin ecc
+COPY --from=verifier-build /src/replay /opt/ecc/replay
+COPY --from=verifier-build /src/crypto/ecc2k130/ecc2k130-cpu /opt/ecc/ecc2k130-cpu
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgomp1 \
+  && rm -rf /var/lib/apt/lists/*
+USER 10001:10001
+CMD ["python", "-m", "ecc_challenges.queues", "audit"]

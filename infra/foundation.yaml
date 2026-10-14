@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Immutable ECC Challenges image repositories, durable queues and generated application secrets.
+
+Resources:
+  WebRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: ecc-challenges-web
+      ImageScanningConfiguration: {ScanOnPush: true}
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration: {EncryptionType: AES256}
+  AuditRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: ecc-challenges-audit
+      ImageScanningConfiguration: {ScanOnPush: true}
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration: {EncryptionType: AES256}
+  WorkerRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: ecc-challenges-worker
+      ImageScanningConfiguration: {ScanOnPush: true}
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration: {EncryptionType: AES256}
+  AuditDeadLetter:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-audit-dead
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+  IndexDeadLetter:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-index-dead
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+  CollisionDeadLetter:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-collision-dead
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+  AuditQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-audit
+      VisibilityTimeout: 7200
+      MessageRetentionPeriod: 1209600
+      ReceiveMessageWaitTimeSeconds: 20
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt AuditDeadLetter.Arn
+        maxReceiveCount: 5
+  IndexQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-index
+      VisibilityTimeout: 600
+      MessageRetentionPeriod: 1209600
+      ReceiveMessageWaitTimeSeconds: 20
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt IndexDeadLetter.Arn
+        maxReceiveCount: 5
+  CollisionQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ecc-challenges-collision
+      VisibilityTimeout: 14400
+      MessageRetentionPeriod: 1209600
+      ReceiveMessageWaitTimeSeconds: 20
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt CollisionDeadLetter.Arn
+        maxReceiveCount: 5
+  WebDatabasePassword:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ecc-challenges/web-db-password
+      GenerateSecretString: {PasswordLength: 48, ExcludePunctuation: true}
+  WorkerDatabasePassword:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ecc-challenges/worker-db-password
+      GenerateSecretString: {PasswordLength: 48, ExcludePunctuation: true}
+  KeyPepper:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ecc-challenges/key-pepper
+      GenerateSecretString: {PasswordLength: 64, ExcludePunctuation: true}
+  SessionSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ecc-challenges/session-secret
+      GenerateSecretString: {PasswordLength: 64, ExcludePunctuation: true}
+
+Outputs:
+  WebRepositoryUri: {Value: !GetAtt WebRepository.RepositoryUri}
+  AuditRepositoryUri: {Value: !GetAtt AuditRepository.RepositoryUri}
+  WorkerRepositoryUri: {Value: !GetAtt WorkerRepository.RepositoryUri}
+  AuditQueueUrl: {Value: !Ref AuditQueue}
+  AuditQueueArn: {Value: !GetAtt AuditQueue.Arn}
+  AuditDeadLetterUrl: {Value: !Ref AuditDeadLetter}
+  IndexQueueUrl: {Value: !Ref IndexQueue}
+  IndexQueueArn: {Value: !GetAtt IndexQueue.Arn}
+  IndexDeadLetterUrl: {Value: !Ref IndexDeadLetter}
+  CollisionQueueUrl: {Value: !Ref CollisionQueue}
+  CollisionQueueArn: {Value: !GetAtt CollisionQueue.Arn}
+  CollisionDeadLetterUrl: {Value: !Ref CollisionDeadLetter}
+  WebPasswordArn: {Value: !Ref WebDatabasePassword}
+  WorkerPasswordArn: {Value: !Ref WorkerDatabasePassword}
+  KeyPepperArn: {Value: !Ref KeyPepper}
+  SessionSecretArn: {Value: !Ref SessionSecret}

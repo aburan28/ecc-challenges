@@ -1,0 +1,1 @@
+"""ECC Challenges public service."""

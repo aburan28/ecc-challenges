@@ -1,0 +1,3 @@
+Source: https://github.com/aburan28/crypto
+Commit: 79006eb85a400474e83f6a76fac0dca6b60a8b5d
+Archive: ecc2k130/{Makefile,src/main.cu,include,generated/*.h}
