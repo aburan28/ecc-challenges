@@ -130,6 +130,7 @@ fn handle(req: &Value) -> Result<Value, String> {
 }
 
 fn main() {
+    std::panic::set_hook(Box::new(|_| {})); // errors are reported as JSON, not stderr noise
     let stdin = io::stdin();
     let mut out = io::stdout().lock();
     for line in stdin.lock().lines() {
@@ -138,7 +139,11 @@ fn main() {
             continue;
         }
         let resp = match serde_json::from_str::<Value>(&line) {
-            Ok(req) => handle(&req).unwrap_or_else(|e| json!({"ok": false, "error": e})),
+            // A panic anywhere in decoding or verification must not kill the
+            // process the server is sharing between requests.
+            Ok(req) => std::panic::catch_unwind(|| handle(&req))
+                .unwrap_or_else(|_| Err("internal panic while handling request".into()))
+                .unwrap_or_else(|e| json!({"ok": false, "error": e})),
             Err(e) => json!({"ok": false, "error": format!("bad json: {e}")}),
         };
         let _ = writeln!(out, "{resp}");

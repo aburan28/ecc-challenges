@@ -31,7 +31,7 @@ and [docs/OPERATIONS.md](docs/OPERATIONS.md) to run a pool.
 ```sh
 pip install -e '.[dev]'
 cargo build --release --manifest-path stark/Cargo.toml   # STARK prover/verifier + native walker
-cargo test --release --manifest-path stark/Cargo.toml    # 8 completeness/forgery tests
+cargo test --release --manifest-path stark/Cargo.toml    # 9 completeness/forgery tests
 pytest -q                                                # 31 tests, ~10 s
 
 export ECCPOOL_PEPPER=$(openssl rand -hex 32) ECCPOOL_ADMIN_TOKEN=$(openssl rand -hex 32)

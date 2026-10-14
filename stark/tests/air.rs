@@ -187,3 +187,20 @@ fn non_dp_end_claimed_as_dp_is_rejected() {
     let proof = prove_trace(winterfell::TraceTable::init(cols), pi(&p, start, end, s, true));
     assert!(verify(proof.unwrap(), pi(&p, start, end, s, true)).is_err());
 }
+
+#[test]
+fn foreign_proof_options_are_rejected_without_panicking() {
+    // Found in review: a proof claiming blowup 2 passed the conjectured-security
+    // check and then panicked the verifier while it built the AIR.
+    use winterfell::{BatchingMethod, FieldExtension, ProofOptions};
+    let p = params(16, 8);
+    let start = (Felt::new(7), Felt::new(11));
+    let (proof, end) = prove(&p, start, 1, false).unwrap();
+    let opts = ProofOptions::new(97, 2, 0, FieldExtension::Quadratic, 8, 31,
+                                 BatchingMethod::Linear, BatchingMethod::Linear);
+    let mut forged = proof.clone();
+    forged.context = winter_air::proof::Context::new::<Felt>(
+        proof.context.trace_info().clone(), opts, proof.context.num_constraints());
+    let r = verify(forged, pi(&p, start, end, 1, false));
+    assert!(r.unwrap_err().contains("unsupported proof options"));
+}

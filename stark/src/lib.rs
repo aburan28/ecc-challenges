@@ -148,8 +148,7 @@ pub fn build_trace(params: &WalkParams, start: Point, steps: usize) -> Result<Tr
                 p = next;
             }
             None if row >= steps => {
-                // Past the end of the statement but the padding walk degenerated:
-                // jump to a fresh honest-looking state by restarting from R.
+                // Past the end of the statement, the padding walk degenerated.
                 return Err("degenerate padding walk; retry with another nonce".into());
             }
             None => return Err("walk hit a doubling/infinity case".into()),
@@ -382,7 +381,9 @@ impl Prover for WalkProver {
 }
 
 /// Proof parameters: 27 queries x log2(8) + 16 grinding bits = 97 bits of
-/// conjectured security, over the quadratic extension of Goldilocks.
+/// conjectured security (Winterfell reports 96), over the quadratic
+/// extension of Goldilocks. Proven (unique-decoding) security is much lower,
+/// about 40 bits; see docs/STARK.md. The verifier accepts only this set.
 pub fn proof_options() -> ProofOptions {
     ProofOptions::new(27, 8, 16, FieldExtension::Quadratic, 8, 31, BatchingMethod::Linear,
                       BatchingMethod::Linear)
@@ -466,10 +467,19 @@ pub fn verify(proof: Proof, pi: PublicInputs) -> Result<(), String> {
     if proof.context.trace_info().width() != TRACE_WIDTH {
         return Err("proof has the wrong trace width".into());
     }
-    let acceptable = AcceptableOptions::MinConjecturedSecurity(MIN_SECURITY_BITS);
-    winterfell::verify::<WalkAir, Blake3_256<Felt>, DefaultRandomCoin<Blake3_256<Felt>>,
-                         MerkleTree<Blake3_256<Felt>>>(proof, pi, &acceptable)
-        .map_err(|e| format!("{e}"))
+    // Accept exactly our parameter set. Prover-chosen options are otherwise
+    // only checked against conjectured security, and a low blowup factor
+    // makes Winterfell panic while building the AIR (a verifier DoS).
+    if proof.options() != &proof_options() {
+        return Err("proof uses unsupported proof options".into());
+    }
+    let acceptable = AcceptableOptions::OptionSet(vec![proof_options()]);
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        winterfell::verify::<WalkAir, Blake3_256<Felt>, DefaultRandomCoin<Blake3_256<Felt>>,
+                             MerkleTree<Blake3_256<Felt>>>(proof, pi, &acceptable)
+    }))
+    .map_err(|_| "verifier panicked on a malformed proof".to_string())?
+    .map_err(|e| format!("{e}"))
 }
 
 // ------------------------------------------------------------ native walk

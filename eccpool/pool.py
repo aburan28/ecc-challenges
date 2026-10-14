@@ -143,6 +143,9 @@ class Pool:
         if (1 << (dp_bits + r.bit_length())) >= curve.p:
             raise ValueError("dp_bits too large for this field")
         salt = salt or secrets.token_hex(16)
+        if verification != "audit" and not max_walk_len:
+            from .stark import MAX_STEPS
+            max_walk_len = min(20 << dp_bits, MAX_STEPS)
         spec = WalkSpec(curve, Q, salt, dp_bits, r, checkpoint_interval, max_walk_len)
         if verification != "audit":
             from .stark import supports
@@ -279,6 +282,9 @@ class Pool:
                                  "must stop at its first DP", True)
         if curve.mul2(a, b, spec.Q) != dp:
             raise ShareError("bad_representation", "dp != a*G + b*Q", True)
+        if spec.start(key_id, nonce)[2] is None:
+            raise ShareError("bad_nonce", "this nonce's start point is the identity; use another",
+                             False)
         if job.verification == "stark":
             from .stark import engine
             _, _, start = spec.start(key_id, nonce)

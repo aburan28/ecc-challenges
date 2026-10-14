@@ -70,13 +70,43 @@ of two curve points stays on the curve.
 ### Proof parameters
 
 27 FRI queries, blowup 8, 16 grinding bits, quadratic extension of
-Goldilocks, Blake3: **97 bits conjectured security**. The verifier refuses
-anything below 96 (`MIN_SECURITY_BITS`).
+Goldilocks, Blake3: **96 bits of conjectured security** (Winterfell's
+estimate). The verifier accepts **exactly this parameter set** and nothing
+else.
+
+That is conjectured security. *Proven* (unique-decoding) security at these
+parameters is only about 40 bits. Raising the query count closes the gap at
+the cost of proof size (~1.5 KB per extra query). Two things make the low
+proven figure tolerable for a pool:
+
+- A forgery has to beat FRI soundness, which no known attack comes close to.
+- Even a forged share is worth little. Its DP and representation still pass
+  the server's direct check, so it can never fake a solution. At worst it
+  is a valid DP that was paid for without its walk.
+
+Change `proof_options()` in `stark/src/lib.rs` to tune the parameters. The
+prover and verifier must change together.
+
+STARK jobs require `dp_bits ≤ 16`, and their walks are capped at 2^20 steps.
+Longer walks would need trace lengths in the millions of rows.
+
+### Independent review
+
+A separate review pass went through the AIR, the verifier and the server
+integration, looking for a way to get a false statement accepted. It found
+none. It checked canonicity, multiplier selection, the chord gadget, mask
+off-by-ones, public-input binding, the trace-length pin, degree
+declarations and the challenge anchors. It did find a **verifier DoS**: a
+proof claiming blowup 2 passed the conjectured-security check, then
+panicked Winterfell while it built the AIR, which killed the `eccstark`
+process. This is fixed by pinning the exact option set and catching panics
+in the verifier and the CLI. The regression test is
+`foreign_proof_options_are_rejected_without_panicking`.
 
 ### Soundness tests (`stark/tests/air.rs`, run with `--release`)
 
 A malicious prover that edits the trace and proves anyway is rejected for
-every one of these forgeries: a wrong multiplier on one step, the
+every one of these forgeries, as is a proof with foreign proof options: a wrong multiplier on one step, the
 linear-sweep cheater (always adding the same point), the non-canonical
 `x + q` bit encoding (which changes the selected multiplier), walking past
 the first DP to claim a longer walk, claiming a non-DP end is distinguished,

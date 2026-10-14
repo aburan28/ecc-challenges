@@ -19,6 +19,10 @@ from .curvegen import GOLDILOCKS
 from .walk import WalkSpec
 
 
+MAX_DP_BITS = 16
+MAX_STEPS = 1 << 20      # eccstark itself refuses more than 2^24
+
+
 def find_binary() -> str | None:
     env = os.environ.get("ECCPOOL_STARK_BIN")
     if env:
@@ -35,8 +39,11 @@ def supports(spec: WalkSpec) -> str | None:
         return "STARK verification needs a curve over the Goldilocks field 2^64 - 2^32 + 1"
     if spec.r > 64:
         return "STARK verification supports r <= 64"
-    if spec.dp_bits + spec.r.bit_length() > 60:
-        return "dp_bits too large for STARK verification"
+    if spec.dp_bits > MAX_DP_BITS:
+        return (f"dp_bits > {MAX_DP_BITS} makes walks too long to prove "
+                f"(a 2^{MAX_DP_BITS}-step walk already needs a ~2^{MAX_DP_BITS + 1}-row trace)")
+    if spec.max_walk_len > MAX_STEPS:
+        return f"max_walk_len must be <= {MAX_STEPS} for STARK verification"
     return None
 
 
