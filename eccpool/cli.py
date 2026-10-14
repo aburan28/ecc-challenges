@@ -73,7 +73,8 @@ def cmd_job(args) -> None:
             ch = json.load(f)
         body = {"name": args.name or ch.get("name", args.challenge), "dp_bits": args.dp_bits,
                 "curve": ch["curve"], "r": args.r,
-                "checkpoint_interval": args.checkpoint_interval}
+                "checkpoint_interval": args.checkpoint_interval,
+                "verification": args.verification, "challenge_rate": args.challenge_rate}
         if "Q" in ch:
             body["Q"] = ch["Q"]
         else:
@@ -115,9 +116,13 @@ def cmd_worker(args) -> None:
 
 
 def cmd_gen(args) -> None:
-    from .curvegen import generate_prime_order_curve, make_challenge
-    curve = generate_prime_order_curve(args.bits)
-    ch = make_challenge(curve, args.seed)
+    from .curvegen import (generate_goldilocks_curve, generate_prime_order_curve, make_challenge,
+                           make_subgroup_challenge)
+    if args.field == "goldilocks":
+        curve, h = generate_goldilocks_curve(args.bits)
+        ch = make_subgroup_challenge(curve, h, args.seed)
+    else:
+        ch = make_challenge(generate_prime_order_curve(args.bits), args.seed)
     ch["name"] = args.name or f"ecc{args.bits}-{args.seed}"
     print(json.dumps(ch, indent=2))
 
@@ -157,6 +162,12 @@ def main(argv: list[str] | None = None) -> None:
     j.add_argument("--dp-bits", type=int, default=12)
     j.add_argument("--r", type=int, default=32)
     j.add_argument("--checkpoint-interval", type=int, default=0)
+    j.add_argument("--verification", default="audit", choices=["audit", "stark", "stark-challenge"],
+                   help="audit: server replays random segments; stark: every share carries a "
+                        "STARK proof of its walk; stark-challenge: random segments are proven "
+                        "on demand")
+    j.add_argument("--challenge-rate", type=float, default=0.25,
+                   help="stark-challenge: probability a share is challenged")
     j.set_defaults(fn=cmd_job)
 
     lg = sub.add_parser("log", help="read events, audits or collisions")
@@ -177,6 +188,9 @@ def main(argv: list[str] | None = None) -> None:
     g.add_argument("--bits", type=int, required=True)
     g.add_argument("--seed", required=True, help="public seed G and Q are hashed from")
     g.add_argument("--name")
+    g.add_argument("--field", choices=["random", "goldilocks"], default="random",
+                   help="goldilocks: curve over the STARK field with a prime subgroup of --bits "
+                        "bits (needed for stark verification)")
     g.set_defaults(fn=cmd_gen)
 
     args = p.parse_args(argv)

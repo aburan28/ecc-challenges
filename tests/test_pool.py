@@ -128,7 +128,7 @@ def test_auth_failure_rate_limit(make_app):
 def test_body_size_limit(make_app):
     c = make_app()
     _, h = issue_key(c)
-    r = c.post("/v1/shares", headers=h, content=b"{" + b" " * (3 * 1024 * 1024) + b"}",
+    r = c.post("/v1/shares", headers=h, content=b"{" + b" " * (17 * 1024 * 1024) + b"}",
                )
     assert r.status_code == 413
 

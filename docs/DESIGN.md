@@ -42,6 +42,14 @@ A share is `{nonce, length L, dp, a, b, checkpoints}`, with checkpoints
 `P_k, P_2k, …` (every multiple of `k` below `L`). `tests/vectors.json` gives
 known-answer vectors that a C or CUDA worker must reproduce byte for byte.
 
+## Verification modes
+
+This document describes `audit` mode, which works on any curve. On
+Goldilocks curves a job can use STARK proofs instead (`stark`) or as the
+response to audits (`stark-challenge`); see [STARK.md](STARK.md). The share
+format, key-bound starts, cheap checks, rate limits and sanctions are the
+same in every mode.
+
 ## Server checks
 
 Every share, synchronously (`Pool._check`):
@@ -119,5 +127,5 @@ and a batch stops processing once its key is suspended mid-batch.
 - One process, one SQLite database. The rate limiter is in-process; for more
   than one API process, move the buckets to Redis and the tables to Postgres
   (the SQL is portable).
-- The audit coins come from `secrets`; they are not publicly verifiable. See
-  `STARK.md` for proofs instead of audits.
+- The audit coins come from `secrets`, so they are not publicly verifiable.
+  `stark` mode removes them entirely (see `STARK.md`).

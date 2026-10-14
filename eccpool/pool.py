@@ -29,6 +29,8 @@ from .ec import Curve
 from .keys import KeyStore
 from .walk import WalkSpec, replay_segment
 
+VERIFICATION_MODES = ("audit", "stark", "stark-challenge")
+
 log = logging.getLogger("eccpool")
 
 
@@ -40,6 +42,9 @@ class PoolConfig:
     probation_audit_rate: float = 0.5
     max_strikes: int = 10
     max_batch: int = 64
+    proof_deadline_s: float = 3600.0
+    max_proof_bytes: int = 512 * 1024
+    store_proofs: bool = True       # keep stark-mode proofs for third-party re-verification
 
 
 class ShareError(Exception):
@@ -58,6 +63,7 @@ class ShareOutcome:
     share_id: int | None = None
     credit: float = 0.0
     solved: bool = False
+    challenge: dict | None = None
 
     def as_dict(self) -> dict:
         d = {"nonce": self.nonce, "status": self.status}
@@ -70,6 +76,8 @@ class ShareOutcome:
             d["credit"] = self.credit
         if self.solved:
             d["solved"] = True
+        if self.challenge:
+            d["challenge"] = self.challenge
         return d
 
 
@@ -103,6 +111,14 @@ class Job:
     def __post_init__(self) -> None:
         self.expected_work = math.sqrt(math.pi * self.spec.curve.n / 2)
 
+    @property
+    def verification(self) -> str:
+        return self.raw_spec.get("verification", "audit")
+
+    @property
+    def challenge_rate(self) -> float:
+        return float(self.raw_spec.get("challenge_rate", 0.0))
+
 
 class Pool:
     def __init__(self, db: DB, keys: KeyStore, config: PoolConfig) -> None:
@@ -115,7 +131,12 @@ class Pool:
     # ---------------------------------------------------------------- jobs
     def create_job(self, name: str, curve: Curve, Q: tuple[int, int], dp_bits: int,
                    r: int = 32, checkpoint_interval: int = 0, max_walk_len: int = 0,
-                   salt: str | None = None) -> str:
+                   salt: str | None = None, verification: str = "audit",
+                   challenge_rate: float = 0.25) -> str:
+        if verification not in VERIFICATION_MODES:
+            raise ValueError(f"verification must be one of {VERIFICATION_MODES}")
+        if not 0.0 <= challenge_rate <= 1.0:
+            raise ValueError("challenge_rate must be in [0, 1]")
         curve.validate()
         if not curve.in_subgroup(Q):
             raise ValueError("G and Q must be points of order n on the curve")
@@ -123,6 +144,11 @@ class Pool:
             raise ValueError("dp_bits too large for this field")
         salt = salt or secrets.token_hex(16)
         spec = WalkSpec(curve, Q, salt, dp_bits, r, checkpoint_interval, max_walk_len)
+        if verification != "audit":
+            from .stark import supports
+            why = supports(spec)
+            if why:
+                raise ValueError(why)
         raw = {
             "spec_version": "eccpool-walk-v1",
             "curve": curve.to_dict(),
@@ -132,7 +158,11 @@ class Pool:
             "r": r,
             "checkpoint_interval": spec.checkpoint_interval,
             "max_walk_len": spec.max_walk_len,
+            "verification": verification,
         }
+        if verification == "stark-challenge":
+            raw["challenge_rate"] = challenge_rate
+            raw["proof_deadline_s"] = self.cfg.proof_deadline_s
         job_id = secrets.token_hex(6)
         with self.db.tx() as c:
             c.execute("INSERT INTO jobs (job_id, name, status, spec, created_at)"
@@ -178,6 +208,7 @@ class Pool:
             "name": job.name,
             "status": row["status"],
             "spec": job.raw_spec,
+            "verification": job.verification,
             "credit_per_share": float(1 << job.spec.dp_bits),
             "shares": stats["n"],
             "reported_steps": stats["steps"],
@@ -207,8 +238,8 @@ class Pool:
                 break
         return outcomes
 
-    def _check(self, job: Job, raw) -> dict:
-        """The cheap checks. Raises ShareError; returns the parsed share."""
+    def _check(self, job: Job, raw, key_id: str) -> dict:
+        """The per-share checks (and, in stark mode, the proof). Raises ShareError."""
         spec, curve = job.spec, job.spec.curve
         if not isinstance(raw, dict):
             raise ShareError("bad_format", "share must be an object", True)
@@ -221,10 +252,18 @@ class Pool:
         dp = _point(raw.get("dp"), "dp", curve.p)
         a = _hex_int(raw.get("a"), "a", curve.n)
         b = _hex_int(raw.get("b"), "b", curve.n)
-        cps_raw = raw.get("checkpoints")
+        cps_raw = raw.get("checkpoints", [] if job.verification == "stark" else None)
         if not isinstance(cps_raw, list):
             raise ShareError("bad_format", "checkpoints must be a list", True)
-        if len(cps_raw) != spec.n_checkpoints(length):
+        proof = raw.get("proof")
+        if job.verification == "stark":
+            if cps_raw:
+                raise ShareError("bad_checkpoints", "stark jobs take a proof, not checkpoints", True)
+            if not isinstance(proof, str) or not 0 < len(proof) <= self.cfg.max_proof_bytes:
+                raise ShareError("missing_proof", "stark jobs need a base64 proof of the walk", True)
+        elif proof is not None:
+            raise ShareError("bad_format", "this job does not take proofs with shares", True)
+        elif len(cps_raw) != spec.n_checkpoints(length):
             raise ShareError("bad_checkpoints",
                              f"expected {spec.n_checkpoints(length)} checkpoints for length {length}", True)
         cps = [_point(c, f"checkpoints[{i}]", curve.p) for i, c in enumerate(cps_raw)]
@@ -240,10 +279,17 @@ class Pool:
                                  "must stop at its first DP", True)
         if curve.mul2(a, b, spec.Q) != dp:
             raise ShareError("bad_representation", "dp != a*G + b*Q", True)
-        return {"nonce": nonce, "length": length, "dp": dp, "a": a, "b": b, "cps": cps}
+        if job.verification == "stark":
+            from .stark import engine
+            _, _, start = spec.start(key_id, nonce)
+            err = engine().verify(spec, start, dp, length, True, proof)
+            if err:
+                raise ShareError("bad_proof", f"STARK proof rejected: {err}", True)
+        return {"nonce": nonce, "length": length, "dp": dp, "a": a, "b": b, "cps": cps,
+                "proof": proof}
 
     def _submit_one(self, key_id: str, job: Job, raw) -> ShareOutcome:
-        s = self._check(job, raw)       # expensive part runs outside the write lock
+        s = self._check(job, raw, key_id)   # expensive part runs outside the write lock
         n = job.spec.curve.n
         credit = float(1 << job.spec.dp_bits)
         dp_x, dp_y = hex(s["dp"][0]), hex(s["dp"][1])
@@ -270,10 +316,12 @@ class Pool:
                                  "already submitted", True)
             cur = c.execute(
                 """INSERT INTO shares (job_id, key_id, nonce, length, dp_x, dp_y, a, b,
-                   checkpoints, credit, status, submitted_at)
-                   VALUES (?,?,?,?,?,?,?,?,?,?, 'accepted', ?)""",
+                   checkpoints, proof, credit, status, submitted_at)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (job.job_id, key_id, s["nonce"], s["length"], dp_x, dp_y, hex(s["a"]), hex(s["b"]),
-                 json.dumps([[hex(x), hex(y)] for x, y in s["cps"]]), credit, time.time()))
+                 json.dumps([[hex(x), hex(y)] for x, y in s["cps"]]),
+                 s["proof"] if self.cfg.store_proofs else None, credit,
+                 "verified" if job.verification == "stark" else "accepted", time.time()))
             share_id = cur.lastrowid
             c.execute("UPDATE api_keys SET accepted_shares = accepted_shares + 1, last_used_at = ?"
                       " WHERE key_id = ?", (time.time(), key_id))
@@ -284,8 +332,10 @@ class Pool:
                           (job.job_id, dp_x, dp_y, hex(s["a"]), hex(s["b"]), share_id, key_id))
             else:
                 solved = self._collide(c, job, prior, share_id, s["a"], s["b"])
-            self._schedule_audits(c, key_id, share_id, s["length"], job, krow["accepted_shares"])
-        return ShareOutcome(s["nonce"], "accepted", share_id=share_id, credit=credit, solved=solved)
+            challenge = self._schedule_audits(c, key_id, share_id, s["length"], job,
+                                              krow["accepted_shares"])
+        return ShareOutcome(s["nonce"], "accepted", share_id=share_id, credit=credit, solved=solved,
+                            challenge=challenge)
 
     def _collide(self, c, job: Job, prior, share_id: int, a2: int, b2: int) -> bool:
         n = job.spec.curve.n
@@ -309,10 +359,25 @@ class Pool:
         return True
 
     def _schedule_audits(self, c, key_id: str, share_id: int, length: int, job: Job,
-                         accepted_before: int) -> None:
-        rate = (self.cfg.probation_audit_rate if accepted_before < self.cfg.probation_shares
-                else self.cfg.audit_rate)
+                         accepted_before: int) -> dict | None:
+        probation = accepted_before < self.cfg.probation_shares
         now = time.time()
+        if job.verification == "stark":
+            return None                  # the proof already covered the whole walk
+        if job.verification == "stark-challenge":
+            rate = max(job.challenge_rate, self.cfg.probation_audit_rate if probation else 0.0)
+            if secrets.randbelow(1_000_000) >= rate * 1_000_000:
+                return None
+            seg = secrets.randbelow(job.spec.n_segments(length))
+            lo, hi = job.spec.segment_bounds(length, seg)
+            deadline = now + float(job.raw_spec.get("proof_deadline_s", self.cfg.proof_deadline_s))
+            cur = c.execute("INSERT INTO audits (share_id, key_id, kind, segment, status, created_at,"
+                            " deadline) VALUES (?,?, 'proof', ?, 'pending', ?, ?)",
+                            (share_id, key_id, seg, now, deadline))
+            c.execute("UPDATE shares SET status = 'challenged' WHERE share_id = ?", (share_id,))
+            return {"challenge_id": cur.lastrowid, "segment": seg, "from_step": lo, "to_step": hi,
+                    "deadline": deadline}
+        rate = self.cfg.probation_audit_rate if probation else self.cfg.audit_rate
         if secrets.randbelow(1_000_000) < self.cfg.full_audit_rate * 1_000_000:
             c.execute("INSERT INTO audits (share_id, key_id, kind, status, created_at)"
                       " VALUES (?,?, 'full', 'pending', ?)", (share_id, key_id, now))
@@ -320,6 +385,7 @@ class Pool:
             seg = secrets.randbelow(job.spec.n_segments(length))
             c.execute("INSERT INTO audits (share_id, key_id, kind, segment, status, created_at)"
                       " VALUES (?,?, 'segment', ?, 'pending', ?)", (share_id, key_id, seg, now))
+        return None
 
     def _strike(self, key_id: str, code: str, message: str) -> None:
         with self.db.tx() as c:
@@ -371,7 +437,8 @@ class Pool:
     def run_pending_audits(self, limit: int = 100) -> int:
         done = 0
         while done < limit:
-            row = self.db.one("SELECT * FROM audits WHERE status = 'pending' ORDER BY audit_id LIMIT 1")
+            row = self.db.one("SELECT * FROM audits WHERE status = 'pending' AND kind != 'proof'"
+                              " ORDER BY audit_id LIMIT 1")
             if row is None:
                 break
             self.run_audit(row)
@@ -401,8 +468,89 @@ class Pool:
                 c.execute("UPDATE api_keys SET audits_passed = audits_passed + 1 WHERE key_id = ?",
                           (audit_row["key_id"],))
                 c.execute("UPDATE shares SET status = 'verified' WHERE share_id = ?"
-                          " AND status = 'accepted'", (share["share_id"],))
+                          " AND status IN ('accepted', 'challenged')", (share["share_id"],))
         return status
+
+    # ------------------------------------------------------ proof challenges
+    def pending_challenges(self, key_id: str) -> list[dict]:
+        rows = self.db.query(
+            """SELECT a.audit_id, a.segment, a.deadline, s.share_id, s.job_id, s.nonce, s.length
+               FROM audits a JOIN shares s ON s.share_id = a.share_id
+               WHERE a.key_id = ? AND a.kind = 'proof' AND a.status = 'pending'
+               ORDER BY a.audit_id LIMIT 500""", (key_id,))
+        out = []
+        for r in rows:
+            lo, hi = self.job(r["job_id"]).spec.segment_bounds(r["length"], r["segment"])
+            out.append({"challenge_id": r["audit_id"], "job_id": r["job_id"], "nonce": r["nonce"],
+                        "share_id": r["share_id"], "segment": r["segment"], "from_step": lo,
+                        "to_step": hi, "deadline": r["deadline"]})
+        return out
+
+    def answer_challenge(self, key_id: str, challenge_id: int, proof) -> dict:
+        """Verify a segment proof. Returns {"status": passed|failed, ...}.
+
+        Raises LookupError if there is no such pending challenge for this key,
+        ValueError if the upload is not a proof at all (no penalty)."""
+        a = self.db.one("SELECT * FROM audits WHERE audit_id = ? AND key_id = ? AND kind = 'proof'",
+                        (challenge_id, key_id))
+        if a is None:
+            raise LookupError("no such challenge")
+        if a["status"] != "pending":
+            return {"challenge_id": challenge_id, "status": a["status"], "detail": a["detail"]}
+        if not isinstance(proof, str) or not 0 < len(proof) <= self.cfg.max_proof_bytes:
+            raise ValueError("proof must be a non-empty base64 string")
+        if time.time() > a["deadline"]:
+            self.expire_challenges()
+            return {"challenge_id": challenge_id, "status": "failed", "detail": "deadline passed"}
+        share = self.db.one("SELECT * FROM shares WHERE share_id = ?", (a["share_id"],))
+        job = self.job(share["job_id"])
+        spec = job.spec
+        cps = [(int(x, 16), int(y, 16)) for x, y in json.loads(share["checkpoints"])]
+        dp = (int(share["dp_x"], 16), int(share["dp_y"], 16))
+        _, _, start = spec.start(key_id, share["nonce"])
+        anchors = [start] + cps + [dp]
+        seg = a["segment"]
+        lo, hi = spec.segment_bounds(share["length"], seg)
+        last = seg == spec.n_segments(share["length"]) - 1
+        from .stark import engine
+        err = engine().verify(spec, anchors[seg], anchors[seg + 1], hi - lo, last, proof)
+        if err and ("base64" in err or "malformed" in err):
+            raise ValueError(err)
+        with self.db.tx() as c:
+            row = c.execute("SELECT status FROM audits WHERE audit_id = ?", (challenge_id,)).fetchone()
+            if row["status"] != "pending":
+                return {"challenge_id": challenge_id, "status": row["status"]}
+            status = "failed" if err else "passed"
+            c.execute("UPDATE audits SET status = ?, finished_at = ?, detail = ? WHERE audit_id = ?",
+                      (status, time.time(), err or "", challenge_id))
+            if err:
+                c.execute("UPDATE api_keys SET audits_failed = audits_failed + 1 WHERE key_id = ?",
+                          (key_id,))
+                self.forfeit(c, key_id, f"proof for challenge {challenge_id} (share "
+                                        f"{share['share_id']}) rejected: {err}")
+            else:
+                c.execute("UPDATE api_keys SET audits_passed = audits_passed + 1 WHERE key_id = ?",
+                          (key_id,))
+                c.execute("UPDATE shares SET status = 'verified' WHERE share_id = ?"
+                          " AND status = 'challenged'", (share["share_id"],))
+        return {"challenge_id": challenge_id, "status": status, **({"detail": err} if err else {})}
+
+    def expire_challenges(self, now: float | None = None) -> int:
+        """An unanswered challenge counts as a failed audit."""
+        now = time.time() if now is None else now
+        rows = self.db.query("SELECT * FROM audits WHERE kind = 'proof' AND status = 'pending'"
+                             " AND deadline < ?", (now,))
+        for a in rows:
+            with self.db.tx() as c:
+                cur = c.execute("UPDATE audits SET status = 'failed', finished_at = ?, detail ="
+                                " 'no proof before the deadline' WHERE audit_id = ? AND status ="
+                                " 'pending'", (now, a["audit_id"]))
+                if cur.rowcount:
+                    c.execute("UPDATE api_keys SET audits_failed = audits_failed + 1"
+                              " WHERE key_id = ?", (a["key_id"],))
+                    self.forfeit(c, a["key_id"], f"challenge {a['audit_id']} on share "
+                                                 f"{a['share_id']} expired without a proof")
+        return len(rows)
 
     def forfeit(self, c, key_id: str, reason: str) -> None:
         """Revoke the key and forfeit all its credit. DPs stay in the table:
@@ -432,7 +580,8 @@ class Pool:
     def key_stats(self, key_id: str) -> dict:
         k = self.db.one("SELECT * FROM api_keys WHERE key_id = ?", (key_id,))
         credit = self.db.one(
-            """SELECT COALESCE(SUM(CASE WHEN status != 'forfeited' THEN credit END), 0) AS earned,
+            """SELECT COALESCE(SUM(CASE WHEN status IN ('accepted','verified') THEN credit END), 0) AS earned,
+                      COALESCE(SUM(CASE WHEN status = 'challenged' THEN credit END), 0) AS pending,
                       COALESCE(SUM(CASE WHEN status = 'verified' THEN credit END), 0) AS verified,
                       COALESCE(SUM(CASE WHEN status = 'forfeited' THEN credit END), 0) AS forfeited
                FROM shares WHERE key_id = ?""", (key_id,))
@@ -444,7 +593,8 @@ class Pool:
                        "requests_per_minute": k["requests_per_minute"]},
             "accepted_shares": k["accepted_shares"], "strikes": k["strikes"],
             "audits_passed": k["audits_passed"], "audits_failed": k["audits_failed"],
-            "credit": {"earned": credit["earned"], "verified": credit["verified"],
+            "credit": {"earned": credit["earned"], "pending_proof": credit["pending"],
+                       "verified": credit["verified"],
                        "forfeited": credit["forfeited"]},
         }
 
@@ -461,6 +611,7 @@ class Auditor(threading.Thread):
     def run(self) -> None:
         while not self._halt.is_set():
             try:
+                self.pool.expire_challenges()
                 if self.pool.run_pending_audits(50) == 0:
                     self._halt.wait(self.interval)
             except Exception:  # keep auditing; one bad row must not stop the thread

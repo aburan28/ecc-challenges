@@ -102,3 +102,112 @@ def make_challenge(curve: Curve, seed: str) -> dict:
     c = Curve(curve.p, curve.a, curve.b, G[0], G[1], curve.n)
     assert c.in_subgroup(G) and c.in_subgroup(Q)
     return {"curve": c.to_dict(), "Q": [hex(Q[0]), hex(Q[1])], "seed": seed}
+
+
+# ------------------------------------------------------------------ Goldilocks
+GOLDILOCKS = 2 ** 64 - 2 ** 32 + 1
+
+
+def _pollard_rho(n: int) -> int:
+    if n % 2 == 0:
+        return 2
+    rng = secrets.SystemRandom()
+    while True:
+        y, c, m = rng.randrange(1, n), rng.randrange(1, n), 128
+        g = r = q = 1
+        while g == 1:
+            x = y
+            for _ in range(r):
+                y = (y * y + c) % n
+            k = 0
+            while k < r and g == 1:
+                ys = y
+                for _ in range(min(m, r - k)):
+                    y = (y * y + c) % n
+                    q = q * abs(x - y) % n
+                g = math.gcd(q, n)
+                k += m
+            r *= 2
+        if g == n:
+            g = 1
+            while g == 1:
+                ys = (ys * ys + c) % n
+                g = math.gcd(abs(x - ys), n)
+        if g != n:
+            return g
+
+
+def factor(n: int) -> list[int]:
+    """Prime factors of n with multiplicity (n up to ~2^80 is quick)."""
+    out: list[int] = []
+    for p in (2, 3, 5, 7, 11, 13):
+        while n % p == 0:
+            out.append(p)
+            n //= p
+    stack = [n] if n > 1 else []
+    while stack:
+        m = stack.pop()
+        if is_probable_prime(m):
+            out.append(m)
+            continue
+        d = _pollard_rho(m)
+        stack += [d, m // d]
+    return sorted(out)
+
+
+def generate_goldilocks_curve(subgroup_bits: int,
+                              rng: secrets.SystemRandom | None = None) -> tuple[Curve, int]:
+    """A curve over F_q, q = 2^64 - 2^32 + 1 (the STARK field), whose group
+    order has a prime factor n of exactly ``subgroup_bits`` bits.
+
+    Returns (curve with G of order n, cofactor h = #E / n). Rho runs in the
+    order-n subgroup, so the challenge costs ~sqrt(pi n / 2) steps however
+    large the field is.
+    """
+    if not 24 <= subgroup_bits <= 64:
+        raise ValueError("subgroup_bits must be in [24, 64]")
+    rng = rng or secrets.SystemRandom()
+    p = GOLDILOCKS
+    while True:
+        a = rng.randrange(p)
+        b = rng.randrange(1, p)
+        if (4 * a ** 3 + 27 * b ** 2) % p == 0:
+            continue
+        tmp = Curve(p, a, b, 0, 0, 1)
+        P = None
+        while P is None:
+            P = tmp.lift_x(rng.randrange(p))
+        N = point_order_in_hasse(p, a, b, P)
+        if N is None:
+            continue
+        cands = [f for f in set(factor(N)) if f.bit_length() == subgroup_bits]
+        if not cands:
+            continue
+        n = cands[0]
+        if n == p or any(pow(p, k, n) == 1 for k in range(1, 21)):
+            continue
+        h = N // n
+        G = tmp.mul_raw(h, P)
+        if G is None:
+            continue
+        curve = Curve(p, a, b, G[0], G[1], n)
+        if curve.mul_raw(n, G) is not None:
+            continue
+        return curve, h
+
+
+def make_subgroup_challenge(curve: Curve, h: int, seed: str) -> dict:
+    """Hash-derive G and Q in the order-n subgroup (clear the cofactor h)."""
+    def derive(label: str) -> tuple[int, int]:
+        ctr = 0
+        while True:
+            P = hash_to_point(curve.p, curve.a, curve.b, curve.n, f"{label}{ctr or ''}", seed)
+            S = Curve(curve.p, curve.a, curve.b, 0, 0, curve.n).mul_raw(h, P)
+            if S is not None:
+                return S
+            ctr += 1
+    G, Q = derive("G"), derive("Q")
+    c = Curve(curve.p, curve.a, curve.b, G[0], G[1], curve.n)
+    assert c.in_subgroup(G) and c.in_subgroup(Q)
+    return {"curve": c.to_dict(), "cofactor": hex(h), "Q": [hex(Q[0]), hex(Q[1])],
+            "seed": seed, "field": "goldilocks"}

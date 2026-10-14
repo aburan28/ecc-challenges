@@ -1,0 +1,18 @@
+{
+  "curve": {
+    "p": "0xffffffff00000001",
+    "a": "0xb00bd1d070cb7363",
+    "b": "0x699c3d9b74a2b6d1",
+    "gx": "0x56ba5b4b8ececca9",
+    "gy": "0xc3a95e4f248e75ed",
+    "n": "0x8b246a87a06a69"
+  },
+  "cofactor": "0x1d7",
+  "Q": [
+    "0x6a81ad7a9e4e9d09",
+    "0x57703db219a030a2"
+  ],
+  "seed": "ECC-challenges/v1/gl56",
+  "field": "goldilocks",
+  "name": "gl56"
+}

@@ -55,8 +55,9 @@ CREATE TABLE IF NOT EXISTS shares (
     a            TEXT NOT NULL,
     b            TEXT NOT NULL,
     checkpoints  TEXT NOT NULL,           -- JSON [[x,y],...] hex
+    proof        TEXT,                    -- base64 STARK proof (stark mode)
     credit       REAL NOT NULL,
-    status       TEXT NOT NULL CHECK (status IN ('accepted','verified','forfeited')),
+    status       TEXT NOT NULL CHECK (status IN ('accepted','challenged','verified','forfeited')),
     submitted_at REAL NOT NULL,
     UNIQUE (job_id, key_id, nonce)
 );
@@ -86,11 +87,12 @@ CREATE TABLE IF NOT EXISTS audits (
     audit_id    INTEGER PRIMARY KEY AUTOINCREMENT,
     share_id    INTEGER NOT NULL REFERENCES shares(share_id),
     key_id      TEXT NOT NULL,
-    kind        TEXT NOT NULL CHECK (kind IN ('segment','full')),
+    kind        TEXT NOT NULL CHECK (kind IN ('segment','full','proof')),
     segment     INTEGER,
     status      TEXT NOT NULL CHECK (status IN ('pending','passed','failed','skipped')),
     detail      TEXT NOT NULL DEFAULT '',
     created_at  REAL NOT NULL,
+    deadline    REAL,                    -- 'proof' challenges only
     finished_at REAL
 );
 CREATE INDEX IF NOT EXISTS audits_pending ON audits(status, audit_id);

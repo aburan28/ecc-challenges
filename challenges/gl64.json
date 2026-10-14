@@ -1,0 +1,18 @@
+{
+  "curve": {
+    "p": "0xffffffff00000001",
+    "a": "0x245f0e79ef6db565",
+    "b": "0xb9d6f72c1fa0d54c",
+    "gx": "0x1da5239cce5bfadf",
+    "gy": "0x3ac47a75a3772966",
+    "n": "0xfffffffe23acd9e9"
+  },
+  "cofactor": "0x1",
+  "Q": [
+    "0xbc2f3001a5b465fb",
+    "0x1189477d57128f6f"
+  ],
+  "seed": "ECC-challenges/v1/gl64",
+  "field": "goldilocks",
+  "name": "gl64"
+}

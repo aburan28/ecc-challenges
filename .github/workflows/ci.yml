@@ -4,13 +4,35 @@ on:
     branches: [main]
   pull_request:
 jobs:
-  test:
+  stark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: stark
+      # Release mode: debug builds refuse to prove invalid traces, which would
+      # hide the verifier-side forgery tests.
+      - run: cargo test --release --manifest-path stark/Cargo.toml
+      - run: cargo build --release --manifest-path stark/Cargo.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eccstark
+          path: stark/target/release/eccstark
+  python:
+    needs: stark
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: eccstark
+          path: bin
+      - run: chmod +x bin/eccstark && echo "ECCPOOL_STARK_BIN=$PWD/bin/eccstark" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}

@@ -34,7 +34,7 @@ class ServerConfig:
     pepper: bytes = b""
     admin_token: str = ""
     trust_proxy: bool = False
-    max_body_bytes: int = 2 * 1024 * 1024
+    max_body_bytes: int = 16 * 1024 * 1024
     ip_requests_per_minute: float = 600
     auth_failures_per_minute: float = 10
     auth_failure_burst: int = 20
@@ -57,6 +57,10 @@ class ServerConfig:
                           ("ECCPOOL_PROBATION_AUDIT_RATE", "probation_audit_rate")):
             if env in os.environ:
                 setattr(cfg.pool, attr, float(os.environ[env]))
+        if "ECCPOOL_STORE_PROOFS" in os.environ:
+            cfg.pool.store_proofs = os.environ["ECCPOOL_STORE_PROOFS"] != "0"
+        if "ECCPOOL_PROOF_DEADLINE" in os.environ:
+            cfg.pool.proof_deadline_s = float(os.environ["ECCPOOL_PROOF_DEADLINE"])
         for env, attr in (("ECCPOOL_PROBATION_SHARES", "probation_shares"),
                           ("ECCPOOL_MAX_STRIKES", "max_strikes")):
             if env in os.environ:
@@ -108,6 +112,12 @@ class JobBody(BaseModel):
     curve: dict
     Q: list[str] | None = None
     seed: str | None = Field(default=None, max_length=200)
+    verification: str = Field(default="audit", pattern="^(audit|stark|stark-challenge)$")
+    challenge_rate: float = Field(default=0.25, ge=0, le=1)
+
+
+class ProofBody(BaseModel):
+    proof: str = Field(min_length=1)
 
 
 class JobStatusBody(BaseModel):
@@ -234,6 +244,20 @@ def create_app(cfg: ServerConfig) -> FastAPI:
             result["detail"] = "batch stopped: key is no longer active"
         return result
 
+    @app.get("/v1/challenges")
+    def challenges(key: KeyRecord = Depends(require_key)):
+        """Pending proof challenges (stark-challenge jobs) for this key."""
+        return {"challenges": pool.pending_challenges(key.key_id)}
+
+    @app.post("/v1/challenges/{challenge_id}/proof")
+    def answer(challenge_id: int, body: ProofBody, key: KeyRecord = Depends(require_key)):
+        try:
+            return pool.answer_challenge(key.key_id, challenge_id, body.proof)
+        except LookupError:
+            raise HTTPException(404, "no such challenge for this key") from None
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from None
+
     # ------------------------------------------------------------- admin
     admin = [Depends(require_admin)]
 
@@ -323,7 +347,9 @@ def create_app(cfg: ServerConfig) -> FastAPI:
             else:
                 Q = (int(body.Q[0], 16), int(body.Q[1], 16))
             job_id = pool.create_job(body.name, curve, Q, body.dp_bits, body.r,
-                                     body.checkpoint_interval, body.max_walk_len)
+                                     body.checkpoint_interval, body.max_walk_len,
+                                     verification=body.verification,
+                                     challenge_rate=body.challenge_rate)
         except (ValueError, KeyError, TypeError) as e:
             raise HTTPException(400, str(e)) from None
         return pool.job_public(pool.job(job_id))

@@ -28,6 +28,9 @@ Tunables (environment):
 | `ECCPOOL_PROBATION_SHARES` | 50 | shares a new key is on probation for |
 | `ECCPOOL_PROBATION_AUDIT_RATE` | 0.5 | audit probability during probation |
 | `ECCPOOL_MAX_STRIKES` | 10 | invalid shares before suspension |
+| `ECCPOOL_STARK_BIN` | `stark/target/release/eccstark` or `$PATH` | STARK prover/verifier |
+| `ECCPOOL_STORE_PROOFS` | 1 | keep `stark` proofs (~50 KB/share) for re-verification |
+| `ECCPOOL_PROOF_DEADLINE` | 3600 | seconds to answer a `stark-challenge` challenge |
 
 ## Keys
 
@@ -51,6 +54,8 @@ What happens automatically:
 | a share fails a cheap check | strike (event `strike`) |
 | `max_strikes` strikes | key **suspended** (`key_suspended`) |
 | any audit fails | key **revoked**, all credit **forfeited** (`key_revoked`, `credit_forfeited`) |
+| `stark`: a share's proof does not verify | strike (nothing was credited) |
+| `stark-challenge`: a proof fails, or none arrives by the deadline | key **revoked**, all credit **forfeited** |
 | too many requests or shares | `429` with `Retry-After`; no sanction |
 
 Revoked and suspended keys get `403` with the reason. Repeated attempts with
@@ -63,13 +68,17 @@ Credit is in expected group operations (`2^dp_bits` per accepted share).
 and `forfeited`. **Pay with a lag**: settle credit older than a holding period
 (a day, or N further shares) so that an audit failure can still forfeit it.
 Paying instantly turns an audit rate of p into "the cheater keeps 1/p shares
-of pay before being caught".
+of pay before being caught". In `stark` jobs every credited share is
+already proven, so there is nothing to wait for and you can pay at once.
 
 ## Jobs
 
 ```sh
 eccpool gen-curve --bits 56 --seed "ECC-challenges/v1/ecc56" > challenges/ecc56.json
 eccpool job create --challenge challenges/ecc56.json --dp-bits 14
+eccpool job create --challenge challenges/gl56.json --dp-bits 14 --verification stark
+eccpool job create --challenge challenges/gl56.json --dp-bits 14 --verification stark-challenge \
+    --challenge-rate 0.25
 eccpool job pause <job_id> ; eccpool job resume <job_id>
 eccpool log collisions
 ```
