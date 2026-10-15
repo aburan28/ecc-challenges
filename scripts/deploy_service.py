@@ -112,7 +112,7 @@ def main() -> None:
     github = sm.describe_secret(SecretId="ecc-challenges/github-oauth")
     oauth = json.loads(sm.get_secret_value(SecretId=github["ARN"])["SecretString"])
     if not oauth.get("client_id") or not oauth.get("client_secret"):
-        raise RuntimeError("GitHub OAuth App secret is not populated")
+        raise RuntimeError("GitHub App client ID and client secret are not populated")
     subnets = public_subnets(session.client("ec2"), args.vpc_id)
     params = {
         "VpcId": args.vpc_id, "SubnetA": subnets[0], "SubnetB": subnets[1],
