@@ -51,11 +51,6 @@ def database(postgres_dsn):
         conn.execute("DROP TABLE IF EXISTS public.distinguished_points")
         for migration in sorted((ROOT / "sql").glob("*.sql")):
             conn.execute(migration.read_text())
-        conn.execute("""
-            CREATE TABLE public.distinguished_points(
-              campaign_id text NOT NULL,point_key bytea NOT NULL,walk_seed bytea,worker_id text NOT NULL,
-              PRIMARY KEY(campaign_id,point_key))
-        """)
     db = Database(postgres_dsn, max_size=3)
     db.open()
     yield db

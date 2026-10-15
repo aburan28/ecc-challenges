@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Install the isolated public schema and least-privilege login roles.
+"""Install the public schema and limited login roles in the chosen account.
 
-The existing campaign schema is read-only for the index role. Passwords are
-fetched from Secrets Manager and are never passed through shell arguments.
+Passwords are fetched from Secrets Manager and never passed on argv.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import boto3
@@ -30,8 +30,33 @@ def set_login(conn, name: str, password: str, limit: int) -> None:
         cursor.execute(sql.SQL("ALTER ROLE {} SET search_path TO ecc_public,public").format(sql.Identifier(name)))
 
 
+def verify_logins(args, web_password: str, worker_password: str) -> None:
+    for role, password, campaign_read, candidate_write in (
+        ("ecc_site_web", web_password, False, False),
+        ("ecc_site_worker", worker_password, True, True),
+    ):
+        with psycopg.connect(host=args.host, port=5432, dbname=args.database,
+                             user=role, password=password, sslmode="verify-full",
+                             sslrootcert=str(args.ca), connect_timeout=15) as conn:
+            actual = conn.execute("""
+                SELECT has_column_privilege(current_user,'public.distinguished_points','campaign_id','SELECT')
+                       AND has_column_privilege(current_user,'public.distinguished_points','point_key','SELECT')
+                       AND has_column_privilege(current_user,'public.distinguished_points','walk_seed','SELECT')
+                       AND has_column_privilege(current_user,'public.distinguished_points','worker_id','SELECT'),
+                       has_table_privilege(current_user,'ecc_public.candidate_points','INSERT')
+            """).fetchone()
+            if actual != (campaign_read, candidate_write):
+                raise RuntimeError(f"unexpected privileges for {role}: {actual}")
+            conn.execute("SELECT count(*) FROM ecc_public.runs").fetchone()
+            print(f"{role}: TLS login, schema, and permissions verified", flush=True)
+
+
 def bootstrap(args) -> None:
-    sm = boto3.client("secretsmanager", region_name=args.region)
+    session = boto3.Session(profile_name=args.profile, region_name=args.region)
+    actual = session.client("sts").get_caller_identity()["Account"]
+    if actual != args.account_id:
+        raise RuntimeError(f"AWS account mismatch: expected {args.account_id}, got {actual}")
+    sm = session.client("secretsmanager")
     owner = json.loads(secret(sm, args.owner_secret))
     web_password = secret(sm, args.web_password_secret)
     worker_password = secret(sm, args.worker_password_secret)
@@ -79,23 +104,29 @@ def bootstrap(args) -> None:
                     cursor.execute("ALTER ROLE ecc_site_web SET idle_in_transaction_session_timeout TO '60s'")
                     cursor.execute("ALTER ROLE ecc_site_worker SET statement_timeout TO '10min'")
                     cursor.execute("ALTER ROLE ecc_site_worker SET idle_in_transaction_session_timeout TO '15min'")
-                print("ecc_public schema and limited roles ready; campaign data unchanged")
+                print("ecc_public schema and limited roles ready", flush=True)
             finally:
                 cursor.execute("SELECT pg_advisory_unlock(710130001)")
+    verify_logins(args, web_password, worker_password)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--region", default="us-west-2")
-    parser.add_argument("--host", default="rho-dp.cxqyicswioh8.us-west-2.rds.amazonaws.com")
+    parser.add_argument("--profile", help="named AWS profile; omit when using an ECS task role")
+    parser.add_argument("--account-id", required=True, help="expected destination AWS account ID")
+    parser.add_argument("--region", default=os.getenv("AWS_REGION", "us-west-2"))
+    parser.add_argument("--host", required=True)
     parser.add_argument("--database", default="rho_dp")
-    parser.add_argument("--owner-secret", default="rho/dp-rds")
+    parser.add_argument("--owner-secret", required=True)
     parser.add_argument("--web-password-secret", default="ecc-challenges/web-db-password")
     parser.add_argument("--worker-password-secret", default="ecc-challenges/worker-db-password")
     root = Path(__file__).resolve().parents[1]
     parser.add_argument("--schema", type=Path, default=root / "sql")
     parser.add_argument("--ca", type=Path, default=root / "infra/rds-ca.pem")
-    bootstrap(parser.parse_args())
+    args = parser.parse_args()
+    if len(args.account_id) != 12 or not args.account_id.isdigit():
+        parser.error("--account-id must be 12 digits")
+    bootstrap(args)
 
 
 if __name__ == "__main__":
