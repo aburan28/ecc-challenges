@@ -14,7 +14,7 @@ Never put a secret value in chat, a shell command, a PR, or a tracked file.
   dead-letter queues, and generated application secrets.
 - The data stack: a dedicated VPC, a private encrypted Multi-AZ PostgreSQL
   instance, a versioned private S3 archive, an empty historical-point table,
-  a GitHub OAuth secret placeholder, and a one-off ECS administration task.
+  a GitHub App sign-in secret placeholder, and a one-off ECS administration task.
 - The service stack: HTTPS ALB, WAF rate rules, stateless web and queue workers,
   separate autoscaling, queue alarms, and Global Accelerator.
 
@@ -69,12 +69,24 @@ existing marker.
 
 ## 2. Configure GitHub login and TLS
 
-Create a GitHub OAuth App with homepage https://ecc-challenges.com and
-callback https://ecc-challenges.com/auth/callback. In the new account's
-Secrets Manager, update ecc-challenges/github-oauth to a JSON object with
-client_id and client_secret. The empty initial values make service deployment
-fail closed. Store the value through the AWS console or a secure local secret
-workflow.
+Use a public GitHub App for contributor sign-in, with homepage
+https://ecc-challenges.com and callback
+https://ecc-challenges.com/auth/callback. The site needs only the authenticated
+user's numeric ID and login from `GET /user`; this endpoint requires no GitHub
+App permissions. Disable the webhook unless another feature needs it, and do
+not grant repository or organization permissions for sign-in. A user can
+authorize the app without installing it. The App ID and private key are not
+used by this sign-in flow.
+
+In the new account's Secrets Manager, update `ecc-challenges/github-oauth` to
+a JSON object with `client_id` and `client_secret` from that GitHub App. Keep
+the client secret in Secrets Manager; never paste it into chat or source.
+The empty initial values make service deployment fail closed. The web flow
+does not request OAuth scopes because GitHub Apps use their configured
+permissions.
+
+GitHub documents this [sign-in flow](https://docs.github.com/en/apps/creating-github-apps/writing-code-for-a-github-app/building-a-login-with-github-button-with-a-github-app)
+and the [permission-free `GET /user` endpoint](https://docs.github.com/en/rest/users/users#get-the-authenticated-user).
 
 Request an ACM certificate in us-west-2 for ecc-challenges.com and
 www.ecc-challenges.com. Add the certificate's DNS validation CNAMEs in
