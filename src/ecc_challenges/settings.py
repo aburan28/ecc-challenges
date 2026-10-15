@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import os
+import re
 from urllib.parse import quote, urlencode, urlparse
 
 
@@ -28,6 +29,7 @@ class Settings:
     collision_queue_url: str = ""
     solver_binary: str = "/opt/ecc/ecc2k130-cpu"
     max_account_runs_lifetime: int = 64
+    public_worker_image: str = ""
 
     @classmethod
     def from_env(cls, *, web: bool = True) -> "Settings":
@@ -57,10 +59,11 @@ class Settings:
             collision_queue_url=get("COLLISION_QUEUE_URL", ""),
             solver_binary=get("SOLVER_BINARY", "/opt/ecc/ecc2k130-cpu"),
             max_account_runs_lifetime=int(get("MAX_ACCOUNT_RUNS_LIFETIME", "64")),
+            public_worker_image=get("PUBLIC_WORKER_IMAGE", ""),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
         if web:
-            required.extend(["github_client_id", "github_client_secret"])
+            required.extend(["github_client_id", "github_client_secret", "public_worker_image"])
         for name in required:
             if not getattr(result, name):
                 raise ValueError(f"{name} is required")
@@ -68,6 +71,11 @@ class Settings:
             raise ValueError("KEY_PEPPER and SESSION_SECRET need at least 32 characters")
         if not (1 <= result.run_id_start <= result.run_id_end <= 65534):
             raise ValueError("invalid 16-bit run ID range")
+        if web and not re.fullmatch(
+            r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+            result.public_worker_image,
+        ):
+            raise ValueError("PUBLIC_WORKER_IMAGE must be a pinned public worker digest")
         if result.max_account_runs_lifetime < 1:
             raise ValueError("MAX_ACCOUNT_RUNS_LIFETIME must be positive")
         parsed = urlparse(result.public_origin)

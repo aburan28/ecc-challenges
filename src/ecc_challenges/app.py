@@ -189,7 +189,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         keys = await run_in_threadpool(service.account_keys, account_id)
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": None},
+             "csrf": request.session["csrf"], "issued": None,
+             "worker_image": settings.public_worker_image},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys", response_class=HTMLResponse)
@@ -201,7 +202,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         keys = await run_in_threadpool(service.account_keys, account_id)
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": issued},
+             "csrf": request.session["csrf"], "issued": issued,
+             "worker_image": settings.public_worker_image},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys/{key_id}/revoke")

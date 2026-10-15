@@ -8,6 +8,7 @@ Parameters:
   CertificateArn: {Type: String}
   WebImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
   AuditImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
+  PublicWorkerImage: {Type: String, AllowedPattern: '^public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
   GithubSecretArn: {Type: String}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}
@@ -227,6 +228,7 @@ Resources:
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_web}
             - {Name: PUBLIC_STREAM_ID, Value: !Ref StreamId}
+            - {Name: PUBLIC_WORKER_IMAGE, Value: !Ref PublicWorkerImage}
             - {Name: AUDIT_QUEUE_URL, Value: !Ref AuditQueueUrl}
             - {Name: INDEX_QUEUE_URL, Value: !Ref IndexQueueUrl}
             - {Name: COLLISION_QUEUE_URL, Value: !Ref CollisionQueueUrl}

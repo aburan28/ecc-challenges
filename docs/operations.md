@@ -83,9 +83,18 @@ account's certificate do not establish validation for this new certificate.
 The release script checks the certificate account, region, status, and both
 hostnames.
 
-## 3. Publish service images and deploy
+## 3. Publish contributor and service images, then deploy
 
-Build and publish the web and audit images from a clean commit:
+Publish the contributor image into the new account's ECR Public registry. The
+publisher creates the repository if needed, verifies its owner, refuses an
+existing tag, and prints a pinned digest. ECR Public uses the us-east-1 API
+endpoint even when the service stack is in us-west-2.
+
+    python3 scripts/publish_public_worker.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID
+
+Pull the printed digest anonymously from a fresh Docker configuration. Use
+that digest as NEW_PUBLIC_WORKER_DIGEST below. Build and publish the web and
+audit images from the same clean commit:
 
     python3 scripts/publish_images.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID
 
@@ -96,10 +105,12 @@ The first command is a read-only plan. Replace the placeholders with the
 reported IDs, certificate ARN, and image tag:
 
     python3 scripts/deploy_service.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID \
-      --certificate-arn NEW_CERT_ARN --vpc-id NEW_VPC_ID \
+      --certificate-arn NEW_CERT_ARN --public-worker-image NEW_PUBLIC_WORKER_DIGEST \
+      --vpc-id NEW_VPC_ID \
       --bucket DATA_BUCKET --db-host DB_HOST --tag git-COMMITSHA
     python3 scripts/deploy_service.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID \
-      --certificate-arn NEW_CERT_ARN --vpc-id NEW_VPC_ID \
+      --certificate-arn NEW_CERT_ARN --public-worker-image NEW_PUBLIC_WORKER_DIGEST \
+      --vpc-id NEW_VPC_ID \
       --bucket DATA_BUCKET --db-host DB_HOST --tag git-COMMITSHA \
       --web-tasks 2 --audit-tasks 2 --index-tasks 1 \
       --reconcile-tasks 1 --resolve-tasks 1 --apply
@@ -112,11 +123,9 @@ Before routing DNS, exercise the ALB with the intended hostname and TLS SNI:
 Require healthy web targets in both zones; GitHub sign-in and key creation; a
 real NVIDIA contributor container run; first-batch exact replay; indexing of
 new public candidates; invalid-seed quarantine; and an outbox/SQS restart
-drill. Verify the contributor image can be pulled anonymously. The current
-public worker image is
-public.ecr.aws/d5a8v6s7/ecc-challenges-worker@sha256:a27f343edde5bcabcbc3fb6fdfc7c1981c831b467133d38773fdb0a357436b74.
-Republish it from the new account and update the dashboard digest before the
-fully isolated release.
+drill. Verify the contributor image can be pulled anonymously. The dashboard
+uses the same pinned public digest that the service deployer verified belongs
+to the new account.
 
 The service stack outputs two Global Accelerator IPv4 addresses and its DNS
 name. Set both apex A records in Squarespace, use the accelerator DNS name for

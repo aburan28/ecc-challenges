@@ -100,11 +100,12 @@ unverified/quarantined. Compare the measured peak to the intended GPU fleet;
 record the largest fleet that passed. The current DP32 replay throughput and
 this sustained gate are tracked in the linked problem record.
 
-## Existing database exposure
+## Database network boundary
 
-The inherited `rho-dp` security group currently permits PostgreSQL ingress
-from `0.0.0.0/0`. This service uses verified TLS and new restricted roles, but
-that inherited rule is still a production exposure. Removing it requires an
-inventory of the existing ingesters' source addresses or a private networking
-migration so the ongoing campaign is not cut off. The public site must not
-use the existing owner credential.
+The public service uses a private RDS instance in its dedicated AWS account
+and VPC. PostgreSQL ingress is limited to that VPC's CIDR, and both service
+roles use verified TLS and limited SQL privileges. The original campaign's
+`rho-dp` security group is outside this platform and remains a separate
+legacy exposure; it should be narrowed through a coordinated inventory of
+its existing ingesters. The public service has no network route or credential
+to that owner database.
