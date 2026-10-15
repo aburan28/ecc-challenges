@@ -10,7 +10,7 @@ from test_pool import drain_audits, linear_sweep_shares, submit
 
 from eccpool.ec import Curve
 from eccpool.stark import StarkEngine, find_binary
-from eccpool.walk import run_walk
+from eccpool.walk import replay_segment, run_walk
 from eccpool.worker import Client, answer_challenges, share_json, spec_from_job
 
 pytestmark = pytest.mark.skipif(find_binary() is None, reason="eccstark binary not built")
@@ -163,15 +163,31 @@ def test_challenge_mode_cheater_is_revoked(make_app, eng):
     job = make_job(c, "stark-challenge", 4321, challenge_rate=1.0)
     spec = spec_from_job(job)
     honest = native_shares(eng, job, token, 2)
-    fakes = linear_sweep_shares(job, 3)
+    # A fabricated checkpoint can itself lead to an early DP. In that case
+    # the honest segment cannot be proven, so choose a fake for which every
+    # possible challenge segment has a valid proof and a wrong claimed end.
+    for _ in range(64):
+        share = linear_sweep_shares(job, 1)[0]
+        _, _, start = spec.start(key_id, share["nonce"])
+        if start is None:
+            continue
+        anchors = [start] + [(int(x, 16), int(y, 16)) for x, y in share["checkpoints"]]
+        claimed_ends = anchors[1:] + [tuple(int(v, 16) for v in share["dp"])]
+        for segment, claimed_end in enumerate(claimed_ends):
+            first, last_step = spec.segment_bounds(share["length"], segment)
+            actual_end, error = replay_segment(spec, anchors[segment], last_step - first, False)
+            if error is not None or actual_end == claimed_end:
+                break
+        else:
+            break
+    else:
+        pytest.fail("could not construct a provable fake challenge in 64 attempts")
+    fakes = [share] + linear_sweep_shares(job, 2)
     res = submit(c, h, job["job_id"], honest + fakes).json()["results"]
     assert all(x["status"] == "accepted" for x in res)
     fake_ch = [x["challenge"] for x in res[2:]][0]
     # The best a cheater can do: prove the honest walk from the challenged
     # anchor. It does not land on the submitted checkpoint, so it fails.
-    share = fakes[0]
-    _, _, start = spec.start(key_id, share["nonce"])
-    anchors = [start] + [(int(x, 16), int(y, 16)) for x, y in share["checkpoints"]]
     seg = fake_ch["segment"]
     last = seg == spec.n_segments(share["length"]) - 1
     _, proof = eng.prove(spec, anchors[seg], fake_ch["to_step"] - fake_ch["from_step"], False)
