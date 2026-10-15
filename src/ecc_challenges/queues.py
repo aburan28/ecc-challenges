@@ -341,16 +341,33 @@ class QueueWorker:
                                "--max-iters", "4294967296"]
                     proc = subprocess.run(command, capture_output=True, timeout=timeout_seconds, check=False)
                 output = (proc.stdout + proc.stderr).decode(errors="replace")
-                scalar = next((line[4:].strip() for line in output.splitlines()
+                scalar = next((line.strip()[4:].strip() for line in output.splitlines()
                                if line.strip().startswith("k = ")), None)
-                verified = (proc.returncode == 0 and scalar is not None and
-                            "verified [k]P == Q" in output and
-                            "matches the published solution: NO" not in output)
+                host_verified = (proc.returncode == 0 and scalar is not None and
+                                 "verified [k]P == Q" in output and
+                                 "matches the published solution: NO" not in output)
                 receipt["solver"] = {"argv": [*command[:command.index("--load") + 1], "<sealed-pair>",
                                              *command[command.index("--load") + 2:]],
                                      "returncode": proc.returncode, "stdout": proc.stdout.decode(errors="replace"),
                                      "stderr": proc.stderr.decode(errors="replace"),
-                                     "scalar": scalar, "verified": verified}
+                                     "scalar": scalar, "host_verified": host_verified, "verified": False}
+                if host_verified:
+                    independent = subprocess.run([self.settings.replay_binary, "--verify-scalar"],
+                                                 input=(scalar + "\n").encode(), capture_output=True,
+                                                 timeout=120, check=False)
+                    try:
+                        scalar_match = (independent.returncode == 0 and
+                                        json.loads(independent.stdout).get("scalar_match") is True)
+                    except (ValueError, TypeError):
+                        scalar_match = False
+                    receipt["independent_scalar"] = {
+                        "source_sha256": self.verifier_sha, "returncode": independent.returncode,
+                        "stdout": independent.stdout.decode(errors="replace"),
+                        "stderr": independent.stderr.decode(errors="replace"),
+                        "match": scalar_match,
+                    }
+                    receipt["solver"]["verified"] = scalar_match
+                verified = receipt["solver"]["verified"]
                 state = "verified" if verified else "unverified"
         except subprocess.TimeoutExpired as exc:
             receipt["error"] = {"kind": "timeout", "program": str(exc.cmd)}

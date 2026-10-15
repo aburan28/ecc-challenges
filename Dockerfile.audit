@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS verifier-build
+FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS verifier-build
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   ca-certificates make g++ gcc && rm -rf /var/lib/apt/lists/*
 COPY vendor/cryptanalysis/ /src/cryptanalysis/
@@ -12,13 +12,14 @@ RUN cd /src/cryptanalysis/ecc2k130 && make test \
        -I/src/cryptanalysis/ecc2k130/src /src/replay.cpp /src/model.o -o /src/replay
 RUN cd /src/crypto/ecc2k130 && make cpu MARCH=x86-64 && ./ecc2k130-cpu --test
 
-FROM python:3.12-slim-bookworm
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+FROM python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app/src
 WORKDIR /app
-COPY pyproject.toml /app/
+COPY requirements.lock /app/
 COPY src/ /app/src/
 COPY infra/rds-ca.pem /app/rds-ca.pem
-RUN pip install --no-cache-dir . && useradd --uid 10001 --create-home --shell /usr/sbin/nologin ecc
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock \
+  && useradd --uid 10001 --create-home --shell /usr/sbin/nologin ecc
 COPY --from=verifier-build /src/replay /opt/ecc/replay
 COPY --from=verifier-build /src/crypto/ecc2k130/ecc2k130-cpu /opt/ecc/ecc2k130-cpu
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgomp1 \

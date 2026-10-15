@@ -57,8 +57,9 @@ All public points are kept in `ecc_public.candidate_points`, separate from the
 existing campaign's authoritative table. A failed later replay suspends the
 run, revokes its key, disqualifies already indexed candidate points, and
 quarantines its leads. A collision lead triggers exact replay of both trails
-and a pinned host solver; only a scalar independently checked against the
-challenge points is a verified result.
+and a pinned host solver; a separate golden-model multiplication must also
+check the reported scalar against the challenge points before a lead is
+marked verified.
 
 These checks contain abuse and preserve evidence, but sparse random sampling
 cannot certify every point in a batch. Quotas, queue backpressure, operator

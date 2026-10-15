@@ -132,6 +132,24 @@ def test_outbox_repairs_send_failure(database, aws_resources, settings):
     assert len(sqs.receive_message(QueueUrl=audit).get("Messages", [])) == 1
 
 
+def test_full_pressure_shard_rejects_before_archival(database, aws_resources, settings):
+    storage, _, _, _, _ = aws_resources
+    service = Service(database, storage, replace(settings, max_pending_batches=16))
+    _, key = account(service)
+    run_id = service.register(key, str(uuid.uuid4()))["run_id"]
+    service.upload_batch(key, run_id, 0, record(run_id, 0))
+    with pytest.raises(Rejected) as error:
+        service.upload_batch(key, run_id, 32, record(run_id, 1))
+    assert error.value.status == 503 and error.value.retry_after == 60
+    with database.connection() as conn:
+        assert conn.execute("SELECT cursor FROM ecc_public.runs WHERE run_id=%s", (run_id,)).fetchone()["cursor"] == 32
+        assert conn.execute("SELECT pending_batches FROM ecc_public.pressure_shards WHERE shard=%s",
+                            (run_id % 16,)).fetchone()["pending_batches"] == 1
+    keys = storage.s3.list_objects_v2(Bucket=settings.bucket,
+                Prefix=f"public-gateway/{settings.stream_id}/runs/{run_id:05d}/batches/")
+    assert keys["KeyCount"] == 1
+
+
 def test_later_failed_replay_quarantines_already_indexed_points(database, aws_resources, settings, tmp_path):
     storage, sqs, _, _, _ = aws_resources
     service = Service(database, storage, settings)
@@ -176,7 +194,7 @@ def test_collision_lead_requires_solver_verification(database, aws_resources, se
     replay.write_text("#!/bin/sh\ncat >/dev/null\necho '{\"match\":true}'\n")
     replay.chmod(0o700)
     solver = tmp_path / "solver"
-    solver.write_text("#!/bin/sh\nprintf 'k = 7\\n'\n")
+    solver.write_text("#!/bin/sh\nprintf '  k = 7\\n  verified [k]P == Q\\n'\n")
     solver.chmod(0o700)
     worker = QueueWorker(database, storage, replace(settings, replay_binary=str(replay),
                                                     solver_binary=str(solver)), sqs)
@@ -192,6 +210,7 @@ def test_collision_lead_requires_solver_verification(database, aws_resources, se
                               (lead,)).fetchone()
     assert result["replay_state"] == "unverified"
     receipt = storage.get(result["result_key"])
+    assert b'"host_verified": true' in receipt
     assert b'"verified": false' in receipt
 
 

@@ -198,16 +198,26 @@ class Service:
                 raise Rejected(409, "offset already holds different bytes")
             if offset != run["cursor"]:
                 raise Rejected(409, "offset does not equal server cursor")
+            shard = run_id % 16
+            shard_limit = max(1, self.settings.max_pending_batches // 16)
+            pressure = conn.execute("""
+                SELECT pending_batches FROM ecc_public.pressure_shards WHERE shard=%s
+            """, (shard,)).fetchone()
+            if not pressure or pressure["pending_batches"] >= shard_limit:
+                raise Rejected(503, "verification backlog is full; pause and retry", 60)
+            self._charge_daily_bytes(conn, key, len(data))
+            # The per-run lock serializes offsets. Do not lock the shared pressure
+            # shard across network I/O: that would serialize unrelated runs.
+            self.storage.put_immutable(object_key, data)
             pressure = conn.execute("""
                 UPDATE ecc_public.pressure_shards
                 SET pending_batches=pending_batches+1,pending_bytes=pending_bytes+%s
                 WHERE shard=%s AND pending_batches < %s RETURNING shard
-            """, (len(data), run_id % 16, max(1, self.settings.max_pending_batches // 16))).fetchone()
+            """, (len(data), shard, shard_limit)).fetchone()
             if not pressure:
+                # A concurrent upload filled the shard after the preflight.
+                # The immutable S3 object can be reused by an exact retry.
                 raise Rejected(503, "verification backlog is full; pause and retry", 60)
-            self._charge_daily_bytes(conn, key, len(data))
-            # Holding the per-run row lock across one bounded S3 PUT serializes offsets.
-            self.storage.put_immutable(object_key, data)
             row = conn.execute("""
                 INSERT INTO ecc_public.batches(run_id,byte_offset,byte_length,records,sha256,object_key)
                 VALUES (%s,%s,%s,%s,%s,%s) RETURNING id

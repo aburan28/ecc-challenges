@@ -15,7 +15,7 @@ candidates, while the existing ECC2K S3 bucket holds the immutable raw batches.
 | Run ID | Existing S3 seed registry uses conditional create | Seed namespace is reserved before assignment |
 | DP upload | 1 MiB body maximum, structural checks, cursor lock, immutable checksum S3 write | Bytes are durably archived, not mathematically validated |
 | Replay | Post-seal random selection; first batch mandatory; exact pinned host walk | Sampled record either matches, fails, or stays unverified |
-| Collision | Both trails replayed, pinned host scalar solver, result receipt in S3 | A verified scalar requires the host solver's `[k]P == Q` check |
+| Collision | Both trails replayed, pinned host scalar solver, separate golden-model scalar multiplication, result receipt in S3 | A verified scalar requires both independent point checks |
 
 The WAF blocks more than 10,000 requests per 5 minutes from one IP, and more
 than 300 per 5 minutes for authentication or key routes. The application has
@@ -51,6 +51,12 @@ delivery may repeat, so audit, index, and resolve workers use durable status
 rows and unique constraints. Audit, index, and collision each have their own
 queue and dead-letter queue. Audit and indexing scale independently, avoiding
 large DP joins on the HTTP request path.
+
+Admission checks whether a pressure shard is full before the S3 write, then
+atomically increments its count after the bounded write. The shard row is not
+locked across S3 network I/O, so unrelated runs can upload concurrently. If
+another upload fills it between those checks, the request returns `503`; its
+write-once object can be reused by an exact retry after capacity clears.
 
 The candidate index has 32 hash partitions on the 24-byte orbit key. Each
 index task bulk copies one sealed batch into a temporary table, joins that

@@ -6,7 +6,7 @@
 {% if issued %}<div class="card" role="alert" style="border-color:var(--gold);margin:28px 0"><h3>Copy this key now</h3><p class="muted">It is shown only once. Store it as a local file with mode 0600 and mount it read-only into the container.</p><div class="code secret">{{ issued }}</div></div>{% endif %}
 <div class="stack" style="margin-top:40px">
   <section class="card"><h2>Create an API key</h2><p class="muted">Up to three active keys per GitHub account.</p><form method="post" action="/keys"><input type="hidden" name="csrf" value="{{ csrf }}"><label for="label">Key name</label><input id="label" name="label" type="text" maxlength="80" required placeholder="My GPU workstation"><p style="margin-top:18px"><button class="button" type="submit">Generate key</button></p></form></section>
-  <section class="card"><h2>Run a worker</h2><p class="muted">Save the key as <code>~/.config/ecc-challenges/api-key</code> with mode 0600. Create a persistent data directory for each GPU. The published image digest will be shown here after the release build.</p><div class="code">mkdir -p "$PWD/ecc-data"
+  <section class="card"><h2>Run a worker</h2><p class="muted">Save the key as <code>~/.config/ecc-challenges/api-key</code> with mode 0600. Create a persistent data directory for each GPU. Pin the immutable image digest from the published container package for a long-running worker.</p><div class="code">mkdir -p "$PWD/ecc-data"
 docker run --gpus all --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_API_URL=https://ecc-challenges.com \
