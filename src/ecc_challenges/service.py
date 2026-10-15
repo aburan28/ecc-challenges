@@ -134,10 +134,14 @@ class Service:
             """, (key["account_id"],)).fetchone()
             if not account:
                 raise Rejected(401, "account unavailable")
-            active = conn.execute("""
-                SELECT count(*) AS n FROM ecc_public.runs WHERE account_id=%s AND suspended_at IS NULL
-            """, (key["account_id"],)).fetchone()["n"]
-            if active >= 8:
+            run_counts = conn.execute("""
+                SELECT count(*) AS lifetime,
+                       count(*) FILTER (WHERE suspended_at IS NULL) AS active
+                FROM ecc_public.runs WHERE account_id=%s
+            """, (key["account_id"],)).fetchone()
+            if run_counts["lifetime"] >= self.settings.max_account_runs_lifetime:
+                raise Rejected(429, "account lifetime run ID limit reached")
+            if run_counts["active"] >= 8:
                 raise Rejected(429, "account run limit reached")
             for _ in range(self.settings.run_id_end - self.settings.run_id_start + 1):
                 try:

@@ -54,6 +54,22 @@ def test_key_registration_and_revocation(database, aws_resources, settings):
         service.run_status(key, first)
 
 
+def test_lifetime_run_limit_preserves_finite_seed_namespace(database, aws_resources, settings):
+    storage, _, _, _, _ = aws_resources
+    service = Service(database, storage, replace(settings, max_account_runs_lifetime=2))
+    _, key = account(service)
+    first = service.register(key, str(uuid.uuid4()))["run_id"]
+    second = service.register(key, str(uuid.uuid4()))["run_id"]
+    with database.connection() as conn:
+        conn.execute("UPDATE ecc_public.runs SET suspended_at=now() WHERE run_id=%s", (first,))
+    with pytest.raises(Rejected) as error:
+        service.register(key, str(uuid.uuid4()))
+    assert error.value.status == 429
+    with database.connection() as conn:
+        assert conn.execute("SELECT count(*) AS n FROM ecc_public.runs").fetchone()["n"] == 2
+    assert second == first + 1
+
+
 def test_upload_idempotency_quarantine_and_failed_replay(database, aws_resources, settings, tmp_path):
     storage, sqs, _, _, _ = aws_resources
     service = Service(database, storage, settings)

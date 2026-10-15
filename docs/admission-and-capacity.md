@@ -20,8 +20,7 @@ candidates, while the existing ECC2K S3 bucket holds the immutable raw batches.
 The WAF blocks more than 10,000 requests per 5 minutes from one IP, and more
 than 300 per 5 minutes for authentication or key routes. The application has
 a 240-token per-key burst bucket refilling 4 tokens/s; a 1 MiB DP upload costs 16
-tokens. A key is limited to 5 GiB/day across DP batches and checkpoints, and an account to three active keys and
-eight active runs. The pending batch counter is sharded 16 ways and admission
+tokens. A key is limited to 5 GiB/day across DP batches and checkpoints, and an account to three active keys, eight active runs, and 64 lifetime run IDs. The pending batch counter is sharded 16 ways and admission
 returns `503` with `Retry-After` when the configured backlog bound is hit.
 The contributor sends a remote checkpoint at most every 15 minutes by default
 and pauses its GPU when the local spool fills rather than discarding unsent
@@ -37,7 +36,9 @@ temporarily close admission if those diverge from the measured plan.
 
 The current public run allocation is `50000..65534`, or 15,535 unique run
 IDs over the lifetime of this campaign. IDs are never recycled because the
-seed is `(run_id << 48) | local_counter`. A larger contributor population
+seed is `(run_id << 48) | local_counter`. The lifetime account cap limits one
+account's ability to consume that finite namespace; operators can adjust it
+after reviewing contributor needs and remaining IDs. A larger contributor population
 needs a registry audit for additional unused IDs or a new campaign/seed
 format; autoscaling HTTP tasks cannot expand this namespace.
 

@@ -27,6 +27,7 @@ class Settings:
     max_key_bytes_per_day: int
     collision_queue_url: str = ""
     solver_binary: str = "/opt/ecc/ecc2k130-cpu"
+    max_account_runs_lifetime: int = 64
 
     @classmethod
     def from_env(cls, *, web: bool = True) -> "Settings":
@@ -55,6 +56,7 @@ class Settings:
             max_key_bytes_per_day=int(get("MAX_KEY_BYTES_PER_DAY", str(5 * 1024**3))),
             collision_queue_url=get("COLLISION_QUEUE_URL", ""),
             solver_binary=get("SOLVER_BINARY", "/opt/ecc/ecc2k130-cpu"),
+            max_account_runs_lifetime=int(get("MAX_ACCOUNT_RUNS_LIFETIME", "64")),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
         if web:
@@ -66,6 +68,8 @@ class Settings:
             raise ValueError("KEY_PEPPER and SESSION_SECRET need at least 32 characters")
         if not (1 <= result.run_id_start <= result.run_id_end <= 65534):
             raise ValueError("invalid 16-bit run ID range")
+        if result.max_account_runs_lifetime < 1:
+            raise ValueError("MAX_ACCOUNT_RUNS_LIFETIME must be positive")
         parsed = urlparse(result.public_origin)
         if parsed.scheme != "https" or parsed.path not in ("", "/") or parsed.query:
             raise ValueError("PUBLIC_ORIGIN must be an HTTPS origin")
