@@ -15,10 +15,6 @@ import subprocess
 import boto3
 
 
-ACCOUNT = "590183823895"
-CERT = "arn:aws:acm:us-west-2:590183823895:certificate/d516b1ba-587a-40fc-98d0-22374795bdb3"
-
-
 def outputs(cfn, stack: str) -> dict[str, str]:
     row = cfn.describe_stacks(StackName=stack)["Stacks"][0]
     if row["StackStatus"] not in ("CREATE_COMPLETE", "UPDATE_COMPLETE"):
@@ -26,9 +22,9 @@ def outputs(cfn, stack: str) -> dict[str, str]:
     return {entry["OutputKey"]: entry["OutputValue"] for entry in row["Outputs"]}
 
 
-def image_uri(ecr, repo: str, tag: str) -> str:
+def image_uri(ecr, account: str, region: str, repo: str, tag: str) -> str:
     image = ecr.describe_images(repositoryName=repo, imageIds=[{"imageTag": tag}])["imageDetails"][0]
-    return f"{ACCOUNT}.dkr.ecr.us-west-2.amazonaws.com/{repo}@{image['imageDigest']}"
+    return f"{account}.dkr.ecr.{region}.amazonaws.com/{repo}@{image['imageDigest']}"
 
 
 def public_subnets(ec2, vpc: str) -> tuple[str, str]:
@@ -44,6 +40,14 @@ def public_subnets(ec2, vpc: str) -> tuple[str, str]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", required=True, help="AWS CLI profile for the destination account")
+    parser.add_argument("--account-id", required=True, help="expected 12-digit destination AWS account ID")
+    parser.add_argument("--region", default="us-west-2")
+    parser.add_argument("--certificate-arn", required=True)
+    parser.add_argument("--vpc-id", required=True, help="destination account VPC for the ALB and ECS tasks")
+    parser.add_argument("--db-host", required=True, help="PostgreSQL hostname reachable from the destination VPC")
+    parser.add_argument("--db-name", default="rho_dp")
+    parser.add_argument("--bucket", required=True, help="S3 bucket accessible to the destination ECS roles")
     parser.add_argument("--tag", required=True, help="immutable ECR tag shared by web and audit images")
     parser.add_argument("--web-tasks", type=int, default=0)
     parser.add_argument("--audit-tasks", type=int, default=0)
@@ -52,31 +56,35 @@ def main() -> None:
     parser.add_argument("--resolve-tasks", type=int, default=0)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
+    if len(args.account_id) != 12 or not args.account_id.isdigit():
+        parser.error("--account-id must be 12 digits")
+    cert_prefix = f"arn:aws:acm:{args.region}:{args.account_id}:certificate/"
+    if not args.certificate_arn.startswith(cert_prefix):
+        parser.error("--certificate-arn must belong to the destination account and region")
     if any(n < 0 for n in (args.web_tasks, args.audit_tasks, args.index_tasks,
                           args.reconcile_tasks, args.resolve_tasks)):
         parser.error("task counts must be nonnegative")
-    session = boto3.Session(region_name="us-west-2")
+    session = boto3.Session(profile_name=args.profile, region_name=args.region)
     actual_account = session.client("sts").get_caller_identity()["Account"]
-    if actual_account != ACCOUNT:
-        raise RuntimeError(f"AWS account mismatch: expected {ACCOUNT}, got {actual_account}")
+    if actual_account != args.account_id:
+        raise RuntimeError(f"AWS account mismatch: expected {args.account_id}, got {actual_account}")
     cfn, ecr, acm, sm = (session.client(name) for name in
                          ("cloudformation", "ecr", "acm", "secretsmanager"))
     foundation = outputs(cfn, "ecc-challenges-foundation")
-    certificate = acm.describe_certificate(CertificateArn=CERT)["Certificate"]
+    certificate = acm.describe_certificate(CertificateArn=args.certificate_arn)["Certificate"]
     if certificate["Status"] != "ISSUED":
         raise RuntimeError(f"TLS certificate is {certificate['Status']}; add the ACM CNAMEs in Squarespace")
     github = sm.describe_secret(SecretId="ecc-challenges/github-oauth")
     oauth = json.loads(sm.get_secret_value(SecretId=github["ARN"])["SecretString"])
     if not oauth.get("client_id") or not oauth.get("client_secret"):
         raise RuntimeError("GitHub OAuth App secret is not populated")
-    rds = session.client("rds").describe_db_instances(DBInstanceIdentifier="rho-dp")["DBInstances"][0]
-    vpc = rds["DBSubnetGroup"]["VpcId"]
-    subnets = public_subnets(session.client("ec2"), vpc)
+    subnets = public_subnets(session.client("ec2"), args.vpc_id)
     params = {
-        "VpcId": vpc, "SubnetA": subnets[0], "SubnetB": subnets[1],
-        "CertificateArn": CERT,
-        "WebImageUri": image_uri(ecr, "ecc-challenges-web", args.tag),
-        "AuditImageUri": image_uri(ecr, "ecc-challenges-audit", args.tag),
+        "VpcId": args.vpc_id, "SubnetA": subnets[0], "SubnetB": subnets[1],
+        "CertificateArn": args.certificate_arn,
+        "Bucket": args.bucket, "DbHost": args.db_host, "DbName": args.db_name,
+        "WebImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-web", args.tag),
+        "AuditImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-audit", args.tag),
         "GithubSecretArn": github["ARN"],
         "WebPasswordArn": foundation["WebPasswordArn"],
         "WorkerPasswordArn": foundation["WorkerPasswordArn"],
@@ -94,14 +102,15 @@ def main() -> None:
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},
-                      "vpc": vpc, "subnets": subnets,
+                      "vpc": args.vpc_id, "subnets": subnets,
+                      "bucket": args.bucket, "db_host": args.db_host, "db_name": args.db_name,
                       "tasks": {key: params[key] for key in
                                 ("WebTasks", "AuditTasks", "IndexTasks", "ReconcileTasks", "ResolveTasks")},
                       "mode": "apply" if args.apply else "plan"}, indent=2))
     if not args.apply:
         return
     root = Path(__file__).resolve().parents[1]
-    subprocess.run(["aws", "cloudformation", "deploy", "--region", "us-west-2",
+    subprocess.run(["aws", "--profile", args.profile, "cloudformation", "deploy", "--region", args.region,
                     "--stack-name", "ecc-challenges-service",
                     "--template-file", str(root / "infra/service.yaml"),
                     "--capabilities", "CAPABILITY_IAM", "--no-fail-on-empty-changeset",

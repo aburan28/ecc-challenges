@@ -1,40 +1,44 @@
 # Operations and release sequence
 
-The live AWS account is `590183823895` in `us-west-2`. Squarespace owns
-`ecc-challenges.com` DNS. The existing RDS database is `rho_dp`; this project
-adds only `ecc_public` and two limited login roles. The existing bucket is
-`ecc2k130-590183823895`. Do not use the owner credential in ECS or expose S3
-permissions to contributor containers.
+The original campaign AWS account is `590183823895` in `us-west-2`.
+Squarespace owns `ecc-challenges.com` DNS. The existing RDS database is
+`rho_dp`; this project added `ecc_public` and two limited login roles there.
+The existing bucket is `ecc2k130-590183823895`. A separate AWS account is
+being prepared for the public service. Deployment commands require an explicit
+profile and expected account ID to avoid writing into the original account.
+Do not use the database owner credential in ECS or expose S3 permissions to
+contributor containers.
 
 ## Existing foundation
 
-`ecc-challenges-foundation` creates immutable private ECR repositories for
-web, audit, and worker images; audit, index, and collision SQS queues with
+In the original account, `ecc-challenges-foundation` creates immutable private
+ECR repositories for web, audit, and worker images; audit, index, and collision SQS queues with
 dead-letter queues; and generated Secrets Manager values for the two DB roles,
 key pepper, and browser session. Apply additive changes with:
 
 ```sh
-aws cloudformation deploy --region us-west-2 \
+aws --profile ecc2k130 cloudformation deploy --region us-west-2 \
   --stack-name ecc-challenges-foundation \
   --template-file infra/foundation.yaml
 python3 scripts/bootstrap_db.py
 python3 scripts/verify_db.py
 ```
 
-The bootstrap uses the existing `rho/dp-rds` owner secret locally to create
-the isolated schema and permissions. That secret is never placed in an ECS
+The bootstrap above is for the original account. It uses the existing
+`rho/dp-rds` owner secret locally to create the isolated schema and
+permissions. That secret is never placed in an ECS
 task. Re-run the bootstrap for new additive `sql/*.sql` migrations; keep old
 records and migrations as evidence of what changed.
 
 ## GitHub login and certificate
 
 Create a GitHub OAuth App with homepage `https://ecc-challenges.com` and
-callback `https://ecc-challenges.com/auth/callback`. In AWS Secrets Manager,
-update `ecc-challenges/github-oauth` to JSON with `client_id` and
+callback `https://ecc-challenges.com/auth/callback`. In the destination
+account's AWS Secrets Manager, update `ecc-challenges/github-oauth` to JSON with `client_id` and
 `client_secret`. The empty initial values make the web service fail closed.
 Do not paste the secret into chat, a shell command, a PR, or a tracked file.
 
-ACM certificate
+The original account ACM certificate
 `arn:aws:acm:us-west-2:590183823895:certificate/d516b1ba-587a-40fc-98d0-22374795bdb3`
 covers the apex and `www`. Add these DNS validation records in Squarespace:
 
@@ -43,9 +47,43 @@ covers the apex and `www`. Add these DNS validation records in Squarespace:
 | `_5276696078578ee4855b2e8460af895b` | `_39af90b8edc1eca47f9ada28606cd561.wzccmgtwzk.acm-validations.aws` |
 | `_ecb4037c360a879bbc3d000db05756a8.www` | `_f8386b6f78fb605f16989025eb003b8c.wzccmgtwzk.acm-validations.aws` |
 
-Wait until `aws acm describe-certificate --certificate-arn ...` reports
-`ISSUED`. Keep these CNAMEs for renewal. The release script refuses a pending
-certificate or empty OAuth secret.
+Keep these CNAMEs for renewal. The new account needs its own ACM certificate
+and validation CNAMEs before its ALB can serve the domain. The release script
+refuses a pending certificate or empty OAuth secret in the destination account.
+
+## Dedicated AWS account migration
+
+The destination account will own the public database and its historical point
+index. The original `public.distinguished_points` table has approximately 524
+million rows and occupies about 180 GB including indexes (read-only catalog
+estimate, 2026-10-14). Collision lookup needs `campaign_id`, `point_key`,
+`walk_seed`, and `worker_id`; a purpose-built imported projection can avoid
+copying the unused source columns and secondary indexes. The importer must
+preserve the original values, resume at a documented boundary, and record
+source/destination counts and content digests per shard. A final catch-up or
+bounded ingest pause is required if the original campaign keeps adding rows
+while the snapshot moves. The public index workers must stay stopped until
+that reconciliation passes. The original RDS VPC uses `172.31.0.0/16`; a
+private migration path from the original account needs non-overlapping VPCs.
+The new database, importer, and reconciliation are separate deployment work;
+the service template alone does not create or verify them.
+
+Use a fresh named AWS profile. Never pass access keys as CLI arguments or put
+them in this repository. Request an ACM certificate for the apex and `www` in
+the destination account and region, then add its validation CNAMEs in
+Squarespace. Create the GitHub OAuth App and populate
+`ecc-challenges/github-oauth` in the destination account.
+Verify `aws --profile NEW_PROFILE sts get-caller-identity` reports
+`NEW_ACCOUNT_ID` before creating the destination foundation stack:
+
+```sh
+aws --profile NEW_PROFILE cloudformation deploy --region us-west-2 \
+  --stack-name ecc-challenges-foundation \
+  --template-file infra/foundation.yaml
+```
+
+The destination account's generated database passwords must be applied to its
+own limited database roles before starting the ECS services.
 
 ## Publish and deploy
 
@@ -62,9 +100,13 @@ to make the mirror public. Local image publication requires Docker Desktop or
 another Linux amd64 build host and a clean commit:
 
 ```sh
-python3 scripts/publish_images.py
-python3 scripts/deploy_service.py --tag git-COMMITSHA
-python3 scripts/deploy_service.py --tag git-COMMITSHA --web-tasks 2 \
+python3 scripts/publish_images.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID
+python3 scripts/deploy_service.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID \
+  --certificate-arn NEW_CERT_ARN --vpc-id NEW_VPC_ID \
+  --bucket DATA_BUCKET --db-host DB_HOST --tag git-COMMITSHA
+python3 scripts/deploy_service.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID \
+  --certificate-arn NEW_CERT_ARN --vpc-id NEW_VPC_ID \
+  --bucket DATA_BUCKET --db-host DB_HOST --tag git-COMMITSHA --web-tasks 2 \
   --audit-tasks 2 --index-tasks 1 --reconcile-tasks 1 --resolve-tasks 1 --apply
 ```
 
@@ -72,8 +114,8 @@ Replace `git-COMMITSHA` with the 12-character tag printed by the publish
 script. The service stack creates the HTTPS ALB, WAF rules, ECS services,
 separate autoscaling for web/audit/index/resolve, queue alarms, and Global
 Accelerator. Web and audit image references are immutable ECR digests. The
-first command plans and validates prerequisites; `--apply` makes the AWS
-change. Use the output `AcceleratorIpv4Addresses` for the Squarespace apex
+first `deploy_service.py` command plans and validates prerequisites; `--apply`
+makes the AWS change. Use the output `AcceleratorIpv4Addresses` for the Squarespace apex
 `A` records (both addresses), and `AcceleratorDns` for the `www` CNAME.
 Remove any conflicting Squarespace default A/AAAA/CNAME records when routing
 the domain. The Global Accelerator addresses remain stable across ALB changes.

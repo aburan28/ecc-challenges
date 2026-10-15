@@ -20,8 +20,8 @@ Parameters:
   CollisionQueueArn: {Type: String}
   CollisionQueueUrl: {Type: String}
   DomainName: {Type: String, Default: ecc-challenges.com}
-  Bucket: {Type: String, Default: ecc2k130-590183823895}
-  DbHost: {Type: String, Default: rho-dp.cxqyicswioh8.us-west-2.rds.amazonaws.com}
+  Bucket: {Type: String}
+  DbHost: {Type: String}
   DbName: {Type: String, Default: rho_dp}
   StreamId: {Type: String, Default: ecc-challenges-v1}
   WebTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
