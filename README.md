@@ -30,9 +30,9 @@ flowchart LR
 1. Open `https://ecc-challenges.com`, sign in with GitHub, and create an API key.
    The complete key appears once. Save it in
    `~/.config/ecc-challenges/api-key` with mode `0600`.
-2. Create a persistent local data directory. Give each GPU a separate one;
-   never restart a run with a fresh directory while its earlier seed range is
-   active.
+2. Set `GPU_ID` to the device index for this container and create a persistent
+   local data directory for it. Give each GPU a distinct directory; never
+   restart a run with a fresh directory while its earlier seed range is active.
 3. Run the command shown on the dashboard. On Linux, install the NVIDIA
    Container Toolkit so Docker's `--gpus all` can expose the card. The worker
    keeps its run identity and checkpoint in the mounted data directory.
