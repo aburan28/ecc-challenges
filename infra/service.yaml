@@ -531,6 +531,19 @@ Resources:
       Threshold: 3600
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+  IndexAgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ecc-challenges-index-oldest-over-15-minutes
+      Namespace: AWS/SQS
+      MetricName: ApproximateAgeOfOldestMessage
+      Dimensions: [{Name: QueueName, Value: ecc-challenges-index}]
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 900
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
   AuditDeadAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
