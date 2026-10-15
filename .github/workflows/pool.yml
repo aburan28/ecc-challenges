@@ -1,8 +1,13 @@
-name: ci
+name: pool
 on:
   push:
     branches: [main]
+    paths: ["pool/**", ".github/workflows/pool.yml"]
   pull_request:
+    paths: ["pool/**", ".github/workflows/pool.yml"]
+defaults:
+  run:
+    working-directory: pool
 jobs:
   stark:
     runs-on: ubuntu-latest
@@ -11,7 +16,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: stark
+          workspaces: pool/stark
       # Release mode: debug builds refuse to prove invalid traces, which would
       # hide the verifier-side forgery tests.
       - run: cargo test --release --manifest-path stark/Cargo.toml
@@ -19,7 +24,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: eccstark
-          path: stark/target/release/eccstark
+          path: pool/stark/target/release/eccstark
   python:
     needs: stark
     runs-on: ubuntu-latest
@@ -31,7 +36,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: eccstark
-          path: bin
+          path: pool/bin
       - run: chmod +x bin/eccstark && echo "ECCPOOL_STARK_BIN=$PWD/bin/eccstark" >> "$GITHUB_ENV"
       - uses: actions/setup-python@v5
         with:

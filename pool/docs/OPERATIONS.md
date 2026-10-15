@@ -9,7 +9,7 @@ export ECCPOOL_DB=/data/eccpool.sqlite3
 eccpool serve --host 0.0.0.0 --port 8000
 ```
 
-Or `docker build -t eccpool . && docker run -e ECCPOOL_PEPPER -e ECCPOOL_ADMIN_TOKEN -v pooldata:/data -p 8000:8000 eccpool`.
+Or, from `pool/`, `docker build -t eccpool . && docker run -e ECCPOOL_PEPPER -e ECCPOOL_ADMIN_TOKEN -v pooldata:/data -p 8000:8000 eccpool`.
 
 Run it behind a TLS-terminating reverse proxy (Caddy, nginx). API keys are
 bearer tokens, so never serve them over plain HTTP. Behind a proxy set

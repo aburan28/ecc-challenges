@@ -28,6 +28,8 @@ and [docs/OPERATIONS.md](docs/OPERATIONS.md) to run a pool.
 
 ## Quick start
 
+Everything here lives in `pool/`; run these commands from that directory.
+
 ```sh
 pip install -e '.[dev]'
 cargo build --release --manifest-path stark/Cargo.toml   # STARK prover/verifier + native walker
