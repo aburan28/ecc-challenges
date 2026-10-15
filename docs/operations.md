@@ -53,17 +53,20 @@ refuses a pending certificate or empty OAuth secret in the destination account.
 
 ## Dedicated AWS account migration
 
-The original `public.distinguished_points` table has approximately 524 million
-rows and occupies about 180 GB including indexes (read-only catalog estimate,
-2026-10-14). Decide where the live index will reside before deploying service
-tasks. If it stays in the original account, use private VPC connectivity and
-grant only the new ECS roles access to the required S3 prefixes. The original
-RDS VPC uses `172.31.0.0/16`; a new VPC for peering must not overlap it.
-Match the two destination Secrets Manager database passwords to the limited
-database roles and verify connectivity from the destination VPC. If the index
-moves, provision a new database and import the historical index with a
-checkable row-count and checksum receipt before switching collision lookup.
-Neither path is established by the infrastructure template alone.
+The destination account will own the public database and its historical point
+index. The original `public.distinguished_points` table has approximately 524
+million rows and occupies about 180 GB including indexes (read-only catalog
+estimate, 2026-10-14). Collision lookup needs `campaign_id`, `point_key`,
+`walk_seed`, and `worker_id`; a purpose-built imported projection can avoid
+copying the unused source columns and secondary indexes. The importer must
+preserve the original values, resume at a documented boundary, and record
+source/destination counts and content digests per shard. A final catch-up or
+bounded ingest pause is required if the original campaign keeps adding rows
+while the snapshot moves. The public index workers must stay stopped until
+that reconciliation passes. The original RDS VPC uses `172.31.0.0/16`; a
+private migration path from the original account needs non-overlapping VPCs.
+The new database, importer, and reconciliation are separate deployment work;
+the service template alone does not create or verify them.
 
 Use a fresh named AWS profile. Never pass access keys as CLI arguments or put
 them in this repository. Request an ACM certificate for the apex and `www` in
@@ -79,8 +82,8 @@ aws --profile NEW_PROFILE cloudformation deploy --region us-west-2 \
   --template-file infra/foundation.yaml
 ```
 
-The destination account's generated database passwords do not automatically
-match roles in the original database.
+The destination account's generated database passwords must be applied to its
+own limited database roles before starting the ECS services.
 
 ## Publish and deploy
 
