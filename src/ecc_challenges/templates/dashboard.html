@@ -14,7 +14,7 @@ docker run --gpus all --restart unless-stopped \
   -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-$GPU_ID:/data" \
-  ghcr.io/aburan28/ecc-challenges-worker:0.1.0</div></section>
+  public.ecr.aws/d5a8v6s7/ecc-challenges-worker@sha256:a27f343edde5bcabcbc3fb6fdfc7c1981c831b467133d38773fdb0a357436b74</div></section>
 </div>
 <section class="section"><h2>Keys</h2><div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Key ID</th><th>Created</th><th>Status</th><th></th></tr></thead><tbody>{% for key in keys %}<tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td><td>{% if key.revoked_at %}Revoked{% else %}Active{% endif %}</td><td>{% if not key.revoked_at %}<form class="inline" method="post" action="/keys/{{ key.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger" type="submit">Revoke</button></form>{% endif %}</td></tr>{% else %}<tr><td colspan="5" class="muted">No keys yet.</td></tr>{% endfor %}</tbody></table></div></section>
 <form method="post" action="/logout" style="margin-top:38px"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button secondary" type="submit">Sign out</button></form>

@@ -6,11 +6,12 @@ key, and runs one Linux/NVIDIA container per GPU. The site assigns a unique
 16-bit run ID, receives fixed-width distinguished-point (DP) records, and
 archives every accepted byte range before acknowledging it.
 
-The published contributor image is
-`ghcr.io/aburan28/ecc-challenges-worker:0.1.0` after the `worker-v0.1.0`
-release workflow completes. Pin the resulting digest for a long-running
-worker. The image contains the existing, pinned ECC2K-130 sigma GPU client;
-the gateway protocol is implemented here.
+The anonymously pullable contributor image is
+`public.ecr.aws/d5a8v6s7/ecc-challenges-worker@sha256:a27f343edde5bcabcbc3fb6fdfc7c1981c831b467133d38773fdb0a357436b74`.
+It was built from commit `79fc2a5fe3c99e9fa41d6d3a11ccc89143e6b600`;
+the digest is pinned in the dashboard command. A GHCR mirror is published by
+the `worker-v0.1.0` release workflow. The image contains the existing, pinned
+ECC2K-130 sigma GPU client; the gateway protocol is implemented here.
 
 ```mermaid
 flowchart LR
