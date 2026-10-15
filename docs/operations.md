@@ -49,10 +49,12 @@ certificate or empty OAuth secret.
 
 ## Publish and deploy
 
-The `worker-v0.1.0` GitHub tag publishes the public worker to GHCR. Verify the
-package is publicly pullable and record the immutable digest before putting
-it on the dashboard. Local ECR publication requires Docker Desktop or another
-Linux amd64 build host and a clean commit:
+The `worker-v0.1.0` GitHub tag publishes the contributor worker to GHCR. Check
+the [package visibility settings](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility);
+if its visibility is private, select **Change visibility → Public** there.
+Verify an anonymous pull from a fresh Docker configuration and record the
+immutable digest before announcing the worker. Local ECR publication requires
+Docker Desktop or another Linux amd64 build host and a clean commit:
 
 ```sh
 python3 scripts/publish_images.py
