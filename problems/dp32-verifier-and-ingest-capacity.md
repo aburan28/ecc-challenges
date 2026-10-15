@@ -2,7 +2,7 @@
 
 Status: open. Scope: the `ecc-challenges.com` public ECC2K-130 admission
 gateway at DP weight 32, using the pinned sigma walk, 1 MiB batches, a 1/128
-post-seal later-batch audit selection, and the existing `rho_dp` instance.
+post-seal later-batch audit selection, and the dedicated private `rho_dp` instance.
 
 ## Specific obstruction
 
@@ -17,12 +17,14 @@ and local worker spooling; the service would remain durable but would not keep
 up with the offered load.
 
 This is a resource and validation gap, not a proof that the design cannot
-scale. The existing campaign already has distinguished points in RDS, but
-their count does not measure this new verifier or public-gateway throughput.
+scale. The original campaign already has distinguished points in its own RDS
+instance, but their count does not measure this new verifier or public-gateway
+throughput. Historical matching remains unavailable until the separate import
+and backmatch; the public candidate index can match new points to new points.
 The reserved public run range has 15,535 IDs, which also bounds the number
 of distinct public run identities without a registry audit or new format.
-The inherited world-open RDS ingress is a separate security exposure and does
-not establish a throughput result.
+The original campaign's RDS ingress is a separate security exposure outside
+the public platform and does not establish a throughput result.
 
 ## What would clear it
 

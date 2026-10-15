@@ -1,5 +1,5 @@
--- Apply with the existing rho-dp database owner, in a transaction.
--- The legacy campaign tables and report_dp function are not modified.
+-- Apply with the isolated data stack's managed database owner, in a transaction.
+-- The original campaign's database is never accessed by this migration.
 BEGIN;
 CREATE SCHEMA IF NOT EXISTS ecc_public;
 

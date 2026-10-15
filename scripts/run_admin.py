@@ -5,8 +5,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 
 import boto3
+
+
+def is_pinned_admin_image(image: str, account_id: str, region: str) -> bool:
+    prefix = (f"{account_id}.dkr.ecr.{region}.amazonaws.com/"
+              "ecc-challenges-admin@sha256:")
+    return image.startswith(prefix) and bool(
+        re.fullmatch(r"[0-9a-f]{64}", image[len(prefix):])
+    )
 
 
 def main() -> None:
@@ -32,7 +41,7 @@ def main() -> None:
     ecs = session.client("ecs")
     definition = ecs.describe_task_definition(taskDefinition=task_definition)["taskDefinition"]
     image = definition["containerDefinitions"][0]["image"]
-    if f"{args.account_id}.dkr.ecr.{args.region}.amazonaws.com/ecc-challenges-admin@sha256:" not in image:
+    if not is_pinned_admin_image(image, args.account_id, args.region):
         raise RuntimeError("admin task image is not a pinned destination-account image")
     cluster = outputs["AdminClusterName"]
     network = {"awsvpcConfiguration": {
