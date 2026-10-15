@@ -73,7 +73,7 @@ def main() -> None:
               "DatabaseClass": args.database_class,
               "DatabaseStorageGiB": str(args.database_storage_gib)}
     if args.admin_image_uri:
-        params["AdminImageUri"] = args.admin_image_uri
+        params["AdminImageDigest"] = args.admin_image_uri.rsplit("@", 1)[1]
     deploy(args.profile, args.region, "ecc-challenges-data", root / "infra/data.yaml", params)
     data = outputs(session.client("cloudformation"), "ecc-challenges-data")
     print(json.dumps({key: data[key] for key in

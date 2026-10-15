@@ -11,10 +11,14 @@ Parameters:
   DatabaseStorageGiB: {Type: Number, Default: 400, MinValue: 200}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}
-  AdminImageUri: {Type: String, Default: ''}
+  AdminImageDigest:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^sha256:[0-9a-f]{64}$'
+    ConstraintDescription: Must be empty or a sha256 digest.
 
 Conditions:
-  HasAdminImage: !Not [!Equals [!Ref AdminImageUri, '']]
+  HasAdminImage: !Not [!Equals [!Ref AdminImageDigest, '']]
 
 Resources:
   Vpc:
@@ -195,7 +199,7 @@ Resources:
       TaskRoleArn: !GetAtt AdminTaskRole.Arn
       ContainerDefinitions:
         - Name: admin
-          Image: !Ref AdminImageUri
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecc-challenges-admin@${AdminImageDigest}'
           Essential: true
           Command:
             - python
