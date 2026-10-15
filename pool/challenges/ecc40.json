@@ -1,0 +1,16 @@
+{
+  "curve": {
+    "p": "0xfa659995cb",
+    "a": "0x23c335eccd",
+    "b": "0x743eceb0ef",
+    "gx": "0x7ebf7abea4",
+    "gy": "0x4990f770d7",
+    "n": "0xfa659bcbdf"
+  },
+  "Q": [
+    "0x5a0ea3c82b",
+    "0x4732299eee"
+  ],
+  "seed": "ECC-challenges/v1/ecc40",
+  "name": "ecc40"
+}

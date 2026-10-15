@@ -1,0 +1,18 @@
+{
+  "curve": {
+    "p": "0xffffffff00000001",
+    "a": "0x3924566446dc335a",
+    "b": "0x61b91a9ec229fbc9",
+    "gx": "0x909f2b74c0fa2dd9",
+    "gy": "0x470625bc7952b682",
+    "n": "0xfa74c28d"
+  },
+  "cofactor": "0x105aaa7be",
+  "Q": [
+    "0x48a395c5a0fcd935",
+    "0x179932f88ca9d558"
+  ],
+  "seed": "ECC-challenges/v1/gl32",
+  "field": "goldilocks",
+  "name": "gl32"
+}

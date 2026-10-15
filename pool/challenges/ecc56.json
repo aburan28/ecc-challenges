@@ -1,0 +1,16 @@
+{
+  "curve": {
+    "p": "0xf7c0ee7ef410d3",
+    "a": "0xbc0a46e3769a32",
+    "b": "0xec4617aab89dc9",
+    "gx": "0x5d50ec2a77b17d",
+    "gy": "0x15c23918c530fa",
+    "n": "0xf7c0ee80134fe5"
+  },
+  "Q": [
+    "0x6f90b7460262e5",
+    "0x5d38a02edcd78a"
+  ],
+  "seed": "ECC-challenges/v1/ecc56",
+  "name": "ecc56"
+}

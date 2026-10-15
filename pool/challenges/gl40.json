@@ -1,0 +1,18 @@
+{
+  "curve": {
+    "p": "0xffffffff00000001",
+    "a": "0x5d11eb2721a03a3e",
+    "b": "0x5e185b17ea0c118c",
+    "gx": "0x8a3e27b72710a553",
+    "gy": "0x2c3b72f407f7408b",
+    "n": "0xb06ee04787"
+  },
+  "cofactor": "0x1737316",
+  "Q": [
+    "0x89418f154f1b1b5c",
+    "0x9cc80a27f0c28a46"
+  ],
+  "seed": "ECC-challenges/v1/gl40",
+  "field": "goldilocks",
+  "name": "gl40"
+}

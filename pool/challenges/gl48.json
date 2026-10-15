@@ -1,0 +1,18 @@
+{
+  "curve": {
+    "p": "0xffffffff00000001",
+    "a": "0x90d6b632ba72619f",
+    "b": "0xd29989ad9986478a",
+    "gx": "0x96f553f0ba9057a3",
+    "gy": "0x5885fb5281d956e",
+    "n": "0xa6c87b995123"
+  },
+  "cofactor": "0x188f1",
+  "Q": [
+    "0xccda89cdb81f39fb",
+    "0x5e8126b9299c6da7"
+  ],
+  "seed": "ECC-challenges/v1/gl48",
+  "field": "goldilocks",
+  "name": "gl48"
+}
