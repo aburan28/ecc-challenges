@@ -1,0 +1,3 @@
+Source: https://github.com/aburan28/cryptanalysis
+Commit: c8cc56d8c98705c7f84a21aae1e042453e0105e6
+Archive: ecc2k130/{src,include,tests,Makefile}, fpga/model/ecc2k130.{c,h}

@@ -1,0 +1,269 @@
+"""Public website and stateless HTTPS worker API."""
+
+from __future__ import annotations
+
+import asyncio
+from contextlib import asynccontextmanager
+from pathlib import Path
+import secrets
+from urllib.parse import parse_qs
+
+from authlib.integrations.starlette_client import OAuth
+import boto3
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.templating import Jinja2Templates
+from starlette.concurrency import run_in_threadpool
+from starlette.middleware.sessions import SessionMiddleware
+
+from .db import Database
+from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
+from .security import new_csrf
+from .service import Service, Rejected
+from .settings import Settings
+from .storage import Storage
+
+TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+
+
+async def limited_body(request: Request, limit: int) -> bytes:
+    length = request.headers.get("content-length")
+    if length is not None:
+        try:
+            if int(length) > limit:
+                raise Rejected(413, "request body too large")
+        except ValueError:
+            raise Rejected(400, "invalid Content-Length") from None
+    parts = []
+    size = 0
+    async for chunk in request.stream():
+        size += len(chunk)
+        if size > limit:
+            raise Rejected(413, "request body too large")
+        parts.append(chunk)
+    return b"".join(parts)
+
+
+def declared_binary_length(request: Request, limit: int) -> int:
+    value = request.headers.get("content-length")
+    if value is None:
+        raise Rejected(411, "Content-Length is required for binary uploads")
+    try:
+        length = int(value)
+    except ValueError:
+        raise Rejected(400, "invalid Content-Length") from None
+    if length < 0 or length > limit:
+        raise Rejected(413, "request body too large")
+    return length
+
+
+def bearer_value(request: Request) -> str:
+    value = request.headers.get("authorization", "")
+    if not value.startswith("Bearer ") or len(value) > 160:
+        raise Rejected(401, "API key required")
+    return value[7:]
+
+
+def require_session(request: Request) -> int:
+    account_id = request.session.get("github_id")
+    if not isinstance(account_id, int) or account_id <= 0:
+        raise Rejected(401, "sign in to manage API keys")
+    return account_id
+
+
+async def form_values(request: Request) -> dict[str, str]:
+    if request.headers.get("content-type", "").split(";")[0] != "application/x-www-form-urlencoded":
+        raise Rejected(415, "form content type required")
+    raw = await limited_body(request, 4096)
+    try:
+        values = parse_qs(raw.decode("utf-8"), keep_blank_values=True, strict_parsing=True)
+    except (UnicodeDecodeError, ValueError):
+        raise Rejected(400, "invalid form body") from None
+    if any(len(v) != 1 for v in values.values()):
+        raise Rejected(400, "duplicate form value")
+    return {k: v[0] for k, v in values.items()}
+
+
+def require_csrf(request: Request, supplied: str | None) -> None:
+    expected = request.session.get("csrf")
+    if not isinstance(expected, str) or not supplied or not secrets.compare_digest(expected, supplied):
+        raise Rejected(403, "invalid form token")
+
+
+def create_app(settings: Settings | None = None, *, db=None, storage=None) -> FastAPI:
+    settings = settings or Settings.from_env()
+    database = db or Database(settings.database_url)
+    if storage is None:
+        s3 = boto3.client("s3", region_name=settings.region)
+        sqs = boto3.client("sqs", region_name=settings.region)
+        storage = Storage(s3, sqs, settings.bucket, settings.stream_id)
+    service = Service(database, storage, settings)
+    oauth = OAuth()
+    oauth.register(
+        name="github", client_id=settings.github_client_id,
+        client_secret=settings.github_client_secret,
+        access_token_url="https://github.com/login/oauth/access_token",
+        authorize_url="https://github.com/login/oauth/authorize",
+        api_base_url="https://api.github.com/",
+        client_kwargs={"scope": "read:user"},
+    )
+
+    @asynccontextmanager
+    async def lifespan(_app):
+        if db is None:
+            await run_in_threadpool(database.open)
+        yield
+        if db is None:
+            await run_in_threadpool(database.close)
+
+    app = FastAPI(title="ECC Challenges", docs_url=None, redoc_url=None, lifespan=lifespan)
+    app.add_middleware(SessionMiddleware, secret_key=settings.session_secret,
+                       session_cookie="ecc_session", https_only=True, same_site="lax", max_age=86400)
+    app.state.service = service
+    checkpoint_slots = asyncio.Semaphore(1)
+
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+            "frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:"
+        )
+        return response
+
+    @app.exception_handler(Rejected)
+    async def rejected(request: Request, exc: Rejected):
+        headers = {"Cache-Control": "no-store"}
+        if exc.retry_after:
+            headers["Retry-After"] = str(exc.retry_after)
+        if request.url.path.startswith("/v1/") or request.url.path == "/health":
+            return JSONResponse({"error": str(exc)}, status_code=exc.status, headers=headers)
+        return TEMPLATES.TemplateResponse(request, "error.html", {"message": str(exc)},
+                                          status_code=exc.status, headers=headers)
+
+    @app.get("/health")
+    async def health():
+        def check():
+            with database.connection() as conn:
+                conn.execute("SELECT 1")
+            return {"ok": True}
+        return await run_in_threadpool(check)
+
+    @app.get("/", response_class=HTMLResponse)
+    async def home(request: Request):
+        return TEMPLATES.TemplateResponse(request, "home.html", {"signed_in": bool(request.session.get("github_id"))},
+                                          headers={"Cache-Control": "private, no-store"})
+
+    @app.get("/auth/github")
+    async def auth_start(request: Request):
+        return await oauth.github.authorize_redirect(request, settings.public_origin + "/auth/callback")
+
+    @app.get("/auth/callback")
+    async def auth_callback(request: Request):
+        token = await oauth.github.authorize_access_token(request)
+        response = await oauth.github.get("user", token=token)
+        response.raise_for_status()
+        profile = response.json()
+        account_id, login = int(profile["id"]), str(profile["login"])
+        await run_in_threadpool(service.upsert_account, account_id, login)
+        request.session.clear()
+        request.session.update({"github_id": account_id, "login": login, "csrf": new_csrf()})
+        return RedirectResponse("/dashboard", status_code=303)
+
+    @app.post("/logout")
+    async def logout(request: Request):
+        values = await form_values(request)
+        require_csrf(request, values.get("csrf"))
+        request.session.clear()
+        return RedirectResponse("/", status_code=303)
+
+    @app.get("/dashboard", response_class=HTMLResponse)
+    async def dashboard(request: Request):
+        account_id = require_session(request)
+        if "csrf" not in request.session:
+            request.session["csrf"] = new_csrf()
+        keys = await run_in_threadpool(service.account_keys, account_id)
+        return TEMPLATES.TemplateResponse(request, "dashboard.html",
+            {"login": request.session.get("login"), "keys": keys,
+             "csrf": request.session["csrf"], "issued": None},
+            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+
+    @app.post("/keys", response_class=HTMLResponse)
+    async def create_key(request: Request):
+        account_id = require_session(request)
+        values = await form_values(request)
+        require_csrf(request, values.get("csrf"))
+        issued = await run_in_threadpool(service.create_key, account_id, values.get("label", ""))
+        keys = await run_in_threadpool(service.account_keys, account_id)
+        return TEMPLATES.TemplateResponse(request, "dashboard.html",
+            {"login": request.session.get("login"), "keys": keys,
+             "csrf": request.session["csrf"], "issued": issued},
+            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+
+    @app.post("/keys/{key_id}/revoke")
+    async def revoke_key(request: Request, key_id: str):
+        account_id = require_session(request)
+        values = await form_values(request)
+        require_csrf(request, values.get("csrf"))
+        await run_in_threadpool(service.revoke_key, account_id, key_id)
+        return RedirectResponse("/dashboard", status_code=303)
+
+    @app.get("/v1/config")
+    async def config():
+        return {"campaign": CAMPAIGN, "walk_id": WALK_ID,
+                "dp_weight": DP_WEIGHT, "record_bytes": RECORD_BYTES,
+                "max_batch_bytes": MAX_BATCH_BYTES}
+
+    @app.post("/v1/register")
+    async def register(request: Request):
+        if await limited_body(request, 0):
+            raise Rejected(400, "registration body is not used")
+        key = await run_in_threadpool(service.authenticate, bearer_value(request))
+        result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""))
+        return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
+
+    @app.get("/v1/runs/{run_id}")
+    async def run_status(request: Request, run_id: int):
+        key = await run_in_threadpool(service.authenticate, bearer_value(request))
+        result = await run_in_threadpool(service.run_status, key, run_id)
+        return JSONResponse(result, headers={"Cache-Control": "no-store"})
+
+    @app.post("/v1/runs/{run_id}/dps")
+    async def upload_dps(request: Request, run_id: int, offset: int):
+        if request.headers.get("content-type", "").split(";")[0] != "application/octet-stream":
+            raise Rejected(415, "binary content type required")
+        length = declared_binary_length(request, MAX_BATCH_BYTES)
+        key = await run_in_threadpool(service.authenticate, bearer_value(request),
+                                      max(1, (length + 65535) // 65536))
+        data = await limited_body(request, MAX_BATCH_BYTES)
+        if len(data) != length:
+            raise Rejected(400, "body length differs from Content-Length")
+        result = await run_in_threadpool(service.upload_batch, key, run_id, offset, data)
+        return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
+
+    @app.post("/v1/runs/{run_id}/checkpoint")
+    async def upload_checkpoint(request: Request, run_id: int, offset: int):
+        if request.headers.get("content-type", "").split(";")[0] != "application/octet-stream":
+            raise Rejected(415, "binary content type required")
+        length = declared_binary_length(request, MAX_CHECKPOINT_BYTES)
+        key = await run_in_threadpool(service.authenticate, bearer_value(request),
+                                      max(1, (length + 2097151) // 2097152))
+        async with checkpoint_slots:
+            data = await limited_body(request, MAX_CHECKPOINT_BYTES)
+            if len(data) != length:
+                raise Rejected(400, "body length differs from Content-Length")
+            result = await run_in_threadpool(service.upload_checkpoint, key, run_id, offset, data)
+        return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
+
+    @app.get("/v1/runs/{run_id}/checkpoint")
+    async def download_checkpoint(request: Request, run_id: int):
+        key = await run_in_threadpool(service.authenticate, bearer_value(request))
+        body, offset = await run_in_threadpool(service.download_checkpoint, key, run_id)
+        return Response(body, media_type="application/octet-stream",
+                        headers={"X-DP-Cursor": str(offset), "Cache-Control": "no-store"})
+
+    return app

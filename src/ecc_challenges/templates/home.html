@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}ECC Challenges · Distributed elliptic-curve research{% endblock %}
+{% block content %}
+<div class="eyebrow">A public compute collaboration</div>
+<h1>Put spare GPU time toward a shared elliptic-curve challenge.</h1>
+<p class="muted" style="font-size:1.2rem;max-width:740px">Join the ECC2K-130 distributed walk. Run a container on an NVIDIA GPU; the service assigns a unique walk range and stores your distinguished points for checking and collision search.</p>
+<div class="actions"><a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open contributor dashboard{% else %}Sign in with GitHub{% endif %}</a><a class="button secondary" href="https://aburan28.github.io/crypto/status/">See existing campaign status ↗</a></div>
+<div class="grid" id="how">
+  <div class="card"><div class="number">01</div><h3>Get a key</h3><p class="muted">Sign in, create a revocable API key, and save it in a local secret file.</p></div>
+  <div class="card"><div class="number">02</div><h3>Run the worker</h3><p class="muted">The container checks the campaign constants and gets a run ID that is never reassigned.</p></div>
+  <div class="card"><div class="number">03</div><h3>Submit points</h3><p class="muted">Complete batches are archived in S3, checked, and indexed. A candidate collision is replayed independently.</p></div>
+</div>
+<section class="section stack" id="research">
+  <div><div class="eyebrow">The challenge</div><h2>ECC2K-130</h2><p class="muted">The current campaign uses the established Frobenius sigma walk at distinguished-point weight 32. Workers receive a unique seed namespace and keep checkpoints locally so interrupted work can resume.</p></div>
+  <div class="card"><h3>Verification is part of the computation.</h3><p class="muted">A syntactically valid point does not prove a worker followed the walk. Submitted batches stay separate from the existing campaign table; selected trails and any collision lead require independent replay.</p><p class="muted">Raw objects, digests, audit outcomes, and queue offsets are retained so the process can be checked later.</p></div>
+</section>
+{% endblock %}
