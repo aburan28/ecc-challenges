@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import subprocess
 
 import boto3
@@ -34,7 +35,7 @@ def public_subnets(ec2, vpc: str) -> tuple[str, str]:
         if row["MapPublicIpOnLaunch"]:
             by_zone.setdefault(row["AvailabilityZone"], row["SubnetId"])
     if len(by_zone) < 2:
-        raise RuntimeError("the existing RDS VPC needs two public subnets in distinct zones")
+        raise RuntimeError("the dedicated VPC needs two public subnets in distinct zones")
     return tuple(list(by_zone.values())[:2])
 
 
@@ -44,6 +45,8 @@ def main() -> None:
     parser.add_argument("--account-id", required=True, help="expected 12-digit destination AWS account ID")
     parser.add_argument("--region", default="us-west-2")
     parser.add_argument("--certificate-arn", required=True)
+    parser.add_argument("--public-worker-image", required=True,
+                        help="new-account ECR Public image pinned by digest")
     parser.add_argument("--vpc-id", required=True, help="destination account VPC for the ALB and ECS tasks")
     parser.add_argument("--db-host", required=True, help="PostgreSQL hostname reachable from the destination VPC")
     parser.add_argument("--db-name", default="rho_dp")
@@ -61,6 +64,9 @@ def main() -> None:
     cert_prefix = f"arn:aws:acm:{args.region}:{args.account_id}:certificate/"
     if not args.certificate_arn.startswith(cert_prefix):
         parser.error("--certificate-arn must belong to the destination account and region")
+    if not re.fullmatch(r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+                        args.public_worker_image):
+        parser.error("--public-worker-image must be a pinned ECR Public worker image")
     if any(n < 0 for n in (args.web_tasks, args.audit_tasks, args.index_tasks,
                           args.reconcile_tasks, args.resolve_tasks)):
         parser.error("task counts must be nonnegative")
@@ -68,12 +74,41 @@ def main() -> None:
     actual_account = session.client("sts").get_caller_identity()["Account"]
     if actual_account != args.account_id:
         raise RuntimeError(f"AWS account mismatch: expected {args.account_id}, got {actual_account}")
+    public_ecr = boto3.Session(profile_name=args.profile, region_name="us-east-1").client("ecr-public")
+    public_repo = public_ecr.describe_repositories(
+        registryId=args.account_id, repositoryNames=["ecc-challenges-worker"]
+    )["repositories"][0]
+    if public_repo["registryId"] != args.account_id or not args.public_worker_image.startswith(
+        public_repo["repositoryUri"] + "@"
+    ):
+        raise RuntimeError("public worker image is not in the destination account")
+    worker_digest = args.public_worker_image.rsplit("@", 1)[1]
+    public_ecr.describe_images(registryId=args.account_id,
+                               repositoryName="ecc-challenges-worker",
+                               imageIds=[{"imageDigest": worker_digest}])
     cfn, ecr, acm, sm = (session.client(name) for name in
                          ("cloudformation", "ecr", "acm", "secretsmanager"))
     foundation = outputs(cfn, "ecc-challenges-foundation")
+    data = outputs(cfn, "ecc-challenges-data")
+    for supplied, expected, name in (
+        (args.vpc_id, data["VpcId"], "VPC"),
+        (args.bucket, data["DataBucketName"], "S3 bucket"),
+        (args.db_host, data["DatabaseHost"], "database host"),
+    ):
+        if supplied != expected:
+            raise RuntimeError(f"{name} differs from the isolated data stack")
+    data_stack = cfn.describe_stacks(StackName="ecc-challenges-data")["Stacks"][0]
+    data_params = {entry["ParameterKey"]: entry["ParameterValue"]
+                   for entry in data_stack.get("Parameters", [])}
+    if (data_params.get("WebPasswordArn") != foundation["WebPasswordArn"] or
+            data_params.get("WorkerPasswordArn") != foundation["WorkerPasswordArn"]):
+        raise RuntimeError("data stack database password secrets differ from the foundation stack")
     certificate = acm.describe_certificate(CertificateArn=args.certificate_arn)["Certificate"]
     if certificate["Status"] != "ISSUED":
         raise RuntimeError(f"TLS certificate is {certificate['Status']}; add the ACM CNAMEs in Squarespace")
+    names = set(certificate.get("SubjectAlternativeNames", []))
+    if not {"ecc-challenges.com", "www.ecc-challenges.com"}.issubset(names):
+        raise RuntimeError("TLS certificate must cover the apex and www hostnames")
     github = sm.describe_secret(SecretId="ecc-challenges/github-oauth")
     oauth = json.loads(sm.get_secret_value(SecretId=github["ARN"])["SecretString"])
     if not oauth.get("client_id") or not oauth.get("client_secret"):
@@ -85,6 +120,7 @@ def main() -> None:
         "Bucket": args.bucket, "DbHost": args.db_host, "DbName": args.db_name,
         "WebImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-web", args.tag),
         "AuditImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-audit", args.tag),
+        "PublicWorkerImage": args.public_worker_image,
         "GithubSecretArn": github["ARN"],
         "WebPasswordArn": foundation["WebPasswordArn"],
         "WorkerPasswordArn": foundation["WorkerPasswordArn"],
@@ -102,6 +138,7 @@ def main() -> None:
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},
+                      "public_worker_image": args.public_worker_image,
                       "vpc": args.vpc_id, "subnets": subnets,
                       "bucket": args.bucket, "db_host": args.db_host, "db_name": args.db_name,
                       "tasks": {key: params[key] for key in

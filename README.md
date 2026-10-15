@@ -6,10 +6,11 @@ key, and runs one Linux/NVIDIA container per GPU. The site assigns a unique
 16-bit run ID, receives fixed-width distinguished-point (DP) records, and
 archives every accepted byte range before acknowledging it.
 
-The anonymously pullable contributor image is
+The reviewed, anonymously pullable pre-release contributor image is
 `public.ecr.aws/d5a8v6s7/ecc-challenges-worker@sha256:a27f343edde5bcabcbc3fb6fdfc7c1981c831b467133d38773fdb0a357436b74`.
 It was built from commit `79fc2a5fe3c99e9fa41d6d3a11ccc89143e6b600`;
-the digest is pinned in the dashboard command. A GHCR mirror is published by
+it is hosted in the original campaign account. The production dashboard gets
+the new account's pinned ECR Public digest at deployment. A GHCR mirror is published by
 the `worker-v0.1.0` release workflow. The image contains the existing, pinned
 ECC2K-130 sigma GPU client; the gateway protocol is implemented here.
 
@@ -17,13 +18,14 @@ ECC2K-130 sigma GPU client; the gateway protocol is implemented here.
 flowchart LR
   GPU[Contributor GPU container] -->|API key, bounded batch| ALB[WAF + HTTPS ALB]
   ALB --> API[Stateless API tasks]
-  API -->|write once| S3[Existing ECC2K S3 bucket]
-  API -->|cursor and outbox| PG[(ecc_public on existing RDS)]
+  API -->|write once| S3[Dedicated S3 archive]
+  API -->|cursor and outbox| PG[(ecc_public on private RDS)]
   PG --> SQS[Audit, index, collision queues]
   SQS --> Audit[Independent seed replay]
   Audit --> Index[Partitioned candidate index]
   Index --> Resolver[Two trail replay + scalar solver]
-  Index -->|read only match| Existing[(Existing campaign DP table)]
+  Index -->|new public matches| PG
+  Index -.->|after later verified import| Existing[(Historical campaign projection)]
 ```
 
 ## Contribute
@@ -72,6 +74,7 @@ monitoring, and exact replay of every collision lead remain essential.
 uv sync --extra test
 PATH=/opt/homebrew/opt/postgresql@16/bin:$PATH uv run pytest -q
 aws cloudformation validate-template --template-body file://infra/foundation.yaml
+aws cloudformation validate-template --template-body file://infra/data.yaml
 aws cloudformation validate-template --template-body file://infra/service.yaml
 ```
 
@@ -109,6 +112,8 @@ The replay source is `aburan28/cryptanalysis` commit
 `c8cc56d8c98705c7f84a21aae1e042453e0105e6`; the scalar resolver source
 is `aburan28/crypto` commit
 `79006eb85a400474e83f6a76fac0dca6b60a8b5d`.
-The shared S3 seed registry is the admission authority for run IDs. The legacy
-campaign table is never written by this service. The paper's quantitative
-claims are governed by the paper's separate evidence and submission process.
+The isolated S3 seed registry is the admission authority for public run IDs.
+The original campaign table remains in its own account and is never written
+by this service. Until its points are imported and backmatched, collision
+lookup covers new public candidates only. The paper's quantitative claims are
+governed by the paper's separate evidence and submission process.

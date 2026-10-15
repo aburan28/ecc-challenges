@@ -1,0 +1,237 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Isolated ECC Challenges VPC, private PostgreSQL, S3 archive, and one-off administration task.
+
+Parameters:
+  VpcCidr: {Type: String, Default: 10.80.0.0/16}
+  PublicSubnetACidr: {Type: String, Default: 10.80.0.0/24}
+  PublicSubnetBCidr: {Type: String, Default: 10.80.1.0/24}
+  PrivateSubnetACidr: {Type: String, Default: 10.80.10.0/24}
+  PrivateSubnetBCidr: {Type: String, Default: 10.80.11.0/24}
+  DatabaseClass: {Type: String, Default: db.r7g.xlarge}
+  DatabaseStorageGiB: {Type: Number, Default: 400, MinValue: 200}
+  WebPasswordArn: {Type: String}
+  WorkerPasswordArn: {Type: String}
+  AdminImageDigest:
+    Type: String
+    Default: ''
+    AllowedPattern: '^$|^sha256:[0-9a-f]{64}$'
+    ConstraintDescription: Must be empty or a sha256 digest.
+
+Conditions:
+  HasAdminImage: !Not [!Equals [!Ref AdminImageDigest, '']]
+
+Resources:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{Key: Name, Value: ecc-challenges}]
+  InternetGateway: {Type: AWS::EC2::InternetGateway}
+  GatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: {VpcId: !Ref Vpc, InternetGatewayId: !Ref InternetGateway}
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: {VpcId: !Ref Vpc}
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: GatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PublicSubnetACidr
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: ecc-challenges-public-a}]
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PublicSubnetBCidr
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags: [{Key: Name, Value: ecc-challenges-public-b}]
+  PublicSubnetARoute:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: {SubnetId: !Ref PublicSubnetA, RouteTableId: !Ref PublicRouteTable}
+  PublicSubnetBRoute:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: {SubnetId: !Ref PublicSubnetB, RouteTableId: !Ref PublicRouteTable}
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PrivateSubnetACidr
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags: [{Key: Name, Value: ecc-challenges-db-a}]
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: !Ref PrivateSubnetBCidr
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags: [{Key: Name, Value: ecc-challenges-db-b}]
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private ECC Challenges PostgreSQL subnets
+      SubnetIds: [!Ref PrivateSubnetA, !Ref PrivateSubnetB]
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECC Challenges PostgreSQL from its dedicated VPC only
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 5432, ToPort: 5432, CidrIp: !Ref VpcCidr}
+  DatabaseParameters:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Require TLS for ECC Challenges PostgreSQL
+      Family: postgres16
+      Parameters: {rds.force_ssl: '1'}
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: ecc-challenges-db
+      Engine: postgres
+      EngineVersion: '16.13'
+      DBName: rho_dp
+      MasterUsername: eccadmin
+      ManageMasterUserPassword: true
+      DBInstanceClass: !Ref DatabaseClass
+      AllocatedStorage: !Ref DatabaseStorageGiB
+      MaxAllocatedStorage: 4000
+      StorageType: gp3
+      StorageEncrypted: true
+      MultiAZ: true
+      BackupRetentionPeriod: 7
+      DeletionProtection: true
+      PubliclyAccessible: false
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      DBParameterGroupName: !Ref DatabaseParameters
+      VPCSecurityGroups: [!Ref DatabaseSecurityGroup]
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub ecc-challenges-data-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules: [{ObjectOwnership: BucketOwnerEnforced}]
+      VersioningConfiguration: {Status: Enabled}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+  GithubOAuthSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: ecc-challenges/github-oauth
+      SecretString: '{"client_id":"","client_secret":""}'
+  AdminRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: ecc-challenges-admin
+      ImageScanningConfiguration: {ScanOnPush: true}
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration: {EncryptionType: AES256}
+  AdminCluster:
+    Type: AWS::ECS::Cluster
+    Properties: {ClusterName: ecc-challenges-admin}
+  AdminSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Outbound-only ECC Challenges administration task
+      VpcId: !Ref Vpc
+  AdminLogs:
+    Type: AWS::Logs::LogGroup
+    Properties: {LogGroupName: /ecc-challenges/admin, RetentionInDays: 30}
+  AdminExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement: [{Effect: Allow, Principal: {Service: ecs-tasks.amazonaws.com}, Action: sts:AssumeRole}]
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy]
+  AdminTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement: [{Effect: Allow, Principal: {Service: ecs-tasks.amazonaws.com}, Action: sts:AssumeRole}]
+      Policies:
+        - PolicyName: database-bootstrap-secrets
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: [!GetAtt Database.MasterUserSecret.SecretArn, !Ref WebPasswordArn, !Ref WorkerPasswordArn]
+  AdminTask:
+    Type: AWS::ECS::TaskDefinition
+    Condition: HasAdminImage
+    Properties:
+      Family: ecc-challenges-admin
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: '1024'
+      Memory: '2048'
+      ExecutionRoleArn: !GetAtt AdminExecutionRole.Arn
+      TaskRoleArn: !GetAtt AdminTaskRole.Arn
+      ContainerDefinitions:
+        - Name: admin
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/ecc-challenges-admin@${AdminImageDigest}'
+          Essential: true
+          Command:
+            - python
+            - /app/scripts/bootstrap_db.py
+            - --account-id
+            - !Ref AWS::AccountId
+            - --host
+            - !GetAtt Database.Endpoint.Address
+            - --owner-secret
+            - !GetAtt Database.MasterUserSecret.SecretArn
+            - --web-password-secret
+            - !Ref WebPasswordArn
+            - --worker-password-secret
+            - !Ref WorkerPasswordArn
+          Environment:
+            - {Name: AWS_REGION, Value: !Ref AWS::Region}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options: {awslogs-group: !Ref AdminLogs, awslogs-region: !Ref AWS::Region, awslogs-stream-prefix: admin}
+
+Outputs:
+  VpcId: {Value: !Ref Vpc}
+  PublicSubnetA: {Value: !Ref PublicSubnetA}
+  PublicSubnetB: {Value: !Ref PublicSubnetB}
+  DatabaseHost: {Value: !GetAtt Database.Endpoint.Address}
+  DatabaseSecurityGroupId: {Value: !Ref DatabaseSecurityGroup}
+  MasterSecretArn: {Value: !GetAtt Database.MasterUserSecret.SecretArn}
+  DataBucketName: {Value: !Ref DataBucket}
+  GithubOAuthSecretArn: {Value: !Ref GithubOAuthSecret}
+  AdminRepositoryUri: {Value: !GetAtt AdminRepository.RepositoryUri}
+  AdminClusterName: {Value: !Ref AdminCluster}
+  AdminSecurityGroupId: {Value: !Ref AdminSecurityGroup}
+  AdminTaskArn:
+    Condition: HasAdminImage
+    Value: !Ref AdminTask
