@@ -1,0 +1,9 @@
+✓ Initialized. View run at 
+https://modal.com/apps/a-buran28/main/ap-4AvJGkkjOb7dvVKZIZBHxi
+✓ Created objects.
+{"counter": 1, "uid": 10001, "gid": 10001, "file_uid": 10001, "file_gid": 10001, "file_mode": "0o600", "state_directory": "/__modal/volumes/vo-y3HQsuihDZGsayEIcqrq4y/ecc-state", "mount_entry_is_symlink": true, "legacy_file_remains": false, "sha256": "bbf5bbfdd015a19c5e9c1c025d136a463791f7889abd13c492bb582c5d306d44"}
+{"counter": 2, "uid": 10001, "gid": 10001, "file_uid": 10001, "file_gid": 10001, "file_mode": "0o600", "state_directory": "/__modal/volumes/vo-y3HQsuihDZGsayEIcqrq4y/ecc-state", "mount_entry_is_symlink": true, "legacy_file_remains": false, "sha256": "ca9e2da6722f8026c6fbb0dc60cbd6e71f887a71b2b359d7d396d555275b4c85"}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/a-buran28/main/ap-4AvJGkkjOb7dvVKZIZBHxi
+{"ok": true, "error_type": null, "phases": 2}

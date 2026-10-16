@@ -1,0 +1,11 @@
+{
+  "contributor_key_sent": false,
+  "cpu_only": true,
+  "error_type": "IndexError",
+  "format": "modal-persistent-volume-readiness-v1",
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "modal_app_id": "ap-poTCiZ7TBZU0SX820FJ4cG",
+  "ok": false,
+  "phases": [],
+  "volume_name": "ecc-volume-readiness-6e8d94654643"
+}
