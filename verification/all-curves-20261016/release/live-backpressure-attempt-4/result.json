@@ -1,0 +1,853 @@
+{
+  "after_pressure_retry_status": {
+    "batches": {
+      "indexed": {
+        "batches": 33,
+        "records": 33
+      }
+    },
+    "campaign": "eccp-79",
+    "closed_at": null,
+    "config": {
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "campaign": "eccp-79",
+      "codec": {
+        "coordinate_order": "big",
+        "field_bytes": 10,
+        "id": "affine-xy-ab-v1",
+        "prefix": "uint64le-trail-id,uint64le-steps",
+        "record_bytes": 56,
+        "scalar_bytes": 10
+      },
+      "instance": {
+        "G": [
+          "0x315d4b201c208475057d",
+          "0x35f3df5ab370252450a"
+        ],
+        "Q": [
+          "0x679834cefb7215dc365",
+          "0x4084bc50388c4e6fdfab"
+        ],
+        "a": "0x39c95e6dddb1bc45733c",
+        "b": "0x1f16d880e89d5a1c0ed1",
+        "bits": 79,
+        "coordinate_encoding": "affine-xy-be",
+        "equation": "y^2=x^3+a*x+b",
+        "field_kind": "prime",
+        "h": 1,
+        "id": "eccp-79",
+        "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+        "modulus": "0x62ce5177412aca899cf5",
+        "n": "0x62ce5177407b7258dc31"
+      },
+      "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+      "max_batch_bytes": 1048576,
+      "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+      "protocol": 2,
+      "walk": {
+        "automorphism_quotient": "none",
+        "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+        "dp_bits": 20,
+        "id": "certicom-affine-radding32-v2",
+        "jump_coefficients": [
+          [
+            "0x28e01ccebf92780d33ac",
+            "0x0"
+          ],
+          [
+            "0x9081c7a2d55f5221327",
+            "0x0"
+          ],
+          [
+            "0x1314354ada2551d13e33",
+            "0x0"
+          ],
+          [
+            "0x328fd770532235b5bc8e",
+            "0x0"
+          ],
+          [
+            "0x2eca3fb71eb362a9a5e8",
+            "0x0"
+          ],
+          [
+            "0xd4c1c682ca8b7f832a8",
+            "0x0"
+          ],
+          [
+            "0x61e6aae3898023b68631",
+            "0x0"
+          ],
+          [
+            "0x7c171f8b445d32e7f55",
+            "0x0"
+          ],
+          [
+            "0x500c86615971844a7cfa",
+            "0x0"
+          ],
+          [
+            "0x146d749922f6ced6c12c",
+            "0x0"
+          ],
+          [
+            "0x28615ca2f7384f57d8d6",
+            "0x0"
+          ],
+          [
+            "0x44eb76e02f4cba1efde7",
+            "0x0"
+          ],
+          [
+            "0x5a90b9598138c0626b59",
+            "0x0"
+          ],
+          [
+            "0x4e1c4bafb2ac9112959c",
+            "0x0"
+          ],
+          [
+            "0xc5e620d762066ba1d1c",
+            "0x0"
+          ],
+          [
+            "0x5d2707f286290fea2c6",
+            "0x0"
+          ],
+          [
+            "0x470f2c4a11b002cba3a2",
+            "0x0"
+          ],
+          [
+            "0x1bb21215edbf930a5ea6",
+            "0x0"
+          ],
+          [
+            "0x37d5067058e008a5a463",
+            "0x0"
+          ],
+          [
+            "0x5789dbe35e35242bdfbf",
+            "0x0"
+          ],
+          [
+            "0x8d5000e463d464e5086",
+            "0x0"
+          ],
+          [
+            "0x3b2268f58f3cb184b6f7",
+            "0x0"
+          ],
+          [
+            "0x1892f559005b9ee47519",
+            "0x0"
+          ],
+          [
+            "0xa461c4511d5d3ec3362",
+            "0x0"
+          ],
+          [
+            "0x24941628a03d7f0667cc",
+            "0x0"
+          ],
+          [
+            "0x33d821e7b3c000479975",
+            "0x0"
+          ],
+          [
+            "0x60f56c7c7bb195496254",
+            "0x0"
+          ],
+          [
+            "0x3ac52585ccb78a5cf906",
+            "0x0"
+          ],
+          [
+            "0x248e053b74b6e4ef218b",
+            "0x0"
+          ],
+          [
+            "0x28af464c54d582914c22",
+            "0x0"
+          ],
+          [
+            "0x2f6559f470b61c176f7c",
+            "0x0"
+          ],
+          [
+            "0x42c676ac8cb916af0ebd",
+            "0x0"
+          ]
+        ],
+        "max_trail_steps": 281474976710656,
+        "native_job": "ECCJOB03",
+        "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+        "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1"
+      }
+    },
+    "cursor": 1848,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "pending_batch_id": null,
+    "protocol": 2,
+    "record_bytes": 56,
+    "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4",
+    "total_bytes": 1848,
+    "total_records": 33
+  },
+  "after_restart_status": {
+    "batches": {
+      "indexed": {
+        "batches": 32,
+        "records": 32
+      }
+    },
+    "campaign": "eccp-79",
+    "closed_at": null,
+    "config": {
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "campaign": "eccp-79",
+      "codec": {
+        "coordinate_order": "big",
+        "field_bytes": 10,
+        "id": "affine-xy-ab-v1",
+        "prefix": "uint64le-trail-id,uint64le-steps",
+        "record_bytes": 56,
+        "scalar_bytes": 10
+      },
+      "instance": {
+        "G": [
+          "0x315d4b201c208475057d",
+          "0x35f3df5ab370252450a"
+        ],
+        "Q": [
+          "0x679834cefb7215dc365",
+          "0x4084bc50388c4e6fdfab"
+        ],
+        "a": "0x39c95e6dddb1bc45733c",
+        "b": "0x1f16d880e89d5a1c0ed1",
+        "bits": 79,
+        "coordinate_encoding": "affine-xy-be",
+        "equation": "y^2=x^3+a*x+b",
+        "field_kind": "prime",
+        "h": 1,
+        "id": "eccp-79",
+        "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+        "modulus": "0x62ce5177412aca899cf5",
+        "n": "0x62ce5177407b7258dc31"
+      },
+      "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+      "max_batch_bytes": 1048576,
+      "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+      "protocol": 2,
+      "walk": {
+        "automorphism_quotient": "none",
+        "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+        "dp_bits": 20,
+        "id": "certicom-affine-radding32-v2",
+        "jump_coefficients": [
+          [
+            "0x28e01ccebf92780d33ac",
+            "0x0"
+          ],
+          [
+            "0x9081c7a2d55f5221327",
+            "0x0"
+          ],
+          [
+            "0x1314354ada2551d13e33",
+            "0x0"
+          ],
+          [
+            "0x328fd770532235b5bc8e",
+            "0x0"
+          ],
+          [
+            "0x2eca3fb71eb362a9a5e8",
+            "0x0"
+          ],
+          [
+            "0xd4c1c682ca8b7f832a8",
+            "0x0"
+          ],
+          [
+            "0x61e6aae3898023b68631",
+            "0x0"
+          ],
+          [
+            "0x7c171f8b445d32e7f55",
+            "0x0"
+          ],
+          [
+            "0x500c86615971844a7cfa",
+            "0x0"
+          ],
+          [
+            "0x146d749922f6ced6c12c",
+            "0x0"
+          ],
+          [
+            "0x28615ca2f7384f57d8d6",
+            "0x0"
+          ],
+          [
+            "0x44eb76e02f4cba1efde7",
+            "0x0"
+          ],
+          [
+            "0x5a90b9598138c0626b59",
+            "0x0"
+          ],
+          [
+            "0x4e1c4bafb2ac9112959c",
+            "0x0"
+          ],
+          [
+            "0xc5e620d762066ba1d1c",
+            "0x0"
+          ],
+          [
+            "0x5d2707f286290fea2c6",
+            "0x0"
+          ],
+          [
+            "0x470f2c4a11b002cba3a2",
+            "0x0"
+          ],
+          [
+            "0x1bb21215edbf930a5ea6",
+            "0x0"
+          ],
+          [
+            "0x37d5067058e008a5a463",
+            "0x0"
+          ],
+          [
+            "0x5789dbe35e35242bdfbf",
+            "0x0"
+          ],
+          [
+            "0x8d5000e463d464e5086",
+            "0x0"
+          ],
+          [
+            "0x3b2268f58f3cb184b6f7",
+            "0x0"
+          ],
+          [
+            "0x1892f559005b9ee47519",
+            "0x0"
+          ],
+          [
+            "0xa461c4511d5d3ec3362",
+            "0x0"
+          ],
+          [
+            "0x24941628a03d7f0667cc",
+            "0x0"
+          ],
+          [
+            "0x33d821e7b3c000479975",
+            "0x0"
+          ],
+          [
+            "0x60f56c7c7bb195496254",
+            "0x0"
+          ],
+          [
+            "0x3ac52585ccb78a5cf906",
+            "0x0"
+          ],
+          [
+            "0x248e053b74b6e4ef218b",
+            "0x0"
+          ],
+          [
+            "0x28af464c54d582914c22",
+            "0x0"
+          ],
+          [
+            "0x2f6559f470b61c176f7c",
+            "0x0"
+          ],
+          [
+            "0x42c676ac8cb916af0ebd",
+            "0x0"
+          ]
+        ],
+        "max_trail_steps": 281474976710656,
+        "native_job": "ECCJOB03",
+        "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+        "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1"
+      }
+    },
+    "cursor": 1792,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "pending_batch_id": null,
+    "protocol": 2,
+    "record_bytes": 56,
+    "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4",
+    "total_bytes": 1792,
+    "total_records": 32
+  },
+  "audit_settings_restored": true,
+  "batches": [
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/a23dfe85-d644-4b32-b82b-01f1d2221cbc/52aac3d8dbb2650e7490eeeeb9fa48e93050f7ddce82a1f1ab805cbe8b6205ae.json",
+      "batch_id": "a23dfe85-d644-4b32-b82b-01f1d2221cbc",
+      "cursor": 56,
+      "offset": 0
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/136e6bb0-5905-40c3-a344-66b187c95cbf/485ff0492afe01161eb7f4db566b430d0c2e4dc4114d56bcf83e9d49e17560dd.json",
+      "batch_id": "136e6bb0-5905-40c3-a344-66b187c95cbf",
+      "cursor": 112,
+      "offset": 56
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/c9b315f1-1f2e-4174-94da-934bfcc7bba0/84b1728177955fa4e936dd1bd21ba8ca7a02aeead512ea890f0d7bb50f3ff049.json",
+      "batch_id": "c9b315f1-1f2e-4174-94da-934bfcc7bba0",
+      "cursor": 168,
+      "offset": 112
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/69ac92a1-3dd6-4d0a-b01f-858b276863ba/f6bc3c4ae5d1d836bdf441cd7299eec89c522bb3d4005f2fbf65838f4dd1ccd0.json",
+      "batch_id": "69ac92a1-3dd6-4d0a-b01f-858b276863ba",
+      "cursor": 224,
+      "offset": 168
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/8408af00-efb1-4bd4-bb72-af57c936138c/370d5f25f5c71d1ef52a6806c8824adad61713ca5d31875ec31e996fbd539304.json",
+      "batch_id": "8408af00-efb1-4bd4-bb72-af57c936138c",
+      "cursor": 280,
+      "offset": 224
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/bec1dd76-4083-4e02-8bf7-6c76cc668ad3/9cb257884738f79deabd128ead3845c8d97abfcae424731de6497b402dd3dae5.json",
+      "batch_id": "bec1dd76-4083-4e02-8bf7-6c76cc668ad3",
+      "cursor": 336,
+      "offset": 280
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/bc30a769-4397-43d7-b1ff-64261ab9d9f2/97966d7422ecc8b6b33b35aab80dedab831d0828026b9c76cd4805dde580e562.json",
+      "batch_id": "bc30a769-4397-43d7-b1ff-64261ab9d9f2",
+      "cursor": 392,
+      "offset": 336
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/abb5e94c-c9fd-40b9-9d1f-cee3c845ffd5/3c386773f14eaf85666d7ca008aa94a8ed5964c75fe6d95778d8642d70d5920f.json",
+      "batch_id": "abb5e94c-c9fd-40b9-9d1f-cee3c845ffd5",
+      "cursor": 448,
+      "offset": 392
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/d9d40364-0e4d-497f-b920-a8633b2640b2/562e390d8f30c14d435bd60e5fcb94c605f0fdb0a9531e815fce7dbd8c9708a1.json",
+      "batch_id": "d9d40364-0e4d-497f-b920-a8633b2640b2",
+      "cursor": 504,
+      "offset": 448
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/82e01702-89d5-4b5c-8d6c-0bda36461f45/7a2bb817dd92860f0b6d037dc7046f79b6e9245db33c753b7fa1fcfe9dc2afff.json",
+      "batch_id": "82e01702-89d5-4b5c-8d6c-0bda36461f45",
+      "cursor": 560,
+      "offset": 504
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/aac88c19-d048-4c6e-83c7-a383e8b1bc13/c28ede79637ae8e61a02a173c6ebcb59479ea77954305ac766ad02e87333b974.json",
+      "batch_id": "aac88c19-d048-4c6e-83c7-a383e8b1bc13",
+      "cursor": 616,
+      "offset": 560
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/3f4700f8-e63c-45e8-a8f3-7ee9fa456acd/030fe98f483150b9dd6d76d0d766fd16f54bfb17cc79cbda32a425e47d38adde.json",
+      "batch_id": "3f4700f8-e63c-45e8-a8f3-7ee9fa456acd",
+      "cursor": 672,
+      "offset": 616
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/3a5374c4-973f-4a7f-8fb5-452357a28bc5/10bd731b12ce8f062dc7b093df10dd20dbe2235688398164f72633d0e8979ab6.json",
+      "batch_id": "3a5374c4-973f-4a7f-8fb5-452357a28bc5",
+      "cursor": 728,
+      "offset": 672
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/acd326b2-e5bc-4bdd-aace-8fdd5035965c/6a6f964dea47b8442d028463186679c904ede88b8248bfbf8ea651887dc942a5.json",
+      "batch_id": "acd326b2-e5bc-4bdd-aace-8fdd5035965c",
+      "cursor": 784,
+      "offset": 728
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/ab0f0b73-984a-44b0-8138-2a0f24208f76/ee4b0305b1b60b1559a93ebd964608e3c0fc7cbfb1e2f01a21e629980c284b37.json",
+      "batch_id": "ab0f0b73-984a-44b0-8138-2a0f24208f76",
+      "cursor": 840,
+      "offset": 784
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/45945a87-48ed-474d-bf73-fc6593ec4076/a6c54e8dd15a8fcbe45676aeaa18d2cd2beec3d717698f57d12dd1d82bc629fa.json",
+      "batch_id": "45945a87-48ed-474d-bf73-fc6593ec4076",
+      "cursor": 896,
+      "offset": 840
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/64985f14-0d9e-4137-b645-bb445d342003/0710583bcfdec768b99dbafeef0f78f6d0ddc7c69a2093dbe58241a4183fec97.json",
+      "batch_id": "64985f14-0d9e-4137-b645-bb445d342003",
+      "cursor": 952,
+      "offset": 896
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/fd717c9c-69f1-42e8-a243-92330a2f6f94/b3651de0a8dafb69e38650fcbde4411fff94e69915430ac06ead07cc890f080e.json",
+      "batch_id": "fd717c9c-69f1-42e8-a243-92330a2f6f94",
+      "cursor": 1008,
+      "offset": 952
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/9437e6e6-3511-4f4b-b0b3-4f92e454bec6/7c90167a8b80863ae92974853fdcc39eee046f53e8968004259c53bb7b4f095c.json",
+      "batch_id": "9437e6e6-3511-4f4b-b0b3-4f92e454bec6",
+      "cursor": 1064,
+      "offset": 1008
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/93379002-eac8-48a0-8501-3cb0706bef95/6751f621ce68e93aadd02d4f7201433938a6f5833ab479f4b9ab1a089815603a.json",
+      "batch_id": "93379002-eac8-48a0-8501-3cb0706bef95",
+      "cursor": 1120,
+      "offset": 1064
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/1863db28-fc7a-44f4-9425-d3c33ea7d492/6bb9049ce25231284660e11ed6ae561308db8484d26e29db42b33deaf9a27796.json",
+      "batch_id": "1863db28-fc7a-44f4-9425-d3c33ea7d492",
+      "cursor": 1176,
+      "offset": 1120
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/714fd4f5-b957-43c1-a9e7-4a4cdbda5637/997a9fc6376cb1a5559c118391596e091230afcd83f3c16165710918f9586dc7.json",
+      "batch_id": "714fd4f5-b957-43c1-a9e7-4a4cdbda5637",
+      "cursor": 1232,
+      "offset": 1176
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/16c81030-51a6-4daf-9c2e-0e00400b5731/49184e0218c223e81168c387c4dc42825dca5a139004777f17debd4ad5ad8bf4.json",
+      "batch_id": "16c81030-51a6-4daf-9c2e-0e00400b5731",
+      "cursor": 1288,
+      "offset": 1232
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/1093d326-5f5b-4f5f-b6dd-5ed32a357a6c/1fd9dd166f50d77ab27c3b996182b2b2be22f9c1f0909a5eafaf1387b3de7dee.json",
+      "batch_id": "1093d326-5f5b-4f5f-b6dd-5ed32a357a6c",
+      "cursor": 1344,
+      "offset": 1288
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/adfa6c57-3d6f-4a4b-b299-882434762d77/6823ec77c3b49071b3397fa15fe4dc5c34d7c5482c2edede436505df090ec393.json",
+      "batch_id": "adfa6c57-3d6f-4a4b-b299-882434762d77",
+      "cursor": 1400,
+      "offset": 1344
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/23e5ccd8-7b3b-4015-96a3-4e894616f532/e0738071f713783fac3288888b735dfc60dca9685d7ee05a3cfe5fa8b660a2a8.json",
+      "batch_id": "23e5ccd8-7b3b-4015-96a3-4e894616f532",
+      "cursor": 1456,
+      "offset": 1400
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5d44130c-98d2-4398-bb1a-736f5d02dcd2/f7a02b7c43ddeceeae7d29de0462e6d794b5c025ba9383b8274000b4cb0b6a74.json",
+      "batch_id": "5d44130c-98d2-4398-bb1a-736f5d02dcd2",
+      "cursor": 1512,
+      "offset": 1456
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/f408686d-c7be-4ea2-9ca2-4d7dd5d7646c/e0ca88b4cc7a70f2559ba8bc701072b1c3b1ae95f47c02bb81cff2e1643d33fc.json",
+      "batch_id": "f408686d-c7be-4ea2-9ca2-4d7dd5d7646c",
+      "cursor": 1568,
+      "offset": 1512
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5fa9527f-7f0b-43e2-9e1c-76c51c5b263e/136fb55bcd787d79472a4827f50990f81b4a9cf1d085105a04cb8d6d1980c800.json",
+      "batch_id": "5fa9527f-7f0b-43e2-9e1c-76c51c5b263e",
+      "cursor": 1624,
+      "offset": 1568
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/1e0d32e1-0cc2-430a-9eb5-3cff0bff6f13/2e0580c0cb5244319a71cde086fa6b7a4ee010ac9e8681b9d7a7001f09fabf13.json",
+      "batch_id": "1e0d32e1-0cc2-430a-9eb5-3cff0bff6f13",
+      "cursor": 1680,
+      "offset": 1624
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/312b7603-7f90-476c-8d11-dc6bb88c3e0b/b7dcef27c5b0fdc1f27d47cf1cf3b36917583cf78c0085de5bcfea9df008b912.json",
+      "batch_id": "312b7603-7f90-476c-8d11-dc6bb88c3e0b",
+      "cursor": 1736,
+      "offset": 1680
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/fbbadece-bfe6-4978-b506-fa0add7f803e/6b8aedd24b45e238343388f02c2ed17a7079f8302be648e3078bb2980ca6297b.json",
+      "batch_id": "fbbadece-bfe6-4978-b506-fa0add7f803e",
+      "cursor": 1792,
+      "offset": 1736
+    },
+    {
+      "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/d680deba-5861-477f-a7ea-1cfb0f7de7f5/4c993903c21b1b81b18e084afbcc206b8a6562d9b33d1adbf6c54764a1193db1.json",
+      "batch_id": "d680deba-5861-477f-a7ea-1cfb0f7de7f5",
+      "cursor": 1848,
+      "offset": 1792
+    }
+  ],
+  "closure": {
+    "closed_at": "2026-10-16T23:00:00.262457+00:00",
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4"
+  },
+  "commit_replay": {
+    "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/a23dfe85-d644-4b32-b82b-01f1d2221cbc/52aac3d8dbb2650e7490eeeeb9fa48e93050f7ddce82a1f1ab805cbe8b6205ae.json",
+    "batch_end_cursor": 56,
+    "batch_id": "a23dfe85-d644-4b32-b82b-01f1d2221cbc",
+    "cursor": 1848,
+    "duplicate": true,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "ok": true,
+    "records": 1,
+    "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4",
+    "state": "indexed"
+  },
+  "consumers_stopped": true,
+  "elapsed_seconds": 157.87031491700327,
+  "final_cloud_state": {
+    "desired_count": 2,
+    "pending_count": 0,
+    "running_count": 2,
+    "suspended_state": {
+      "DynamicScalingInSuspended": false,
+      "DynamicScalingOutSuspended": false,
+      "ScheduledScalingSuspended": false
+    },
+    "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-worker:5"
+  },
+  "format": "v2-bounded-backpressure-result-v1",
+  "ok": true,
+  "paused_queue": {
+    "ApproximateNumberOfMessages": 8,
+    "ApproximateNumberOfMessagesDelayed": 0,
+    "ApproximateNumberOfMessagesNotVisible": 2
+  },
+  "paused_run_status": {
+    "batches": {
+      "admitted": {
+        "batches": 32,
+        "records": 32
+      }
+    },
+    "campaign": "eccp-79",
+    "closed_at": null,
+    "config": {
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "campaign": "eccp-79",
+      "codec": {
+        "coordinate_order": "big",
+        "field_bytes": 10,
+        "id": "affine-xy-ab-v1",
+        "prefix": "uint64le-trail-id,uint64le-steps",
+        "record_bytes": 56,
+        "scalar_bytes": 10
+      },
+      "instance": {
+        "G": [
+          "0x315d4b201c208475057d",
+          "0x35f3df5ab370252450a"
+        ],
+        "Q": [
+          "0x679834cefb7215dc365",
+          "0x4084bc50388c4e6fdfab"
+        ],
+        "a": "0x39c95e6dddb1bc45733c",
+        "b": "0x1f16d880e89d5a1c0ed1",
+        "bits": 79,
+        "coordinate_encoding": "affine-xy-be",
+        "equation": "y^2=x^3+a*x+b",
+        "field_kind": "prime",
+        "h": 1,
+        "id": "eccp-79",
+        "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+        "modulus": "0x62ce5177412aca899cf5",
+        "n": "0x62ce5177407b7258dc31"
+      },
+      "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+      "max_batch_bytes": 1048576,
+      "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+      "protocol": 2,
+      "walk": {
+        "automorphism_quotient": "none",
+        "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+        "dp_bits": 20,
+        "id": "certicom-affine-radding32-v2",
+        "jump_coefficients": [
+          [
+            "0x28e01ccebf92780d33ac",
+            "0x0"
+          ],
+          [
+            "0x9081c7a2d55f5221327",
+            "0x0"
+          ],
+          [
+            "0x1314354ada2551d13e33",
+            "0x0"
+          ],
+          [
+            "0x328fd770532235b5bc8e",
+            "0x0"
+          ],
+          [
+            "0x2eca3fb71eb362a9a5e8",
+            "0x0"
+          ],
+          [
+            "0xd4c1c682ca8b7f832a8",
+            "0x0"
+          ],
+          [
+            "0x61e6aae3898023b68631",
+            "0x0"
+          ],
+          [
+            "0x7c171f8b445d32e7f55",
+            "0x0"
+          ],
+          [
+            "0x500c86615971844a7cfa",
+            "0x0"
+          ],
+          [
+            "0x146d749922f6ced6c12c",
+            "0x0"
+          ],
+          [
+            "0x28615ca2f7384f57d8d6",
+            "0x0"
+          ],
+          [
+            "0x44eb76e02f4cba1efde7",
+            "0x0"
+          ],
+          [
+            "0x5a90b9598138c0626b59",
+            "0x0"
+          ],
+          [
+            "0x4e1c4bafb2ac9112959c",
+            "0x0"
+          ],
+          [
+            "0xc5e620d762066ba1d1c",
+            "0x0"
+          ],
+          [
+            "0x5d2707f286290fea2c6",
+            "0x0"
+          ],
+          [
+            "0x470f2c4a11b002cba3a2",
+            "0x0"
+          ],
+          [
+            "0x1bb21215edbf930a5ea6",
+            "0x0"
+          ],
+          [
+            "0x37d5067058e008a5a463",
+            "0x0"
+          ],
+          [
+            "0x5789dbe35e35242bdfbf",
+            "0x0"
+          ],
+          [
+            "0x8d5000e463d464e5086",
+            "0x0"
+          ],
+          [
+            "0x3b2268f58f3cb184b6f7",
+            "0x0"
+          ],
+          [
+            "0x1892f559005b9ee47519",
+            "0x0"
+          ],
+          [
+            "0xa461c4511d5d3ec3362",
+            "0x0"
+          ],
+          [
+            "0x24941628a03d7f0667cc",
+            "0x0"
+          ],
+          [
+            "0x33d821e7b3c000479975",
+            "0x0"
+          ],
+          [
+            "0x60f56c7c7bb195496254",
+            "0x0"
+          ],
+          [
+            "0x3ac52585ccb78a5cf906",
+            "0x0"
+          ],
+          [
+            "0x248e053b74b6e4ef218b",
+            "0x0"
+          ],
+          [
+            "0x28af464c54d582914c22",
+            "0x0"
+          ],
+          [
+            "0x2f6559f470b61c176f7c",
+            "0x0"
+          ],
+          [
+            "0x42c676ac8cb916af0ebd",
+            "0x0"
+          ]
+        ],
+        "max_trail_steps": 281474976710656,
+        "native_job": "ECCJOB03",
+        "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+        "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1"
+      }
+    },
+    "cursor": 1792,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "pending_batch_id": null,
+    "protocol": 2,
+    "record_bytes": 56,
+    "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4",
+    "total_bytes": 1792,
+    "total_records": 32
+  },
+  "plan_sha256": "b2f31c4f89be4c2ced3a06c576666d9fc3d2e109ca68c35342482cbb7b7cfb6b",
+  "pressure_response": {
+    "body": {
+      "error": "account verification backlog limit reached"
+    },
+    "retry_after": "60",
+    "status": 429,
+    "upload_capability_returned": false
+  },
+  "queue_after_drain": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesDelayed": 0,
+    "ApproximateNumberOfMessagesNotVisible": 2
+  },
+  "run_id": "4d5405a9-72a7-4e65-a246-47963bbd14c4",
+  "stopped_task_arns": [
+    "arn:aws:ecs:us-west-2:104186811093:task/ecc-challenges/2eeca84558164072bf892c58f54d0be9",
+    "arn:aws:ecs:us-west-2:104186811093:task/ecc-challenges/d754f9a5850e4b618ca3bd53cfae77d7"
+  ]
+}
