@@ -25,6 +25,32 @@ Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
 import remains deferred by user instruction.
 
+### Consumer-stop and queue-baseline check
+
+The first bounded pressure attempt rejected a valid regionless S3 hostname in
+the harness; its held reservation was completed and indexed normally. The
+second attempt observed ECS runningCount0 while the old tasks were STOPPING.
+Their processes still consumed records, so the intended32-batch backlog never
+formed. All33 acknowledged records subsequently indexed through normal commit
+replay, with no lease mutation; that recovery receipt is retained separately.
+
+The next preflight refused a nonzero SQS in-flight count. A read-only SQL task
+then measured59 indexed v2 batches, zero pending v1/v2 batches or bytes, and zero
+active processing leases, while SQS retained two invisible deliveries. This is
+a delivery-versus-work accounting distinction. The raw SQS count alone cannot
+establish a pending application backlog. No message was purged or deleted to
+make the check pass.
+
+The corrected bounded check must wait for the exact old task ARNs to become
+STOPPED. Any nonzero in-flight baseline requires a fresh, source-bound read-only
+SQL receipt with zero unfinished work/pressure and matching queue counts.
+Acceptance then requires32 new admitted records, the precise account-cap429 on
+the next intent, normal restart/drain, successful retry, stable commit replay,
+closure and restored service/scaling settings. A final SQL snapshot checks
+pressure returns to baseline. This remains a duplicate-witness engineering
+check; sustained unique-point capacity and global503 behavior require separate
+tests.
+
 ## Original obstruction (preserved history)
 
 The public CUDA image, 32-byte DP record, run ID and seed namespace, S3

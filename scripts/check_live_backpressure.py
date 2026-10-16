@@ -84,6 +84,8 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--restore-plan", type=Path)
+    parser.add_argument("--terminal-inflight-receipt", type=Path,
+                        help="fresh read-only SQL snapshot proving retained in-flight deliveries have no pending work")
     args = parser.parse_args()
     api = clients(args.profile)
     if args.restore_plan:
@@ -129,8 +131,23 @@ def main():
         return {name: int(value) for name, value in result.items()}
 
     baseline = queue()
+    terminal_inflight = None
     if any(baseline.values()):
-        raise CheckError("audit_queue_not_quiet")
+        if not args.terminal_inflight_receipt:
+            raise CheckError("audit_queue_not_quiet")
+        terminal_inflight = json.loads(args.terminal_inflight_receipt.read_text())
+        snap = terminal_inflight["snapshot"]
+        from check_live_pressure import BOOT as PRESSURE_BOOT
+        if (terminal_inflight.get("ok") is not True or terminal_inflight.get("account") != ACCOUNT
+                or terminal_inflight.get("command_sha256") != hashlib.sha256(PRESSURE_BOOT.encode()).hexdigest()
+                or not 0 <= time.time() - snap["created_at_unix"] <= 180
+                or not snap.get("read_only_transaction") or not snap.get("ok")
+                or any(snap[name] for name in ("v2_pending_batches", "v2_pending_bytes",
+                    "legacy_pending_batches", "legacy_pending_bytes", "v2_active_processing_leases"))
+                or any(state not in ("indexed", "failed", "expired") for state in snap["v2_batch_states"])
+                or baseline != terminal_inflight["audit_queue"]
+                or baseline["ApproximateNumberOfMessages"] or baseline["ApproximateNumberOfMessagesDelayed"]):
+            raise CheckError("terminal_inflight_snapshot_not_applicable")
     task_definition = api["ecs"].describe_task_definition(taskDefinition=service["taskDefinition"])["taskDefinition"]
     plan = {"format": "v2-bounded-backpressure-plan-v1", "account": ACCOUNT,
             "cluster": CLUSTER, "service": SERVICE, "desired_count": service["desiredCount"],
@@ -144,6 +161,8 @@ def main():
             "restore_watchdog_delay_seconds": 240,
             "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
             "scope": "duplicate valid witness admission, account backlog 429, restart/drain, idempotent commit; no fresh-point throughput claim"}
+    if terminal_inflight:
+        plan["terminal_inflight_baseline_receipt_sha256"] = hashlib.sha256(args.terminal_inflight_receipt.read_bytes()).hexdigest()
     plan_path = args.out / "plan.json"
     write_new(plan_path, plan)
     if not args.apply:
