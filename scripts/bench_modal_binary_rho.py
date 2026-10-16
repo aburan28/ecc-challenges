@@ -39,7 +39,8 @@ image = image.run_commands(
 
 
 @app.function(image=image, gpu="L4", timeout=900)
-def measure(lanes: int = 32, steps: int = 64, repeats: int = 2):
+def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
+            launcher_sha256: str = ""):
     import hashlib
     import io
     import json
@@ -64,7 +65,8 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2):
                 for arm in ("baseline", "candidate")}
     receipt = {"format": "eccjob03-binary-l4-matched-v1", "device": device,
                "system": platform.uname()._asdict(), "source_sha256": sources,
-               "binary_sha256": binaries, "lanes": lanes,
+               "binary_sha256": binaries, "launcher_sha256": launcher_sha256,
+               "lanes": lanes,
                "steps_per_round": steps, "repeats": repeats,
                "timing_boundary": "full worker process invocation including validation, transfers, kernel and output",
                "rows": [], "comparisons": []}
@@ -171,10 +173,12 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2):
 
 @app.local_entrypoint()
 def main(lanes: int = 32, steps: int = 64, repeats: int = 2):
+    import hashlib
     import json
     if OUT.exists():
         raise ValueError(f"output already exists: {OUT}")
-    receipt, raw = measure.remote(lanes, steps, repeats)
+    launcher_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    receipt, raw = measure.remote(lanes, steps, repeats, launcher_sha256)
     OUT.mkdir(parents=True, exist_ok=False)
     (OUT / "receipt.json").write_text(json.dumps(receipt, sort_keys=True, indent=2) + "\n")
     (OUT / "raw.tar.gz").write_bytes(raw)
