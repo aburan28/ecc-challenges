@@ -1,0 +1,29 @@
+{
+  "acceptance": "new record indexed; immutable lead and result bind both source receipts and return exactly the published scalar; run closes",
+  "constructed_sha256": "cf428e7884b363320c4b38fbfae295f4c1b1b6f5dac7f982a08750f89e9e9654",
+  "constructed_witness": "0c78858837aa8fd33d0e2c757e942f913d852e1d",
+  "first_witness": "1fffdc0a65808adc74742c757e942f913d852e1c",
+  "format": "live-published-scalar-collision-control-plan-v1",
+  "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+  "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+  "point_key": "210c03c6f3821655ab771f29280829365186e341",
+  "published_scalar": "0x138756822dd5fb093766",
+  "scope": "constructed equivalent coefficient witness for an already published scalar; one56-byte record",
+  "source": {
+    "bindings": [
+      {
+        "point_sha256": "f7c30017ac2ee4dd81b76fc434fa3116b243164fe774148f0760e90965200000",
+        "record_steps_claimed": 73101,
+        "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+        "verified_receipt_sha256": "8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630"
+      }
+    ],
+    "bytes": 56,
+    "object_key": "public-gateway/ecc-challenges-v1/v2/raw/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/shard=a6/runs/89490951-f6d3-4586-8739-252149455411/00000000000000000000-a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf.bin",
+    "records": 1,
+    "relations_verified": true,
+    "sha256": "a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf",
+    "version_id": "11A9lP2.LKSAWWzFyP4A_F3AQ1xkW.YD"
+  },
+  "source_commit": "1b9776de51c4a93d2217a966b3a35d2bfc925abe"
+}

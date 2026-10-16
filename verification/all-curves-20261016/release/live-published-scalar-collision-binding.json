@@ -1,0 +1,161 @@
+{
+  "control": "constructed-known-published-scalar",
+  "first_witness_binding_preserved": true,
+  "format": "live-collision-source-binding-v1",
+  "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+  "ok": true,
+  "plan_sha256": "98f97dae27789d062200925f1cd9dd6295c9fd3b03b9e345c87efd254753d25d",
+  "published_scalar_matches": true,
+  "receipt_objects": {
+    "public-gateway/ecc-challenges-v1/v2/checkpoints/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/424972b574c02114bd87c284f939aee5c3f604937ec47587cda519844b31dfc0.json": {
+      "sha256": "424972b574c02114bd87c284f939aee5c3f604937ec47587cda519844b31dfc0",
+      "value": {
+        "collision_leads": [
+          "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a"
+        ],
+        "deduplicated_points": 1,
+        "kind": "batch-indexed",
+        "new_points": 0,
+        "protocol": 2,
+        "source": {
+          "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/3cac2f278235573c8daad1dbb53c4ae3ff9cb3bbbfa8e5589a60d56ddd7d78bf.json",
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "byte_length": 56,
+          "byte_offset": 0,
+          "manifest_key": "public-gateway/ecc-challenges-v1/v2/batches/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/ef0b3ba6e0e9a6cd1684c4300bf9697bb7ea6c359ba27a6c66df75ff013dc14f.json",
+          "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+          "object_key": "public-gateway/ecc-challenges-v1/v2/raw/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/shard=cf/runs/acd83e60-c7da-42e9-928c-82f0cbc84c62/00000000000000000000-cf428e7884b363320c4b38fbfae295f4c1b1b6f5dac7f982a08750f89e9e9654.bin",
+          "record_bytes": 56,
+          "records": 1,
+          "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62",
+          "sha256": "cf428e7884b363320c4b38fbfae295f4c1b1b6f5dac7f982a08750f89e9e9654",
+          "version_id": "NCAxfrDBc2v2Ao08cvAQc4C5p9m765Qj"
+        },
+        "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json"
+      },
+      "version_id": "qrNlIS_X7NPRg72xfs8m7gGWOy_20ozq"
+    },
+    "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/0b62d34e94cc76e1ea45d986f2729a7820957e9ee4d7a59b37b91cc907bd13cb.json": {
+      "sha256": "0b62d34e94cc76e1ea45d986f2729a7820957e9ee4d7a59b37b91cc907bd13cb",
+      "value": {
+        "first": {
+          "batch_id": "44ab96bb-0e68-4436-ab5f-5562e7f1a6cb",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+          "witness": "1fffdc0a65808adc74742c757e942f913d852e1c"
+        },
+        "kind": "collision-result",
+        "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+        "lead_receipt_key": "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a.json",
+        "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+        "point_key": "210c03c6f3821655ab771f29280829365186e341",
+        "protocol": 2,
+        "reason": "recovered scalar independently satisfies dG = Q",
+        "scalar": "0x138756822dd5fb093766",
+        "second": {
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json",
+          "witness": "0c78858837aa8fd33d0e2c757e942f913d852e1d"
+        },
+        "state": "verified",
+        "verifier_id": "certicom-affine-algebraic-v2",
+        "verifier_sha256": "b6e47c0c9877ab09d9537dbedc2394d0073304261960bc896fcc6f61fbdee3ac"
+      },
+      "version_id": "mNv_sWBdJFDfbWqEv_wNfiA3udCw6dFE"
+    },
+    "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a.json": {
+      "sha256": "4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a",
+      "value": {
+        "first": {
+          "batch_id": "44ab96bb-0e68-4436-ab5f-5562e7f1a6cb",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+          "witness": "1fffdc0a65808adc74742c757e942f913d852e1c"
+        },
+        "kind": "collision-lead",
+        "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+        "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+        "point_key": "210c03c6f3821655ab771f29280829365186e341",
+        "protocol": 2,
+        "second": {
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json",
+          "witness": "0c78858837aa8fd33d0e2c757e942f913d852e1d"
+        }
+      },
+      "version_id": "V1wfVXMSyAisbV.3NkwOzvM1vaSNdg0V"
+    },
+    "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json": {
+      "sha256": "b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e",
+      "value": {
+        "checks": [
+          "version-pinned raw SHA-256 and length",
+          "namespace codec canonicality",
+          "finite affine point on assigned curve",
+          "namespace distinguished-point predicate",
+          "canonical a and b with point = aG + bQ"
+        ],
+        "kind": "batch-verification",
+        "protocol": 2,
+        "source": {
+          "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/3cac2f278235573c8daad1dbb53c4ae3ff9cb3bbbfa8e5589a60d56ddd7d78bf.json",
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "byte_length": 56,
+          "byte_offset": 0,
+          "manifest_key": "public-gateway/ecc-challenges-v1/v2/batches/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/ef0b3ba6e0e9a6cd1684c4300bf9697bb7ea6c359ba27a6c66df75ff013dc14f.json",
+          "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+          "object_key": "public-gateway/ecc-challenges-v1/v2/raw/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/shard=cf/runs/acd83e60-c7da-42e9-928c-82f0cbc84c62/00000000000000000000-cf428e7884b363320c4b38fbfae295f4c1b1b6f5dac7f982a08750f89e9e9654.bin",
+          "record_bytes": 56,
+          "records": 1,
+          "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62",
+          "sha256": "cf428e7884b363320c4b38fbfae295f4c1b1b6f5dac7f982a08750f89e9e9654",
+          "version_id": "NCAxfrDBc2v2Ao08cvAQc4C5p9m765Qj"
+        },
+        "state": "verified",
+        "trail_steps_verified": false,
+        "verified_records": 1,
+        "verifier_id": "certicom-affine-algebraic-v2",
+        "verifier_sha256": "b6e47c0c9877ab09d9537dbedc2394d0073304261960bc896fcc6f61fbdee3ac"
+      },
+      "version_id": "SrxthXutKlIF6.QJF1ceMeGclnJxRfe4"
+    },
+    "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json": {
+      "sha256": "8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630",
+      "value": {
+        "checks": [
+          "version-pinned raw SHA-256 and length",
+          "namespace codec canonicality",
+          "finite affine point on assigned curve",
+          "namespace distinguished-point predicate",
+          "canonical a and b with point = aG + bQ"
+        ],
+        "kind": "batch-verification",
+        "protocol": 2,
+        "source": {
+          "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/f9dbd13df2881bf06a079959258f659d6f686c6b7be5dd7049faf4b3a0d3c218.json",
+          "batch_id": "44ab96bb-0e68-4436-ab5f-5562e7f1a6cb",
+          "byte_length": 56,
+          "byte_offset": 0,
+          "manifest_key": "public-gateway/ecc-challenges-v1/v2/batches/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/aa147842e9f3a84d20ff374b87710fb78225059f59f03ce3f037017b525676ed.json",
+          "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+          "object_key": "public-gateway/ecc-challenges-v1/v2/raw/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/shard=a6/runs/89490951-f6d3-4586-8739-252149455411/00000000000000000000-a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf.bin",
+          "record_bytes": 56,
+          "records": 1,
+          "run_id": "89490951-f6d3-4586-8739-252149455411",
+          "sha256": "a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf",
+          "version_id": "11A9lP2.LKSAWWzFyP4A_F3AQ1xkW.YD"
+        },
+        "state": "verified",
+        "trail_steps_verified": false,
+        "verified_records": 1,
+        "verifier_id": "certicom-affine-algebraic-v2",
+        "verifier_sha256": "b6e47c0c9877ab09d9537dbedc2394d0073304261960bc896fcc6f61fbdee3ac"
+      },
+      "version_id": "sOdxaC5k4o64QgNVMZXiYBCOPv7ujHgb"
+    }
+  },
+  "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62",
+  "trail_steps_verified": false
+}

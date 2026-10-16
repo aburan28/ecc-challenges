@@ -8,9 +8,13 @@ CPU and NVIDIA CUDA backends. Existing ECC2K-130 v1 state keeps its original
 Frobenius walk and32-byte record format.
 
 Release status: the all-curve v2 path is implemented and disabled by default
-pending the final image and live contributor/capacity release gates. CPU controls
-passed for all24 curves with the corrected hash-based predicate. The corrected
-hash-based CUDA path passed168 checks on a Modal L4 across all24 curves. See [correctness receipts](verification/all-curves-20261016/README.md)
+pending the hosted GPU contribution, current-head CI and sustained fresh-point
+capacity release gates. All24 real CPU contribution checks passed upload,
+indexing, checkpoint resume and closure. The selected public image passed168
+checks on a Modal L4, including an anonymous GHCR pull. The bounded32-batch
+account backpressure and consumer-restart control passed, as did a deployed
+collision control using Certicom's published ECCp-79 scalar.
+See [correctness receipts](verification/all-curves-20261016/README.md)
 and the [open release boundary](problems/multi-campaign-worker-and-verifier.md).
 The current public image digest is shown by the website. Do not infer that a
 catalog entry is enabled until its contribution state says so.
@@ -23,17 +27,22 @@ binding, sizing, collision safety, compaction and archive reconstruction.
 
 ```mermaid
 flowchart LR
-  GPU[Contributor GPU container] -->|API key, bounded batch| ALB[WAF + HTTPS ALB]
+  GPU[Contributor CPU / GPU container] -->|API key, small control JSON| ALB[WAF + HTTPS ALB]
   ALB --> API[Stateless API tasks]
-  API -->|write once| S3[Dedicated S3 archive]
-  API -->|cursor and outbox| PG[(ecc_public on private RDS)]
-  PG --> SQS[Audit, index, collision queues]
-  SQS --> Audit[Independent seed replay]
-  Audit --> Index[Partitioned candidate index]
-  Index --> Resolver[Two trail replay + scalar solver]
-  Index -->|new public matches| PG
-  Index -.->|after later verified import| Existing[(Historical campaign projection)]
+  GPU -->|checksum-bound direct PUT| S3[Versioned immutable S3 archive]
+  API -->|namespace and admission receipts| S3
+  API -->|identity, quotas, cursor, outbox| PG[(Private PostgreSQL)]
+  PG -->|durable delivery and repair| SQS[Audit queue]
+  SQS --> Audit[Full v2 point verification]
+  S3 -->|pinned raw version| Audit
+  Audit --> Index[Conditional DynamoDB point index]
+  Index --> Resolver[Coefficient collision + scalar check]
+  Resolver -->|immutable result| S3
 ```
+
+This diagram describes v2. The separate legacy ECC2K-130 protocol retains its
+sampled trail replay and PostgreSQL candidate projection. Historical import
+remains deferred; new generic points have their own curve/walk namespaces.
 
 ## Contribute
 
@@ -54,9 +63,22 @@ check its registration, upload, replay, and index status before adding more.
 The container pauses GPU collection when the local upload spool reaches its
 limit and retries with the same run ID. A server `429` or `503` is a request to
 back off, not permission to discard the local file. Revoking the key stops
-uploads for its runs. A key never grants direct S3 or database access.
+uploads for its runs. A key is not an AWS credential: it grants no bucket
+listing, archive reads or database access. A signed upload capability permits
+only its exact bounded object write.
 
 ## What an accepted upload means
+
+For v2, admission checks key/account limits, UUID ownership, namespace, cursor,
+record alignment and checksum-bound S3 object metadata. Its ACK means the
+versioned raw bytes and admission receipt are durable. The audit worker then
+checks **every** record's DP predicate, curve equation and `R=aG+bQ` relation
+before any DynamoDB insertion. A collision rechecks its source receipts and
+coefficient witnesses, computes the candidate scalar and checks `dG=Q`.
+Verified coefficient relations do not attest reported trail lengths, so
+completion percentages remain unavailable pending a work-verification model.
+
+The following describes the separate legacy DP32 protocol:
 
 The API checks framing, run ID, canonical DP32 orbit-key shape, body size,
 cursor, key status, key rate and quota, and global pending capacity. It stores

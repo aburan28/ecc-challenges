@@ -146,13 +146,21 @@ Resources:
       Rules:
         - Name: global-ip-rate
           Priority: 0
-          Action: {Block: {}}
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                ResponseHeaders: [{Name: Retry-After, Value: '60'}]
           VisibilityConfig: {CloudWatchMetricsEnabled: true, MetricName: globalIpRate, SampledRequestsEnabled: true}
           Statement:
             RateBasedStatement: {AggregateKeyType: IP, Limit: 10000, EvaluationWindowSec: 300}
         - Name: enrollment-ip-rate
           Priority: 1
-          Action: {Block: {}}
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                ResponseHeaders: [{Name: Retry-After, Value: '60'}]
           VisibilityConfig: {CloudWatchMetricsEnabled: true, MetricName: enrollmentIpRate, SampledRequestsEnabled: true}
           Statement:
             RateBasedStatement:

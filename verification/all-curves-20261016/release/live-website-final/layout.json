@@ -1,0 +1,71 @@
+{
+  "format": "deployed-website-layout-v1",
+  "sourceCommit": "5dc26c4a365efe8bdb7080514a3102d0ebc2e0ea",
+  "styleInjection": false,
+  "rows": [
+    {
+      "route": "/",
+      "requestedWidth": 390,
+      "url": "https://ecc-challenges.com/",
+      "title": "ECC Challenges · Distributed elliptic-curve research",
+      "width": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollY": 0,
+      "navRight": 374,
+      "h1": "Curiosity has\ncomputing power.",
+      "h1Top": 164.1875,
+      "campaignRows": 24,
+      "columns": 6,
+      "ok": true
+    },
+    {
+      "route": "/",
+      "requestedWidth": 1440,
+      "url": "https://ecc-challenges.com/",
+      "title": "ECC Challenges · Distributed elliptic-curve research",
+      "width": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "scrollY": 0,
+      "navRight": 1312.5,
+      "h1": "Curiosity has\ncomputing power.",
+      "h1Top": 202.1875,
+      "campaignRows": 24,
+      "columns": 6,
+      "ok": true
+    },
+    {
+      "route": "/status",
+      "requestedWidth": 390,
+      "url": "https://ecc-challenges.com/status",
+      "title": "Campaign status · ECC Challenges",
+      "width": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "scrollY": 0,
+      "navRight": 374,
+      "h1": "Every challenge.\nOne clear status.",
+      "h1Top": 164.1875,
+      "campaignRows": 24,
+      "columns": 10,
+      "ok": true
+    },
+    {
+      "route": "/status",
+      "requestedWidth": 1440,
+      "url": "https://ecc-challenges.com/status",
+      "title": "Campaign status · ECC Challenges",
+      "width": 1440,
+      "clientWidth": 1425,
+      "scrollWidth": 1425,
+      "scrollY": 0,
+      "navRight": 1312.5,
+      "h1": "Every challenge.\nOne clear status.",
+      "h1Top": 215.03125,
+      "campaignRows": 24,
+      "columns": 10,
+      "ok": true
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "closure": {
+    "closed_at": "2026-10-16T23:04:33.782675+00:00",
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62"
+  },
+  "collision_receipts": [
+    {
+      "object_key": "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/0b62d34e94cc76e1ea45d986f2729a7820957e9ee4d7a59b37b91cc907bd13cb.json",
+      "receipt": {
+        "first": {
+          "batch_id": "44ab96bb-0e68-4436-ab5f-5562e7f1a6cb",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+          "witness": "1fffdc0a65808adc74742c757e942f913d852e1c"
+        },
+        "kind": "collision-result",
+        "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+        "lead_receipt_key": "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a.json",
+        "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+        "point_key": "210c03c6f3821655ab771f29280829365186e341",
+        "protocol": 2,
+        "reason": "recovered scalar independently satisfies dG = Q",
+        "scalar": "0x138756822dd5fb093766",
+        "second": {
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json",
+          "witness": "0c78858837aa8fd33d0e2c757e942f913d852e1d"
+        },
+        "state": "verified",
+        "verifier_id": "certicom-affine-algebraic-v2",
+        "verifier_sha256": "b6e47c0c9877ab09d9537dbedc2394d0073304261960bc896fcc6f61fbdee3ac"
+      },
+      "sha256": "0b62d34e94cc76e1ea45d986f2729a7820957e9ee4d7a59b37b91cc907bd13cb"
+    },
+    {
+      "object_key": "public-gateway/ecc-challenges-v1/v2/collisions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a/4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a.json",
+      "receipt": {
+        "first": {
+          "batch_id": "44ab96bb-0e68-4436-ab5f-5562e7f1a6cb",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+          "witness": "1fffdc0a65808adc74742c757e942f913d852e1c"
+        },
+        "kind": "collision-lead",
+        "lead_id": "5c64263fab5cb6411a304e39e1c80c66b21ff6e7d4998b9e2dc27d5c88edfe0a",
+        "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+        "point_key": "210c03c6f3821655ab771f29280829365186e341",
+        "protocol": 2,
+        "second": {
+          "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+          "record_index": 0,
+          "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/b0268aee5633e1adebb50f83aca7bdb00ece5e78f30e73e04227639f2b40486e.json",
+          "witness": "0c78858837aa8fd33d0e2c757e942f913d852e1d"
+        }
+      },
+      "sha256": "4a509ee8c034f7756a89788ce1c871bfdebdfeb9da546bea851f86e4269ae99a"
+    }
+  ],
+  "commit": {
+    "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/084c6049-721a-4a4f-be48-7baf1373f29f/3cac2f278235573c8daad1dbb53c4ae3ff9cb3bbbfa8e5589a60d56ddd7d78bf.json",
+    "batch_end_cursor": 56,
+    "batch_id": "084c6049-721a-4a4f-be48-7baf1373f29f",
+    "cursor": 56,
+    "duplicate": false,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "ok": true,
+    "records": 1,
+    "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62",
+    "state": "admitted"
+  },
+  "format": "live-published-scalar-collision-control-result-v1",
+  "indexed_status": {
+    "batches": {
+      "indexed": {
+        "batches": 1,
+        "records": 1
+      }
+    },
+    "cursor": 56,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62",
+    "total_records": 1
+  },
+  "ok": true,
+  "plan_sha256": "98f97dae27789d062200925f1cd9dd6295c9fd3b03b9e345c87efd254753d25d",
+  "published_scalar_matches": true,
+  "run_id": "acd83e60-c7da-42e9-928c-82f0cbc84c62"
+}

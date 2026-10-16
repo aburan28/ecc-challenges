@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   integration:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: postgres:16
@@ -40,7 +40,7 @@ jobs:
       - run: python -m pytest -q
 
   templates:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -50,7 +50,7 @@ jobs:
       - run: cfn-lint infra/foundation.yaml infra/data.yaml infra/service.yaml infra/build.yaml infra/registry.yaml infra/contributor-canary.yaml
 
   images:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f Dockerfile.web -t ecc-challenges-web:ci .

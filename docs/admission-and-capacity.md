@@ -60,7 +60,9 @@ public candidates, while the new account's S3 bucket holds raw batches.
 | Collision | Both trails replayed, pinned host scalar solver, separate golden-model scalar multiplication, result receipt in S3 | A verified scalar requires both independent point checks |
 
 The WAF blocks more than 10,000 requests per 5 minutes from one IP, and more
-than 300 per 5 minutes for authentication or key routes. The application has
+than 300 per 5 minutes for authentication or key routes. Both rate rules return
+HTTP429 with Retry-After60, so shared-provider throttling is retryable rather
+than a permanent permission error. The application has
 a 240-token per-key burst bucket refilling 4 tokens/s; a 1 MiB DP upload costs 16
 tokens. A key is limited to 5 GiB/day across DP batches and checkpoints, and an account to three active keys, eight active runs, and 64 lifetime run IDs. The pending batch counter is sharded 16 ways and admission
 returns `503` with `Retry-After` when the configured backlog bound is hit.

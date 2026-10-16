@@ -80,6 +80,26 @@ nonempty queue baseline. Attempt2's unexpected successful intent included a
 signed upload capability. Its public result is explicitly redacted and hashes
 the preserved private original; no capability is included in version control.
 
+## Live collision and website checks
+
+`release/live-published-scalar-collision-attempt-1/` records one56-byte
+constructed equivalent coefficient witness for Certicom's published ECCp-79
+scalar. The deployed verifier indexed it, resolved the collision to that exact
+published answer, and closed the run. The separate
+`live-published-scalar-collision-binding.json` binds five versioned S3 receipts:
+both source verification receipts, the collision lead/result and the index
+checkpoint. The original DynamoDB witness binding remained unchanged. This is
+a deployed correctness control using a supplied answer; its trail steps are
+not verified and it supplies no new challenge-solving result.
+
+`release/live-service-5dc26c4.json` records the completed website deployment,
+selected anonymous GHCR image, HTTPS200 responses for home/status/health/catalog,
+and retained private v2 gate. `release/live-website-final/` contains actual
+deployed screenshots and layout checks at390 and1440 pixels, with no stylesheet
+injection. Both pages have24 campaign rows; the status table has10 aligned
+columns. The earlier source-style layout checks additionally cover320 and768
+pixels. The phone navigation overflow was corrected before these final checks.
+
 The earlier `cpu.json`, `cuda-l4.json` and `source-sha256.json` below are superseded raw-coordinate predicate receipts. Their exact sources are retained under `raw-x-v1/`; those receipts establish arithmetic parity only for the earlier proposal.
 
 `cpu.json` records 72 finite transition cases over all 24 published Certicom
