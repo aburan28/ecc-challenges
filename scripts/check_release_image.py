@@ -8,13 +8,17 @@ import modal
 
 app=modal.App('ecc-challenges-release-image-correctness')
 BOOT=r'''
-import hashlib,io,json,os,platform,subprocess,sys,tarfile,tempfile,time
+import base64,hashlib,io,json,os,platform,subprocess,sys,tarfile,tempfile,time
 from pathlib import Path,PurePosixPath
 from urllib.request import urlopen
 image=os.environ['ECC_RELEASE_IMAGE']
+provider_uid=os.getuid()
+if provider_uid==0:
+    os.setgroups([]);os.setgid(10001);os.setuid(10001)
 started=time.monotonic()
 receipt={'format':'published-worker-cuda-correctness-v1','release_image':image,
          'python':sys.version,'platform':platform.platform(),'uid':os.getuid(),'gid':os.getgid(),
+         'provider_initial_uid':provider_uid,
          'rows':[],'errors':[]}
 engine=Path('/opt/ecc/generic-engine')
 url='https://raw.githubusercontent.com/aburan28/ecc-challenges/ca45bd1a4555386a59f9b27d89b36569dd43f085/verification/all-curves-20261016/job03-controls.tar.gz'
@@ -85,7 +89,11 @@ except Exception as error:receipt['errors'].append({'type':type(error).__name__,
 receipt.update(campaigns=len({r['campaign'] for r in receipt['rows']}),checks=len(receipt['rows']),
                passed_checks=sum(r['ok'] for r in receipt['rows']),elapsed_seconds=time.monotonic()-started)
 receipt['ok']=receipt['checks']==168 and receipt['passed_checks']==168 and receipt['campaigns']==24 and receipt['uid']==receipt['gid']==10001 and not receipt['errors']
-print(json.dumps(receipt,sort_keys=True),flush=True)
+payload=json.dumps(receipt,sort_keys=True).encode()
+chunks=[payload[i:i+7000] for i in range(0,len(payload),7000)]
+for i,chunk in enumerate(chunks):
+    print('ECC_RECEIPT_CHUNK '+json.dumps({'index':i,'data':base64.b64encode(chunk).decode()}),flush=True)
+print('ECC_RECEIPT_END '+json.dumps({'chunks':len(chunks),'sha256':hashlib.sha256(payload).hexdigest()}),flush=True)
 raise SystemExit(0 if receipt['ok'] else 1)
 '''
 
@@ -107,7 +115,7 @@ def main(out:str):
         if set(auth)!={'REGISTRY_USERNAME','REGISTRY_PASSWORD'} or auth['REGISTRY_USERNAME']!='AWS':
             raise ValueError('expected temporary pull-only ECR registry authentication')
         secret=modal.Secret.from_dict(auth)
-    image=modal.Image.from_registry(uri,secret=secret,setup_dockerfile_commands=['ENTRYPOINT []','USER 10001:10001'])
+    image=modal.Image.from_registry(uri,secret=secret,setup_dockerfile_commands=['ENTRYPOINT []'])
     sandbox=None
     try:
         sandbox=modal.Sandbox.create('python3','-c',BOOT,app=app,image=image,gpu='L4',cpu=2,memory=4096,
@@ -115,7 +123,21 @@ def main(out:str):
         print('release check sandbox: '+sandbox.object_id,flush=True)
         sandbox.wait(raise_on_termination=False)
         stdout,stderr=sandbox.stdout.read(),sandbox.stderr.read()
-        try:receipt=json.loads(stdout)
+        try:
+            import base64,hashlib
+            parts={};end=None
+            for line in stdout.splitlines():
+                if line.startswith('ECC_RECEIPT_CHUNK '):
+                    item=json.loads(line[len('ECC_RECEIPT_CHUNK '):]);index=item['index']
+                    if index in parts:raise ValueError('duplicate receipt chunk')
+                    parts[index]=base64.b64decode(item['data'],validate=True)
+                elif line.startswith('ECC_RECEIPT_END '):
+                    if end is not None:raise ValueError('duplicate receipt terminator')
+                    end=json.loads(line[len('ECC_RECEIPT_END '):])
+            if end is None or set(parts)!=set(range(end['chunks'])):raise ValueError('incomplete receipt')
+            body=b''.join(parts[i] for i in range(end['chunks']))
+            if hashlib.sha256(body).hexdigest()!=end['sha256']:raise ValueError('receipt digest differs')
+            receipt=json.loads(body)
         except (ValueError,TypeError):receipt={'ok':False,'stdout':stdout}
         receipt.update(modal_app_id=app.app_id,modal_sandbox_id=sandbox.object_id,
                        sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr)

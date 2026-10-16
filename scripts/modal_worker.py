@@ -41,10 +41,25 @@ BOOT = """
 import os
 from pathlib import Path
 import sys
+import tempfile
 key = os.environ.pop('ECC_API_KEY')
-path = Path('/tmp/ecc_api_key')
-path.write_text(key + '\\n')
-path.chmod(0o600)
+data = Path(os.environ['ECC_STATE_DIR'])
+data.mkdir(parents=True, exist_ok=True)
+# Modal ignores Docker USER. Each named worker has its own dedicated volume.
+# Preserve checkpoints while transferring their ownership before dropping root.
+if os.getuid() == 0:
+    for path in data.rglob('*'):
+        if path.is_symlink():
+            raise RuntimeError('worker state volume must not contain symlinks')
+        os.chown(path, 10001, 10001, follow_symlinks=False)
+    os.chown(data, 10001, 10001, follow_symlinks=False)
+    os.setgroups([])
+    os.setgid(10001)
+    os.setuid(10001)
+fd, name = tempfile.mkstemp(prefix='ecc-api-key-')
+with os.fdopen(fd, 'w') as output:
+    output.write(key + '\\n')
+path = Path(name)
 os.environ['ECC_API_KEY_FILE'] = str(path)
 os.execv(sys.executable, [sys.executable, '/opt/ecc2k130/client.py'])
 """
