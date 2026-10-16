@@ -40,14 +40,17 @@ def _challenge(name: str, field: str, bits: int, level: str, solved: bool = Fals
 
 
 # Names, field sizes and groups: Certicom 2009, section 4. Solution snapshot:
-# section 6.1. ECC2-353 has a 359-bit field as published by Certicom.
+# section 6.1; operation estimates: section 6.2, "Estimated number of elliptic
+# curve operations" column. ECC2-353 has a 359-bit field as published.
+# Section 6.2 misprints the ECC2K-95 and ECC2-97 row labels as "ECC2-79";
+# the solution dates in section 6.1 disambiguate those rows.
 CHALLENGES = (
-    _challenge("ECC2-79", "binary", 79, "exercise", True),
-    _challenge("ECC2-89", "binary", 89, "exercise", True),
-    _challenge("ECC2K-95", "binary", 97, "exercise", True),
-    _challenge("ECC2-97", "binary", 97, "exercise", True),
-    _challenge("ECC2K-108", "binary", 109, "level_i", True),
-    _challenge("ECC2-109", "binary", 109, "level_i", True),
+    _challenge("ECC2-79", "binary", 79, "exercise", True, "4.9e11"),
+    _challenge("ECC2-89", "binary", 89, "exercise", True, "1.6e13"),
+    _challenge("ECC2K-95", "binary", 97, "exercise", True, "1.8e13"),
+    _challenge("ECC2-97", "binary", 97, "exercise", True, "2.5e14"),
+    _challenge("ECC2K-108", "binary", 109, "level_i", True, "1.5e15"),
+    _challenge("ECC2-109", "binary", 109, "level_i", True, "1.6e16"),
     _challenge("ECC2K-130", "binary", 131, "level_i", operations="2.0e18"),
     _challenge("ECC2-131", "binary", 131, "level_i", operations="3.3e19"),
     _challenge("ECC2K-163", "binary", 163, "level_ii", operations="1.7e23"),
@@ -57,10 +60,10 @@ CHALLENGES = (
     _challenge("ECC2-238", "binary", 239, "level_ii", operations="4.2e35"),
     _challenge("ECC2K-358", "binary", 359, "level_ii", operations="3.6e52"),
     _challenge("ECC2-353", "binary", 359, "level_ii", operations="1.1e53"),
-    _challenge("ECCp-79", "prime", 79, "exercise", True),
-    _challenge("ECCp-89", "prime", 89, "exercise", True),
-    _challenge("ECCp-97", "prime", 97, "exercise", True),
-    _challenge("ECCp-109", "prime", 109, "level_i", True),
+    _challenge("ECCp-79", "prime", 79, "exercise", True, "6.1e11"),
+    _challenge("ECCp-89", "prime", 89, "exercise", True, "1.8e13"),
+    _challenge("ECCp-97", "prime", 97, "exercise", True, "3.0e14"),
+    _challenge("ECCp-109", "prime", 109, "level_i", True, "2.1e16"),
     _challenge("ECCp-131", "prime", 131, "level_i", operations="3.5e19"),
     _challenge("ECCp-163", "prime", 163, "level_ii", operations="2.4e24"),
     _challenge("ECCp-191", "prime", 192, "level_ii", operations="4.9e28"),

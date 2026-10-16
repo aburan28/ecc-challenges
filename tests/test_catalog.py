@@ -45,6 +45,8 @@ def test_certicom_catalog_has_all_published_names_and_exact_campaign_boundary():
     assert BY_ID["eccp-191"].field_bits == 192
     assert {item.id for item in CHALLENGES if item.contribution != "not_integrated"} == {"ecc2k-130"}
     assert BY_ID["ecc2k-130"].estimated_operations_2009 == "2.0e18"
+    assert all(item.estimated_operations_2009 for item in CHALLENGES)
+    assert BY_ID["ecc2k-95"].estimated_operations_2009 == "1.8e13"
 
 
 def test_catalog_site_status_and_fail_closed_registration():

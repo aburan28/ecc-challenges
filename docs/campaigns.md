@@ -4,8 +4,10 @@ The [Certicom ECC Challenge document, updated November 2009](https://www.certico
 is the source for the 24 names, field sizes, solution snapshot and historical
 elliptic-curve-operation estimates in `src/ecc_challenges/catalog.py`.
 Section 4 names the challenges, section 6.1 lists the ten solutions then known,
-and section 6.2 gives the operation estimates. The website labels all of these
-as historical. It does not assert that a challenge remains unsolved today.
+and section 6.2 gives the operation estimates. Section 6.2 mislabels the
+ECC2K-95 and ECC2-97 solved rows as ECC2-79; their solution dates in section
+6.1 identify those rows. The website labels all of these as historical. It
+does not assert that a challenge remains unsolved today.
 
 The public [status page](https://ecc-challenges.com/status) and
 `GET /v1/status` are served by this application. The database query reads the
