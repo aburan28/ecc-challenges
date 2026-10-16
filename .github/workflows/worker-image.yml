@@ -82,9 +82,10 @@ jobs:
         run: |
           digest="${SOURCE_IMAGE##*@}"
           target="ghcr.io/aburan28/ecc-challenges-worker:mirror-${digest#sha256:}"
-          skopeo copy --all --preserve-digests "docker://$SOURCE_IMAGE" "docker://$target"
+          skopeo copy --all --digestfile "$RUNNER_TEMP/copied.digest" "docker://$SOURCE_IMAGE" "docker://$target"
+          [[ "$(cat "$RUNNER_TEMP/copied.digest")" == "$digest" ]]
           printf '{"auths":{}}\n' > "$RUNNER_TEMP/anonymous.json"
-          if ! skopeo inspect --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://ghcr.io/aburan28/ecc-challenges-worker@$digest" > "$RUNNER_TEMP/mirror-manifest.json"; then
+          if ! skopeo inspect --no-creds --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://$target" > "$RUNNER_TEMP/mirror-manifest.json"; then
             echo 'The mirror was published but anonymous access failed. Check package visibility at https://github.com/users/aburan28/packages/container/ecc-challenges-worker/settings.'
             exit 1
           fi
