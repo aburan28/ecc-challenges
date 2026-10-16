@@ -1,5 +1,9 @@
 name: CI
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
   push:
@@ -43,7 +47,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install 'cfn-lint>=1,<2'
-      - run: cfn-lint infra/foundation.yaml infra/data.yaml infra/service.yaml infra/build.yaml
+      - run: cfn-lint infra/foundation.yaml infra/data.yaml infra/service.yaml infra/build.yaml infra/registry.yaml
 
   images:
     runs-on: ubuntu-24.04

@@ -111,3 +111,21 @@ emitted points. Evidence: `verification/all-curves-20261016/cpu-job03.json`,
 `cuda-job03-l4.json`, `job03-controls.tar.gz` and `source-job03-sha256.json`.
 A designated key-ID preview gate permits the live canary without marking v2
 publicly available. The bearer value is kept outside version control.
+
+### Public image distribution limit
+
+The combined image built successfully in CodeBuild at source `aaf1dad4b7561c47639b7583d072bfb05fbe5bed`.
+Its public ECR digest is `sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee`.
+Modal app `ap-IjZkwBeYyxtWpvLD9l6v0t` could not import it: the registry returned
+`toomanyrequests: Data limit exceeded` before sandbox or GPU startup. The failed
+receipt is retained under `verification/all-curves-20261016/release/`.
+AWS documents a non-adjustable 500 GB/month anonymous consumer limit. A shared
+provider egress pool is a suspected explanation; the receipt does not identify
+which quota-accounting identity reached the limit.
+
+This blocks a provider-neutral anonymous-pull release, not the arithmetic check.
+The next steps are a temporary pull-only registry identity for the internal
+canary and an independently accessible public mirror. Acceptance requires an
+anonymous hosted-provider pull of the exact published digest, all168 final-image
+controls, and the normal entrypoint contribution check. Publishing an image or
+successfully pulling it inside AWS does not meet that exit condition.

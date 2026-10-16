@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Pull-only public registry identity for hosted image checks and GitHub publication.
+Resources:
+  GithubOidc:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList: [sts.amazonaws.com]
+  PublicImageReader:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ecc-challenges-public-image-reader
+      MaxSessionDuration: 3600
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:user/coreuser'}
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal: {Federated: !Ref GithubOidc}
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+                token.actions.githubusercontent.com:sub:
+                  - 'repo:aburan28@1086874/ecc-challenges@1419397974:ref:refs/heads/main'
+                  - 'repo:aburan28@1086874/ecc-challenges@1419397974:ref:refs/heads/codex/ecc-all-curves-v2'
+      Policies:
+        - PolicyName: public-image-authentication-only
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [ecr-public:GetAuthorizationToken, sts:GetServiceBearerToken]
+                Resource: '*'
+Outputs:
+  PublicImageReaderArn: {Value: !GetAtt PublicImageReader.Arn}

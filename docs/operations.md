@@ -220,3 +220,25 @@ monitor cost and tune after the sustained capacity gate. The existing
 `scripts/capacity.py` models the legacy sampled verifier and cannot establish v2
 throughput. A production DP/s claim requires measurements of every distinct
 witness under the deployed curve mix and fleet size.
+
+### Public image mirrors
+
+ECR Public anonymous consumers have a fixed monthly data allowance. Shared cloud
+provider importers can exhaust that allowance before starting a container.
+`infra/registry.yaml` supplies a public-image authentication role with no push,
+private-image, bucket, database or application-secret permissions. Its GitHub
+OIDC trust binds the repository's verified immutable IDs and the release refs.
+
+The existing contributor-image workflow accepts an optional `source_image`
+dispatch input. It copies the exact ECR image to
+`ghcr.io/aburan28/ecc-challenges-worker` with digest preservation and checks an
+anonymous pull. First-time GHCR package publication can require the package
+owner to make it public in GitHub's package settings. Do not advertise the
+mirror until the anonymous check passes. The deployment helper requires the
+mirror's manifest bytes to match an image digest in the isolated AWS account.
+
+Internal Modal checks can optionally use a mode-0600 `ECC_REGISTRY_AUTH_FILE`
+containing a temporary pull-only token. Sending that token to a third-party
+importer requires explicit authorization; an automatic approval rejection does
+not authorize another transport. No AWS access keys belong in a contributor
+container. The public release must work with an anonymous provider pull.

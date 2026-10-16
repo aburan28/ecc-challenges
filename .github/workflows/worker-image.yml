@@ -4,6 +4,15 @@ on:
   push:
     tags: ["worker-v*"]
   workflow_dispatch:
+    inputs:
+      source_image:
+        description: Immutable ECR Public image to mirror without rebuilding
+        required: false
+        type: string
+      runner_label:
+        description: Optional isolated ephemeral runner label
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -11,7 +20,8 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    if: ${{ !inputs.source_image }}
+    runs-on: ${{ inputs.runner_label || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -37,3 +47,46 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+
+  mirror:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_image && github.repository == 'aburan28/ecc-challenges' && github.actor == 'aburan28' }}
+    runs-on: ${{ inputs.runner_label || 'ubuntu-24.04' }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      SOURCE_IMAGE: ${{ inputs.source_image }}
+    steps:
+      - name: Validate the immutable source
+        shell: bash
+        run: |
+          [[ "$SOURCE_IMAGE" =~ ^public[.]ecr[.]aws/o1a3z1g6/ecc-challenges-worker@sha256:[0-9a-f]{64}$ ]]
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::104186811093:role/ecc-challenges-public-image-reader
+          role-session-name: ecc-challenges-image-mirror
+          aws-region: us-east-1
+      - name: Install the registry copier
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends skopeo
+      - name: Authenticate for public-image transfer
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          aws ecr-public get-login-password --region us-east-1 | skopeo login --username AWS --password-stdin public.ecr.aws
+          printf '%s' "$GHCR_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+      - name: Copy the exact image and verify its public digest
+        shell: bash
+        run: |
+          digest="${SOURCE_IMAGE##*@}"
+          target="ghcr.io/aburan28/ecc-challenges-worker:mirror-${digest#sha256:}"
+          skopeo copy --all --preserve-digests "docker://$SOURCE_IMAGE" "docker://$target"
+          printf '{"auths":{}}\n' > "$RUNNER_TEMP/anonymous.json"
+          if ! skopeo inspect --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://ghcr.io/aburan28/ecc-challenges-worker@$digest" > "$RUNNER_TEMP/mirror-manifest.json"; then
+            echo 'The mirror was published but anonymous access failed. Check package visibility at https://github.com/users/aburan28/packages/container/ecc-challenges-worker/settings.'
+            exit 1
+          fi
+          printf '%s  %s\n' "${digest#sha256:}" "$RUNNER_TEMP/mirror-manifest.json" | sha256sum --check
+          printf 'Published public mirror: ghcr.io/aburan28/ecc-challenges-worker@%s\n' "$digest" >> "$GITHUB_STEP_SUMMARY"

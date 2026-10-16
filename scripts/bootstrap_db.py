@@ -74,7 +74,9 @@ def bootstrap(args) -> None:
                     cursor.execute(migration.read_text())
                 with conn.transaction():
                     set_login(conn, "ecc_site_web", web_password, 128)
-                    set_login(conn, "ecc_site_worker", worker_password, 128)
+                    # Up to 32 audit + 8 index + 8 resolver + 1 reconciler,
+                    # with two-connection pools and 200% rolling deployments.
+                    set_login(conn, "ecc_site_worker", worker_password, 256)
                     cursor.execute(sql.SQL("GRANT CONNECT ON DATABASE {} TO ecc_site_web,ecc_site_worker")
                                    .format(sql.Identifier(args.database)))
                     cursor.execute("GRANT USAGE ON SCHEMA ecc_public TO ecc_site_web,ecc_site_worker")

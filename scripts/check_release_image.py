@@ -92,12 +92,22 @@ raise SystemExit(0 if receipt['ok'] else 1)
 @app.local_entrypoint()
 def main(out:str):
     uri=os.environ.get('ECC_RELEASE_IMAGE','')
-    if not re.fullmatch(r'public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}',uri):
+    if not re.fullmatch(r'(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}',uri):
         raise ValueError('ECC_RELEASE_IMAGE must be an immutable public worker digest')
     destination=Path(out)
     if destination.exists():raise FileExistsError(destination)
     destination.parent.mkdir(parents=True,exist_ok=True)
-    image=modal.Image.from_registry(uri,setup_dockerfile_commands=['ENTRYPOINT []','USER 10001:10001'])
+    registry_file=os.environ.get('ECC_REGISTRY_AUTH_FILE')
+    secret=None
+    if registry_file:
+        auth_path=Path(registry_file)
+        if auth_path.stat().st_mode & 0o077:
+            raise ValueError('registry authentication file must have mode 0600')
+        auth=json.loads(auth_path.read_text())
+        if set(auth)!={'REGISTRY_USERNAME','REGISTRY_PASSWORD'} or auth['REGISTRY_USERNAME']!='AWS':
+            raise ValueError('expected temporary pull-only ECR registry authentication')
+        secret=modal.Secret.from_dict(auth)
+    image=modal.Image.from_registry(uri,secret=secret,setup_dockerfile_commands=['ENTRYPOINT []','USER 10001:10001'])
     sandbox=None
     try:
         sandbox=modal.Sandbox.create('python3','-c',BOOT,app=app,image=image,gpu='L4',cpu=2,memory=4096,

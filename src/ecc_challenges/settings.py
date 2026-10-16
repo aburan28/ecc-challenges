@@ -78,7 +78,7 @@ class Settings:
         if not (1 <= result.run_id_start <= result.run_id_end <= 65534):
             raise ValueError("invalid 16-bit run ID range")
         if web and not re.fullmatch(
-            r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
             result.public_worker_image,
         ):
             raise ValueError("PUBLIC_WORKER_IMAGE must be a pinned public worker digest")
