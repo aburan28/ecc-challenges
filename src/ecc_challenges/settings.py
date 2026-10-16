@@ -32,6 +32,7 @@ class Settings:
     public_worker_image: str = ""
     multicurve_enabled: bool = False
     point_index_table: str = ""
+    multicurve_canary_keys: tuple[str, ...] = ()
 
     @classmethod
     def from_env(cls, *, web: bool = True) -> "Settings":
@@ -64,6 +65,7 @@ class Settings:
             public_worker_image=get("PUBLIC_WORKER_IMAGE", ""),
             multicurve_enabled=get("MULTICURVE_ENABLED", "false").lower() == "true",
             point_index_table=get("POINT_INDEX_TABLE", ""),
+            multicurve_canary_keys=tuple(v.strip() for v in get("MULTICURVE_CANARY_KEYS", "").split(",") if v.strip()),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
         if web:
@@ -82,6 +84,8 @@ class Settings:
             raise ValueError("PUBLIC_WORKER_IMAGE must be a pinned public worker digest")
         if result.max_account_runs_lifetime < 1:
             raise ValueError("MAX_ACCOUNT_RUNS_LIFETIME must be positive")
+        if any(not re.fullmatch(r"[0-9a-f]{24}", value) for value in result.multicurve_canary_keys):
+            raise ValueError("MULTICURVE_CANARY_KEYS must contain key IDs, never bearer values")
         parsed = urlparse(result.public_origin)
         if parsed.scheme != "https" or parsed.path not in ("", "/") or parsed.query:
             raise ValueError("PUBLIC_ORIGIN must be an HTTPS origin")

@@ -1,6 +1,6 @@
 # Portable engine correctness controls, 2026-10-16
 
-Current generic format: ECCJOB03, with SHA-256 point partitioning and DP selection. `cpu-job03.json` records72 passing cases across all24 curves, each with nonempty DP1 output. `job03-controls.tar.gz` preserves all exact inputs and expected outputs. `source-job03-sha256.json` binds the corrected implementation. Its GPU rerun and final container canary remain release gates.
+Current generic format: ECCJOB03, with SHA-256 point partitioning and DP selection. `cpu-job03.json` records72 passing cases across all24 curves, each with nonempty DP1 output. `job03-controls.tar.gz` preserves all exact inputs and expected outputs. `source-job03-sha256.json` binds the corrected implementation. `cuda-job03-l4.json` records168 passing comparisons/rejections across all24 curves on Modal app ap-wQybTDm1rDjAJZG7ECGE6R, NVIDIA L4 driver610.57.04. The final combined container and live contributor canary remain release gates.
 
 The earlier `cpu.json`, `cuda-l4.json` and `source-sha256.json` below are superseded raw-coordinate predicate receipts. Their exact sources are retained under `raw-x-v1/`; those receipts establish arithmetic parity only for the earlier proposal.
 

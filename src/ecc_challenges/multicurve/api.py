@@ -77,15 +77,21 @@ def create_router(legacy, database, storage, settings) -> APIRouter:
     service = Service(legacy, database, Archive(storage), settings)
     router = APIRouter(prefix="/v2")
 
+    async def authenticate(request: Request, cost=1):
+        key = await run_in_threadpool(legacy.authenticate, _bearer(request), cost)
+        if not settings.multicurve_enabled and key["id"] not in settings.multicurve_canary_keys:
+            raise Rejected(503, "multi-curve release is not enabled for this key", 60)
+        return key
+
     @router.get("/config")
     async def config(request: Request, campaign: str):
-        await run_in_threadpool(legacy.authenticate, _bearer(request))
+        await authenticate(request)
         result = await run_in_threadpool(service.config, campaign)
         return _response(result)
 
     @router.post("/register")
     async def register(request: Request):
-        key = await run_in_threadpool(legacy.authenticate, _bearer(request))
+        key = await authenticate(request)
         value = await _json(request, {"campaign", "registration_id"})
         result = await run_in_threadpool(
             service.register, key, value["campaign"], value["registration_id"]
@@ -95,7 +101,7 @@ def create_router(legacy, database, storage, settings) -> APIRouter:
     @router.post("/runs/{run_id}/batches")
     async def intent(request: Request, run_id: str):
         credential = _bearer(request)
-        key = await run_in_threadpool(legacy.authenticate, credential)
+        key = await authenticate(request)
         value = await _json(request, {"offset", "byte_length", "records", "sha256"})
         from .service import integer
         length = integer(value["byte_length"], "byte_length", 1, 1048576)
@@ -110,14 +116,14 @@ def create_router(legacy, database, storage, settings) -> APIRouter:
 
     @router.post("/runs/{run_id}/batches/{batch_id}/commit")
     async def commit(request: Request, run_id: str, batch_id: str):
-        key = await run_in_threadpool(legacy.authenticate, _bearer(request))
+        key = await authenticate(request)
         await _body(request, 0)
         result = await run_in_threadpool(service.commit, key, run_id, batch_id)
         return _response(result)
 
     @router.get("/runs/{run_id}")
     async def status(request: Request, run_id: str):
-        key = await run_in_threadpool(legacy.authenticate, _bearer(request))
+        key = await authenticate(request)
         result = await run_in_threadpool(service.run_status, key, run_id)
         return _response(result)
 

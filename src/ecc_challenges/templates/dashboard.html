@@ -13,6 +13,7 @@ docker run --gpus all --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_GPU="$GPU_ID" \
   -e ECC_CAMPAIGN="$CAMPAIGN" \
+  -e ECC_PROTOCOL={{ 2 if multicurve_enabled else 1 }} \
   -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-$CAMPAIGN-$GPU_ID:/data" \

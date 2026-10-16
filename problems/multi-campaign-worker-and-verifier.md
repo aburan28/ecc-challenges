@@ -104,3 +104,10 @@ namespace. SHA-256's distribution is a walk-model assumption; the release
 correctness gate now additionally requires finite DP1 emission on every curve.
 All CPU and GPU transition controls must be rerun for this exact revision.
 The legacy Frobenius predicate is a separate established protocol.
+
+The corrected ECCJOB03 implementation passed the repeated72 CPU cases and168
+real L4 comparisons/rejections across all24 curves. Every curve's DP1 control
+emitted points. Evidence: `verification/all-curves-20261016/cpu-job03.json`,
+`cuda-job03-l4.json`, `job03-controls.tar.gz` and `source-job03-sha256.json`.
+A designated key-ID preview gate permits the live canary without marking v2
+publicly available. The bearer value is kept outside version control.

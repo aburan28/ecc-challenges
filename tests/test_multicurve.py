@@ -440,3 +440,20 @@ def test_recreated_index_generation_is_fenced(platform,monkeypatch):
     monkeypatch.setattr(table,'describe_table',original)
     with pytest.raises(RuntimeError,match='immutable TableId'):
         pipeline.point_index.bind_generation(service.db)
+
+
+def test_canary_key_can_validate_before_public_enablement(platform):
+    from fastapi.testclient import TestClient
+    from ecc_challenges.app import create_app
+    service,key,run,ns,archive,pipeline,table=platform
+    service.legacy.upsert_account(789,'preview-route-control')
+    credential=service.legacy.create_key(789,'preview')
+    canary=service.legacy.authenticate(credential)
+    service.legacy.upsert_account(790,'normal-route-control')
+    normal=service.legacy.create_key(790,'normal')
+    config=replace(service.settings,multicurve_enabled=False,multicurve_canary_keys=(canary['id'],))
+    with TestClient(create_app(config,db=service.db,storage=archive.storage),base_url='https://ecc-challenges.com') as client:
+        assert not client.get('/v1/campaigns').json()['multicurve_enabled']
+        assert client.get('/v2/config?campaign=eccp-79',headers={'Authorization':'Bearer '+normal}).status_code==503
+        assert client.get('/v2/config?campaign=eccp-79',headers={'Authorization':'Bearer '+credential}).status_code==200
+        assert client.get('/v1/status').json()['compute_ready']==1

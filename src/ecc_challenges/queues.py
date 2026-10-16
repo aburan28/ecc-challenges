@@ -443,7 +443,7 @@ def main() -> None:
     s3 = boto3.client("s3", region_name=settings.region, config=Config(signature_version="s3v4"))
     sqs = boto3.client("sqs", region_name=settings.region)
     worker = QueueWorker(db, Storage(s3, sqs, settings.bucket, settings.stream_id), settings, sqs)
-    if settings.multicurve_enabled:
+    if settings.multicurve_enabled or settings.multicurve_canary_keys:
         from .multicurve.archive import Archive
         from .multicurve.index import PointIndex
         from .multicurve.pipeline import Pipeline

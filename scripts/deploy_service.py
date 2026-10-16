@@ -74,6 +74,7 @@ def main() -> None:
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--enable-multicurve", action="store_true",
                         help="enable the validated v2 worker, API and point index")
+    parser.add_argument("--multicurve-canary-key", default="", help="key ID allowed to test before public v2 enablement")
     args = parser.parse_args()
     if len(args.account_id) != 12 or not args.account_id.isdigit():
         parser.error("--account-id must be 12 digits")
@@ -153,6 +154,7 @@ def main() -> None:
         "ResolveTasks": str(args.resolve_tasks),
         "AlertEmail": args.alert_email if args.alert_email is not None else current_alert_email(cfn),
         "MulticurveEnabled": "true" if args.enable_multicurve else "false",
+        "MulticurveCanaryKey": args.multicurve_canary_key,
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},

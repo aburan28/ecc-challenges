@@ -9,9 +9,8 @@ Frobenius walk and32-byte record format.
 
 Release status: the all-curve v2 path is implemented and disabled by default
 pending the final image and live contributor/capacity release gates. CPU controls
-passed for all24 curves with the corrected hash-based predicate. The initial
-CUDA arithmetic controls passed168 checks on a Modal L4; that earlier DP
-predicate was superseded, and the corrected GPU rerun remains a release gate. See [correctness receipts](verification/all-curves-20261016/README.md)
+passed for all24 curves with the corrected hash-based predicate. The corrected
+hash-based CUDA path passed168 checks on a Modal L4 across all24 curves. See [correctness receipts](verification/all-curves-20261016/README.md)
 and the [open release boundary](problems/multi-campaign-worker-and-verifier.md).
 The current public image digest is shown by the website. Do not infer that a
 catalog entry is enabled until its contribution state says so.

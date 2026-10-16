@@ -172,3 +172,19 @@ snapshot, resumable transfer, source/destination count and digest checks,
 catch-up for concurrent original writes, and a backmatch of new public
 candidates against the imported points. Until then, describe collision
 coverage as new-public-to-new-public only.
+
+## All-curve release builds and canary gate
+
+`infra/build.yaml` provisions one bounded Linux CodeBuild release builder. It
+clones an explicit public commit, verifies HEAD, builds the four images, runs
+the native self-test, and writes pinned digests to
+`release-builds/<commit>/manifest.json` in the isolated bucket. The build role
+has image-push and release-manifest permissions, with no database-secret access.
+No contributor credential enters that build context.
+
+Deploy migration003 and worker/web images before enabling v2. A rollout can set
+`MulticurveCanaryKey` to the ID portion of the designated key while
+`MulticurveEnabled=false`. Only that authenticated key can use v2; public catalog
+availability stays unchanged. The worker queue still processes its batches.
+After combined-container, contributor and capacity gates, enable v2 and clear
+the canary parameter. Keep existing v1 workers on their bound namespace.

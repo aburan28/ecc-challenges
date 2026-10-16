@@ -32,6 +32,7 @@ Parameters:
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   AlertEmail: {Type: String, Default: ''}
   MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
+  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}$'}
 
 Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
@@ -266,6 +267,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_web}
@@ -302,6 +304,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -333,6 +336,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -364,6 +368,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -395,6 +400,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}

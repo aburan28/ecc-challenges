@@ -126,7 +126,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret,
                        session_cookie="ecc_session", https_only=True, same_site="lax", max_age=86400)
     app.state.service = service
-    if getattr(settings, "multicurve_enabled", False):
+    if multicurve_enabled or getattr(settings, "multicurve_canary_keys", ()):
         from .multicurve.api import create_router
         app.include_router(create_router(service, database, storage, settings))
     checkpoint_slots = asyncio.Semaphore(1)
