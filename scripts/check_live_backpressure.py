@@ -229,8 +229,10 @@ def main():
                 raise CheckError("intent_failed_http_" + str(status))
             upload = value["upload"]
             parsed = urlsplit(upload["url"])
-            if (parsed.scheme != "https" or not parsed.hostname
-                    or not parsed.hostname.endswith(".s3.us-west-2.amazonaws.com")):
+            allowed_hosts = {"ecc-challenges-data-104186811093.s3.amazonaws.com",
+                             "ecc-challenges-data-104186811093.s3.us-west-2.amazonaws.com"}
+            if (parsed.scheme != "https" or parsed.username or parsed.password
+                    or parsed.port not in (None, 443) or parsed.hostname not in allowed_hosts):
                 raise CheckError("unexpected_upload_host")
             # The gateway bearer is never sent to S3.
             with opener.open(Request(upload["url"], method="PUT", data=raw,

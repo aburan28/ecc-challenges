@@ -1,0 +1,221 @@
+{
+  "closure": {
+    "closed_at": "2026-10-16T22:45:34.771452+00:00",
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "run_id": "1135f9c9-156b-4554-9de5-f498247401dd"
+  },
+  "commit": {
+    "admission_key": "public-gateway/ecc-challenges-v1/v2/admissions/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/4f017b34-033b-4c63-8ae8-413cf791c70f/bc86ff75474b31e82d7984e276c28aa85c1be566f3cf271fbf58f9f7b532afab.json",
+    "batch_end_cursor": 56,
+    "batch_id": "4f017b34-033b-4c63-8ae8-413cf791c70f",
+    "cursor": 56,
+    "duplicate": false,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "ok": true,
+    "records": 1,
+    "run_id": "1135f9c9-156b-4554-9de5-f498247401dd",
+    "state": "admitted"
+  },
+  "format": "release-reservation-recovery-v1",
+  "ok": true,
+  "run_id": "1135f9c9-156b-4554-9de5-f498247401dd",
+  "script_sha256": "ffeaaa9fc84791f910d4d58dbece5125e718fde6b9113b184d3b6cdcd76a82a3",
+  "status": {
+    "batches": {
+      "indexed": {
+        "batches": 1,
+        "records": 1
+      }
+    },
+    "campaign": "eccp-79",
+    "closed_at": null,
+    "config": {
+      "backends": [
+        "cpu",
+        "cuda"
+      ],
+      "campaign": "eccp-79",
+      "codec": {
+        "coordinate_order": "big",
+        "field_bytes": 10,
+        "id": "affine-xy-ab-v1",
+        "prefix": "uint64le-trail-id,uint64le-steps",
+        "record_bytes": 56,
+        "scalar_bytes": 10
+      },
+      "instance": {
+        "G": [
+          "0x315d4b201c208475057d",
+          "0x35f3df5ab370252450a"
+        ],
+        "Q": [
+          "0x679834cefb7215dc365",
+          "0x4084bc50388c4e6fdfab"
+        ],
+        "a": "0x39c95e6dddb1bc45733c",
+        "b": "0x1f16d880e89d5a1c0ed1",
+        "bits": 79,
+        "coordinate_encoding": "affine-xy-be",
+        "equation": "y^2=x^3+a*x+b",
+        "field_kind": "prime",
+        "h": 1,
+        "id": "eccp-79",
+        "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+        "modulus": "0x62ce5177412aca899cf5",
+        "n": "0x62ce5177407b7258dc31"
+      },
+      "instance_sha256": "437bdf4cd03c64b859f7922f93a7d67eb554896acbfd42e783a3190ff8a27950",
+      "max_batch_bytes": 1048576,
+      "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+      "protocol": 2,
+      "walk": {
+        "automorphism_quotient": "none",
+        "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+        "dp_bits": 20,
+        "id": "certicom-affine-radding32-v2",
+        "jump_coefficients": [
+          [
+            "0x28e01ccebf92780d33ac",
+            "0x0"
+          ],
+          [
+            "0x9081c7a2d55f5221327",
+            "0x0"
+          ],
+          [
+            "0x1314354ada2551d13e33",
+            "0x0"
+          ],
+          [
+            "0x328fd770532235b5bc8e",
+            "0x0"
+          ],
+          [
+            "0x2eca3fb71eb362a9a5e8",
+            "0x0"
+          ],
+          [
+            "0xd4c1c682ca8b7f832a8",
+            "0x0"
+          ],
+          [
+            "0x61e6aae3898023b68631",
+            "0x0"
+          ],
+          [
+            "0x7c171f8b445d32e7f55",
+            "0x0"
+          ],
+          [
+            "0x500c86615971844a7cfa",
+            "0x0"
+          ],
+          [
+            "0x146d749922f6ced6c12c",
+            "0x0"
+          ],
+          [
+            "0x28615ca2f7384f57d8d6",
+            "0x0"
+          ],
+          [
+            "0x44eb76e02f4cba1efde7",
+            "0x0"
+          ],
+          [
+            "0x5a90b9598138c0626b59",
+            "0x0"
+          ],
+          [
+            "0x4e1c4bafb2ac9112959c",
+            "0x0"
+          ],
+          [
+            "0xc5e620d762066ba1d1c",
+            "0x0"
+          ],
+          [
+            "0x5d2707f286290fea2c6",
+            "0x0"
+          ],
+          [
+            "0x470f2c4a11b002cba3a2",
+            "0x0"
+          ],
+          [
+            "0x1bb21215edbf930a5ea6",
+            "0x0"
+          ],
+          [
+            "0x37d5067058e008a5a463",
+            "0x0"
+          ],
+          [
+            "0x5789dbe35e35242bdfbf",
+            "0x0"
+          ],
+          [
+            "0x8d5000e463d464e5086",
+            "0x0"
+          ],
+          [
+            "0x3b2268f58f3cb184b6f7",
+            "0x0"
+          ],
+          [
+            "0x1892f559005b9ee47519",
+            "0x0"
+          ],
+          [
+            "0xa461c4511d5d3ec3362",
+            "0x0"
+          ],
+          [
+            "0x24941628a03d7f0667cc",
+            "0x0"
+          ],
+          [
+            "0x33d821e7b3c000479975",
+            "0x0"
+          ],
+          [
+            "0x60f56c7c7bb195496254",
+            "0x0"
+          ],
+          [
+            "0x3ac52585ccb78a5cf906",
+            "0x0"
+          ],
+          [
+            "0x248e053b74b6e4ef218b",
+            "0x0"
+          ],
+          [
+            "0x28af464c54d582914c22",
+            "0x0"
+          ],
+          [
+            "0x2f6559f470b61c176f7c",
+            "0x0"
+          ],
+          [
+            "0x42c676ac8cb916af0ebd",
+            "0x0"
+          ]
+        ],
+        "max_trail_steps": 281474976710656,
+        "native_job": "ECCJOB03",
+        "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+        "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1"
+      }
+    },
+    "cursor": 56,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "pending_batch_id": null,
+    "protocol": 2,
+    "record_bytes": 56,
+    "run_id": "1135f9c9-156b-4554-9de5-f498247401dd",
+    "total_bytes": 56,
+    "total_records": 1
+  }
+}
