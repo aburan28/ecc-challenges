@@ -127,6 +127,14 @@ reported IDs, certificate ARN, and image tag:
       --web-tasks 2 --audit-tasks 2 --index-tasks 1 \
       --reconcile-tasks 1 --resolve-tasks 1 --apply
 
+Add `--alert-email ADDRESS` to the deploy command to subscribe an operator to
+audit-age, index-age, and dead-letter alarms. The recipient must confirm the
+Amazon SNS subscription email before notifications can arrive. The alert topic
+and alarm actions exist even when no email is configured; an unconfirmed or
+missing subscription is not an operational alert path. Check the subscription
+status with `aws sns list-subscriptions-by-topic` using the service stack's
+`AlertTopicArn` output, and verify alarm actions before DNS cutover.
+
 Before routing DNS, exercise the ALB with the intended hostname and TLS SNI:
 
     curl --connect-to ecc-challenges.com:443:ALB_DNS:443 \

@@ -14,6 +14,7 @@ import re
 import subprocess
 
 import boto3
+from botocore.exceptions import ClientError
 
 
 def outputs(cfn, stack: str) -> dict[str, str]:
@@ -39,6 +40,17 @@ def public_subnets(ec2, vpc: str) -> tuple[str, str]:
     return tuple(list(by_zone.values())[:2])
 
 
+def current_alert_email(cfn) -> str:
+    try:
+        stack = cfn.describe_stacks(StackName="ecc-challenges-service")["Stacks"][0]
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ValidationError" and "does not exist" in str(exc):
+            return ""
+        raise
+    return next((row["ParameterValue"] for row in stack.get("Parameters", [])
+                 if row["ParameterKey"] == "AlertEmail"), "")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", required=True, help="AWS CLI profile for the destination account")
@@ -57,6 +69,8 @@ def main() -> None:
     parser.add_argument("--index-tasks", type=int, default=0)
     parser.add_argument("--reconcile-tasks", type=int, default=0)
     parser.add_argument("--resolve-tasks", type=int, default=0)
+    parser.add_argument("--alert-email",
+                        help="optional email address for CloudWatch alarm notifications; recipient must confirm SNS subscription")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
     if len(args.account_id) != 12 or not args.account_id.isdigit():
@@ -135,6 +149,7 @@ def main() -> None:
         "WebTasks": str(args.web_tasks), "AuditTasks": str(args.audit_tasks),
         "IndexTasks": str(args.index_tasks), "ReconcileTasks": str(args.reconcile_tasks),
         "ResolveTasks": str(args.resolve_tasks),
+        "AlertEmail": args.alert_email if args.alert_email is not None else current_alert_email(cfn),
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},
@@ -143,6 +158,7 @@ def main() -> None:
                       "bucket": args.bucket, "db_host": args.db_host, "db_name": args.db_name,
                       "tasks": {key: params[key] for key in
                                 ("WebTasks", "AuditTasks", "IndexTasks", "ReconcileTasks", "ResolveTasks")},
+                      "alert_subscription_requested": bool(params["AlertEmail"]),
                       "mode": "apply" if args.apply else "plan"}, indent=2))
     if not args.apply:
         return
