@@ -72,6 +72,8 @@ def main() -> None:
     parser.add_argument("--alert-email",
                         help="optional email address for CloudWatch alarm notifications; recipient must confirm SNS subscription")
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--enable-multicurve", action="store_true",
+                        help="enable the validated v2 worker, API and point index")
     args = parser.parse_args()
     if len(args.account_id) != 12 or not args.account_id.isdigit():
         parser.error("--account-id must be 12 digits")
@@ -150,6 +152,7 @@ def main() -> None:
         "IndexTasks": str(args.index_tasks), "ReconcileTasks": str(args.reconcile_tasks),
         "ResolveTasks": str(args.resolve_tasks),
         "AlertEmail": args.alert_email if args.alert_email is not None else current_alert_email(cfn),
+        "MulticurveEnabled": "true" if args.enable_multicurve else "false",
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="hero-line"><div><div class="eyebrow">A global compute collaboration</div>
 <h1>Curiosity has<br><em>computing power.</em></h1>
-<p class="lead">Explore the Certicom challenge set and join the ECC2K-130 distributed walk. Run the public container on an NVIDIA GPU, including one you rent from a cloud provider. The gateway assigns your run and archives distinguished points for checking and collision search.</p>
+<p class="lead">{% if multicurve_enabled %}Contribute to any of the 24 Certicom challenges with one container.{% else %}Explore the Certicom challenge set and join the ECC2K-130 distributed walk.{% endif %} Run the public container on an NVIDIA GPU, including one you rent from a cloud provider. The gateway assigns your run and archives distinguished points for checking and collision search.</p>
 <div class="actions"><a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open contributor dashboard{% else %}Start contributing{% endif %} ↗</a><a class="button secondary" href="/status">View campaign status</a></div></div><div class="orbit-art" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="orbit orbit-three"></span><span class="orbit-core"></span></div></div>
 <div class="grid" id="how">
   <div class="card"><div class="number">01</div><h3>Get a key</h3><p class="muted">Sign in, create a revocable API key, and save it in a local secret file.</p></div>
@@ -16,10 +16,10 @@
 </section>
 <section class="section" id="campaigns">
   <div class="eyebrow">Certicom catalog</div><h2>Exercises and challenges</h2>
-  <p class="muted">This catalog follows <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} challenge document ↗</a>. Its solution information is a historical snapshot; it does not claim a current solution status. The contributor API currently accepts ECC2K-130. Each additional campaign requires its own validated curve parameters, walk, independent replay, collision resolver, and isolated point index.</p>
+  <p class="muted">This catalog follows <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} challenge document ↗</a>. Its solution information is a historical snapshot; it does not claim a current solution status. {% if multicurve_enabled %}The contributor API accepts all 24 campaigns with isolated point namespaces.{% else %}The contributor API currently accepts ECC2K-130.{% endif %} Each additional campaign requires its own validated curve parameters, walk, independent replay, collision resolver, and isolated point index.</p>
   <div class="table-shell"><table><thead><tr><th>Challenge</th><th>Field</th><th>Field bits</th><th>Class</th><th>Certicom 2009</th><th>Contributor status</th></tr></thead><tbody>
   {% for challenge in challenges %}
-    <tr><td><code>{{ challenge.public().name }}</code></td><td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td><td>{{ challenge.field_bits }}</td><td>{{ challenge.level.replace("_", " ")|title }}</td><td>{% if challenge.solved_in_2009 %}Solved by 2009{% else %}Unsolved in 2009 document{% endif %}</td><td>{% if challenge.contribution == "ecc2k130_gpu_v1" %}GPU worker available{% else %}Worker and verifier pending{% endif %}</td></tr>
+    <tr><td><code>{{ challenge.public().name }}</code></td><td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td><td>{{ challenge.field_bits }}</td><td>{{ challenge.level.replace("_", " ")|title }}</td><td>{% if challenge.solved_in_2009 %}Solved by 2009{% else %}Unsolved in 2009 document{% endif %}</td><td>{% if multicurve_enabled %}CPU / CUDA worker available{% elif challenge.contribution == "ecc2k130_gpu_v1" %}GPU worker available{% else %}Worker and verifier pending{% endif %}</td></tr>
   {% endfor %}
   </tbody></table></div>
 </section>

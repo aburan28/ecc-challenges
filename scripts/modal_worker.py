@@ -11,12 +11,10 @@ import argparse
 from pathlib import Path
 import re
 import stat
+import json
+from urllib.request import urlopen
 
 
-IMAGE = (
-    "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:"
-    "51495ba436eba00427fc13542313f6b737b83134fcccef6d7d20b4b250d06098"
-)
 APP = "ecc-challenges-public-workers"
 BOOT = """
 import os
@@ -48,6 +46,11 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=1, help="named workers, 1 to 8")
     parser.add_argument("--hours", type=int, default=1, help="sandbox lifetime, 1 to 24 hours")
     parser.add_argument("--app", default=APP)
+    parser.add_argument("--campaign", default="ecc2k-130")
+    parser.add_argument("--protocol", type=int, choices=(1,2), default=2)
+    parser.add_argument("--backend", choices=("auto","cpu","cuda"), default="auto")
+    parser.add_argument("--gpu", default="L4", help="Modal GPU type, or none for CPU")
+    parser.add_argument("--image", help="override with an immutable public ECR worker digest")
     args = parser.parse_args()
     if not 1 <= args.workers <= 8:
         parser.error("--workers must be 1 to 8 (the gateway caps active runs per account)")
@@ -62,12 +65,22 @@ def main() -> None:
         parser.error("install Modal first: python3 -m pip install modal")
 
     if args.action == "start":
+        with urlopen("https://ecc-challenges.com/v1/campaigns",timeout=30) as response:
+            catalog=json.load(response)
+        row=next((r for r in catalog["campaigns"] if r["id"]==args.campaign),None)
+        if not row or row["contribution"]=="not_integrated":
+            parser.error("selected campaign is not enabled by the gateway")
+        if args.protocol==2 and not catalog.get("multicurve_enabled"):
+            parser.error("the gateway has not enabled protocol 2 yet")
+        image_uri=args.image or catalog["worker_image"]
+        if not re.fullmatch(r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",image_uri):
+            parser.error("worker image must be pinned by digest in ECR Public")
         key = read_key(args.key_file)
         app = modal.App.lookup(args.app, create_if_missing=True)
-        image = modal.Image.from_registry(IMAGE).dockerfile_commands("ENTRYPOINT []")
+        image = modal.Image.from_registry(image_uri).dockerfile_commands("ENTRYPOINT []")
         secret = modal.Secret.from_dict({"ECC_API_KEY": key})
         for index in range(args.workers):
-            name = f"worker-{index}"
+            name = f"{args.campaign}-v{args.protocol}-worker-{index}"
             try:
                 existing = modal.Sandbox.from_name(args.app, name)
             except modal.exception.NotFoundError:
@@ -82,15 +95,16 @@ def main() -> None:
                 "python3", "-c", BOOT,
                 name=name, app=app, image=image,
                 secrets=[secret],
-                env={"ECC_API_URL": "https://ecc-challenges.com", "ECC_STATE_DIR": "/data"},
+                env={"ECC_API_URL": "https://ecc-challenges.com", "ECC_STATE_DIR": "/data",
+                     "ECC_CAMPAIGN":args.campaign,"ECC_PROTOCOL":str(args.protocol),"ECC_BACKEND":args.backend},
                 volumes={"/data": volume},
-                gpu="RTX-PRO-6000", timeout=args.hours * 3600,
+                gpu=None if args.gpu=="none" else args.gpu, timeout=args.hours * 3600,
             )
             print(f"{name}: started {sandbox.object_id}; state volume {args.app}-{name}-state")
         return
 
     for index in range(args.workers):
-        name = f"worker-{index}"
+        name = f"{args.campaign}-v{args.protocol}-worker-{index}"
         try:
             sandbox = modal.Sandbox.from_name(args.app, name)
         except modal.exception.NotFoundError:

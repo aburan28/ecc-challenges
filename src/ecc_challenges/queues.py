@@ -36,7 +36,8 @@ class QueueWorker:
         sent = 0
         with self.db.connection() as conn:
             rows = conn.execute("""
-                SELECT id FROM ecc_public.batches WHERE audit_state='pending' AND audit_enqueued_at IS NULL
+                SELECT id FROM ecc_public.batches WHERE audit_state='pending'
+                  AND (audit_enqueued_at IS NULL OR audit_enqueued_at < now()-interval '4 hours')
                 ORDER BY id LIMIT %s
             """, (limit,)).fetchall()
         for row in rows:
@@ -49,7 +50,8 @@ class QueueWorker:
                 SELECT b.id FROM ecc_public.batches b JOIN ecc_public.runs r ON r.run_id=b.run_id
                 WHERE b.audit_state IN ('sampled','not_selected') AND r.trusted_at IS NOT NULL
                   AND r.suspended_at IS NULL
-                  AND b.index_enqueued_at IS NULL AND b.indexed_at IS NULL
+                  AND (b.index_enqueued_at IS NULL OR b.index_enqueued_at < now()-interval '30 minutes')
+                  AND b.indexed_at IS NULL
                 ORDER BY b.id LIMIT %s
             """, (limit,)).fetchall()
         for row in rows:
@@ -63,7 +65,9 @@ class QueueWorker:
                     SELECT c.id FROM ecc_public.collision_leads c
                     JOIN ecc_public.runs r ON r.run_id=c.run_id
                     WHERE c.replay_state='pending' AND c.quarantined_at IS NULL
-                      AND c.resolve_enqueued_at IS NULL AND r.suspended_at IS NULL
+                      AND (c.resolve_enqueued_at IS NULL OR c.resolve_enqueued_at < now()-interval '4 hours')
+                      AND (c.resolve_lease_until IS NULL OR c.resolve_lease_until < now())
+                      AND r.suspended_at IS NULL
                     ORDER BY c.id LIMIT %s
                 """, (limit,)).fetchall()
             for row in rows:
@@ -203,6 +207,22 @@ class QueueWorker:
                 for record in records:
                     copy.write_row(record)
             conn.execute("ANALYZE incoming")
+            # Insert before lookup. A concurrent ON CONFLICT can wait for a
+            # winning row absent from its statement snapshot. The following
+            # separate statement gets a fresh READ COMMITTED snapshot and sees
+            # that winner, so simultaneous first encounters retain the lead.
+            inserted = conn.execute("""
+                WITH first AS (SELECT DISTINCT ON(point_key) point_key,seed FROM incoming ORDER BY point_key,idx),
+                ins AS (
+                  INSERT INTO ecc_public.candidate_points(campaign_id,point_key,first_seed,first_run,first_batch)
+                  SELECT %s,point_key,seed,%s,%s FROM first ORDER BY point_key
+                  ON CONFLICT (campaign_id,point_key) DO UPDATE
+                  SET first_seed=excluded.first_seed,first_run=excluded.first_run,
+                      first_batch=excluded.first_batch,created_at=now(),disqualified_at=NULL
+                  WHERE ecc_public.candidate_points.disqualified_at IS NOT NULL
+                  RETURNING 1
+                ) SELECT count(*) AS n FROM ins
+            """, (CAMPAIGN, row["run_id"], batch_id)).fetchone()["n"]
             # Campaign matches are leads, not accepted solutions. A null old
             # seed is retained as an unresolved lead for later source replay.
             conn.execute("""
@@ -228,18 +248,6 @@ class QueueWorker:
                 ORDER BY i.idx,j.idx
                 ON CONFLICT DO NOTHING
             """, (batch_id, row["run_id"], batch_id))
-            inserted = conn.execute("""
-                WITH first AS (SELECT DISTINCT ON(point_key) point_key,seed FROM incoming ORDER BY point_key,idx),
-                ins AS (
-                  INSERT INTO ecc_public.candidate_points(campaign_id,point_key,first_seed,first_run,first_batch)
-                  SELECT %s,point_key,seed,%s,%s FROM first
-                  ON CONFLICT (campaign_id,point_key) DO UPDATE
-                  SET first_seed=excluded.first_seed,first_run=excluded.first_run,
-                      first_batch=excluded.first_batch,created_at=now(),disqualified_at=NULL
-                  WHERE ecc_public.candidate_points.disqualified_at IS NOT NULL
-                  RETURNING 1
-                ) SELECT count(*) AS n FROM ins
-            """, (CAMPAIGN, row["run_id"], batch_id)).fetchone()["n"]
             leads = conn.execute("SELECT count(*) AS n FROM ecc_public.collision_leads WHERE batch_id=%s",
                                  (batch_id,)).fetchone()["n"]
             conn.execute("""
@@ -397,11 +405,19 @@ class QueueWorker:
                                                 WaitTimeSeconds=20,
                                                 VisibilityTimeout=14400 if kind == "resolve" else 7200)
             for message in response.get("Messages", []):
-                payload = json.loads(message["Body"])
-                item_id = int(payload["lead_id" if kind == "resolve" else "batch_id"])
+                item_id = None
                 try:
-                    outcome = (self.audit_one(item_id) if kind == "audit" else
-                               self.index_one(item_id) if kind == "index" else self.resolve_one(item_id))
+                    payload = json.loads(message["Body"])
+                    if "v2_batch_id" in payload:
+                        from uuid import UUID
+                        item_id = str(UUID(payload["v2_batch_id"]))
+                        if kind != "audit" or not getattr(self, "multicurve", None):
+                            raise RuntimeError("v2 verification pipeline is unavailable")
+                        outcome = self.multicurve.process(item_id)
+                    else:
+                        item_id = int(payload["lead_id" if kind == "resolve" else "batch_id"])
+                        outcome = (self.audit_one(item_id) if kind == "audit" else
+                                   self.index_one(item_id) if kind == "index" else self.resolve_one(item_id))
                     if outcome == "not_ready":
                         continue
                     self.sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=message["ReceiptHandle"])
@@ -414,6 +430,7 @@ class QueueWorker:
 def main() -> None:
     import argparse
     import boto3
+    from botocore.config import Config
     from .db import Database
     from .settings import Settings
     from .storage import Storage
@@ -423,13 +440,27 @@ def main() -> None:
     settings = Settings.from_env(web=False)
     db = Database(settings.database_url, max_size=2, statement_timeout_ms=600000)
     db.open()
-    s3 = boto3.client("s3", region_name=settings.region)
+    s3 = boto3.client("s3", region_name=settings.region, config=Config(signature_version="s3v4"))
     sqs = boto3.client("sqs", region_name=settings.region)
     worker = QueueWorker(db, Storage(s3, sqs, settings.bucket, settings.stream_id), settings, sqs)
+    if settings.multicurve_enabled:
+        from .multicurve.archive import Archive
+        from .multicurve.index import PointIndex
+        from .multicurve.pipeline import Pipeline
+        from .service import Service
+        client = boto3.client("dynamodb", region_name=settings.region, config=Config(
+            connect_timeout=5, read_timeout=20, max_pool_connections=32,
+            retries={"total_max_attempts": 1}))
+        point_index = PointIndex(client, settings.point_index_table)
+        point_index.bind_generation(db)
+        worker.multicurve = Pipeline(Service(db, worker.storage, settings), db,
+            Archive(worker.storage), settings, point_index)
     try:
         if args.mode == "reconcile":
             while True:
                 n = worker.repair_outbox()
+                if getattr(worker, "multicurve", None):
+                    n += worker.multicurve.repair()
                 time.sleep(1 if n else 30)
         else:
             worker.poll(args.mode)

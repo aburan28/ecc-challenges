@@ -1,0 +1,9 @@
+{
+  "scripts/check_modal_curves.py": "05ea5c7602e7b49628d32bbcefa92cef9b9574528e541553c0cdec313db4ad63",
+  "scripts/check_native_curves.py": "9d3e744d41b06066cbfffde4aff0b72c2bd43d5569b2dbb21365c31bdd995c1b",
+  "src/ecc_challenges/multicurve/codec.py": "dfcbd50605d116cb042e1001eb57d0876c98810f0ddebd4eee0d6fd3627c8a27",
+  "src/ecc_challenges/multicurve/curves.py": "b9c0661a70a8a0dfd680f8e214019871d7a78b9ae50a9e5fb86c26c22bbb3a2b",
+  "src/ecc_challenges/multicurve/instances.json": "72fb96daecdc4f474c70aa083d50d25c38e95f9eefee44fd6994e48735b3d5af",
+  "worker/generic/engine.cu": "83b9313bec2f307dd77d35ed0b59c6b6783f1e15b8053e0c703d5708df7de9ef",
+  "worker/generic/runtime.py": "adb4c25ee89fa7dc0c6372c9abc2606bcde1bb9d8aee7533fc05c276c776f37d"
+}

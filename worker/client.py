@@ -211,8 +211,15 @@ def main() -> int:
     root.mkdir(parents=True, exist_ok=True)
     key = read_api_key()
     campaign = os.environ.get("ECC_CAMPAIGN", CAMPAIGN).lower()
+    protocol = os.environ.get("ECC_PROTOCOL")
+    if protocol not in (None, "1", "2"):
+        raise ValueError("ECC_PROTOCOL must be 1 or 2")
+    legacy_resume = (root / "state.json").exists()
+    if protocol == "2" or (protocol is None and not legacy_resume):
+        from generic.client import main as generic_main
+        return generic_main(root, key, campaign)
     if campaign != CAMPAIGN:
-        raise ValueError("this image only supports ecc2k-130; select a compatible image for another campaign")
+        raise ValueError("protocol 1 supports only ecc2k-130; select protocol 2")
     api = API(os.environ["ECC_API_URL"], key, campaign)
     state = ensure_identity(api, root)
     client = os.environ.get("ECC_CLIENT", "/opt/ecc2k130/ec2k-gpu")

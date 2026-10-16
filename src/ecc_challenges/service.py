@@ -80,6 +80,10 @@ class Service:
                 UPDATE ecc_public.runs SET suspended_at=coalesce(suspended_at,now())
                 WHERE key_id=%s
             """, (key_id,))
+            conn.execute("""
+                UPDATE ecc_public.dp_runs SET suspended_at=coalesce(suspended_at,now())
+                WHERE key_id=%s
+            """, (key_id,))
 
     def authenticate(self, bearer: str, cost: int = 1) -> dict:
         parsed = parse_and_digest(self.settings.key_pepper, bearer)
@@ -130,15 +134,27 @@ class Service:
             if prior:
                 return self._registration_result(prior["run_id"])
             account = conn.execute("""
-                SELECT github_id FROM ecc_public.accounts WHERE github_id=%s FOR UPDATE
+                SELECT github_id FROM ecc_public.accounts
+                WHERE github_id=%s AND suspended_at IS NULL FOR UPDATE
             """, (key["account_id"],)).fetchone()
             if not account:
                 raise Rejected(401, "account unavailable")
+            prior = conn.execute("""
+                SELECT run_id FROM ecc_public.runs WHERE key_id=%s AND registration_id=%s
+            """, (key["id"], nonce)).fetchone()
+            if prior:
+                return self._registration_result(prior["run_id"])
+            if conn.execute("""
+                SELECT 1 FROM ecc_public.dp_runs WHERE key_id=%s AND registration_id=%s
+            """, (key["id"], nonce)).fetchone():
+                raise Rejected(409, "registration_id belongs to the generic protocol")
             run_counts = conn.execute("""
                 SELECT count(*) AS lifetime,
                        count(*) FILTER (WHERE suspended_at IS NULL) AS active
-                FROM ecc_public.runs WHERE account_id=%s
-            """, (key["account_id"],)).fetchone()
+                FROM (SELECT suspended_at FROM ecc_public.runs WHERE account_id=%s
+                      UNION ALL
+                      SELECT suspended_at FROM ecc_public.dp_runs WHERE account_id=%s) AS all_runs
+            """, (key["account_id"], key["account_id"])).fetchone()
             if run_counts["lifetime"] >= self.settings.max_account_runs_lifetime:
                 raise Rejected(429, "account lifetime run ID limit reached")
             if run_counts["active"] >= 8:

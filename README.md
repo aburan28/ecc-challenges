@@ -1,21 +1,26 @@
 # ECC Challenges
 
-`ecc-challenges.com` is the public contribution gateway for the ECC2K-130
-distributed walk. A contributor signs in with GitHub, creates a revocable API
-key, and runs one Linux/NVIDIA container per GPU. The site assigns a unique
-16-bit run ID, receives fixed-width distinguished-point (DP) records, and
-archives every accepted byte range before acknowledging it.
+`ecc-challenges.com` is the distributed contribution gateway for the 24 published
+Certicom ECC challenges. Contributors sign in with GitHub, generate a revocable
+API key, and run a pinned Linux container on a workstation or cloud provider.
+The generic v2 worker supports prime and binary fields through359 bits, with
+CPU and NVIDIA CUDA backends. Existing ECC2K-130 v1 state keeps its original
+Frobenius walk and32-byte record format.
 
-Release status: the isolated service is being validated and is not yet open to
-contributors. Wait for the site to announce that registration is live before
-starting a GPU run.
+Release status: the all-curve v2 path is implemented and disabled by default
+pending the final image and live contributor/capacity release gates. CPU controls
+passed for all24 curves with the corrected hash-based predicate. The initial
+CUDA arithmetic controls passed168 checks on a Modal L4; that earlier DP
+predicate was superseded, and the corrected GPU rerun remains a release gate. See [correctness receipts](verification/all-curves-20261016/README.md)
+and the [open release boundary](problems/multi-campaign-worker-and-verifier.md).
+The current public image digest is shown by the website. Do not infer that a
+catalog entry is enabled until its contribution state says so.
 
-The anonymously pullable pre-release contributor image in the new account is
-`public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:51495ba436eba00427fc13542313f6b737b83134fcccef6d7d20b4b250d06098`.
-It was built from commit `b62c8eb75a391067b1b27eddf786efa8b69214b5`.
-The production dashboard will display this pinned ECR Public digest after the
-release checks pass. The image contains the pinned ECC2K-130 sigma GPU client;
-the gateway protocol is implemented here.
+V2 uploads immutable checksum-bound batches directly to versioned S3, verifies
+every point relation, and conditionally indexes exact points in DynamoDB.
+PostgreSQL holds identity, quotas, admission cursors and processing metadata.
+See the [all-curve storage design](docs/multicurve-storage.md) for namespace
+binding, sizing, collision safety, compaction and archive reconstruction.
 
 ```mermaid
 flowchart LR

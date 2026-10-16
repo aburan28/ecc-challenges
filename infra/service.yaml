@@ -31,11 +31,38 @@ Parameters:
   ReconcileTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 1}
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   AlertEmail: {Type: String, Default: ''}
+  MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
 
 Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
 
 Resources:
+  PointIndex:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: ecc-challenges-points-v2
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: pk, AttributeType: S}]
+      KeySchema: [{AttributeName: pk, KeyType: HASH}]
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      SSESpecification: {SSEEnabled: true}
+  PointIndexThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ecc-challenges-v2-point-index-throttled
+      Namespace: AWS/DynamoDB
+      MetricName: WriteThrottleEvents
+      Dimensions: [{Name: TableName, Value: !Ref PointIndex}]
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
   Cluster:
     Type: AWS::ECS::Cluster
     Properties: {ClusterName: ecc-challenges}
@@ -187,6 +214,9 @@ Resources:
                 Action: [s3:PutObject, s3:GetObject]
                 Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/runs/*
               - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject, s3:GetObjectVersion]
+                Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/v2/*
+              - Effect: Allow
                 Action: sqs:SendMessage
                 Resource: !Ref AuditQueueArn
   WorkerTaskRole:
@@ -206,6 +236,12 @@ Resources:
               - Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/collision-leads/*
+              - Effect: Allow
+                Action: [s3:GetObject, s3:GetObjectVersion, s3:PutObject]
+                Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/v2/*
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:DescribeTable]
+                Resource: !GetAtt PointIndex.Arn
               - Effect: Allow
                 Action: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes, sqs:ChangeMessageVisibility, sqs:SendMessage]
                 Resource: [!Ref AuditQueueArn, !Ref IndexQueueArn, !Ref CollisionQueueArn]
@@ -228,6 +264,8 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: PUBLIC_ORIGIN, Value: !Sub 'https://${DomainName}'}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_web}
@@ -262,6 +300,8 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -291,6 +331,8 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -320,6 +362,8 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -349,6 +393,8 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}

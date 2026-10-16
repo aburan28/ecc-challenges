@@ -30,6 +30,8 @@ class Settings:
     solver_binary: str = "/opt/ecc/ecc2k130-cpu"
     max_account_runs_lifetime: int = 64
     public_worker_image: str = ""
+    multicurve_enabled: bool = False
+    point_index_table: str = ""
 
     @classmethod
     def from_env(cls, *, web: bool = True) -> "Settings":
@@ -60,6 +62,8 @@ class Settings:
             solver_binary=get("SOLVER_BINARY", "/opt/ecc/ecc2k130-cpu"),
             max_account_runs_lifetime=int(get("MAX_ACCOUNT_RUNS_LIFETIME", "64")),
             public_worker_image=get("PUBLIC_WORKER_IMAGE", ""),
+            multicurve_enabled=get("MULTICURVE_ENABLED", "false").lower() == "true",
+            point_index_table=get("POINT_INDEX_TABLE", ""),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
         if web:

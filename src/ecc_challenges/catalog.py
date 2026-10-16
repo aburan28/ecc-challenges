@@ -25,10 +25,18 @@ class Challenge:
     contribution: str = "not_integrated"
     walk_id: str | None = None
 
-    def public(self) -> dict:
-        return {**asdict(self), "name": self.id.upper() if self.field != "prime" else
+    def public(self, multicurve_enabled: bool = False) -> dict:
+        value = {**asdict(self), "name": self.id.upper() if self.field != "prime" else
                 "ECCp-" + self.id.rsplit("-", 1)[1],
                 "source_url": SOURCE_URL, "source_date": SOURCE_DATE}
+        if multicurve_enabled:
+            from .multicurve.codec import namespace
+            ns = namespace(self.id)
+            value.update(contribution=self.contribution if self.id == CAMPAIGN else "generic_cpu_cuda_v2",
+                         protocols=[1, 2] if self.id == CAMPAIGN else [2],
+                         namespace_id=ns.id, instance_sha256=ns.instance.instance_sha256,
+                         generic_walk_id=ns.walk["id"], record_bytes=ns.record_bytes)
+        return value
 
 
 def _challenge(name: str, field: str, bits: int, level: str, solved: bool = False,
@@ -66,7 +74,7 @@ CHALLENGES = (
     _challenge("ECCp-109", "prime", 109, "level_i", True, "2.1e16"),
     _challenge("ECCp-131", "prime", 131, "level_i", operations="3.5e19"),
     _challenge("ECCp-163", "prime", 163, "level_ii", operations="2.4e24"),
-    _challenge("ECCp-191", "prime", 192, "level_ii", operations="4.9e28"),
+    _challenge("ECCp-191", "prime", 191, "level_ii", operations="4.9e28"),
     _challenge("ECCp-239", "prime", 239, "level_ii", operations="8.2e35"),
     _challenge("ECCp-359", "prime", 359, "level_ii", operations="9.6e53"),
 )

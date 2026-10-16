@@ -59,3 +59,48 @@ failure records the environment and leaves the mathematical status open.
 The [campaign integration guide](../docs/campaigns.md) gives the route for
 each subsequent curve. Certicom source:
 <https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf>.
+
+## Implementation evidence, 2026-10-16
+
+The v2 implementation now includes exact parameters for all24 instances,
+fixed-width affine coefficient witnesses, UUID runs, SHAKE256 full-width seed
+derivation, CPU/CUDA arithmetic, direct immutable S3 upload, full algebraic
+verification, conditional DynamoDB collision indexing, and archive compaction
+and index reconstruction. See [storage design](../docs/multicurve-storage.md)
+and [frozen correctness receipts](../verification/all-curves-20261016/README.md).
+
+All24 parameter checks and10 published scalar controls passed. The CPU engine
+passed72 transition cases; a real Modal L4 passed168 comparisons/rejections over
+all24 curves. Isolated PostgreSQL/mocked AWS controls cover valid/rejected
+admission, immutable retries, verification-before-indexing, crash recovery,
+collision scalar verification, revocation, compaction and fresh-index replay.
+
+This record remains open. The combined release image must complete its Linux
+build and hosted-provider entrypoint check. A live website-issued contributor
+key is needed for the production upload/index canary. Sustained arrival/drain
+measurements and a declared launch fleet rate remain outstanding. Full algebraic
+verification does not attest claimed trail lengths; advertised completion
+percentages stay unavailable pending work verification and an explicit model.
+V2 remains disabled by default until the applicable release gates pass.
+
+Local image builds failed because Docker Desktop could not start. The system
+volume also reached100% utilization. Completed failed test artifacts were moved
+intact to the project SSD, and subsequent isolated tests use `.tmp/` there.
+Linux release builds are provided through `infra/build.yaml`; they must produce
+pinned image digests before deployment. No failed receipt was overwritten.
+
+### DP predicate correction
+
+Before enabling v2, a finite control found every one of32 sampled ECC2-79 G
+multiples had odd x. Raw coordinate low bits therefore cannot be assumed to
+supply the intended cross-curve DP density. The initial arithmetic parity tests
+did not require nonempty DP output for every curve and missed this operational
+failure. The superseded sources and receipts are preserved under
+`verification/all-curves-20261016/raw-x-v1/`.
+
+The generic replacement uses SHA-256 of full canonical x||y for both partition
+selection and the DP predicate, with native job magic ECCJOB03 and a new walk
+namespace. SHA-256's distribution is a walk-model assumption; the release
+correctness gate now additionally requires finite DP1 emission on every curve.
+All CPU and GPU transition controls must be rerun for this exact revision.
+The legacy Frobenius predicate is a separate established protocol.
