@@ -404,6 +404,10 @@ def test_all24_public_catalog_and_authenticated_v2_routes(platform):
         assert status['compute_ready']==24
         assert all(row['received_points'] is not None for row in status['campaigns'])
         assert client.get('/status').status_code==200
+        run_url='/v2/runs/'+assigned.json()['run_id']
+        assert client.post(run_url+'/close',headers=headers,content=b'x').status_code==413
+        assert client.post(run_url+'/close',headers=headers).status_code==200
+        assert client.get(run_url,headers=headers).json()['closed_at'] is not None
 
 
 def test_hash_predicate_emits_for_binary_control_with_fixed_low_coordinate_bit():
@@ -457,3 +461,45 @@ def test_canary_key_can_validate_before_public_enablement(platform):
         assert client.get('/v2/config?campaign=eccp-79',headers={'Authorization':'Bearer '+normal}).status_code==503
         assert client.get('/v2/config?campaign=eccp-79',headers={'Authorization':'Bearer '+credential}).status_code==200
         assert client.get('/v1/status').json()['compute_ready']==1
+
+
+def test_run_close_preserves_work_and_releases_active_allowance(platform):
+    service,key,run,ns,archive,pipeline,table=platform
+    record=dp(ns)
+    intent,ack=admit(platform,[record])
+    for _ in range(7):
+        service.register(key,ns.campaign,str(uuid4()))
+    with pytest.raises(Rejected) as error:
+        service.register(key,ns.campaign,str(uuid4()))
+    assert error.value.status==429
+    closed=service.close_run(key,run['run_id'])
+    assert service.close_run(key,run['run_id'])==closed
+    assert service.run_status(key,run['run_id'])['closed_at']==closed['closed_at']
+    assert service.commit(key,run['run_id'],intent['batch_id'])['duplicate']
+    assert pipeline.process(intent['batch_id'])=='indexed'
+    assert service.register(key,ns.campaign,str(uuid4()))['run_id']!=run['run_id']
+    with pytest.raises(Rejected) as error:
+        service.intent(key,run['run_id'],ns.record_bytes,ns.record_bytes,1,'0'*64)
+    assert error.value.status==409
+    with pytest.raises(Rejected) as error:
+        service.close_run({**key,'id':'0'*24},run['run_id'])
+    assert error.value.status==401
+    with pytest.raises(Rejected) as error:
+        service.close_run({**key,'account_id':999},run['run_id'])
+    assert error.value.status==401
+
+
+def test_close_refuses_unfinished_upload_and_expires_pressure_once(platform):
+    service,key,run,ns,archive,*_=platform
+    intent,_=admit(platform,[dp(ns)],commit=False)
+    with pytest.raises(Rejected) as error:
+        service.close_run(key,run['run_id'])
+    assert error.value.status==409
+    assert service.run_status(key,run['run_id'])['closed_at'] is None
+    with service.db.connection() as conn:
+        assert conn.execute('SELECT sum(pending_batches) AS n FROM ecc_public.dp_pressure').fetchone()['n']==1
+        conn.execute("UPDATE ecc_public.dp_batches SET expires_at=now()-interval '1 second' WHERE id=%s",(intent['batch_id'],))
+    service.close_run(key,run['run_id'])
+    service.close_run(key,run['run_id'])
+    with service.db.connection() as conn:
+        assert conn.execute('SELECT sum(pending_batches) AS n FROM ecc_public.dp_pressure').fetchone()['n']==0

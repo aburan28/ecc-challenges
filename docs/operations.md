@@ -188,3 +188,35 @@ Deploy migration003 and worker/web images before enabling v2. A rollout can set
 availability stays unchanged. The worker queue still processes its batches.
 After combined-container, contributor and capacity gates, enable v2 and clear
 the canary parameter. Keep existing v1 workers on their bound namespace.
+
+### Retiring a generic contributor run
+
+An ordinary container stop preserves its run for resumption. To switch a worker
+permanently to another challenge, stop it gracefully and then launch the same
+pinned image, key, campaign and state volume with `ECC_PROTOCOL=2` and
+`ECC_ACTION=close`. This authenticates ownership and retires the run without
+removing its checkpoints, uploaded points or verification work. The command
+refuses a local pending outbox; resume normal work to flush it first. An unfinished
+server upload intent must commit or expire before closure. Closed runs remain
+readable and their admitted batches continue processing. Use a new state volume
+for a new run. Closing releases an active slot; it does not reset the account's
+lifetime anti-abuse limit.
+
+### V2 admission and verifier scaling
+
+`--max-pending-batches` is an explicit per-protocol deployment bound (initially
+512), sharded across sixteen pressure rows. At the maximum 1 MiB batch size this
+bounds v2 pending raw payload near 512 MiB; account and daily-byte quotas apply
+as well. Choose the bound from measured drain time. Contributors keep their
+outbox and pause on retryable refusal.
+
+The audit pool performs all v2 relation checks and DynamoDB insertion. The
+separate legacy index pool does not add v2 processing capacity. Audit scale-out
+uses visible queue depth and CPU utilization, up to 32 tasks. Automatic audit
+scale-in is disabled during the initial rollout to avoid interrupting long,
+in-flight verification batches. Review pending work and retained leases before
+an operator reduces the pool. This can leave extra tasks running after a burst;
+monitor cost and tune after the sustained capacity gate. The existing
+`scripts/capacity.py` models the legacy sampled verifier and cannot establish v2
+throughput. A production DP/s claim requires measurements of every distinct
+witness under the deployed curve mix and fleet size.

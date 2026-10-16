@@ -127,4 +127,11 @@ def create_router(legacy, database, storage, settings) -> APIRouter:
         result = await run_in_threadpool(service.run_status, key, run_id)
         return _response(result)
 
+    @router.post("/runs/{run_id}/close")
+    async def close(request: Request, run_id: str):
+        key = await authenticate(request)
+        await _body(request, 0)
+        result = await run_in_threadpool(service.close_run, key, run_id)
+        return _response(result)
+
     return router

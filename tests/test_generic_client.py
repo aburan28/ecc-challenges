@@ -27,3 +27,21 @@ def test_restored_checkpoint_accepts_stable_batch_ack(tmp_path):
     restored=json.loads(path.read_text())
     assert restored['cursor']==len(data)
     assert restored['pending']==''
+
+
+def test_explicit_close_preserves_checkpoint_and_never_starts_engine(tmp_path,monkeypatch):
+    import generic.client as client
+    ns=namespace('eccp-79')
+    saved={'protocol':2,'namespace_id':ns.id,'run_id':'saved-run','pending':''}
+    path=tmp_path/'generic-state.json'
+    path.write_text(json.dumps(saved))
+    calls=[]
+    def request(self,method,path,body=None):
+        calls.append((method,path))
+        return ns.public() if method=='GET' else {'run_id':'saved-run','closed_at':'now'}
+    monkeypatch.setattr(client.API,'request',request)
+    monkeypatch.setenv('ECC_ACTION','close')
+    monkeypatch.setattr(client,'run_round',lambda *a,**k: (_ for _ in ()).throw(AssertionError('engine must not run')))
+    assert client.main(tmp_path,'private-runtime-key','eccp-79')==0
+    assert calls==[('GET','/v2/config?campaign=eccp-79'),('POST','/v2/runs/saved-run/close')]
+    assert json.loads(path.read_text())==saved

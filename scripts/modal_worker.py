@@ -12,10 +12,31 @@ from pathlib import Path
 import re
 import stat
 import json
-from urllib.request import urlopen
+from urllib.request import urlopen, Request, build_opener, HTTPRedirectHandler
+from urllib.error import HTTPError
+from urllib.parse import urlencode
 
 
 APP = "ecc-challenges-public-workers"
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError("unexpected gateway redirect")
+
+
+def authenticated_config(key: str, campaign: str) -> dict:
+    request = Request("https://ecc-challenges.com/v2/config?" + urlencode({"campaign": campaign}),
+                      headers={"Authorization": "Bearer " + key})
+    try:
+        with build_opener(NoRedirect).open(request, timeout=30) as response:
+            value = json.load(response)
+    except HTTPError as exc:
+        raise ValueError(f"gateway does not enable protocol 2 for this key (HTTP {exc.code})") from None
+    if (value.get("protocol") != 2 or value.get("campaign") != campaign
+            or not re.fullmatch(r"[0-9a-f]{64}", value.get("namespace_id", ""))):
+        raise ValueError("gateway returned an invalid namespace")
+    return value
 BOOT = """
 import os
 from pathlib import Path
@@ -65,17 +86,20 @@ def main() -> None:
         parser.error("install Modal first: python3 -m pip install modal")
 
     if args.action == "start":
+        key = read_key(args.key_file)
         with urlopen("https://ecc-challenges.com/v1/campaigns",timeout=30) as response:
             catalog=json.load(response)
         row=next((r for r in catalog["campaigns"] if r["id"]==args.campaign),None)
-        if not row or row["contribution"]=="not_integrated":
+        if not row or (args.protocol == 1 and row["contribution"]=="not_integrated"):
             parser.error("selected campaign is not enabled by the gateway")
-        if args.protocol==2 and not catalog.get("multicurve_enabled"):
-            parser.error("the gateway has not enabled protocol 2 yet")
+        if args.protocol == 2:
+            try:
+                authenticated_config(key, row["id"])
+            except ValueError as exc:
+                parser.error(str(exc))
         image_uri=args.image or catalog["worker_image"]
         if not re.fullmatch(r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",image_uri):
             parser.error("worker image must be pinned by digest in ECR Public")
-        key = read_key(args.key_file)
         app = modal.App.lookup(args.app, create_if_missing=True)
         image = modal.Image.from_registry(image_uri).dockerfile_commands("ENTRYPOINT []")
         secret = modal.Secret.from_dict({"ECC_API_KEY": key})

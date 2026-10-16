@@ -52,7 +52,7 @@ class Service:
     def config(self, campaign: str) -> dict:
         return self._namespace(campaign).public()
 
-    def _run(self, conn, run_id: UUID, key: dict, *, lock=False) -> dict:
+    def _run(self, conn, run_id: UUID, key: dict, *, lock=False, allow_closed=False) -> dict:
         suffix = " FOR UPDATE OF r" if lock else ""
         row = conn.execute("""
             SELECT r.*,n.campaign_id,n.record_bytes,n.manifest
@@ -66,6 +66,8 @@ class Service:
         """ + suffix, (run_id, key["account_id"], key["id"])).fetchone()
         if not row:
             raise Rejected(401, "run or key is unavailable")
+        if row["closed_at"] is not None and not allow_closed:
+            raise Rejected(409, "run is closed; use a new state directory to register another run")
         ns = self._namespace(row["campaign_id"])
         if (ns.id != row["namespace_id"] or ns.record_bytes != row["record_bytes"]
                 or canonical(ns.public()) != canonical(row["manifest"])):
@@ -79,6 +81,7 @@ class Service:
             "namespace_id": run["namespace_id"], "campaign": run["campaign_id"],
             "record_bytes": run["record_bytes"], "cursor": run["cursor"],
             "total_records": run["total_records"], "config": run["manifest"],
+            "closed_at": run["closed_at"].isoformat() if run["closed_at"] else None,
         }
 
     def register(self, key: dict, campaign: str, registration_id: str) -> dict:
@@ -108,11 +111,12 @@ class Service:
                 raise Rejected(409, "registration_id belongs to the legacy protocol")
             counts = conn.execute("""
                 SELECT count(*) AS lifetime,
-                       count(*) FILTER (WHERE suspended_at IS NULL) AS active
+                       count(*) FILTER (WHERE suspended_at IS NULL AND closed_at IS NULL) AS active
                 FROM (
-                    SELECT suspended_at FROM ecc_public.runs WHERE account_id=%s
+                    SELECT suspended_at,NULL::timestamptz AS closed_at
+                    FROM ecc_public.runs WHERE account_id=%s
                     UNION ALL
-                    SELECT suspended_at FROM ecc_public.dp_runs WHERE account_id=%s
+                    SELECT suspended_at,closed_at FROM ecc_public.dp_runs WHERE account_id=%s
                 ) AS all_runs
             """, (key["account_id"], key["account_id"])).fetchone()
             if counts["lifetime"] >= self.settings.max_account_runs_lifetime:
@@ -318,7 +322,7 @@ class Service:
         expired = False
         duplicate = False
         with self.db.connection() as conn:
-            run = self._run(conn, run_id, key, lock=True)
+            run = self._run(conn, run_id, key, lock=True, allow_closed=True)
             batch = conn.execute("""
                 SELECT * FROM ecc_public.dp_batches
                 WHERE id=%s AND run_id=%s AND namespace_id=%s FOR UPDATE
@@ -330,6 +334,8 @@ class Service:
             if batch["state"] == "failed":
                 raise Rejected(409, "batch failed independent verification")
             if batch["state"] == "reserved":
+                if run["closed_at"] is not None:
+                    raise Rejected(409, "run is closed")
                 if self._expire_row(conn, batch_id):
                     expired = True
                 else:
@@ -427,7 +433,7 @@ class Service:
     def run_status(self, key: dict, run_id: str) -> dict:
         run_id = uuid_value(run_id, "run_id")
         with self.db.connection() as conn:
-            run = self._run(conn, run_id, key)
+            run = self._run(conn, run_id, key, allow_closed=True)
             states = conn.execute("""
                 SELECT state,count(*) AS batches,coalesce(sum(records),0) AS records
                 FROM ecc_public.dp_batches WHERE run_id=%s GROUP BY state
@@ -442,3 +448,25 @@ class Service:
                             for row in states},
                 "pending_batch_id": str(pending["id"]) if pending else None,
             }
+
+    def close_run(self, key: dict, run_id: str) -> dict:
+        """Retire an owned run without discarding an unfinished upload."""
+        run_id = uuid_value(run_id, "run_id")
+        # Expiry commits independently so a subsequent live reservation refusal
+        # cannot roll back the release of unrelated, already expired pressure.
+        self.expire_intents(account_id=key["account_id"])
+        with self.db.connection() as conn:
+            run = self._run(conn, run_id, key, lock=True, allow_closed=True)
+            pending = conn.execute("""
+                SELECT id FROM ecc_public.dp_batches
+                WHERE run_id=%s AND state='reserved' LIMIT 1
+            """, (run_id,)).fetchone()
+            if pending:
+                raise Rejected(409, "finish the pending upload or wait for its expiry before closing")
+            row = conn.execute("""
+                UPDATE ecc_public.dp_runs
+                SET closed_at=coalesce(closed_at,clock_timestamp())
+                WHERE id=%s RETURNING closed_at
+            """, (run_id,)).fetchone()
+            return {"run_id": str(run_id), "namespace_id": run["namespace_id"],
+                    "closed_at": row["closed_at"].isoformat()}

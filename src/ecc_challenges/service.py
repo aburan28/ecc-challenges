@@ -150,10 +150,11 @@ class Service:
                 raise Rejected(409, "registration_id belongs to the generic protocol")
             run_counts = conn.execute("""
                 SELECT count(*) AS lifetime,
-                       count(*) FILTER (WHERE suspended_at IS NULL) AS active
-                FROM (SELECT suspended_at FROM ecc_public.runs WHERE account_id=%s
+                       count(*) FILTER (WHERE suspended_at IS NULL AND closed_at IS NULL) AS active
+                FROM (SELECT suspended_at,NULL::timestamptz AS closed_at
+                      FROM ecc_public.runs WHERE account_id=%s
                       UNION ALL
-                      SELECT suspended_at FROM ecc_public.dp_runs WHERE account_id=%s) AS all_runs
+                      SELECT suspended_at,closed_at FROM ecc_public.dp_runs WHERE account_id=%s) AS all_runs
             """, (key["account_id"], key["account_id"])).fetchone()
             if run_counts["lifetime"] >= self.settings.max_account_runs_lifetime:
                 raise Rejected(429, "account lifetime run ID limit reached")

@@ -134,6 +134,18 @@ def main(root: Path, key: str, campaign: str) -> int:
     remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
     if canonical(remote_config) != canonical(ns.public()):
         raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
+    action = os.environ.get("ECC_ACTION", "work")
+    if action == "close":
+        saved = json.loads((root / "generic-state.json").read_text())
+        if saved["namespace_id"] != ns.id or saved["protocol"] != 2:
+            raise RuntimeError("state directory belongs to another namespace")
+        if saved["pending"]:
+            raise RuntimeError("resume the contributor to upload its pending records before closing")
+        result = api.request("POST", f"/v2/runs/{saved['run_id']}/close")
+        print(json.dumps(result), flush=True)
+        return 0
+    if action != "work":
+        raise ValueError("ECC_ACTION must be work or close")
     backend = os.environ.get("ECC_BACKEND", "auto")
     if backend == "auto":
         import subprocess
@@ -167,6 +179,9 @@ def main(root: Path, key: str, campaign: str) -> int:
         if (state["namespace_id"] != ns.id or state["lanes"] != lanes or state["protocol"] != 2
                 or state["round_steps"] != steps):
             raise RuntimeError("state directory has another namespace or lane count")
+        status = api.request("GET", f"/v2/runs/{state['run_id']}")
+        if status.get("closed_at"):
+            raise RuntimeError("run is closed; preserve this checkpoint and choose a new state directory")
     else:
         nonce_path = root / "generic-registration.json"
         if nonce_path.exists():

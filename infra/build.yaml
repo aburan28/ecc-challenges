@@ -34,7 +34,6 @@ Resources:
               - Effect: Allow
                 Action: sts:GetServiceBearerToken
                 Resource: '*'
-                Condition: {StringEquals: {sts:AWSServiceName: ecr-public.amazonaws.com}}
               - Effect: Allow
                 Action: [ecr:BatchCheckLayerAvailability, ecr:BatchGetImage, ecr:GetDownloadUrlForLayer,
                          ecr:InitiateLayerUpload, ecr:UploadLayerPart, ecr:CompleteLayerUpload,

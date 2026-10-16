@@ -1,0 +1,141 @@
+{
+    "id": "ecc-challenges-release:b4a6b022-5d53-4717-ad16-14119c86c1a1",
+    "buildStatus": "FAILED",
+    "startTime": "2026-10-16T14:47:30.716000-07:00",
+    "endTime": "2026-10-16T14:48:00.202000-07:00",
+    "sourceCommit": "ca45bd1a4555386a59f9b27d89b36569dd43f085",
+    "phases": [
+        {
+            "phaseType": "SUBMITTED",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:30.716000-07:00",
+            "endTime": "2026-10-16T14:47:30.806000-07:00",
+            "durationInSeconds": 0
+        },
+        {
+            "phaseType": "QUEUED",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:30.806000-07:00",
+            "endTime": "2026-10-16T14:47:31.389000-07:00",
+            "durationInSeconds": 0
+        },
+        {
+            "phaseType": "PROVISIONING",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:31.389000-07:00",
+            "endTime": "2026-10-16T14:47:39.093000-07:00",
+            "durationInSeconds": 7,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "DOWNLOAD_SOURCE",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:39.093000-07:00",
+            "endTime": "2026-10-16T14:47:39.992000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "INSTALL",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:39.992000-07:00",
+            "endTime": "2026-10-16T14:47:40.056000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "PRE_BUILD",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:40.056000-07:00",
+            "endTime": "2026-10-16T14:47:40.089000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "BUILD",
+            "phaseStatus": "FAILED",
+            "startTime": "2026-10-16T14:47:40.089000-07:00",
+            "endTime": "2026-10-16T14:47:59.835000-07:00",
+            "durationInSeconds": 19,
+            "contexts": [
+                {
+                    "statusCode": "COMMAND_EXECUTION_ERROR",
+                    "message": "Error while executing command: bash scripts/build_release.sh. Reason: exit status 1"
+                }
+            ]
+        },
+        {
+            "phaseType": "POST_BUILD",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:59.835000-07:00",
+            "endTime": "2026-10-16T14:47:59.870000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "UPLOAD_ARTIFACTS",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:59.870000-07:00",
+            "endTime": "2026-10-16T14:47:59.915000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "FINALIZING",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-16T14:47:59.915000-07:00",
+            "endTime": "2026-10-16T14:48:00.202000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "COMPLETED",
+            "startTime": "2026-10-16T14:48:00.202000-07:00"
+        }
+    ],
+    "logs": {
+        "groupName": "/ecc-challenges/release-build",
+        "streamName": "b4a6b022-5d53-4717-ad16-14119c86c1a1",
+        "deepLink": "https://console.aws.amazon.com/cloudwatch/home?region=us-west-2#logsV2:log-groups/log-group/$252Fecc-challenges$252Frelease-build/log-events/b4a6b022-5d53-4717-ad16-14119c86c1a1",
+        "cloudWatchLogsArn": "arn:aws:logs:us-west-2:104186811093:log-group:/ecc-challenges/release-build:log-stream:b4a6b022-5d53-4717-ad16-14119c86c1a1",
+        "cloudWatchLogs": {
+            "status": "ENABLED",
+            "groupName": "/ecc-challenges/release-build"
+        }
+    }
+}

@@ -33,6 +33,7 @@ Parameters:
   AlertEmail: {Type: String, Default: ''}
   MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
   MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}$'}
+  MaxPendingBatches: {Type: Number, Default: 512, MinValue: 16, MaxValue: 100000}
 
 Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
@@ -267,6 +268,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
@@ -304,6 +306,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
@@ -336,6 +339,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
@@ -368,6 +372,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
@@ -400,6 +405,7 @@ Resources:
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
@@ -519,6 +525,7 @@ Resources:
       ScalingTargetId: !Ref AuditScalingTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 10
+        DisableScaleIn: true
         CustomizedMetricSpecification:
           Namespace: AWS/SQS
           MetricName: ApproximateNumberOfMessagesVisible
@@ -526,6 +533,18 @@ Resources:
           Statistic: Average
         ScaleOutCooldown: 60
         ScaleInCooldown: 600
+  AuditCpuScaling:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: audit-cpu
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref AuditScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 35
+        DisableScaleIn: true
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleOutCooldown: 60
   IndexScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     DependsOn: IndexService

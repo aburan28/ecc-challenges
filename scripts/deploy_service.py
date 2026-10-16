@@ -75,6 +75,8 @@ def main() -> None:
     parser.add_argument("--enable-multicurve", action="store_true",
                         help="enable the validated v2 worker, API and point index")
     parser.add_argument("--multicurve-canary-key", default="", help="key ID allowed to test before public v2 enablement")
+    parser.add_argument("--max-pending-batches", type=int, default=512,
+                        help="bounded pending batches per protocol; tune from measured drain capacity")
     args = parser.parse_args()
     if len(args.account_id) != 12 or not args.account_id.isdigit():
         parser.error("--account-id must be 12 digits")
@@ -87,6 +89,8 @@ def main() -> None:
     if any(n < 0 for n in (args.web_tasks, args.audit_tasks, args.index_tasks,
                           args.reconcile_tasks, args.resolve_tasks)):
         parser.error("task counts must be nonnegative")
+    if not 16 <= args.max_pending_batches <= 100000:
+        parser.error("--max-pending-batches must be between 16 and 100000")
     session = boto3.Session(profile_name=args.profile, region_name=args.region)
     actual_account = session.client("sts").get_caller_identity()["Account"]
     if actual_account != args.account_id:
@@ -155,6 +159,7 @@ def main() -> None:
         "AlertEmail": args.alert_email if args.alert_email is not None else current_alert_email(cfn),
         "MulticurveEnabled": "true" if args.enable_multicurve else "false",
         "MulticurveCanaryKey": args.multicurve_canary_key,
+        "MaxPendingBatches": str(args.max_pending_batches),
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},
