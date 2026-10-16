@@ -42,7 +42,7 @@ class StatusReader:
                 if self.multicurve_enabled:
                     rows = conn.execute("""
                         SELECT n.campaign_id,count(r.id) AS total,
-                          count(r.id) FILTER (WHERE r.suspended_at IS NULL
+                          count(r.id) FILTER (WHERE r.suspended_at IS NULL AND r.closed_at IS NULL
                             AND r.last_seen_at>=now()-interval '24 hours') AS recent,
                           coalesce(sum(r.total_records),0) AS received
                         FROM ecc_public.dp_namespaces n
@@ -104,5 +104,7 @@ class StatusReader:
                     "campaign-specific collision model; these are not yet available."
                 ),
             }
+            snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
+            snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
             self._cached, self._cached_at = snapshot, monotonic()
             return snapshot
