@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+import logging
 from pathlib import Path
 import secrets
 from urllib.parse import parse_qs
@@ -17,13 +18,16 @@ from starlette.concurrency import run_in_threadpool
 from starlette.middleware.sessions import SessionMiddleware
 
 from .db import Database
+from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
 from .security import new_csrf
 from .service import Service, Rejected
 from .settings import Settings
 from .storage import Storage
+from .status import StatusReader
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+LOG = logging.getLogger(__name__)
 
 
 async def limited_body(request: Request, limit: int) -> bytes:
@@ -98,6 +102,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         sqs = boto3.client("sqs", region_name=settings.region)
         storage = Storage(s3, sqs, settings.bucket, settings.stream_id)
     service = Service(database, storage, settings)
+    status_reader = StatusReader(database)
     oauth = OAuth()
     oauth.register(
         name="github", client_id=settings.github_client_id,
@@ -154,8 +159,31 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
 
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
-        return TEMPLATES.TemplateResponse(request, "home.html", {"signed_in": bool(request.session.get("github_id"))},
+        return TEMPLATES.TemplateResponse(request, "home.html", {"signed_in": bool(request.session.get("github_id")),
+                                          "challenges": CHALLENGES, "catalog_source": SOURCE_URL,
+                                          "catalog_date": SOURCE_DATE},
                                           headers={"Cache-Control": "private, no-store"})
+
+    @app.get("/status", response_class=HTMLResponse)
+    async def status_page(request: Request):
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed")
+            snapshot = None
+        return TEMPLATES.TemplateResponse(request, "status.html",
+                                          {"snapshot": snapshot, "challenges": CHALLENGES,
+                                           "catalog_source": SOURCE_URL},
+                                          headers={"Cache-Control": "public, max-age=30"})
+
+    @app.get("/v1/status")
+    async def status_json():
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed")
+            raise Rejected(503, "status snapshot is temporarily unavailable", 60) from None
+        return JSONResponse(snapshot, headers={"Cache-Control": "public, max-age=30"})
 
     @app.get("/auth/github")
     async def auth_start(request: Request):
@@ -189,7 +217,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": None,
-             "worker_image": settings.public_worker_image},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys", response_class=HTMLResponse)
@@ -202,7 +230,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued,
-             "worker_image": settings.public_worker_image},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys/{key_id}/revoke")
@@ -213,8 +241,18 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         await run_in_threadpool(service.revoke_key, account_id, key_id)
         return RedirectResponse("/dashboard", status_code=303)
 
+    @app.get("/v1/campaigns")
+    async def campaigns():
+        return {"source_url": SOURCE_URL, "source_date": SOURCE_DATE,
+                "campaigns": [challenge.public() for challenge in CHALLENGES]}
+
     @app.get("/v1/config")
-    async def config():
+    async def config(campaign: str = CAMPAIGN):
+        challenge = BY_ID.get(campaign)
+        if challenge is None:
+            raise Rejected(404, "unknown campaign")
+        if challenge.contribution != "ecc2k130_gpu_v1":
+            raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         return {"campaign": CAMPAIGN, "walk_id": WALK_ID,
                 "dp_weight": DP_WEIGHT, "record_bytes": RECORD_BYTES,
                 "max_batch_bytes": MAX_BATCH_BYTES}
@@ -223,6 +261,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def register(request: Request):
         if await limited_body(request, 0):
             raise Rejected(400, "registration body is not used")
+        if request.headers.get("x-campaign-id", CAMPAIGN) != CAMPAIGN:
+            raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         key = await run_in_threadpool(service.authenticate, bearer_value(request))
         result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""))
         return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
