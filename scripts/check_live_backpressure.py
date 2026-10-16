@@ -112,6 +112,10 @@ def main():
     service = api["ecs"].describe_services(cluster=CLUSTER, services=[SERVICE])["services"][0]
     if service["pendingCount"] or service["desiredCount"] != service["runningCount"] or len(service["deployments"]) != 1:
         raise CheckError("audit_service_not_stable")
+    old_tasks = api["ecs"].list_tasks(cluster=CLUSTER, serviceName=SERVICE,
+                                       desiredStatus="RUNNING")["taskArns"]
+    if len(old_tasks) != service["runningCount"]:
+        raise CheckError("audit_task_snapshot_changed")
     target = api["application-autoscaling"].describe_scalable_targets(
         ServiceNamespace="ecs", ResourceIds=[RESOURCE])["ScalableTargets"][0]
     stack = api["cloudformation"].describe_stacks(StackName="ecc-challenges-foundation")["Stacks"][0]
@@ -131,6 +135,7 @@ def main():
     plan = {"format": "v2-bounded-backpressure-plan-v1", "account": ACCOUNT,
             "cluster": CLUSTER, "service": SERVICE, "desired_count": service["desiredCount"],
             "task_definition": service["taskDefinition"],
+            "original_task_arns": old_tasks,
             "container_images": [row["image"] for row in task_definition["containerDefinitions"]],
             "scaling_suspended_state": target["SuspendedState"], "baseline_queue": baseline,
             "source": source, "namespace_id": ns.id, "record_sha256": hashlib.sha256(raw).hexdigest(),
@@ -211,12 +216,18 @@ def main():
         until = time.monotonic() + 90
         while time.monotonic() < until:
             row = api["ecs"].describe_services(cluster=CLUSTER, services=[SERVICE])["services"][0]
-            if row["runningCount"] == row["pendingCount"] == row["desiredCount"] == 0:
+            stopped = api["ecs"].describe_tasks(cluster=CLUSTER, tasks=old_tasks)["tasks"]
+            # ECS stops counting STOPPING tasks as running while their Python
+            # processes can still consume messages. Require actual termination.
+            if (row["runningCount"] == row["pendingCount"] == row["desiredCount"] == 0
+                    and len(stopped) == len(old_tasks)
+                    and all(task["lastStatus"] == "STOPPED" for task in stopped)):
                 break
             time.sleep(3)
         else:
             raise CheckError("audit_stop_deadline")
         receipt["consumers_stopped"] = True
+        receipt["stopped_task_arns"] = [task["taskArn"] for task in stopped]
 
         def intent(offset):
             return request("POST", f"/v2/runs/{run_id}/batches", {
@@ -255,7 +266,9 @@ def main():
             upload(i * len(raw))
             time.sleep(1)
         status, headers, rejected = intent(32 * len(raw))
-        receipt["pressure_response"] = {"status": status, "retry_after": headers.get("retry-after"), "body": rejected}
+        receipt["pressure_response"] = {"status": status, "retry_after": headers.get("retry-after"),
+            "body": {k: rejected[k] for k in ("error", "batch_id", "run_id", "offset", "state") if k in rejected},
+            "upload_capability_returned": rejected.get("upload") is not None}
         if status != 429 or headers.get("retry-after") != "60" or rejected.get("error") != "account verification backlog limit reached":
             raise CheckError("expected_account_backlog_refusal_missing")
         status, _, pending = request("GET", f"/v2/runs/{run_id}")

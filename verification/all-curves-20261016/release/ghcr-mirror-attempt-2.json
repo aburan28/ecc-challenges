@@ -1,0 +1,20 @@
+{
+  "anonymous_l4_checks_passed": 168,
+  "anonymous_manifest_verified_by": "GitHub mirror job: skopeo --no-creds raw manifest SHA256 check passed",
+  "anonymous_provider_execution_receipt": "anonymous-ghcr-l4-attempt-2.json",
+  "format": "public-image-mirror-execution-v1",
+  "manifest_sha256": "f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "mirror_image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "modal_app_id": "ap-ELYJgLRJuYseKj9VzbzUDH",
+  "modal_sandbox_id": "sb-KiaFrofHhiGDAO3WMsIfl5",
+  "ok": true,
+  "source_image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "workflow": {
+    "conclusion": "success",
+    "createdAt": "2026-10-16T22:38:09Z",
+    "headSha": "8e08b387f9c0042ca74ab5ac446a9fcbb42cc77c",
+    "status": "completed",
+    "updatedAt": "2026-10-16T22:41:26Z",
+    "url": "https://github.com/aburan28/ecc-challenges/actions/runs/38976919449"
+  }
+}
