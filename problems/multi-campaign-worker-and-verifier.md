@@ -13,10 +13,10 @@ also passed against the deployed gateway: upload, index, checkpoint resume,
 and explicit run closure. Exact image/source/S3-version bindings and failed
 attempts are retained in [release evidence](../verification/all-curves-20261016/README.md).
 
-The remaining obstruction is release validation and public distribution:
-anonymous hosted-provider image import, a real GPU contribution with a persistent
-volume, current-head required CI, bounded consumer-recovery checks, and a
-sustained fresh-point capacity envelope. The AWS account currently has30 Fargate
+The remaining obstruction is release validation: a real GPU contribution with a
+persistent volume, current-head required CI, and a sustained fresh-point capacity
+envelope. Anonymous GHCR import and all168 L4 checks passed, and the bounded
+account-backlog/refusal/restart/drain check passed. The AWS account currently has30 Fargate
 vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for256. Until
 effective, the configured32-auditor ceiling is not available in full.
 
@@ -50,6 +50,12 @@ closure and restored service/scaling settings. A final SQL snapshot checks
 pressure returns to baseline. This remains a duplicate-witness engineering
 check; sustained unique-point capacity and global503 behavior require separate
 tests.
+
+Attempt4 met that bounded acceptance criterion. Its separate before/after SQL
+receipts show zero pending bytes/batches for both protocols and zero active v2
+processing leases. This closes the bounded account-refusal and consumer-restart
+check; it leaves fresh-point capacity, global503 and the other release gates
+open.
 
 ## Original obstruction (preserved history)
 

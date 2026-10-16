@@ -15,9 +15,10 @@ Current generic format: ECCJOB03, with SHA-256 point partitioning and DP selecti
 The selected contributor image is
 `public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee`.
 `release/build-aaf1dad4b756.json` binds its immutable Linux build manifest.
-The deployed web/audit/admin images are separately bound by
-`release/build-3bf655be66af.json`; the contributor source is unchanged between
-these builds.
+The initial deployed web/audit/admin images are separately bound by
+`release/build-3bf655be66af.json`. The mobile navigation fix is bound by
+`release/build-5dc26c4a365e.json`; the selected contributor image remains the
+separately tested digest above.
 
 `release/final-image-l4-attempt-3.json` records all168 final-image checks passing
 on a real Modal L4, including all24 curves and UID/GID10001. The exact native
@@ -39,13 +40,45 @@ raw S3 version, checksum, admission/verification receipts and DynamoDB witness.
 
 These finite checks establish the tested correctness and contribution paths.
 They provide no sustained fleet-rate measurement or verified trail-work count.
-Public v2 remains gated while the anonymous provider pull, real hosted GPU
-contribution, required CI and capacity/recovery release checks are completed.
+Public v2 remains gated while the real hosted GPU contribution, required CI and
+sustained fresh-point capacity checks are completed.
 
 `release/ghcr-mirror-attempt-1.json` preserves the older Ubuntu22.04 Skopeo
 compatibility failure before image copying. The repaired workflow verifies the
 completed copy's digest and anonymously hashes the newly published tag's raw
 manifest before accepting a mirror.
+
+`release/ghcr-mirror-attempt-2.json` records the successful mirror at
+`ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee`.
+`release/anonymous-ghcr-l4-attempt-2.json` records a complete anonymous Modal
+image import and168/168 L4 checks, without a registry secret. Its binary hash
+matches the selected ECR image. The first anonymous-check wrapper attempt
+failed locally because its virtualenv lacked the Modal executable; no remote
+request occurred in that attempt.
+
+## Bounded admission and consumer recovery
+
+`release/live-backpressure-attempt-4/` freezes and records the successful
+duplicate-witness check. After the exact old audit tasks reached STOPPED,
+32 one-record batches remained admitted. The next intent returned the precise
+account-backlog429 with Retry-After60 and no upload capability. Restoring the
+two consumers indexed every acknowledged record; retrying the refused intent
+then succeeded, commit replay retained the same admission receipt and cursor,
+and the run closed. Total raw payload was1848 bytes. This is an admission and
+recovery control, not a fresh unique-point capacity measurement or global503
+test.
+
+The read-only SQL snapshots `live-pressure-before-attempt-4.json` and
+`live-pressure-after-attempt-4.json` record zero pending v1/v2 batches/bytes and
+zero active processing leases before and after. The final snapshot contains
+92 indexed batches. Two terminal SQS deliveries remained invisible in both
+snapshots; no message was purged or deleted to create an empty baseline.
+
+Attempts1–3 and separate recovery receipts retain the harness's regionless-S3
+hostname rejection, ECS STOPPING-versus-STOPPED mismatch, and refusal of a
+nonempty queue baseline. Attempt2's unexpected successful intent included a
+signed upload capability. Its public result is explicitly redacted and hashes
+the preserved private original; no capability is included in version control.
 
 The earlier `cpu.json`, `cuda-l4.json` and `source-sha256.json` below are superseded raw-coordinate predicate receipts. Their exact sources are retained under `raw-x-v1/`; those receipts establish arithmetic parity only for the earlier proposal.
 

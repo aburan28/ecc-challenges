@@ -12,18 +12,24 @@ import modal
 app=modal.App('ecc-challenges-live-release-canary')
 
 @app.local_entrypoint()
-def main(key_file:str,registry_auth_file:str,out:str):
+def main(key_file:str,out:str,registry_auth_file:str=''):
     destination=Path(out)
     if destination.exists():raise FileExistsError(destination)
-    key_path=Path(key_file);auth_path=Path(registry_auth_file)
-    if key_path.stat().st_mode&0o077 or auth_path.stat().st_mode&0o077:
+    key_path=Path(key_file)
+    if key_path.stat().st_mode&0o077:
         raise ValueError('runtime secret files must have mode 0600')
     key=key_path.read_text().strip()
     if not re.fullmatch(r'ecc1_[0-9a-f]{24}_[A-Za-z0-9_-]{43}',key):raise ValueError('invalid contributor key')
-    auth=json.loads(auth_path.read_text())
-    if set(auth)!={'REGISTRY_USERNAME','REGISTRY_PASSWORD'} or auth['REGISTRY_USERNAME']!='AWS':
-        raise ValueError('expected approved temporary public pull-only registry authentication')
-    image_uri='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee'
+    registry_secret=None
+    image_uri='ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee'
+    if registry_auth_file:
+        auth_path=Path(registry_auth_file)
+        if auth_path.stat().st_mode&0o077:raise ValueError('runtime secret files must have mode 0600')
+        auth=json.loads(auth_path.read_text())
+        if set(auth)!={'REGISTRY_USERNAME','REGISTRY_PASSWORD'} or auth['REGISTRY_USERNAME']!='AWS':
+            raise ValueError('expected approved temporary public pull-only registry authentication')
+        image_uri=image_uri.replace('ghcr.io/aburan28/','public.ecr.aws/o1a3z1g6/')
+        registry_secret=modal.Secret.from_dict(auth)
     source=Path(__file__).with_name('contributor_canary_boot.py').read_text()
     old="root=Path('/tmp/ecc-canary')"
     assert source.count(old)==1
@@ -47,7 +53,7 @@ if os.getuid()==0:
     volume_name='ecc-release-canary-'+nonce
     root_name='case-'+nonce
     volume=modal.Volume.from_name(volume_name,create_if_missing=True)
-    image=modal.Image.from_registry(image_uri,secret=modal.Secret.from_dict(auth),setup_dockerfile_commands=['ENTRYPOINT []'])
+    image=modal.Image.from_registry(image_uri,secret=registry_secret,setup_dockerfile_commands=['ENTRYPOINT []'])
     sandbox=None
     receipt={'format':'modal-gpu-contributor-canary-execution-v1','image':image_uri,'ok':False,
              'boot_sha256':hashlib.sha256(boot.encode()).hexdigest(),'volume_name':volume_name,'root_name':root_name}
