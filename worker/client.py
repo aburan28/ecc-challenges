@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import signal
 import subprocess
 import sys
@@ -24,6 +25,18 @@ def log(message: str) -> None:
     print(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), message, flush=True)
 
 
+def read_api_key() -> str:
+    """Accept a mounted secret file or a provider-injected environment secret."""
+    from_environment = os.environ.pop("ECC_API_KEY", None)
+    key_path = Path(os.environ.get("ECC_API_KEY_FILE", "/run/secrets/ecc_api_key"))
+    if from_environment is not None and key_path.is_file():
+        raise ValueError("provide the API key by file or environment, not both")
+    key = (from_environment if from_environment is not None else key_path.read_text()).strip()
+    if not re.fullmatch(r"ecc1_[0-9a-f]{24}_[A-Za-z0-9_-]{43}", key):
+        raise ValueError("contributor API key is invalid")
+    return key
+
+
 def atomic_json(path: Path, obj: dict) -> None:
     descriptor, temporary = tempfile.mkstemp(prefix=".state-", dir=path.parent)
     try:
@@ -39,7 +52,7 @@ def atomic_json(path: Path, obj: dict) -> None:
 
 
 class API:
-    def __init__(self, url: str, api_key: str):
+    def __init__(self, url: str, api_key: str, campaign: str = CAMPAIGN):
         parsed = urlparse(url)
         if parsed.scheme != "https" and not (parsed.scheme == "http" and
               parsed.hostname in ("127.0.0.1", "localhost", "::1")):
@@ -48,11 +61,13 @@ class API:
             raise ValueError("ECC_API_URL must not contain credentials or query parameters")
         self.url = url.rstrip("/")
         self.api_key = api_key
+        self.campaign = campaign
         self.run_id = None
         self.registration_id = None
 
     def request(self, method: str, path: str, data: bytes | None = None):
-        headers = {"User-Agent": "ecc2k130-public-client/1"}
+        headers = {"User-Agent": "ecc2k130-public-client/1",
+                   "X-Campaign-Id": self.campaign}
         headers["Authorization"] = "Bearer " + self.api_key
         if path == "/v1/register":
             headers["X-Registration-Id"] = self.registration_id
@@ -76,7 +91,7 @@ class API:
 
 def ensure_identity(api: API, root: Path) -> dict:
     state_path = root / "state.json"
-    config = api.request("GET", "/v1/config")
+    config = api.request("GET", f"/v1/config?campaign={api.campaign}")
     if (config.get("campaign"), config.get("walk_id"), config.get("dp_weight"),
             config.get("record_bytes")) != (CAMPAIGN, WALK_ID, DP_WEIGHT, 32):
         raise RuntimeError("gateway campaign or record format is incompatible")
@@ -93,15 +108,22 @@ def ensure_identity(api: API, root: Path) -> dict:
             atomic_json(nonce_path, {"registration_id": nonce})
         api.registration_id = nonce
         result = api.request("POST", "/v1/register", b"")
-        state = {"protocol": "ecc-challenges-v1", "run_id": result["run_id"],
+        if (result.get("campaign"), result.get("walk_id")) != (api.campaign, WALK_ID):
+            raise RuntimeError("gateway assigned an incompatible run; registration identity preserved")
+        state = {"protocol": "ecc-challenges-v1", "campaign": api.campaign,
+                 "run_id": result["run_id"],
                  "remote_cursor": 0, "uploaded_local": 0}
         atomic_json(state_path, state)
     if state.get("protocol") != "ecc-challenges-v1":
         raise RuntimeError("existing state uses another gateway protocol; preserve it for migration")
+    if state.get("campaign", CAMPAIGN) != api.campaign:
+        raise RuntimeError("state directory belongs to another campaign; preserve it for recovery")
     api.run_id = int(state["run_id"])
     remote = api.request("GET", f"/v1/runs/{api.run_id}")
     if remote["run_id"] != api.run_id:
         raise RuntimeError("gateway returned a different run identity")
+    if remote.get("campaign", CAMPAIGN) != api.campaign:
+        raise RuntimeError("gateway run belongs to another campaign")
     dp_path = root / "dps.bin"
     ck_path = root / "state.ck"
     if not dp_path.is_file():
@@ -187,11 +209,11 @@ def upload_checkpoint(api: API, root: Path, state: dict, *, force: bool = False)
 def main() -> int:
     root = Path(os.environ.get("ECC_STATE_DIR", "/data"))
     root.mkdir(parents=True, exist_ok=True)
-    key_path = Path(os.environ.get("ECC_API_KEY_FILE", "/run/secrets/ecc_api_key"))
-    key = key_path.read_text().strip()
-    if not key.startswith("ecc1_") or len(key) > 160:
-        raise ValueError("mounted API key is invalid")
-    api = API(os.environ["ECC_API_URL"], key)
+    key = read_api_key()
+    campaign = os.environ.get("ECC_CAMPAIGN", CAMPAIGN).lower()
+    if campaign != CAMPAIGN:
+        raise ValueError("this image only supports ecc2k-130; select a compatible image for another campaign")
+    api = API(os.environ["ECC_API_URL"], key, campaign)
     state = ensure_identity(api, root)
     client = os.environ.get("ECC_CLIENT", "/opt/ecc2k130/ec2k-gpu")
     kat = os.environ.get("ECC_KAT", "/opt/ecc2k130/campaign-kat.hex")

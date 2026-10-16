@@ -1,0 +1,61 @@
+# Certicom multi-campaign worker and verifier
+
+Status: open. Scope: admitting distinguished points for the 23 published
+Certicom exercises and challenges other than ECC2K-130 through the
+`ecc-challenges.com` public gateway.
+
+## Specific obstruction
+
+The public CUDA image, 32-byte DP record, run ID and seed namespace, S3
+registry, PostgreSQL constraints, replay program, and collision resolver
+implement the ECC2K-130 Frobenius walk. The other Certicom entries include
+different binary-field and prime-field curves. A point or seed from one of
+them cannot be checked by the ECC2K-130 replay program or safely indexed under
+its key. The separate `pool/` code is a prime-field prototype with generated
+sample curves and a single SQLite server; it has neither the published
+Certicom parameters nor this gateway's durable admission pipeline.
+
+The site now catalogs all 24 names, and the API rejects incompatible campaign
+registration with HTTP 409. This is a missing implementation and validation
+boundary. It is not evidence that the other challenges are infeasible or that
+a generic worker cannot be built.
+
+## Exit evidence
+
+For each campaign to be opened:
+
+1. Freeze a source-linked exact parameter transcript for field, curve,
+   subgroup, generator and target. Verify point membership and subgroup order
+   with an independent implementation and known-answer cases.
+2. Build a worker image with a named walk and checkpoint format, and an
+   independent replay program for that exact walk. Demonstrate a provider
+   neutral Docker run, plus bounded runs on at least one hosted GPU provider.
+3. Isolate campaign, walk version and run identity in registration, object
+   keys, database uniqueness, queues and collision resolution. Prove that a
+   point submitted under another campaign cannot be acknowledged or indexed.
+4. Complete a real contributor canary: issue a website key, register, upload
+   records, independently replay selected trails, index an eligible batch,
+   create a controlled duplicate lead, and independently verify a scalar
+   result. Retain exact image, source and receipt digests.
+5. Measure the release image's arrival and drain capacity at the planned
+   fleet rate and show bounded backlog under the controls in
+   [DP32 verifier and ingestion capacity](dp32-verifier-and-ingest-capacity.md).
+
+Passing one campaign's checks opens only that campaign. It does not transfer
+throughput, point validity, or solution status to the other 22.
+
+## Next discriminating work
+
+Start with ECCp-131 and ECC2-131 because they are the other 131-bit Level I
+entries in Certicom's 2009 document. Import the exact Appendix A parameters
+and validate them independently. Implement one CPU reference walk and one
+versioned wire envelope, then test a known-answer trail and a wrong-campaign
+upload against an isolated database. Bound the run to one seed range, one
+container, and one replayed batch before any public registration. A matching
+trail and refused cross-campaign upload permit the provider canary; an
+arithmetic mismatch returns to parameter or walk debugging. A resource
+failure records the environment and leaves the mathematical status open.
+
+The [campaign integration guide](../docs/campaigns.md) gives the route for
+each subsequent curve. Certicom source:
+<https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf>.
