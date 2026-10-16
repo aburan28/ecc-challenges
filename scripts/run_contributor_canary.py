@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import time
 import boto3
+from ecc_challenges.multicurve.instances import all_instances
 
 
 def main():
@@ -14,6 +15,7 @@ def main():
     p.add_argument('--account-id',required=True)
     p.add_argument('--image',required=True)
     p.add_argument('--key-secret-arn',required=True)
+    p.add_argument('--campaign',default='eccp-79',choices=sorted(c.id for c in all_instances()))
     p.add_argument('--out',type=Path,required=True)
     p.add_argument('--apply',action='store_true')
     args=p.parse_args()
@@ -32,6 +34,7 @@ def main():
         return {r['OutputKey']:r['OutputValue'] for r in row['Outputs']}
     data=outputs('ecc-challenges-data'); infra=outputs('ecc-challenges-contributor-canary')
     receipt={'format':'fargate-contributor-canary-execution-v1','image':args.image,
+             'campaign':args.campaign,
              'boot_sha256':hashlib.sha256(boot.encode()).hexdigest(),'account_id':args.account_id,
              'runtime_aws_role':None,'operator_deadline_seconds':1200,'mode':'apply' if args.apply else 'plan'}
     print(json.dumps(receipt),flush=True)
@@ -42,7 +45,8 @@ def main():
         executionRoleArn=infra['ExecutionRoleArn'],runtimePlatform={'cpuArchitecture':'X86_64','operatingSystemFamily':'LINUX'},
         containerDefinitions=[{'name':'contributor','image':args.image,'essential':True,'user':'10001:10001',
             'entryPoint':['python3','-c'],'command':[boot],
-            'environment':[{'name':'ECC_RELEASE_IMAGE','value':args.image},{'name':'AWS_EC2_METADATA_DISABLED','value':'true'}],
+            'environment':[{'name':'ECC_RELEASE_IMAGE','value':args.image},{'name':'ECC_CANARY_CAMPAIGN','value':args.campaign},
+                           {'name':'AWS_EC2_METADATA_DISABLED','value':'true'}],
             'secrets':[{'name':'ECC_API_KEY','valueFrom':args.key_secret_arn}],
             'stopTimeout':120,'logConfiguration':{'logDriver':'awslogs','options':{
                 'awslogs-group':'/ecc-challenges/contributor-canary','awslogs-region':'us-west-2','awslogs-stream-prefix':'contributor'}}}])['taskDefinition']
