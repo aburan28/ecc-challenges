@@ -66,3 +66,13 @@ same-image L4 baseline/candidate run with exact output equality, useful-step
 counts, device telemetry, and an A/A control. A measured gain there would
 support a bounded worker-throughput improvement; fleet ingest and recovery
 capacity remain separate release gates.
+
+`scripts/bench_modal_binary_rho.py` prepares that gate. It sends its launcher,
+two engine source snapshots, and the `job.bin`/`in.bin` pairs for the nine
+binary campaigns, builds both engines in one L4 image, brackets each
+candidate invocation with identical baseline invocations, checks exact
+outputs, and retains raw files for engine or parity failures. Its remote
+run was not executed: automatic approval review rejected the upload of
+private source and frozen controls to Modal as sensitive egress. This is
+an access decision, not a benchmark result. The bounded L4 comparison
+requires explicit approval for that exact upload or an authorized local L4.
