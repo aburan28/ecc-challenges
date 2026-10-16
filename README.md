@@ -43,6 +43,10 @@ flowchart LR
    Container Toolkit so Docker's `--gpus all` can expose the card. The worker
    keeps its run identity and checkpoint in the mounted data directory.
 
+For an RTX PRO 6000 Blackwell worker in your own Modal account, follow the
+[Modal worker guide](docs/modal-workers.md). Start with one bounded worker and
+check its registration, upload, replay, and index status before adding more.
+
 The container pauses GPU collection when the local upload spool reaches its
 limit and retries with the same run ID. A server `429` or `503` is a request to
 back off, not permission to discard the local file. Revoking the key stops
