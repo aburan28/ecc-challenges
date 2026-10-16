@@ -6,8 +6,10 @@ import json
 import os
 from pathlib import Path
 import re
+import time
 import uuid
 import modal
+from modal_state import STATE_SETUP
 
 app=modal.App('ecc-challenges-live-release-canary')
 
@@ -34,6 +36,13 @@ def main(key_file:str,out:str,registry_auth_file:str=''):
     old="root=Path('/tmp/ecc-canary')"
     assert source.count(old)==1
     source=source.replace(old,"root=Path(os.environ['ECC_CANARY_ROOT'])")
+    old="key_path=root/'api-key'\nwith key_path.open('x') as output:"
+    assert source.count(old)==1
+    # The frozen CPU harness used ephemeral /tmp for its entire state. This
+    # provider check persists checkpoints, so keep its key outside that volume.
+    source=source.replace(old,"""key_fd,key_name=tempfile.mkstemp(prefix='ecc-canary-api-key-',dir='/tmp')
+key_path=Path(key_name)
+with os.fdopen(key_fd,'w') as output:""")
     old="print('ECC_CONTRIBUTOR_CANARY '+json.dumps(receipt,sort_keys=True),flush=True)"
     assert source.count(old)==1
     source=source.replace(old,"""payload=json.dumps(receipt,sort_keys=True).encode()
@@ -41,10 +50,9 @@ def main(key_file:str,out:str,registry_auth_file:str=''):
     for i,chunk in enumerate(chunks):
         print('ECC_RECEIPT_CHUNK '+json.dumps({'index':i,'data':base64.b64encode(chunk).decode()}),flush=True)
     print('ECC_RECEIPT_END '+json.dumps({'chunks':len(chunks),'sha256':hashlib.sha256(payload).hexdigest()}),flush=True)""")
-    prefix="""import os,json,subprocess
+    prefix=STATE_SETUP+"""import os,json,subprocess
 print('ECC_DEVICE '+json.dumps(subprocess.run(['nvidia-smi','--query-gpu=name,uuid,driver_version','--format=csv,noheader'],capture_output=True,text=True,check=True,timeout=30).stdout.strip()),flush=True)
 if os.getuid()==0:
-    os.chown('/data',10001,10001,follow_symlinks=False)
     os.setgroups([]);os.setgid(10001);os.setuid(10001)
 """
     boot=prefix+source
@@ -61,11 +69,13 @@ if os.getuid()==0:
         sandbox=modal.Sandbox.create('python3','-c',boot,app=app,image=image,gpu='L4',cpu=2,memory=4096,
             timeout=1200,workdir='/tmp',volumes={'/data':volume},
             secrets=[modal.Secret.from_dict({'ECC_API_KEY':key})],
-            env={'ECC_RELEASE_IMAGE':image_uri,'ECC_CANARY_ROOT':'/data/'+root_name,
+            env={'ECC_RELEASE_IMAGE':image_uri,'ECC_CANARY_ROOT':'/data/ecc-state/'+root_name,
                  'ECC_CANARY_CAMPAIGN':'eccp-79','ECC_CANARY_BACKEND':'cuda','ECC_CANARY_LANES':'256'})
         print('contributor sandbox: '+sandbox.object_id,flush=True)
         sandbox.wait(raise_on_termination=False)
         stdout,stderr=sandbox.stdout.read(),sandbox.stderr.read()
+        # Keep the remote failure even when no complete receipt was printed.
+        receipt.update(sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr)
         chunks={};end=None
         for line in stdout.splitlines():
             if line.startswith('ECC_RECEIPT_CHUNK '):
@@ -81,9 +91,15 @@ if os.getuid()==0:
         if hashlib.sha256(body).hexdigest()!=end['sha256']:raise ValueError('contributor receipt checksum differs')
         result=json.loads(body)
         receipt.update(result=result,sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr)
-        persisted=b''.join(volume.read_file(root_name+'/generic-state.json'))
-        saved=json.loads(persisted)
-        if saved!=result['final_checkpoint']:raise ValueError('persistent volume differs from final checkpoint')
+        deadline=time.monotonic()+30
+        while True:
+            try:
+                persisted=b''.join(volume.read_file('ecc-state/'+root_name+'/generic-state.json'))
+                receipt['last_observed_checkpoint_sha256']=hashlib.sha256(persisted).hexdigest()
+                if json.loads(persisted)==result['final_checkpoint']:break
+            except (modal.exception.NotFoundError,FileNotFoundError,json.JSONDecodeError):pass
+            if time.monotonic()>deadline:raise ValueError('persistent volume commit deadline')
+            time.sleep(1)
         receipt.update(persisted_checkpoint_sha256=hashlib.sha256(persisted).hexdigest(),persisted_checkpoint_matches=True,
                        ok=bool(result.get('ok') and sandbox.poll()==0 and result.get('uid')==result.get('gid')==10001))
     except Exception as error:

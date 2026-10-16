@@ -43,6 +43,13 @@ They provide no sustained fleet-rate measurement or verified trail-work count.
 Public v2 remains gated while the real hosted GPU contribution, required CI and
 sustained fresh-point capacity checks are completed.
 
+The [Modal volume repair receipts](release/modal-volume-readiness/README.md)
+preserve five CPU-only filesystem attempts. The final shared bootstrap passed
+two fresh-container resumes with UID/GID10001, mode0600 files and matching
+external volume hashes, including migration from the old mount-root layout.
+The contributor API key was not supplied to any of those checks. The real GPU
+contribution remains a separate pending release gate.
+
 `release/ghcr-mirror-attempt-1.json` preserves the older Ubuntu22.04 Skopeo
 compatibility failure before image copying. The repaired workflow verifies the
 completed copy's digest and anonymously hashes the newly published tag's raw

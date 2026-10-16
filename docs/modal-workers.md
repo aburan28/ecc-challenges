@@ -24,6 +24,19 @@ The preserved ECC2K-130 sigma binary is an explicit `--protocol 1` path for its
 original compatible GPU configuration. New workers use protocol2 by default.
 
 Each `(campaign,protocol,worker index)` has its own named sandbox and volume.
+The launcher keeps its state in `/data/ecc-state`, owned by UID/GID10001 with
+private directories and mode0600 files. Modal starts the bootstrap as root;
+the bootstrap resolves Modal's provider-created mount symlink, prepares the
+child directory, then drops privileges before running the contributor. The
+API key is kept in an ephemeral mode0600 file outside the persistent volume.
+
+Volumes created by the older launcher are upgraded in place. Registration
+nonces, checkpoints and pending DP data move into the private child directory
+before the contributor starts. An atomic migration marker allows a bootstrap
+interrupted between file moves to continue. If both layouts already contain
+worker state, startup stops and preserves both copies for operator recovery.
+Do not remove either checkpoint or create another run to bypass that error.
+
 Keep that identity to resume, and never mount one worker volume into simultaneous
 workers. Modal volumes commit asynchronously and do not provide distributed file
 locking. The worker pins round geometry, preserves the DP outbox with advanced
@@ -37,6 +50,13 @@ website when access should stop. GPU time and persistent storage are billed to
 the contributor's provider account. `stop` preserves its volume and server data.
 Start with one worker and inspect upload and backlog status before increasing
 worker count. The account cap is eight active runs across both protocols.
+
+The bounded, key-free `python3 scripts/check_modal_volume.py --out receipt.json`
+check verifies migration, mode0600 ownership, atomic checkpoint writes, two fresh
+CPU sandboxes and external committed-volume hashes using the exact bootstrap.
+Its counter data is a filesystem control. A real GPU contribution is a separate
+release check. [Modal documents its Docker USER behavior](https://modal.com/docs/guide/existing-images#user)
+and [volume commit/locking behavior](https://modal.com/docs/guide/volumes).
 
 RunPod and other Linux container hosts use the same digest shown on the
 website, a persistent `/data` volume, and these runtime settings:

@@ -1,0 +1,12 @@
+✓ Initialized. View run at 
+https://modal.com/apps/a-buran28/main/ap-poTCiZ7TBZU0SX820FJ4cG
+✓ Created objects.
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+  File "/usr/lib/python3.12/pathlib.py", line 1015, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: '/data/probe.tmp'
+Runner failed with exit code: 1
+Stopping app - uncaught exception raised locally: IndexError('list index out of range').
+{"ok": false, "error_type": "IndexError", "phases": 0}

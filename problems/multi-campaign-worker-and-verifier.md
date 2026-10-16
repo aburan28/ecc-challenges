@@ -14,7 +14,7 @@ and explicit run closure. Exact image/source/S3-version bindings and failed
 attempts are retained in [release evidence](../verification/all-curves-20261016/README.md).
 
 The remaining obstruction is release validation: a real GPU contribution with a
-persistent volume, current-head required CI, and a sustained fresh-point capacity
+persistent volume and a sustained fresh-point capacity
 envelope. Anonymous GHCR import and all168 L4 checks passed, and the bounded
 account-backlog/refusal/restart/drain check passed. The AWS account currently has30 Fargate
 vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for256. Until
@@ -24,6 +24,48 @@ V2 stays restricted to the designated canary key while these gates are checked.
 Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
 import remains deferred by user instruction.
+
+### Modal checkpoint access obstruction
+
+After the release PR merged, a CPU-only probe of the selected public image on
+Modal failed to create `/data/probe.tmp` as UID/GID10001 after a successful
+root bootstrap `chown('/data', 10001, 10001)`. No contributor key was supplied.
+The failure log and receipt are preserved as the first volume-readiness attempt.
+The local harness reported IndexError while parsing empty stdout; the remote
+stderr identifies PermissionError13 as the actual checkpoint-write failure.
+
+Modal documents that it ignores Docker USER. Its public Volume documentation
+does not specify whether mount ownership changes permit another UID to access
+the filesystem. A mount-level UID restriction is a suspected explanation,
+not an established diagnosis. This blocks the Modal launcher's persistence
+guarantee and the real GPU contributor canary; it does not invalidate the
+completed GPU arithmetic or Fargate contribution checks.
+
+The next bounded diagnostic creates a private child directory as root, records
+ownership and modes before/after changes, and attempts atomic writes as10001.
+Acceptance requires two fresh CPU sandboxes to read and advance the same
+mode0600 checkpoint as UID/GID10001, plus an external committed-volume hash
+match. An access failure requires a different verified persistence mechanism;
+repeating chmod/chown without changed evidence is insufficient. A passing
+probe permits a launcher repair and the separately authorized GPU canary.
+Sustained fresh-point capacity remains a separate outstanding gate.
+
+The final shared-bootstrap attempt5 met this filesystem acceptance criterion:
+two fresh CPU sandboxes advanced the same mode0600 file as UID/GID10001, both
+external committed-volume hashes matched, and the original mount-root file
+migrated successfully. Its frozen setup SHA is
+`9211407a376609a5789aa62b2d2dd5ca1d41730d41ad0dd52e92fb8b55f3704a`.
+The provider `/data` entry was observed to be a symlink. Resolving that trusted
+entry and creating a private owned child corrected access; persisted child
+symlinks remain rejected. The first failed production-helper attempt rejected
+the provider mount symlink itself; it is preserved alongside the earlier
+failure and successful diagnostic controls in
+[volume-readiness evidence](../verification/all-curves-20261016/release/modal-volume-readiness/README.md).
+
+This closes the checkpoint-permission obstruction for the tested Modal image
+and shared bootstrap. The real GPU contribution still requires the separately
+requested authorization to transmit the contributor key through a runtime
+Modal Secret. No contributor key was sent during these filesystem controls.
 
 ### Consumer-stop and queue-baseline check
 
