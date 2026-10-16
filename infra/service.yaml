@@ -30,6 +30,10 @@ Parameters:
   IndexTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   ReconcileTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 1}
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
+  AlertEmail: {Type: String, Default: ''}
+
+Conditions:
+  HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
 
 Resources:
   Cluster:
@@ -518,6 +522,32 @@ Resources:
           Statistic: Average
         ScaleOutCooldown: 60
         ScaleInCooldown: 900
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties: {TopicName: ecc-challenges-alerts}
+  AlertTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics: [!Ref AlertTopic]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudWatchAlarms
+            Effect: Allow
+            Principal: {Service: cloudwatch.amazonaws.com}
+            Action: sns:Publish
+            Resource: !Ref AlertTopic
+            Condition:
+              StringEquals: {'aws:SourceAccount': !Ref 'AWS::AccountId'}
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:ecc-challenges-*'
+  AlertSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasAlertEmail
+    Properties:
+      TopicArn: !Ref AlertTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
   AuditAgeAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -531,6 +561,8 @@ Resources:
       Threshold: 3600
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
   IndexAgeAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -544,6 +576,8 @@ Resources:
       Threshold: 900
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
   AuditDeadAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -557,6 +591,8 @@ Resources:
       Threshold: 0
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
   IndexDeadAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -570,6 +606,8 @@ Resources:
       Threshold: 0
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
   ResolveDeadAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -583,6 +621,8 @@ Resources:
       Threshold: 0
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
   Accelerator:
     Type: AWS::GlobalAccelerator::Accelerator
     Properties:
@@ -615,3 +655,4 @@ Outputs:
   AuditServiceName: {Value: ecc-challenges-audit}
   IndexServiceName: {Value: ecc-challenges-index}
   ResolveServiceName: {Value: ecc-challenges-resolve}
+  AlertTopicArn: {Value: !Ref AlertTopic}
