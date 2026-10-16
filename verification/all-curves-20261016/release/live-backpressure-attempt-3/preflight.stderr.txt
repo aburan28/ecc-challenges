@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Volumes/SSD990-2/cryptanalysis/wt/ecc-challenges-deploy/scripts/check_live_backpressure.py", line 364, in <module>
+    main()
+    ~~~~^^
+  File "/Volumes/SSD990-2/cryptanalysis/wt/ecc-challenges-deploy/scripts/check_live_backpressure.py", line 133, in main
+    raise CheckError("audit_queue_not_quiet")
+CheckError: audit_queue_not_quiet

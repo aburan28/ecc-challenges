@@ -1,5 +1,9 @@
 name: CI
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
   push:
@@ -10,7 +14,7 @@ permissions:
 
 jobs:
   integration:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: postgres:16
@@ -36,17 +40,17 @@ jobs:
       - run: python -m pytest -q
 
   templates:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: python -m pip install 'cfn-lint>=1,<2'
-      - run: cfn-lint infra/foundation.yaml infra/data.yaml infra/service.yaml
+      - run: cfn-lint infra/foundation.yaml infra/data.yaml infra/service.yaml infra/build.yaml infra/registry.yaml infra/contributor-canary.yaml
 
   images:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - run: docker build -f Dockerfile.web -t ecc-challenges-web:ci .

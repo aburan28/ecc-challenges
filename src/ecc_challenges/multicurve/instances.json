@@ -1,0 +1,584 @@
+{
+  "format_version": 1,
+  "instances": [
+    {
+      "G": [
+        "0x30cb127b63e42792f10f",
+        "0x547b2c88266bb04f713b"
+      ],
+      "Q": [
+        "0x202a9f035014497325",
+        "0x5175a64859552f97c129"
+      ],
+      "a": "0x4a2e38a8f66d7f4c385f",
+      "b": "0x2c0bb31c6becc03d68a7",
+      "bits": 79,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-79",
+      "modulus": "0x80000000000000000201",
+      "n": "0x40000000004531a2562b"
+    },
+    {
+      "G": [
+        "0x1675c1bc9bd234852e8123c",
+        "0x426b727619b0e93561c6a3"
+      ],
+      "Q": [
+        "0x1be721f8e3b6dbee40dce98",
+        "0x4dd88a4bdad73e0b32ebb3"
+      ],
+      "a": "0x95aa3e660b75e77315e94e",
+      "b": "0x1ac2701c6c54021d1bf0a72",
+      "bits": 89,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-89",
+      "modulus": "0x20000000000004000000001",
+      "n": "0x100000000000b41c8c9d8fd"
+    },
+    {
+      "G": [
+        "0x94d3ba574305888262363929",
+        "0x13ce0562cc51ef416b2c0ca80"
+      ],
+      "Q": [
+        "0xebcec4b5961c75df04eb6aae",
+        "0x13768154c2131b67b39a0339f"
+      ],
+      "a": "0x1ea5ce2b7f0a58e01b4389418",
+      "b": "0x9687742b6329e70680231988",
+      "bits": 97,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-97",
+      "modulus": "0x2000000000000000000000041",
+      "n": "0x10000000000007383e2de1e81"
+    },
+    {
+      "G": [
+        "0x8a84fb02034f7771dc940097",
+        "0x1d2f10a471d48a720f18f6339"
+      ],
+      "Q": [
+        "0xe0bc08ac5818f303e2b05e90",
+        "0x134c028fc3393124d673e6f8e"
+      ],
+      "a": "0x0",
+      "b": "0x1",
+      "bits": 97,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 4,
+      "id": "ecc2k-95",
+      "modulus": "0x2000000000000000000000041",
+      "n": "0x7fffffffffffa9fed6609af7"
+    },
+    {
+      "G": [
+        "0xd947cca2312e483059f0917151c",
+        "0x1c59e643697207374cfeab259ab6"
+      ],
+      "Q": [
+        "0x2dc77273a0b4961a85c6b12027b",
+        "0x2da3fc33e705d4fd1cad73d9e61"
+      ],
+      "a": "0x14baa8c4131e992c7e35fcf70ce3",
+      "b": "0x1333be219e61625e4c2b6b1032d9",
+      "bits": 109,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-109",
+      "modulus": "0x2000000000000000000000000207",
+      "n": "0x10000000000000053701ab26100b"
+    },
+    {
+      "G": [
+        "0x478c46cc96338ced91565e17257",
+        "0x1e7965e4a3afb73a48fc9ab790e9"
+      ],
+      "Q": [
+        "0x1ff0ce5ec61893f2119c3077c59e",
+        "0x1f20e9b010ac691c9b87b438241d"
+      ],
+      "a": "0x1",
+      "b": "0x1",
+      "bits": 109,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2k-108",
+      "modulus": "0x2000000000000000000000000207",
+      "n": "0xfffffffffffffa621b02c383e9b"
+    },
+    {
+      "G": [
+        "0x439cbc8dc73aa981030d5bc57b331663",
+        "0x14904c07d4f25a16c2de036d60b762bd4"
+      ],
+      "Q": [
+        "0x602339c5db0e9c694ac8908528c51c440",
+        "0x4f7b99169fa1a0f2737813742b1588cb8"
+      ],
+      "a": "0x7ebcb7eecc296a1c4a1a14f2c9e44352e",
+      "b": "0x610b0a57c73649ad0093bdd622a61d81",
+      "bits": 131,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-131",
+      "modulus": "0x800000000000000000000000000002007",
+      "n": "0x400000000000000026abb991fe311fe83"
+    },
+    {
+      "G": [
+        "0x51c99bfa6f18de467c80c23b98c7994aa",
+        "0x42ea2d112ecec71fcf7e000d7efc978bd"
+      ],
+      "Q": [
+        "0x6c997f3e7f2c66a4a5d2fda13756a37b1",
+        "0x4a38d11829d32d347bd0c0f584d546e9a"
+      ],
+      "a": "0x0",
+      "b": "0x1",
+      "bits": 131,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 4,
+      "id": "ecc2k-130",
+      "modulus": "0x800000000000000000000000000002007",
+      "n": "0x200000000000000004d4fdd5703a3f269"
+    },
+    {
+      "G": [
+        "0x23a2e99904996e8679b50ff1e49add8bd2388f387",
+        "0x5fcbfe4098477c9d187ea1cf615c7e91529e73ba2"
+      ],
+      "Q": [
+        "0x438d8b3821c8e9264637f2fc74f8007b21210f0f2",
+        "0x73fcea8d5e247ce367368f006ebd5b32fdf4286d2"
+      ],
+      "a": "0x25c4beac8074b8c2d9df63af91263eb8229b3c967",
+      "b": "0xc9517d06d5240d3cff38c74b20b6cd4d6f9dd4d9",
+      "bits": 163,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-163",
+      "modulus": "0x80000000000000000000000000000000000000107",
+      "n": "0x400000000000000000001e60fc8821cc74daeafc1"
+    },
+    {
+      "G": [
+        "0x2091945e42080cd9cbcf14a7107d8bc55cdd65ea9",
+        "0x63315693833774294a39cf6f8c175d02b8e6a5587"
+      ],
+      "Q": [
+        "0x7530ee864edcf4a31c85aa17c197fff5cafecae1",
+        "0x75db1e80d7c4a92c7bbb79eae3ec545f8a31cfa6b"
+      ],
+      "a": "0x1",
+      "b": "0x1",
+      "bits": 163,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2k-163",
+      "modulus": "0x80000000000000000000000000000000000000107",
+      "n": "0x4000000000000000000020108a2e0cc0d99f8a5ef"
+    },
+    {
+      "G": [
+        "0x52f3e1ecfcf3b0a6e0945d6b92a8ffc42c280545c0f8321b",
+        "0xf19f7a172a1f7191614db1dae7cabc01e85806d42e2627"
+      ],
+      "Q": [
+        "0x7911bc300972e2d3385d6d528440710dd73f281472b961e3",
+        "0x492a2ded9e740b3603f39dabaa0070f99674c57f55ad4f1d"
+      ],
+      "a": "0x2011d237b30025cfd61f8d6f66741ca6cedd313f9bd4431f",
+      "b": "0x2e45ef571f00786f67b0081b9495a3d95462f5de0aa185ec",
+      "bits": 191,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2-191",
+      "modulus": "0x800000000000000000000000000000000000000000000201",
+      "n": "0x40000000000000000000000004a20e90c39067c893bbb9a5"
+    },
+    {
+      "G": [
+        "0x4bc630d209d98b810fa42a95fdb77f87dbe68cc076110aade0b2afc47b2b",
+        "0x194c8da12f2763e3e9aa84f4f17d56ff10fcf20f300fd1278ffb976a91c2"
+      ],
+      "Q": [
+        "0x26966e5dde492af6cedaf8bb8bcada02bfef2944815f142f57450ca145bf",
+        "0x4f2ac9ed29887cb53acbb29ad031b4a24c2cfa8a32d5b164e89fa283966b"
+      ],
+      "a": "0x23aacc83de3549beae1b601eda88bf45517d5adfed437f71784b5dd911df",
+      "b": "0x790408f2eedaf392b012edefb3392f30f4327c0ca3f31fc383c422aa8c16",
+      "bits": 239,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 4,
+      "id": "ecc2-238",
+      "modulus": "0x800000000000000000000000000000000000000000000000001000000001",
+      "n": "0x2000000000000000000000000000000f4d42ffe1492a4993f1cad666e447"
+    },
+    {
+      "G": [
+        "0x78cfae9860f96a9d48261b7a9cf3c5b94190888b184bc3f83b416b56992e",
+        "0x2deba096f37dedbe7d13c09f6c03680b2e5371a08fec01e37775e31cc7c9"
+      ],
+      "Q": [
+        "0x721dd31c6766532ec44c73bcbf54b2969400fa6c4cc1556e89ac1ff8622a",
+        "0x347d6f86dddedd7f138fc33beeab4ffa029a2eb2f011a5bc8c64a773b519"
+      ],
+      "a": "0x0",
+      "b": "0x1",
+      "bits": 239,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 4,
+      "id": "ecc2k-238",
+      "modulus": "0x800000000000000000000000000000000000000000000000001000000001",
+      "n": "0x2000000000000000000000000000005a79fec67cb6e91f1c1da800e478a5"
+    },
+    {
+      "G": [
+        "0xef6a87d27d25ea944a629664a9d34664c6a79dd86360d8ab57fae11df30cb6e78c7e01ba3adc081fa76048092",
+        "0x1da4ed719174e356fc0f968e80d2974965bb90805dbb1d8fe57333dfa50d163b88465bb5fb55046f949ae27f51"
+      ],
+      "Q": [
+        "0x4bd3c6e97bff49c1b3fd667684834fbe8d17e22f94f795480bd5166b04a267f94033d61fba43fdf62758982462",
+        "0x605f4bc8221f266f724def750069b240a67ac4adac15386354d7e1700c5f5f3fb6769f26130d73a8d721a019e4"
+      ],
+      "a": "0x6962e67e43fb6d66c46c7fddf5a22e2c8857537c428fd691a26d2f9baeb871c276dfa9928f01634b1459cf431e",
+      "b": "0x2472e2d0197c49363f1fe7f5b6db075d52b6947d135d8ca445805d39bc345626089687742b6329e70680231988",
+      "bits": 359,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 76,
+      "id": "ecc2-353",
+      "modulus": "0x800000000000000000000000000000000000000000000000000000000000000000000000100000000000000001",
+      "n": "0x1af286bca1af286bca1af286bca1af286bca1af286bc9fb8f6b85c556892c20a7eb964fe7719e74f490758d3b"
+    },
+    {
+      "G": [
+        "0x7035addf5eaab0cfba9588332603f870d11aa41a6b57ada3a1ca18f9c7169185a1f191e96293ee6e041c8e918c",
+        "0x7122a49d2ef45e68d11c0c0ed86b8ae422f54e49bda0ac15177f3824d35809ad4faef7b7ab4810e1dbec5abff0"
+      ],
+      "Q": [
+        "0xfe3828d45a36ec0a9d04bb8c03586a41ed098f4bc55718a7604a005db050e58f6dc2a451cb9d83448d7b1dda6",
+        "0x5322afb6da476f2b9c3abf31c22978c318ae358f6b3373ceac599189a35dd6c121c23170d710563f436caafdc8"
+      ],
+      "a": "0x1",
+      "b": "0x1",
+      "bits": 359,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2+x*y=x^3+a*x^2+b",
+      "field_kind": "binary",
+      "h": 2,
+      "id": "ecc2k-358",
+      "modulus": "0x800000000000000000000000000000000000000000000000000000000000000000000000100000000000000001",
+      "n": "0x3ffffffffffffffffffffffffffffffffffffffffffff6f61406970b03ae00fb512716a4151ca0eac9d1b0e107"
+    },
+    {
+      "G": [
+        "0x315d4b201c208475057d",
+        "0x35f3df5ab370252450a"
+      ],
+      "Q": [
+        "0x679834cefb7215dc365",
+        "0x4084bc50388c4e6fdfab"
+      ],
+      "a": "0x39c95e6dddb1bc45733c",
+      "b": "0x1f16d880e89d5a1c0ed1",
+      "bits": 79,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-79",
+      "modulus": "0x62ce5177412aca899cf5",
+      "n": "0x62ce5177407b7258dc31"
+    },
+    {
+      "G": [
+        "0xc031d875dbf8e60be95b0a",
+        "0x6f82c1f879745bf676d0a"
+      ],
+      "Q": [
+        "0xde1aa94ff94db64e763e2d",
+        "0x2a44c4c2d4ee27fa0a4ba9"
+      ],
+      "a": "0x6f39b6cc51504a8ac22e63",
+      "b": "0x647e7ea1062ae69a7d1037",
+      "bits": 89,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-89",
+      "modulus": "0x158685c903f1643908ba955",
+      "n": "0x158685c903ef906d7f58d47"
+    },
+    {
+      "G": [
+        "0xd5d9e9dff58a9232a2749ebc",
+        "0x11b34ae5aab7c7ae55d6abdb5"
+      ],
+      "Q": [
+        "0xdf7e84c42fef50c5316c508a",
+        "0xf259bc583729da0fe8b97336"
+      ],
+      "a": "0x47370916a603b07657c305c4",
+      "b": "0x1124df86d04064f503d9925af",
+      "bits": 97,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-97",
+      "modulus": "0x16ea1595ed21ae4d8d8420e35",
+      "n": "0x16ea1595ed21ae98fb6cca20d"
+    },
+    {
+      "G": [
+        "0x4cc974ebbcbfdc3636feb9f11c7",
+        "0x7611b0eb1229c0bfc5f35521692"
+      ],
+      "Q": [
+        "0x233857e4e8b5f0055126e7d7b7c",
+        "0x19c8c91063eb4276371d68b6b4d9"
+      ],
+      "a": "0xfd4c926fd178e9805e663021744",
+      "b": "0x153d3cbb508ffe3a7f31ff4faffd",
+      "bits": 109,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-109",
+      "modulus": "0x1bd579792b380b5b521e6d9fb599",
+      "n": "0x1bd579792b380b049c4d13a75ae5"
+    },
+    {
+      "G": [
+        "0x3df84a96b5688ef574fa91a32e197198a",
+        "0x14721161917a44fb7b4626f36f0942e71"
+      ],
+      "Q": [
+        "0x3aa6f004fc62e2da1ed0bfb62c3ffb568",
+        "0x9c21c284ba8a445bb2701bf55e3a67ed"
+      ],
+      "a": "0x41cb121ce2b31f608a76fc8f23d73cb66",
+      "b": "0x2f74f717e8dec90991e5ea9b2ff03da58",
+      "bits": 131,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-131",
+      "modulus": "0x48e1d43f293469e33194c43186b3abc0b",
+      "n": "0x48e1d43f293469e317f7ed728f6b8e6f1"
+    },
+    {
+      "G": [
+        "0x17e7012277e1b4e43f7bf74657e8be08baca175b",
+        "0xaa03a0a82690704697e8c504cb135b2b6eef3c83"
+      ],
+      "Q": [
+        "0x1dc1e9a482085b3dfa722eb7a541d50505ed31dca",
+        "0x12d71ecc1578bfbe203d0c2ce238eb6060adcaa1e"
+      ],
+      "a": "0x43182d283fce3880730c9a2fdd3f6016529a166af",
+      "b": "0x20c61e9459e53d8871bcaadc2dfc8ad5225228035",
+      "bits": 163,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-163",
+      "modulus": "0x5177b8a2a0fd6a4ff55cda06b0924e125f86cad9b",
+      "n": "0x5177b8a2a0fd6a4ff55cca7b8a1e21c88bd53b2c1"
+    },
+    {
+      "G": [
+        "0x3b511bc3229cb4ae654dfbc63210e2783e91f43aa68d0ef4",
+        "0x4619a505395a031a304c0b72061099f3d0840ca61de2f4bc"
+      ],
+      "Q": [
+        "0x1da38ef4cba78b2cd1d31eb375bc9e1934c62aced29c54ee",
+        "0x4f3ca5ff71d32d5472d7f9ecd39def45517f3b876466c8f1"
+      ],
+      "a": "0x3bd4fda00a3e52e1af5c9456686ab1b96195810c27c5b110",
+      "b": "0x24d1d4331f8651b052e8042fa43255886e09bef9d3174872",
+      "bits": 191,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-191",
+      "modulus": "0x7df5bb7bf830f63c77667331106f9001b27d39941032f5e5",
+      "n": "0x7df5bb7bf830f63c776673315f1259168cf997380aca72c3"
+    },
+    {
+      "G": [
+        "0xd35ed464403b23cc681f18534c14b6fa2ade7720523f5094ad9bfbe4752",
+        "0x52f1bc7c3c7438a91099fdd53666a0185fb59688ca3e380840903b589beb"
+      ],
+      "Q": [
+        "0x2193dceae32bc6ef61653de4f1a141c15a9a6a1a7296802a887ebc0c7667",
+        "0x64297e89ee340cff78a531998cc3f3376afd3ae177dbe30b82c93045f79d"
+      ],
+      "a": "0x76d4219cf7498b5b471e85bc4daba3ce47adc806228fbb0bce197c4f4556",
+      "b": "0x4f0911a649b98cd0d3f695695e44743ea948e70b78cab2c24c4e7d50e2b3",
+      "bits": 239,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-239",
+      "modulus": "0x7cfb4c973a86cdaf898231e4960acdbbf5b6a9017dbed75ffabdd892085d",
+      "n": "0x7cfb4c973a86cdaf898231e4960accb3e442837a1d551d28f3b495f5ec5f"
+    },
+    {
+      "G": [
+        "0x2f912b99ad5d761593c2ce9d2454ee91efd1c698a0da7c2efe0db8696406885e63edb5cd29c2735ec12183312d",
+        "0x335e0c161bab13bc46de0cd4e0ba17913b9c1ee26a3dcf9022de77431896f329d8283b3dc93c469564f9043caa"
+      ],
+      "Q": [
+        "0x10e3208f62a90ae4aef55eb0a71f7334432af091c5e9d5046170c9835ec1b92167698dcd0b8e9040bdc3afa0b0",
+        "0x15038878664a36573c40d10b3f5fcd999ee1b619bfa84614ef172fefd4949f188e39bb40e1a767a6df7458a13d"
+      ],
+      "a": "0x877aebb1771a6eea1a7681809b68846818d6434edf6b4ef2381672de2cae70cb1ba3e6a5fbd6de67170e4fc62",
+      "b": "0x3ade22e91f88ec93165a5ba6f151aa1ef265ff5fd012f30b9a2d12a0e2c3f5d7e695ddb2fa75de2139e61d8dc8",
+      "bits": 359,
+      "coordinate_encoding": "affine-xy-be",
+      "equation": "y^2=x^3+a*x+b",
+      "field_kind": "prime",
+      "h": 1,
+      "id": "eccp-359",
+      "modulus": "0x58d8420df55d2b2000fe2a55a032ab225f544f8cb69cdf219b0e39423721f32a199d58685c903f1643908ba969",
+      "n": "0x58d8420df55d2b2000fe2a55a032ab225f544f8cb69cd0be1504766b9dd626631a535ba1ba6cb8d062f94102ed"
+    }
+  ],
+  "normalizations": [
+    {
+      "canonical": "0x1",
+      "field": "b",
+      "id": "ecc2k-163",
+      "kind": "source_label_correction",
+      "reason": "Second printed a is b=1; both published points and subgroup products verify."
+    },
+    {
+      "canonical": "0x6f39b6cc51504a8ac22e63",
+      "field": "a",
+      "id": "eccp-89",
+      "kind": "field_representative_normalization",
+      "printed": "0xc8ae4f7de8918aa9fab2260",
+      "reason": "Canonical reduction modulo p, checked against both points and published scalar."
+    },
+    {
+      "id": "eccp-97",
+      "kind": "coordinate_label_normalization",
+      "reason": "First bare x,y under seedP are G; second pair under seedQ are Q."
+    },
+    {
+      "id": "eccp-109",
+      "kind": "coordinate_label_normalization",
+      "reason": "First bare x,y under seedP are G; second pair under seedQ are Q."
+    },
+    {
+      "id": "eccp-131",
+      "kind": "coordinate_label_normalization",
+      "reason": "First bare x,y under seedP are G; second pair under seedQ are Q."
+    },
+    {
+      "id": "eccp-163",
+      "kind": "coordinate_label_normalization",
+      "reason": "First bare x,y under seedP are G; second pair under seedQ are Q."
+    }
+  ],
+  "reference_vectors": {
+    "ecc2-109": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0xf1e0add3449596419c359dbdb7e",
+      "source_section": "6.1.6"
+    },
+    "ecc2-79": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x3aa068a09f1ed21e2582",
+      "source_section": "6.1.1"
+    },
+    "ecc2-89": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x22a2a88267271f48147aa5",
+      "source_section": "6.1.2"
+    },
+    "ecc2-97": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0xcf765639d6b81943fd89d60f",
+      "source_section": "6.1.4"
+    },
+    "ecc2k-108": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x256f98379f7214306be5be678fd",
+      "source_section": "6.1.5"
+    },
+    "ecc2k-95": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x7a4249ba547313af5d482092",
+      "source_section": "6.1.3"
+    },
+    "eccp-109": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0xddd09fd44daccb22abbebc0917c",
+      "source_section": "6.1.10"
+    },
+    "eccp-79": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x138756822dd5fb093766",
+      "source_section": "6.1.7"
+    },
+    "eccp-89": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x113c284d9bd7b58bca30c67",
+      "source_section": "6.1.8"
+    },
+    "eccp-97": {
+      "role": "published arithmetic correctness vector",
+      "scalar": "0x16c86aa7cacf69f1dd28b3e2f",
+      "source_section": "6.1.9"
+    }
+  },
+  "source": {
+    "coordinate_basis": "Prime residues or exact published binary polynomial basis",
+    "document_updated": "2009-11-10",
+    "extraction_command": "pdftotext -layout challenge-2009.pdf extracted.txt",
+    "parameter_section": "Appendix A",
+    "pdf_sha256": "3a0cff3f84e933e9f9b22a0972fee5673a2ed16a406421f2daa945ffa33d5c13",
+    "text_sha256": "9cadb5f0a3e75c3f9879f632a968fe6bd4e99efcf7f0a17fe92963857449f3cd",
+    "title": "Certicom ECC Challenge",
+    "url": "https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf"
+  }
+}

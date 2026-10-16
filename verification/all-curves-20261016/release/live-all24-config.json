@@ -1,0 +1,175 @@
+{
+  "format": "live-all24-config-binding-v1",
+  "ok": true,
+  "origin": "https://ecc-challenges.com",
+  "rows": [
+    {
+      "campaign": "ecc2-79",
+      "exact_match": true,
+      "namespace_id": "71b3d655239027220269a9338f57c0e7ef4920279386a4c79221754ef6a6626f",
+      "response_sha256": "96e411aa607b281b617d0f07503a7b1f1a5a233c2adf94c9d4d9b2bf0da5b203",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-89",
+      "exact_match": true,
+      "namespace_id": "cb8f0acb9b109d1d6a79dc72eeb400b03fc5b4625c48cd0b48490a6e6dfab4b2",
+      "response_sha256": "965b8a3b35235d3a6f9c246322f20b4d33edacc76c9529545d462cde3da08ea0",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-97",
+      "exact_match": true,
+      "namespace_id": "401f787d064f99f02176c58bdc75102d33370e74cfab30d5e084bde1bdc22413",
+      "response_sha256": "837e1958c93bce4d50d59146483fcaca662fc3d65e1b1449c0824c038fcab629",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-95",
+      "exact_match": true,
+      "namespace_id": "ba30fd8e52a32c55cccee48fdaa08fb22871c52f0f96ce51d35a6710595e0457",
+      "response_sha256": "6fa3b4c7d8875368af469f67846d44da9f426b2c767e23e5083c39b9e7c28c5f",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-109",
+      "exact_match": true,
+      "namespace_id": "5e2ab003ee5bda74e1175fe6a1ddcd69e0b2f89c13e4e04a9ee1405fe355030b",
+      "response_sha256": "5fa74a4b3fe5083459c34eab801f43a6b6d6fdb4c8719f361566e3d23c80319a",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-108",
+      "exact_match": true,
+      "namespace_id": "b014d25a9e94b82b8824b5f90889f38ce02772b98089a1d96954870af4a28863",
+      "response_sha256": "2f06de919b5a8dfbb7e32c1c9e6c6f85fa1c8d86b060766580652ef9e95dc552",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-131",
+      "exact_match": true,
+      "namespace_id": "43c5831853e1cd3be5a9b038a5efe9f33b3a291669317c21ceb60f6cf8f4ada1",
+      "response_sha256": "1ea9313274d290bf96dfaa181f56978842031bc43dd69fec8fd632b8f32f2cfe",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-130",
+      "exact_match": true,
+      "namespace_id": "3d9851703e0fd44b69df405ec2bd67ee4e318f2e24b9fe8e9c667fb59356944c",
+      "response_sha256": "f33e23b45eb6352e0febb490cacc33d5c739796e2d503c45e195f880f41abb7b",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-163",
+      "exact_match": true,
+      "namespace_id": "19b48b6d503f2b04fcd89c91fa938d052bad896aa9077f155096a0949d226c7c",
+      "response_sha256": "c3d976820ffd5829fe572a5411ea437886880a8e30cdf5df274816066f9613f4",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-163",
+      "exact_match": true,
+      "namespace_id": "ac52a621aeb5aa5fb91cdba973de4893ffe755cccf2cdc9ca69644143ce96006",
+      "response_sha256": "313938f4c8ae1f66007d785f50ae4eacd096298c19cc4ad91f8449abcf10df72",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-191",
+      "exact_match": true,
+      "namespace_id": "7a0b7732f2071631586db23804a36a1d16d1a507ce71f5e3ee2dd67983d375a7",
+      "response_sha256": "ece48b5823dba42497e6e8441b4e2bf9edb42ba30a0f687748e1baa8f08ba417",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-238",
+      "exact_match": true,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "response_sha256": "93ebb2d8086dd040082135637343afae1c61cfd73a76e4148114d8e3577b5d00",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-238",
+      "exact_match": true,
+      "namespace_id": "d87aea73ac7df8c9751d4cfd252435b39aecb84c51e23d750ffc9159b81d9235",
+      "response_sha256": "0913de630b1382e8b255cad19114e348065349215b789941c8d42c2928eca6e2",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2-353",
+      "exact_match": true,
+      "namespace_id": "51544b2c581b0df206403b26a931e779cff8c73b1a5e17980a4f066970c2eadf",
+      "response_sha256": "18a253387cb2627bc78c6d96f4e8a30bc72e975785ab0dc24517e00f152e6560",
+      "status": 200
+    },
+    {
+      "campaign": "ecc2k-358",
+      "exact_match": true,
+      "namespace_id": "c625450144c32f2bffb82fa2c64bafd074d02c473657c08f1a8af244a873656e",
+      "response_sha256": "b79008a111e5bbdc3d3579d903e759b578f0d4259ef57a68bb1868f17e8c78f3",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-79",
+      "exact_match": true,
+      "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+      "response_sha256": "b3e444fb2612f64b309eeaf9ea2325aa419ef9537dc99cf45220f48c780dd37f",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-89",
+      "exact_match": true,
+      "namespace_id": "9e27d2c19b236582aca8e74de28f4ed5706d31c9ca7192b700d4e2e7fb69b55a",
+      "response_sha256": "fc30f6ad0efc02393d7c438005519323a3fba895ec894d3b02b4db7e353bfa9c",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-97",
+      "exact_match": true,
+      "namespace_id": "1b2deef283baec01ca5587df1177e52882f648eeb031921bd52e802dbb8459c2",
+      "response_sha256": "e276a4432f17ab623acb714adcd09561cbb8acc1d545ebbec3f5a0e8d6c950d8",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-109",
+      "exact_match": true,
+      "namespace_id": "e9b4aea8146ec53fb2dcab82e1ea388152212ce8fd2de2bb6868427ba08f68a9",
+      "response_sha256": "c45fab0e8ed0868ce3655360ab7c4250b9094ae51d61d50f9429dd18cd1616af",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-131",
+      "exact_match": true,
+      "namespace_id": "12e44f5198880bdd5fbb7ed921734854f05b2643040a9aebb666acea700b87c3",
+      "response_sha256": "bb45f06785600f029aaba8c58c0a724722f309c5886bce794baaa38a8d0d8faa",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-163",
+      "exact_match": true,
+      "namespace_id": "a0e710c20cde429106b6f3001a4445846407b9c43f19ac3df76586d7d966532e",
+      "response_sha256": "5036464188f1fa627ea2406c346ba2ee33a18b64519c9ae2be92b763af919d84",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-191",
+      "exact_match": true,
+      "namespace_id": "893b42af6c5698e57d493c33be1a3848a894285281e08367395a602d0414e1b4",
+      "response_sha256": "88b1bae353f0585dd3eec6fb3b47597fcbb3d429c6ceb9d227fc5b00c2a88b32",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-239",
+      "exact_match": true,
+      "namespace_id": "2b5ceafbda5838ce62fe7a7b6a2a1625e598b6c9b80bc29dc21763c2fbb90e49",
+      "response_sha256": "5a11becd4fbf447c933d34484fd75de5045e0a3853927f990e8692c99551eb4d",
+      "status": 200
+    },
+    {
+      "campaign": "eccp-359",
+      "exact_match": true,
+      "namespace_id": "1fc101d897dd81a4c9b30d45ce2b7898bf96dc784d2e4488ad717b027b378d21",
+      "response_sha256": "5c8eb5453ec5eebcdb51255ead833d8ac977095eb4379f88d1b2c2d6b035b766",
+      "status": 200
+    }
+  ]
+}

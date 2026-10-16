@@ -1,0 +1,137 @@
+{
+  "account_id": "104186811093",
+  "boot_sha256": "cb033919628e1381817d87ec86ffcb66f62efe1e28009e2ba2104bd14a75fc1b",
+  "campaign": "ecc2-238",
+  "containers": [
+    {
+      "exitCode": 0,
+      "imageDigest": "sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+      "name": "contributor",
+      "reason": null
+    }
+  ],
+  "format": "fargate-contributor-canary-execution-v1",
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "last_status": "STOPPED",
+  "log_messages": [
+    "ECC_CONTRIBUTOR_CANARY {\"backend\": \"cpu\", \"campaign\": \"ecc2-238\", \"closure\": {\"closed_at\": \"2026-10-16T22:30:46.641594+00:00\", \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\"}, \"elapsed_seconds\": 10.571968474000002, \"engine_binary_sha256\": \"58cfe17630900eaf842d748ba66751a460b0219ec9c7fd59acd6cf4cd90dce23\", \"final_checkpoint\": {\"cursor\": 136, \"lanes\": 4, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"next_trail\": 5, \"pending\": \"\", \"protocol\": 2, \"round_steps\": 256, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"states\": \"G0aeAe3I4SAipSnOG8ZJAjyBQraX32v3zYye48VAAAAAAAAAAAAAAAAAAAAAAAAAbo1MJ2khQcBAC0uSxx62MxgRumSe/bRNfhZBZkwxAAAAAAAAAAAAAAAAAAAAAAAAvnhDqzHFKpt6BLEM8zRuimH1I82B6u6tDmOEdDsNAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAy0LH3r1XBLDM+BH4mSbxSblnvv5FNUhKlPqMn2FoAAAAAAAAAAAAAAAAAAAAAAAAEeWWdsc3qQwmhNZBXPoriXX98zGmV+fDV0TYTgcGAAAAAAAAAAAAAAAAAAAAAAAA0d1sVRMEQ2eZSz2qQPNdcllKz4kvZWq6jIy33BMXAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAMrtcflA7awgYLYau9TVe+hwQG2ZfZc+yl1WJe7U9AAAAAAAAAAAAAAAAAAAAAAAAvkH2mAyNl956THLvpTOkSO1IYoc+TkmE3yrmxp4aAAAAAAAAAAAAAAAAAAAAAAAAzPLhvL7VkMkOIuu88YNDbgIPls+z2VqW1izKNVMZAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAXj5Sj28D9mlKQXFFwM26xaBq+GUxGTkShrcuDMRnAAAAAAAAAAAAAAAAAAAAAAAA8o27IolVwgnQ544lbw8XmYuFFbCYRLS4UuLcSJlGAAAAAAAAAAAAAAAAAAAAAAAAGGg0M+keJt488inYQvr+ikIOoizbaEJ2/L+RNhwAAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAEwAAAAAAAAEAAAAAAAAA\"}, \"final_indexed_status\": {\"batches\": {\"indexed\": {\"batches\": 1, \"records\": 1}}, \"campaign\": \"ecc2-238\", \"closed_at\": null, \"cursor\": 136, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"pending_batch_id\": null, \"record_bytes\": 136, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"total_bytes\": 136, \"total_records\": 1}, \"first_checkpoint\": {\"cursor\": 136, \"lanes\": 4, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"next_trail\": 5, \"pending\": \"\", \"protocol\": 2, \"round_steps\": 256, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"states\": \"I6kPysBhBkyDQOMGZvsWVUyFT0nAe6mLqB5HBdsmAAAAAAAAAAAAAAAAAAAAAAAACjvPdXw33mnZOYrDA/RoTjfEtIYC2WGItDAgqTMBAAAAAAAAAAAAAAAAAAAAAAAAUwQa3NjLqk+O65RZ+EufKbN5RrcLntpzExIRqLocAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAAAAAEAAAAAAAAAnJZeQjcuhufdJz4Uys2r8LaaYhoqpTleWqVGUewnAAAAAAAAAAAAAAAAAAAAAAAAiSb0XwQ9Pu5DAGNa8boRaKwdwF6cUlZWnsP8XnFyAAAAAAAAAAAAAAAAAAAAAAAA1Wf9rFfiLvWn/R4a8urakzv77prok1EBr0iyijYWAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAFgAAAAAAAAEAAAAAAAAAkzRWDan5OsCYxDsX1q5U+oZLCjOciRHIDZ25A4IOAAAAAAAAAAAAAAAAAAAAAAAAXpJqyZniV8SUtW+X7+m/W4yBB4k/pCD5FiGqDXxbAAAAAAAAAAAAAAAAAAAAAAAAbF8vj4E3Xu5KuBXkLSUX9WxfGMxHZAJK62VrbjYMAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAFgAAAAAAAAEAAAAAAAAA4PX6xAOpIiawJglpw3bFjtzex/6tJr+mtaDdm5NNAAAAAAAAAAAAAAAAAAAAAAAATBK7kB+3R2nTFwpExSg1EAfMtgVktkT8QvutGpN4AAAAAAAAAAAAAAAAAAAAAAAA7mpcd5SBI9M+nTHez543negsyCCwZ9Bn5LxFGP4IAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAADQAAAAAAAAEAAAAAAAAA\"}, \"first_indexed_status\": {\"batches\": {\"indexed\": {\"batches\": 1, \"records\": 1}}, \"campaign\": \"ecc2-238\", \"closed_at\": null, \"cursor\": 136, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"pending_batch_id\": null, \"record_bytes\": 136, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"total_bytes\": 136, \"total_records\": 1}, \"format\": \"live-contributor-entrypoint-canary-v1\", \"gid\": 10001, \"lanes\": 4, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"ok\": true, \"phases\": [{\"exit_code\": 0, \"forced_stop\": false, \"phase\": \"first_run\", \"stderr_bytes\": 0, \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"stdout_bytes\": 113, \"stdout_sha256\": \"b28ee345aac627ced86f2da9e6f9b66c7c238d580fee7c5d8eb1014ad0455f2a\"}, {\"exit_code\": 0, \"forced_stop\": false, \"phase\": \"restart_same_checkpoint\", \"stderr_bytes\": 0, \"stderr_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"stdout_bytes\": 0, \"stdout_sha256\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}], \"release_image\": \"public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee\", \"restart_checkpoint\": {\"cursor\": 136, \"lanes\": 4, \"namespace_id\": \"a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c\", \"next_trail\": 5, \"pending\": \"\", \"protocol\": 2, \"round_steps\": 256, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"states\": \"G0aeAe3I4SAipSnOG8ZJAjyBQraX32v3zYye48VAAAAAAAAAAAAAAAAAAAAAAAAAbo1MJ2khQcBAC0uSxx62MxgRumSe/bRNfhZBZkwxAAAAAAAAAAAAAAAAAAAAAAAAvnhDqzHFKpt6BLEM8zRuimH1I82B6u6tDmOEdDsNAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAy0LH3r1XBLDM+BH4mSbxSblnvv5FNUhKlPqMn2FoAAAAAAAAAAAAAAAAAAAAAAAAEeWWdsc3qQwmhNZBXPoriXX98zGmV+fDV0TYTgcGAAAAAAAAAAAAAAAAAAAAAAAA0d1sVRMEQ2eZSz2qQPNdcllKz4kvZWq6jIy33BMXAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAMrtcflA7awgYLYau9TVe+hwQG2ZfZc+yl1WJe7U9AAAAAAAAAAAAAAAAAAAAAAAAvkH2mAyNl956THLvpTOkSO1IYoc+TkmE3yrmxp4aAAAAAAAAAAAAAAAAAAAAAAAAzPLhvL7VkMkOIuu88YNDbgIPls+z2VqW1izKNVMZAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAXj5Sj28D9mlKQXFFwM26xaBq+GUxGTkShrcuDMRnAAAAAAAAAAAAAAAAAAAAAAAA8o27IolVwgnQ544lbw8XmYuFFbCYRLS4UuLcSJlGAAAAAAAAAAAAAAAAAAAAAAAAGGg0M+keJt488inYQvr+ikIOoizbaEJ2/L+RNhwAAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAEwAAAAAAAAEAAAAAAAAA\"}, \"restart_checkpoint_advanced\": true, \"restart_cursor_monotonic\": true, \"restart_same_run_id\": true, \"round_steps\": 256, \"run_id\": \"c162793a-89f5-4214-b52f-7d46206f6f6e\", \"uid\": 10001}"
+  ],
+  "mode": "apply",
+  "ok": true,
+  "operator_deadline_seconds": 1200,
+  "result": {
+    "backend": "cpu",
+    "campaign": "ecc2-238",
+    "closure": {
+      "closed_at": "2026-10-16T22:30:46.641594+00:00",
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e"
+    },
+    "elapsed_seconds": 10.571968474000002,
+    "engine_binary_sha256": "58cfe17630900eaf842d748ba66751a460b0219ec9c7fd59acd6cf4cd90dce23",
+    "final_checkpoint": {
+      "cursor": 136,
+      "lanes": 4,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "next_trail": 5,
+      "pending": "",
+      "protocol": 2,
+      "round_steps": 256,
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+      "states": "G0aeAe3I4SAipSnOG8ZJAjyBQraX32v3zYye48VAAAAAAAAAAAAAAAAAAAAAAAAAbo1MJ2khQcBAC0uSxx62MxgRumSe/bRNfhZBZkwxAAAAAAAAAAAAAAAAAAAAAAAAvnhDqzHFKpt6BLEM8zRuimH1I82B6u6tDmOEdDsNAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAy0LH3r1XBLDM+BH4mSbxSblnvv5FNUhKlPqMn2FoAAAAAAAAAAAAAAAAAAAAAAAAEeWWdsc3qQwmhNZBXPoriXX98zGmV+fDV0TYTgcGAAAAAAAAAAAAAAAAAAAAAAAA0d1sVRMEQ2eZSz2qQPNdcllKz4kvZWq6jIy33BMXAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAMrtcflA7awgYLYau9TVe+hwQG2ZfZc+yl1WJe7U9AAAAAAAAAAAAAAAAAAAAAAAAvkH2mAyNl956THLvpTOkSO1IYoc+TkmE3yrmxp4aAAAAAAAAAAAAAAAAAAAAAAAAzPLhvL7VkMkOIuu88YNDbgIPls+z2VqW1izKNVMZAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAXj5Sj28D9mlKQXFFwM26xaBq+GUxGTkShrcuDMRnAAAAAAAAAAAAAAAAAAAAAAAA8o27IolVwgnQ544lbw8XmYuFFbCYRLS4UuLcSJlGAAAAAAAAAAAAAAAAAAAAAAAAGGg0M+keJt488inYQvr+ikIOoizbaEJ2/L+RNhwAAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAEwAAAAAAAAEAAAAAAAAA"
+    },
+    "final_indexed_status": {
+      "batches": {
+        "indexed": {
+          "batches": 1,
+          "records": 1
+        }
+      },
+      "campaign": "ecc2-238",
+      "closed_at": null,
+      "cursor": 136,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "pending_batch_id": null,
+      "record_bytes": 136,
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+      "total_bytes": 136,
+      "total_records": 1
+    },
+    "first_checkpoint": {
+      "cursor": 136,
+      "lanes": 4,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "next_trail": 5,
+      "pending": "",
+      "protocol": 2,
+      "round_steps": 256,
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+      "states": "I6kPysBhBkyDQOMGZvsWVUyFT0nAe6mLqB5HBdsmAAAAAAAAAAAAAAAAAAAAAAAACjvPdXw33mnZOYrDA/RoTjfEtIYC2WGItDAgqTMBAAAAAAAAAAAAAAAAAAAAAAAAUwQa3NjLqk+O65RZ+EufKbN5RrcLntpzExIRqLocAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAAAAAEAAAAAAAAAnJZeQjcuhufdJz4Uys2r8LaaYhoqpTleWqVGUewnAAAAAAAAAAAAAAAAAAAAAAAAiSb0XwQ9Pu5DAGNa8boRaKwdwF6cUlZWnsP8XnFyAAAAAAAAAAAAAAAAAAAAAAAA1Wf9rFfiLvWn/R4a8urakzv77prok1EBr0iyijYWAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAFgAAAAAAAAEAAAAAAAAAkzRWDan5OsCYxDsX1q5U+oZLCjOciRHIDZ25A4IOAAAAAAAAAAAAAAAAAAAAAAAAXpJqyZniV8SUtW+X7+m/W4yBB4k/pCD5FiGqDXxbAAAAAAAAAAAAAAAAAAAAAAAAbF8vj4E3Xu5KuBXkLSUX9WxfGMxHZAJK62VrbjYMAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAFgAAAAAAAAEAAAAAAAAA4PX6xAOpIiawJglpw3bFjtzex/6tJr+mtaDdm5NNAAAAAAAAAAAAAAAAAAAAAAAATBK7kB+3R2nTFwpExSg1EAfMtgVktkT8QvutGpN4AAAAAAAAAAAAAAAAAAAAAAAA7mpcd5SBI9M+nTHez543negsyCCwZ9Bn5LxFGP4IAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAADQAAAAAAAAEAAAAAAAAA"
+    },
+    "first_indexed_status": {
+      "batches": {
+        "indexed": {
+          "batches": 1,
+          "records": 1
+        }
+      },
+      "campaign": "ecc2-238",
+      "closed_at": null,
+      "cursor": 136,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "pending_batch_id": null,
+      "record_bytes": 136,
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+      "total_bytes": 136,
+      "total_records": 1
+    },
+    "format": "live-contributor-entrypoint-canary-v1",
+    "gid": 10001,
+    "lanes": 4,
+    "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+    "ok": true,
+    "phases": [
+      {
+        "exit_code": 0,
+        "forced_stop": false,
+        "phase": "first_run",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_bytes": 113,
+        "stdout_sha256": "b28ee345aac627ced86f2da9e6f9b66c7c238d580fee7c5d8eb1014ad0455f2a"
+      },
+      {
+        "exit_code": 0,
+        "forced_stop": false,
+        "phase": "restart_same_checkpoint",
+        "stderr_bytes": 0,
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "release_image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+    "restart_checkpoint": {
+      "cursor": 136,
+      "lanes": 4,
+      "namespace_id": "a33c7413e6cc24d12b5903c95ee9e3efb7484830dbd916b16303f4f2cf452b3c",
+      "next_trail": 5,
+      "pending": "",
+      "protocol": 2,
+      "round_steps": 256,
+      "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+      "states": "G0aeAe3I4SAipSnOG8ZJAjyBQraX32v3zYye48VAAAAAAAAAAAAAAAAAAAAAAAAAbo1MJ2khQcBAC0uSxx62MxgRumSe/bRNfhZBZkwxAAAAAAAAAAAAAAAAAAAAAAAAvnhDqzHFKpt6BLEM8zRuimH1I82B6u6tDmOEdDsNAAAAAAAAAAAAAAAAAAAAAAAAsaA3RbU580qTiCbT+PLK/JYiIIxrm4W4wFHShRkfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAy0LH3r1XBLDM+BH4mSbxSblnvv5FNUhKlPqMn2FoAAAAAAAAAAAAAAAAAAAAAAAAEeWWdsc3qQwmhNZBXPoriXX98zGmV+fDV0TYTgcGAAAAAAAAAAAAAAAAAAAAAAAA0d1sVRMEQ2eZSz2qQPNdcllKz4kvZWq6jIy33BMXAAAAAAAAAAAAAAAAAAAAAAAAM/Zvk+FpXf4etAKkNm9PCuRnewOJBd7E1pfq9OsGAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAMrtcflA7awgYLYau9TVe+hwQG2ZfZc+yl1WJe7U9AAAAAAAAAAAAAAAAAAAAAAAAvkH2mAyNl956THLvpTOkSO1IYoc+TkmE3yrmxp4aAAAAAAAAAAAAAAAAAAAAAAAAzPLhvL7VkMkOIuu88YNDbgIPls+z2VqW1izKNVMZAAAAAAAAAAAAAAAAAAAAAAAAyiXy5AYN4ccaEQnwMFGez87uZoUV8dpBKWxq6ksZAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAHAAAAAAAAAEAAAAAAAAAXj5Sj28D9mlKQXFFwM26xaBq+GUxGTkShrcuDMRnAAAAAAAAAAAAAAAAAAAAAAAA8o27IolVwgnQ544lbw8XmYuFFbCYRLS4UuLcSJlGAAAAAAAAAAAAAAAAAAAAAAAAGGg0M+keJt488inYQvr+ikIOoizbaEJ2/L+RNhwAAAAAAAAAAAAAAAAAAAAAAAAAZ8IvGqbY/ux1rtEQHUFJ/zUrsNl7VYW2VHS4awwAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAEwAAAAAAAAEAAAAAAAAA"
+    },
+    "restart_checkpoint_advanced": true,
+    "restart_cursor_monotonic": true,
+    "restart_same_run_id": true,
+    "round_steps": 256,
+    "run_id": "c162793a-89f5-4214-b52f-7d46206f6f6e",
+    "uid": 10001
+  },
+  "runtime_aws_role": null,
+  "stop_code": "EssentialContainerExited",
+  "stopped_reason": "Essential container in task exited",
+  "task_arn": "arn:aws:ecs:us-west-2:104186811093:task/ecc-challenges/e56b8306ea8e42fda548a17e4416e410",
+  "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-contributor-canary:13"
+}

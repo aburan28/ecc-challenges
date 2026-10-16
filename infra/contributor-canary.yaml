@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Bounded contributor check with no runtime AWS role and outbound HTTPS only.
+Parameters:
+  VpcId: {Type: AWS::EC2::VPC::Id}
+  KeySecretArn: {Type: String}
+Resources:
+  Logs:
+    Type: AWS::Logs::LogGroup
+    Properties: {LogGroupName: /ecc-challenges/contributor-canary, RetentionInDays: 30}
+  Network:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: No inbound traffic; contributor canary outbound HTTPS only
+      VpcId: !Ref VpcId
+      SecurityGroupEgress: [{IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0}]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: {aws:SourceAccount: !Ref 'AWS::AccountId'}
+              ArnLike: {aws:SourceArn: !Sub 'arn:aws:ecs:${AWS::Region}:${AWS::AccountId}:*'}
+      Policies:
+        - PolicyName: isolated-contributor-startup
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref KeySecretArn
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !Sub '${Logs.Arn}:*'
+Outputs:
+  ExecutionRoleArn: {Value: !GetAtt ExecutionRole.Arn}
+  SecurityGroupId: {Value: !Ref Network}

@@ -1,0 +1,9 @@
+{
+  "format": "anonymous-provider-image-check-launch-v1",
+  "ok": false,
+  "phase": "local-cli-start",
+  "error": "The project .venv has no Modal executable; no remote call was made.",
+  "exit_code": 127,
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "modal_sandbox_id": null
+}

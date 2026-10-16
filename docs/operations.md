@@ -172,3 +172,73 @@ snapshot, resumable transfer, source/destination count and digest checks,
 catch-up for concurrent original writes, and a backmatch of new public
 candidates against the imported points. Until then, describe collision
 coverage as new-public-to-new-public only.
+
+## All-curve release builds and canary gate
+
+`infra/build.yaml` provisions one bounded Linux CodeBuild release builder. It
+clones an explicit public commit, verifies HEAD, builds the four images, runs
+the native self-test, and writes pinned digests to
+`release-builds/<commit>/manifest.json` in the isolated bucket. The build role
+has image-push and release-manifest permissions, with no database-secret access.
+No contributor credential enters that build context.
+
+Deploy migration003 and worker/web images before enabling v2. A rollout can set
+`MulticurveCanaryKey` to the ID portion of the designated key while
+`MulticurveEnabled=false`. Only that authenticated key can use v2; public catalog
+availability stays unchanged. The worker queue still processes its batches.
+After combined-container, contributor and capacity gates, enable v2 and clear
+the canary parameter. Keep existing v1 workers on their bound namespace.
+
+### Retiring a generic contributor run
+
+An ordinary container stop preserves its run for resumption. To switch a worker
+permanently to another challenge, stop it gracefully and then launch the same
+pinned image, key, campaign and state volume with `ECC_PROTOCOL=2` and
+`ECC_ACTION=close`. This authenticates ownership and retires the run without
+removing its checkpoints, uploaded points or verification work. The command
+refuses a local pending outbox; resume normal work to flush it first. An unfinished
+server upload intent must commit or expire before closure. Closed runs remain
+readable and their admitted batches continue processing. Use a new state volume
+for a new run. Closing releases an active slot; it does not reset the account's
+lifetime anti-abuse limit.
+
+### V2 admission and verifier scaling
+
+`--max-pending-batches` is an explicit per-protocol deployment bound (initially
+512), sharded across sixteen pressure rows. At the maximum 1 MiB batch size this
+bounds v2 pending raw payload near 512 MiB; account and daily-byte quotas apply
+as well. Choose the bound from measured drain time. Contributors keep their
+outbox and pause on retryable refusal.
+
+The audit pool performs all v2 relation checks and DynamoDB insertion. The
+separate legacy index pool does not add v2 processing capacity. Audit scale-out
+uses visible queue depth and CPU utilization, up to 32 tasks. Automatic audit
+scale-in is disabled during the initial rollout to avoid interrupting long,
+in-flight verification batches. Review pending work and retained leases before
+an operator reduces the pool. This can leave extra tasks running after a burst;
+monitor cost and tune after the sustained capacity gate. The existing
+`scripts/capacity.py` models the legacy sampled verifier and cannot establish v2
+throughput. A production DP/s claim requires measurements of every distinct
+witness under the deployed curve mix and fleet size.
+
+### Public image mirrors
+
+ECR Public anonymous consumers have a fixed monthly data allowance. Shared cloud
+provider importers can exhaust that allowance before starting a container.
+`infra/registry.yaml` supplies a public-image authentication role with no push,
+private-image, bucket, database or application-secret permissions. Its GitHub
+OIDC trust binds the repository's verified immutable IDs and the release refs.
+
+The existing contributor-image workflow accepts an optional `source_image`
+dispatch input. It copies the exact ECR image to
+`ghcr.io/aburan28/ecc-challenges-worker` with digest preservation and checks an
+anonymous pull. First-time GHCR package publication can require the package
+owner to make it public in GitHub's package settings. Do not advertise the
+mirror until the anonymous check passes. The deployment helper requires the
+mirror's manifest bytes to match an image digest in the isolated AWS account.
+
+Internal Modal checks can optionally use a mode-0600 `ECC_REGISTRY_AUTH_FILE`
+containing a temporary pull-only token. Sending that token to a third-party
+importer requires explicit authorization; an automatic approval rejection does
+not authorize another transport. No AWS access keys belong in a contributor
+container. The public release must work with an anonymous provider pull.

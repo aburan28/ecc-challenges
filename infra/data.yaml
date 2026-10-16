@@ -140,6 +140,30 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+  ArchivePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: RequireTLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: [!GetAtt DataBucket.Arn, !Sub '${DataBucket.Arn}/*']
+            Condition: {Bool: {aws:SecureTransport: 'false'}}
+          - Sid: RequireImmutableV2Writes
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Sub '${DataBucket.Arn}/public-gateway/*/v2/*'
+            Condition: {StringNotEquals: {s3:if-none-match: '*'}}
+          - Sid: PreserveV2Witnesses
+            Effect: Deny
+            Principal: '*'
+            Action: [s3:DeleteObject, s3:DeleteObjectVersion]
+            Resource: !Sub '${DataBucket.Arn}/public-gateway/*/v2/*'
   GithubOAuthSecret:
     Type: AWS::SecretsManager::Secret
     DeletionPolicy: Retain

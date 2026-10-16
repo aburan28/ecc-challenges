@@ -1,0 +1,17 @@
+{
+  "format": "release-build-binding-v1",
+  "manifest": {
+    "build_id": "ecc-challenges-release:00e7d4d2-dd95-4eb5-bcbe-70b46f26337b",
+    "images": {
+      "admin": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-admin@sha256:9aea3ed97f2b7d378ca964e5b15252d74331a13685791523bafbde1445e00798",
+      "audit": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-audit@sha256:87477667bb26aa534342406ae185fd2bfbfaa8a8887a060f9fa7cf440de01a76",
+      "web": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-web@sha256:b13be09b60d48290581cc0e30cf0b6eff38f05623e22437ad114532a9649e31d",
+      "worker": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:8779687d5eec0805853e3acc0479e5010be24cbff2007c0786a516fb5a96fed3"
+    },
+    "source_commit": "5dc26c4a365efe8bdb7080514a3102d0ebc2e0ea",
+    "tag": "allcurves-5dc26c4a365e"
+  },
+  "s3_key": "release-builds/5dc26c4a365efe8bdb7080514a3102d0ebc2e0ea/manifest.json",
+  "s3_version": "mMScLiirVGcXAe7Vfv9llnVVHwh.X5ZK",
+  "sha256": "99668ea9463d4224bb8649ce427b5252909e5001e382442b620d85760f7747c8"
+}

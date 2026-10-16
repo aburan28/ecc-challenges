@@ -1,0 +1,7 @@
+{
+  "error": "Image build for im-ec4Vnj7fsIL8Bq6f43SKHI failed. See build logs for more details.",
+  "error_type": "RemoteError",
+  "modal_sandbox_id": null,
+  "ok": false,
+  "release_image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee"
+}

@@ -27,6 +27,7 @@ def set_login(conn, name: str, password: str, limit: int) -> None:
             cursor.execute(sql.SQL("CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION CONNECTION LIMIT {}")
                            .format(sql.Identifier(name), sql.Literal(limit)))
         cursor.execute(sql.SQL("ALTER ROLE {} PASSWORD {}").format(sql.Identifier(name), sql.Literal(password)))
+        cursor.execute(sql.SQL("ALTER ROLE {} CONNECTION LIMIT {}").format(sql.Identifier(name), sql.Literal(limit)))
         cursor.execute(sql.SQL("ALTER ROLE {} SET search_path TO ecc_public,public").format(sql.Identifier(name)))
 
 
@@ -73,7 +74,9 @@ def bootstrap(args) -> None:
                     cursor.execute(migration.read_text())
                 with conn.transaction():
                     set_login(conn, "ecc_site_web", web_password, 128)
-                    set_login(conn, "ecc_site_worker", worker_password, 64)
+                    # Up to 32 audit + 8 index + 8 resolver + 1 reconciler,
+                    # with two-connection pools and 200% rolling deployments.
+                    set_login(conn, "ecc_site_worker", worker_password, 256)
                     cursor.execute(sql.SQL("GRANT CONNECT ON DATABASE {} TO ecc_site_web,ecc_site_worker")
                                    .format(sql.Identifier(args.database)))
                     cursor.execute("GRANT USAGE ON SCHEMA ecc_public TO ecc_site_web,ecc_site_worker")
@@ -85,6 +88,19 @@ def bootstrap(args) -> None:
                         TO ecc_site_web
                     """)
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.pressure_shards TO ecc_site_web")
+                    cursor.execute("""
+                        GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespaces,
+                          ecc_public.dp_runs,ecc_public.dp_batches TO ecc_site_web
+                    """)
+                    cursor.execute("GRANT SELECT,UPDATE ON ecc_public.dp_pressure TO ecc_site_web")
+                    cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespace_stats TO ecc_site_web,ecc_site_worker")
+                    cursor.execute("GRANT SELECT,INSERT ON ecc_public.dp_index_bindings TO ecc_site_worker")
+                    cursor.execute("""
+                        GRANT SELECT ON ecc_public.accounts,ecc_public.dp_namespaces TO ecc_site_worker;
+                        GRANT SELECT,UPDATE ON ecc_public.dp_runs,ecc_public.dp_batches,
+                          ecc_public.dp_pressure TO ecc_site_worker;
+                        GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_collision_leads TO ecc_site_worker
+                    """)
                     cursor.execute("""
                         GRANT SELECT,UPDATE ON
                           ecc_public.api_keys,ecc_public.runs,ecc_public.batches,

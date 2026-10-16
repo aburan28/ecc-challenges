@@ -12,6 +12,8 @@ import json
 from pathlib import Path
 import re
 import subprocess
+import hashlib
+from urllib.request import Request, urlopen
 
 import boto3
 from botocore.exceptions import ClientError
@@ -72,18 +74,25 @@ def main() -> None:
     parser.add_argument("--alert-email",
                         help="optional email address for CloudWatch alarm notifications; recipient must confirm SNS subscription")
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--enable-multicurve", action="store_true",
+                        help="enable the validated v2 worker, API and point index")
+    parser.add_argument("--multicurve-canary-key", default="", help="key ID allowed to test before public v2 enablement")
+    parser.add_argument("--max-pending-batches", type=int, default=512,
+                        help="bounded pending batches per protocol; tune from measured drain capacity")
     args = parser.parse_args()
     if len(args.account_id) != 12 or not args.account_id.isdigit():
         parser.error("--account-id must be 12 digits")
     cert_prefix = f"arn:aws:acm:{args.region}:{args.account_id}:certificate/"
     if not args.certificate_arn.startswith(cert_prefix):
         parser.error("--certificate-arn must belong to the destination account and region")
-    if not re.fullmatch(r"public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+    if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
                         args.public_worker_image):
-        parser.error("--public-worker-image must be a pinned ECR Public worker image")
+        parser.error("--public-worker-image must be a pinned public worker image")
     if any(n < 0 for n in (args.web_tasks, args.audit_tasks, args.index_tasks,
                           args.reconcile_tasks, args.resolve_tasks)):
         parser.error("task counts must be nonnegative")
+    if not 16 <= args.max_pending_batches <= 100000:
+        parser.error("--max-pending-batches must be between 16 and 100000")
     session = boto3.Session(profile_name=args.profile, region_name=args.region)
     actual_account = session.client("sts").get_caller_identity()["Account"]
     if actual_account != args.account_id:
@@ -92,14 +101,26 @@ def main() -> None:
     public_repo = public_ecr.describe_repositories(
         registryId=args.account_id, repositoryNames=["ecc-challenges-worker"]
     )["repositories"][0]
-    if public_repo["registryId"] != args.account_id or not args.public_worker_image.startswith(
+    mirrored = args.public_worker_image.startswith("ghcr.io/aburan28/ecc-challenges-worker@")
+    if public_repo["registryId"] != args.account_id or (not mirrored and not args.public_worker_image.startswith(
         public_repo["repositoryUri"] + "@"
-    ):
+    )):
         raise RuntimeError("public worker image is not in the destination account")
     worker_digest = args.public_worker_image.rsplit("@", 1)[1]
     public_ecr.describe_images(registryId=args.account_id,
                                repositoryName="ecc-challenges-worker",
                                imageIds=[{"imageDigest": worker_digest}])
+    if mirrored:
+        # An allowed mirror must remain an anonymous, byte-identical copy of an
+        # image in this account. No GitHub or AWS credential goes to the mirror.
+        with urlopen("https://ghcr.io/token?service=ghcr.io&scope=repository:aburan28/ecc-challenges-worker:pull",timeout=30) as response:
+            token=json.load(response)["token"]
+        request=Request("https://ghcr.io/v2/aburan28/ecc-challenges-worker/manifests/"+worker_digest,
+                        headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json"})
+        with urlopen(request,timeout=30) as response:
+            manifest=response.read(4*1024*1024+1)
+        if len(manifest)>4*1024*1024 or "sha256:"+hashlib.sha256(manifest).hexdigest()!=worker_digest:
+            raise RuntimeError("public mirror manifest differs from the account's source image")
     cfn, ecr, acm, sm = (session.client(name) for name in
                          ("cloudformation", "ecr", "acm", "secretsmanager"))
     foundation = outputs(cfn, "ecc-challenges-foundation")
@@ -150,6 +171,9 @@ def main() -> None:
         "IndexTasks": str(args.index_tasks), "ReconcileTasks": str(args.reconcile_tasks),
         "ResolveTasks": str(args.resolve_tasks),
         "AlertEmail": args.alert_email if args.alert_email is not None else current_alert_email(cfn),
+        "MulticurveEnabled": "true" if args.enable_multicurve else "false",
+        "MulticurveCanaryKey": args.multicurve_canary_key,
+        "MaxPendingBatches": str(args.max_pending_batches),
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},

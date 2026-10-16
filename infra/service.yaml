@@ -8,7 +8,7 @@ Parameters:
   CertificateArn: {Type: String}
   WebImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
   AuditImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
-  PublicWorkerImage: {Type: String, AllowedPattern: '^public\.ecr\.aws/[A-Za-z0-9_-]+/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
+  PublicWorkerImage: {Type: String, AllowedPattern: '^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
   GithubSecretArn: {Type: String}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}
@@ -31,11 +31,40 @@ Parameters:
   ReconcileTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 1}
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   AlertEmail: {Type: String, Default: ''}
+  MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
+  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}$'}
+  MaxPendingBatches: {Type: Number, Default: 512, MinValue: 16, MaxValue: 100000}
 
 Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
 
 Resources:
+  PointIndex:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: ecc-challenges-points-v2
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{AttributeName: pk, AttributeType: S}]
+      KeySchema: [{AttributeName: pk, KeyType: HASH}]
+      DeletionProtectionEnabled: true
+      PointInTimeRecoverySpecification: {PointInTimeRecoveryEnabled: true}
+      SSESpecification: {SSEEnabled: true}
+  PointIndexThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: ecc-challenges-v2-point-index-throttled
+      Namespace: AWS/DynamoDB
+      MetricName: WriteThrottleEvents
+      Dimensions: [{Name: TableName, Value: !Ref PointIndex}]
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
   Cluster:
     Type: AWS::ECS::Cluster
     Properties: {ClusterName: ecc-challenges}
@@ -117,13 +146,21 @@ Resources:
       Rules:
         - Name: global-ip-rate
           Priority: 0
-          Action: {Block: {}}
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                ResponseHeaders: [{Name: Retry-After, Value: '60'}]
           VisibilityConfig: {CloudWatchMetricsEnabled: true, MetricName: globalIpRate, SampledRequestsEnabled: true}
           Statement:
             RateBasedStatement: {AggregateKeyType: IP, Limit: 10000, EvaluationWindowSec: 300}
         - Name: enrollment-ip-rate
           Priority: 1
-          Action: {Block: {}}
+          Action:
+            Block:
+              CustomResponse:
+                ResponseCode: 429
+                ResponseHeaders: [{Name: Retry-After, Value: '60'}]
           VisibilityConfig: {CloudWatchMetricsEnabled: true, MetricName: enrollmentIpRate, SampledRequestsEnabled: true}
           Statement:
             RateBasedStatement:
@@ -187,6 +224,9 @@ Resources:
                 Action: [s3:PutObject, s3:GetObject]
                 Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/runs/*
               - Effect: Allow
+                Action: [s3:PutObject, s3:GetObject, s3:GetObjectVersion]
+                Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/v2/*
+              - Effect: Allow
                 Action: sqs:SendMessage
                 Resource: !Ref AuditQueueArn
   WorkerTaskRole:
@@ -206,6 +246,12 @@ Resources:
               - Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/collision-leads/*
+              - Effect: Allow
+                Action: [s3:GetObject, s3:GetObjectVersion, s3:PutObject]
+                Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/v2/*
+              - Effect: Allow
+                Action: [dynamodb:PutItem, dynamodb:DescribeTable]
+                Resource: !GetAtt PointIndex.Arn
               - Effect: Allow
                 Action: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes, sqs:ChangeMessageVisibility, sqs:SendMessage]
                 Resource: [!Ref AuditQueueArn, !Ref IndexQueueArn, !Ref CollisionQueueArn]
@@ -228,6 +274,10 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: PUBLIC_ORIGIN, Value: !Sub 'https://${DomainName}'}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_web}
@@ -262,6 +312,10 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -291,6 +345,10 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -320,6 +378,10 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -349,6 +411,10 @@ Resources:
           Environment:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
+            - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
+            - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
+            - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
             - {Name: DB_HOST, Value: !Ref DbHost}
             - {Name: DB_NAME, Value: !Ref DbName}
             - {Name: DB_USER, Value: ecc_site_worker}
@@ -467,6 +533,7 @@ Resources:
       ScalingTargetId: !Ref AuditScalingTarget
       TargetTrackingScalingPolicyConfiguration:
         TargetValue: 10
+        DisableScaleIn: true
         CustomizedMetricSpecification:
           Namespace: AWS/SQS
           MetricName: ApproximateNumberOfMessagesVisible
@@ -474,6 +541,18 @@ Resources:
           Statistic: Average
         ScaleOutCooldown: 60
         ScaleInCooldown: 600
+  AuditCpuScaling:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: audit-cpu
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref AuditScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 35
+        DisableScaleIn: true
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        ScaleOutCooldown: 60
   IndexScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     DependsOn: IndexService

@@ -1,0 +1,81 @@
+{
+  "base_template_sha256": "6961d8e567d5853d043cd41c8eaeb4f8da900430e45371557e06612e82d1c280",
+  "format": "website-layout-check-v1",
+  "origin": "https://ecc-challenges.com",
+  "rows": [
+    {
+      "clientWidth": 320,
+      "navRight": 315.71875,
+      "ok": true,
+      "requestedWidth": 320,
+      "route": "/",
+      "scrollWidth": 320,
+      "width": 320
+    },
+    {
+      "clientWidth": 390,
+      "navRight": 374,
+      "ok": true,
+      "requestedWidth": 390,
+      "route": "/",
+      "scrollWidth": 390,
+      "width": 390
+    },
+    {
+      "clientWidth": 753,
+      "navRight": 721,
+      "ok": true,
+      "requestedWidth": 768,
+      "route": "/",
+      "scrollWidth": 753,
+      "width": 768
+    },
+    {
+      "clientWidth": 1425,
+      "navRight": 1312.5,
+      "ok": true,
+      "requestedWidth": 1440,
+      "route": "/",
+      "scrollWidth": 1425,
+      "width": 1440
+    },
+    {
+      "clientWidth": 320,
+      "navRight": 315.71875,
+      "ok": true,
+      "requestedWidth": 320,
+      "route": "/status",
+      "scrollWidth": 320,
+      "width": 320
+    },
+    {
+      "clientWidth": 390,
+      "navRight": 374,
+      "ok": true,
+      "requestedWidth": 390,
+      "route": "/status",
+      "scrollWidth": 390,
+      "width": 390
+    },
+    {
+      "clientWidth": 753,
+      "navRight": 721,
+      "ok": true,
+      "requestedWidth": 768,
+      "route": "/status",
+      "scrollWidth": 753,
+      "width": 768
+    },
+    {
+      "clientWidth": 1425,
+      "navRight": 1312.5,
+      "ok": true,
+      "requestedWidth": 1440,
+      "route": "/status",
+      "scrollWidth": 1425,
+      "width": 1440
+    }
+  ],
+  "scope": "New base stylesheet injected into the deployed homepage and status page before release build; actual deployed revision still needs final verification.",
+  "styleInjection": true
+}

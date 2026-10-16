@@ -42,7 +42,9 @@ def test_certicom_catalog_has_all_published_names_and_exact_campaign_boundary():
     assert len({item.id for item in CHALLENGES}) == 24
     assert sum(item.solved_in_2009 for item in CHALLENGES) == 10
     assert BY_ID["ecc2-353"].field_bits == 359
-    assert BY_ID["eccp-191"].field_bits == 192
+    assert BY_ID["eccp-191"].field_bits == 191
+    from ecc_challenges.multicurve.instances import all_instances
+    assert all(BY_ID[c.id].field_bits == c.bits for c in all_instances())
     assert {item.id for item in CHALLENGES if item.contribution != "not_integrated"} == {"ecc2k-130"}
     assert BY_ID["ecc2k-130"].estimated_operations_2009 == "2.0e18"
     assert all(item.estimated_operations_2009 for item in CHALLENGES)

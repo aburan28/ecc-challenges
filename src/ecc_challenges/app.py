@@ -11,6 +11,7 @@ from urllib.parse import parse_qs
 
 from authlib.integrations.starlette_client import OAuth
 import boto3
+from botocore.config import Config
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
@@ -98,11 +99,12 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     settings = settings or Settings.from_env()
     database = db or Database(settings.database_url)
     if storage is None:
-        s3 = boto3.client("s3", region_name=settings.region)
+        s3 = boto3.client("s3", region_name=settings.region, config=Config(signature_version="s3v4"))
         sqs = boto3.client("sqs", region_name=settings.region)
         storage = Storage(s3, sqs, settings.bucket, settings.stream_id)
     service = Service(database, storage, settings)
-    status_reader = StatusReader(database)
+    multicurve_enabled = getattr(settings, "multicurve_enabled", False)
+    status_reader = StatusReader(database, multicurve_enabled=multicurve_enabled)
     oauth = OAuth()
     oauth.register(
         name="github", client_id=settings.github_client_id,
@@ -124,6 +126,9 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret,
                        session_cookie="ecc_session", https_only=True, same_site="lax", max_age=86400)
     app.state.service = service
+    if multicurve_enabled or getattr(settings, "multicurve_canary_keys", ()):
+        from .multicurve.api import create_router
+        app.include_router(create_router(service, database, storage, settings))
     checkpoint_slots = asyncio.Semaphore(1)
 
     @app.middleware("http")
@@ -144,7 +149,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         headers = {"Cache-Control": "no-store"}
         if exc.retry_after:
             headers["Retry-After"] = str(exc.retry_after)
-        if request.url.path.startswith("/v1/") or request.url.path == "/health":
+        if request.url.path.startswith(("/v1/", "/v2/")) or request.url.path == "/health":
             return JSONResponse({"error": str(exc)}, status_code=exc.status, headers=headers)
         return TEMPLATES.TemplateResponse(request, "error.html", {"message": str(exc)},
                                           status_code=exc.status, headers=headers)
@@ -161,7 +166,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def home(request: Request):
         return TEMPLATES.TemplateResponse(request, "home.html", {"signed_in": bool(request.session.get("github_id")),
                                           "challenges": CHALLENGES, "catalog_source": SOURCE_URL,
-                                          "catalog_date": SOURCE_DATE},
+                                          "catalog_date": SOURCE_DATE,
+                                          "multicurve_enabled": multicurve_enabled},
                                           headers={"Cache-Control": "private, no-store"})
 
     @app.get("/status", response_class=HTMLResponse)
@@ -217,7 +223,10 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": None,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "multicurve_enabled": multicurve_enabled,
+             "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
+                 if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys", response_class=HTMLResponse)
@@ -230,7 +239,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys/{key_id}/revoke")
@@ -244,7 +254,9 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     @app.get("/v1/campaigns")
     async def campaigns():
         return {"source_url": SOURCE_URL, "source_date": SOURCE_DATE,
-                "campaigns": [challenge.public() for challenge in CHALLENGES]}
+                "worker_image": settings.public_worker_image,
+                "multicurve_enabled": multicurve_enabled,
+                "campaigns": [challenge.public(multicurve_enabled) for challenge in CHALLENGES]}
 
     @app.get("/v1/config")
     async def config(campaign: str = CAMPAIGN):

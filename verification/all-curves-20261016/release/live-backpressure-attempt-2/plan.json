@@ -1,0 +1,47 @@
+{
+  "account": "104186811093",
+  "after_drain_batches": 1,
+  "baseline_queue": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesDelayed": 0,
+    "ApproximateNumberOfMessagesNotVisible": 0
+  },
+  "cluster": "ecc-challenges",
+  "container_images": [
+    "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-audit@sha256:cd31a8338dd6c03e5f07381a189d9f26f7551de10897aeb357ce93218a8b6b8e"
+  ],
+  "desired_count": 2,
+  "format": "v2-bounded-backpressure-plan-v1",
+  "initial_batches": 32,
+  "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+  "operator_pause_target_seconds": 180,
+  "payload_bytes_total": 1848,
+  "record_sha256": "a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf",
+  "records_per_batch": 1,
+  "restore_watchdog_delay_seconds": 240,
+  "scaling_suspended_state": {
+    "DynamicScalingInSuspended": false,
+    "DynamicScalingOutSuspended": false,
+    "ScheduledScalingSuspended": false
+  },
+  "scope": "duplicate valid witness admission, account backlog 429, restart/drain, idempotent commit; no fresh-point throughput claim",
+  "service": "ecc-challenges-audit",
+  "source": {
+    "bindings": [
+      {
+        "point_sha256": "f7c30017ac2ee4dd81b76fc434fa3116b243164fe774148f0760e90965200000",
+        "record_steps_claimed": 73101,
+        "verified_key": "public-gateway/ecc-challenges-v1/v2/verified/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/44ab96bb-0e68-4436-ab5f-5562e7f1a6cb/8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630.json",
+        "verified_receipt_sha256": "8a2ac3b6b586e02fc2fad5a626c5b8a11095a1b065a506a3839e20252599c630"
+      }
+    ],
+    "bytes": 56,
+    "object_key": "public-gateway/ecc-challenges-v1/v2/raw/6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4/shard=a6/runs/89490951-f6d3-4586-8739-252149455411/00000000000000000000-a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf.bin",
+    "records": 1,
+    "relations_verified": true,
+    "sha256": "a61c0422eddc762c87d72d84e52788cb93cee91325590be95b55785247e58faf",
+    "version_id": "11A9lP2.LKSAWWzFyP4A_F3AQ1xkW.YD"
+  },
+  "source_commit": "69882bc0bb702d164301bee765392daab3cf33f4",
+  "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-worker:5"
+}

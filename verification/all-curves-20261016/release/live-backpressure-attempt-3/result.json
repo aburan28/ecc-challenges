@@ -1,0 +1,11 @@
+{
+  "aws_service_mutations": false,
+  "error": "audit_queue_not_quiet",
+  "followup": "read-only PostgreSQL pressure snapshot distinguishes pending work from retained terminal SQS deliveries",
+  "format": "v2-bounded-backpressure-preflight-v1",
+  "ok": false,
+  "phase": "read-only-preflight",
+  "raw_queue_counts": "not captured by the original preflight",
+  "source_commit": "5dc26c4a365efe8bdb7080514a3102d0ebc2e0ea",
+  "stderr_sha256": "f6bea1ed861ed7f81c76dbdffe561aeef394fee439910c8c2c4ff50e8d62ce64"
+}

@@ -1,0 +1,25 @@
+{
+  "audit_settings_restored": true,
+  "batches": [],
+  "closure": {
+    "error": "finish the pending upload or wait for its expiry before closing"
+  },
+  "consumers_stopped": true,
+  "elapsed_seconds": 9.254853667000134,
+  "error": "unexpected_upload_host",
+  "final_cloud_state": {
+    "desired_count": 2,
+    "pending_count": 0,
+    "running_count": 0,
+    "suspended_state": {
+      "DynamicScalingInSuspended": false,
+      "DynamicScalingOutSuspended": false,
+      "ScheduledScalingSuspended": false
+    },
+    "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-worker:5"
+  },
+  "format": "v2-bounded-backpressure-result-v1",
+  "ok": false,
+  "plan_sha256": "80ff2664f7d963e3317e28adb9e8120bcc624941b7c36d12a0e22e821e3720d6",
+  "run_id": "1135f9c9-156b-4554-9de5-f498247401dd"
+}

@@ -11,9 +11,10 @@ from .protocol import CAMPAIGN, RECORD_BYTES
 
 
 class StatusReader:
-    def __init__(self, db, ttl_seconds: int = 60):
+    def __init__(self, db, ttl_seconds: int = 60, *, multicurve_enabled: bool = False):
         self.db = db
         self.ttl_seconds = ttl_seconds
+        self.multicurve_enabled = multicurve_enabled
         self._lock = Lock()
         self._cached: dict | None = None
         self._cached_at = 0.0
@@ -37,23 +38,73 @@ class StatusReader:
                            COALESCE(sum(pending_bytes), 0) AS pending_bytes
                     FROM ecc_public.pressure_shards
                 """).fetchone()
+                generic = {}
+                if self.multicurve_enabled:
+                    rows = conn.execute("""
+                        SELECT n.campaign_id,count(r.id) AS total,
+                          count(r.id) FILTER (WHERE r.suspended_at IS NULL AND r.closed_at IS NULL
+                            AND r.last_seen_at>=now()-interval '24 hours') AS recent,
+                          coalesce(sum(r.total_records),0) AS received
+                        FROM ecc_public.dp_namespaces n
+                        LEFT JOIN ecc_public.dp_runs r ON r.namespace_id=n.id
+                        GROUP BY n.campaign_id
+                    """).fetchall()
+                    generic = {row["campaign_id"]: dict(row) for row in rows}
+                    totals = conn.execute("""
+                        SELECT n.campaign_id,
+                          coalesce(sum(s.admitted_records),0) AS received,
+                          coalesce(sum(s.admitted_bytes),0) AS admitted_bytes,
+                          coalesce(sum(s.verified_records),0) AS verified,
+                          coalesce(sum(s.indexed_records),0) AS indexed,
+                          coalesce(sum(s.unique_points),0) AS unique_points,
+                          coalesce(sum(s.deduplicated_points),0) AS deduplicated
+                        FROM ecc_public.dp_namespace_stats s
+                        JOIN ecc_public.dp_namespaces n ON n.id=s.namespace_id
+                        GROUP BY n.campaign_id
+                    """).fetchall()
+                    for row in totals:
+                        generic.setdefault(row["campaign_id"], {}).update(row)
+                    # The pending predicate matches dp_batches_run_pending; only
+                    # the bounded outstanding pool participates in this scan.
+                    pending = conn.execute("""
+                        SELECT n.campaign_id,count(*) AS pending,
+                          coalesce(sum(b.byte_length),0) AS pending_bytes
+                        FROM ecc_public.dp_batches b
+                        JOIN ecc_public.dp_namespaces n ON n.id=b.namespace_id
+                        WHERE b.state IN ('reserved','admitted','verified')
+                        GROUP BY n.campaign_id
+                    """).fetchall()
+                    for row in pending:
+                        generic.setdefault(row["campaign_id"], {}).update(row)
+            def campaign_row(challenge):
+                legacy = challenge.id == CAMPAIGN
+                enabled = legacy or self.multicurve_enabled
+                current = generic.get(challenge.id, {})
+                return {**challenge.public(self.multicurve_enabled),
+                    "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
+                                        + int(current.get("received", 0))) if enabled else None,
+                    "total_runs": ((int(runs["total"]) if legacy else 0)
+                                   + int(current.get("total", 0))) if enabled else None,
+                    "recent_runs_24h": ((int(runs["recent"]) if legacy else 0)
+                                        + int(current.get("recent", 0))) if enabled else None,
+                    "pending_batches": ((int(pressure["pending_batches"]) if legacy else 0)
+                                        + int(current.get("pending", 0))) if enabled else None,
+                    "pending_bytes": ((int(pressure["pending_bytes"]) if legacy else 0)
+                                      + int(current.get("pending_bytes", 0))) if enabled else None,
+                    "generic_verified_points": int(current.get("verified", 0)) if self.multicurve_enabled else None,
+                    "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None,
+                    "estimated_completion_probability_percent": None}
             snapshot = {
                 "as_of": datetime.now(timezone.utc).isoformat(),
-                "campaigns": [
-                    {**challenge.public(),
-                     "received_points": int(runs["bytes"]) // RECORD_BYTES if challenge.id == CAMPAIGN else None,
-                     "total_runs": int(runs["total"]) if challenge.id == CAMPAIGN else None,
-                     "recent_runs_24h": int(runs["recent"]) if challenge.id == CAMPAIGN else None,
-                     "pending_batches": int(pressure["pending_batches"]) if challenge.id == CAMPAIGN else None,
-                     "pending_bytes": int(pressure["pending_bytes"]) if challenge.id == CAMPAIGN else None,
-                     "estimated_completion_probability_percent": None}
-                    for challenge in CHALLENGES
-                ],
+                "compute_ready": 24 if self.multicurve_enabled else 1,
+                "campaigns": [campaign_row(challenge) for challenge in CHALLENGES],
                 "progress_note": (
                     "Accepted points are archived uploads, not verified curve operations. "
                     "A completion percentage needs independently verified work and a "
                     "campaign-specific collision model; these are not yet available."
                 ),
             }
+            snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
+            snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
             self._cached, self._cached_at = snapshot, monotonic()
             return snapshot

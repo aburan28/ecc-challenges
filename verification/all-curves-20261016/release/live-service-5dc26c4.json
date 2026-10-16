@@ -1,0 +1,68 @@
+{
+  "all_ok": true,
+  "format": "live-service-deployment-v1",
+  "http": [
+    {
+      "bytes": 15536,
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:",
+        "Content-Type": "text/html; charset=utf-8",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "path": "/",
+      "sha256": "ac7c9810b586c56b66ebb27ffc7c47dc378e0737518eaef18b4c5141eab5a612",
+      "status": 200
+    },
+    {
+      "bytes": 20068,
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:",
+        "Content-Type": "text/html; charset=utf-8",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "path": "/status",
+      "sha256": "78c44433c061b6be1ea79fae44d1f749934e0a1ce84ff9dd0c687476fde3acd3",
+      "status": 200
+    },
+    {
+      "bytes": 11,
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:",
+        "Content-Type": "application/json",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "path": "/health",
+      "sha256": "4062edaf750fb8074e7e83e0c9028c94e32468a8b6f1614774328ef045150f93",
+      "status": 200
+    },
+    {
+      "bytes": 7844,
+      "headers": {
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:",
+        "Content-Type": "application/json",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff"
+      },
+      "path": "/v1/campaigns",
+      "sha256": "62f13ea725c4e65352a95c3c0d4f123d24b9339dfd05a77006e9e821fab15034",
+      "status": 200
+    }
+  ],
+  "parameters": {
+    "AuditImageUri": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-audit@sha256:87477667bb26aa534342406ae185fd2bfbfaa8a8887a060f9fa7cf440de01a76",
+    "AuditTasks": "2",
+    "IndexTasks": "1",
+    "MaxPendingBatches": "512",
+    "MulticurveEnabled": "false",
+    "PublicWorkerImage": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+    "ReconcileTasks": "1",
+    "ResolveTasks": "1",
+    "WebImageUri": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-web@sha256:b13be09b60d48290581cc0e30cf0b6eff38f05623e22437ad114532a9649e31d",
+    "WebTasks": "2"
+  },
+  "stack_status": "UPDATE_COMPLETE",
+  "updated_at": "2026-10-16T23:01:06.558000+00:00"
+}

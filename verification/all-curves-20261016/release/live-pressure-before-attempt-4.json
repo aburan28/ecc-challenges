@@ -1,0 +1,29 @@
+{
+  "account": "104186811093",
+  "audit_queue": {
+    "ApproximateNumberOfMessages": 0,
+    "ApproximateNumberOfMessagesDelayed": 0,
+    "ApproximateNumberOfMessagesNotVisible": 2
+  },
+  "command_sha256": "2b3579917422787bc2058e606920738951e1a58e66c6bdde3f19eded00b7d18e",
+  "exit_code": 0,
+  "format": "live-pressure-execution-v1",
+  "image": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-admin@sha256:55a389d67ffe9fddc40d946174bfd852a6bb77213e1b6ac55f64412a62e644ca",
+  "ok": true,
+  "snapshot": {
+    "created_at_unix": 1792191356.046796,
+    "format": "live-pressure-snapshot-v1",
+    "legacy_pending_batches": 0,
+    "legacy_pending_bytes": 0,
+    "ok": true,
+    "read_only_transaction": true,
+    "v2_active_processing_leases": 0,
+    "v2_batch_states": {
+      "indexed": 59
+    },
+    "v2_pending_batches": 0,
+    "v2_pending_bytes": 0
+  },
+  "task_arn": "arn:aws:ecs:us-west-2:104186811093:task/ecc-challenges-admin/475a703ddaec4cb99c775e8da7a26dfc",
+  "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-admin:3"
+}
