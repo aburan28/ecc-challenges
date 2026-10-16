@@ -1,0 +1,126 @@
+{
+  "format": "all24-live-contributor-summary-v1",
+  "ok": true,
+  "rows": [
+    {
+      "campaign": "ecc2-109",
+      "receipt": "ecc2-109.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-131",
+      "receipt": "ecc2-131.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-163",
+      "receipt": "ecc2-163.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-191",
+      "receipt": "ecc2-191.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-238",
+      "receipt": "ecc2-238.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-353",
+      "receipt": "ecc2-353.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-79",
+      "receipt": "ecc2-79.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-89",
+      "receipt": "ecc2-89.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2-97",
+      "receipt": "ecc2-97.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-108",
+      "receipt": "ecc2k-108.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-130",
+      "receipt": "ecc2k-130.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-163",
+      "receipt": "ecc2k-163.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-238",
+      "receipt": "ecc2k-238.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-358",
+      "receipt": "ecc2k-358.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "ecc2k-95",
+      "receipt": "ecc2k-95.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-109",
+      "receipt": "eccp-109.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-131",
+      "receipt": "eccp-131.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-163",
+      "receipt": "eccp-163.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-191",
+      "receipt": "eccp-191.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-239",
+      "receipt": "eccp-239.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-359",
+      "receipt": "eccp-359.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-79",
+      "receipt": "eccp-79.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-89",
+      "receipt": "eccp-89.json",
+      "returncode": 0
+    },
+    {
+      "campaign": "eccp-97",
+      "receipt": "eccp-97.json",
+      "returncode": 0
+    }
+  ]
+}

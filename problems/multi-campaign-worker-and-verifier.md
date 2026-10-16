@@ -4,7 +4,28 @@ Status: open. Scope: admitting distinguished points for the 23 published
 Certicom exercises and challenges other than ECC2K-130 through the
 `ecc-challenges.com` public gateway.
 
-## Specific obstruction
+## Current release boundary, 2026-10-16
+
+All24 published instances now have implemented CPU/CUDA workers and the v2
+archive/verifier/index path. The selected published image passed168 checks on
+a real L4 as UID/GID10001. All24 production-predicate CPU contribution checks
+also passed against the deployed gateway: upload, index, checkpoint resume,
+and explicit run closure. Exact image/source/S3-version bindings and failed
+attempts are retained in [release evidence](../verification/all-curves-20261016/README.md).
+
+The remaining obstruction is release validation and public distribution:
+anonymous hosted-provider image import, a real GPU contribution with a persistent
+volume, current-head required CI, bounded consumer-recovery checks, and a
+sustained fresh-point capacity envelope. The AWS account currently has30 Fargate
+vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for256. Until
+effective, the configured32-auditor ceiling is not available in full.
+
+V2 stays restricted to the designated canary key while these gates are checked.
+Completion probability remains unavailable because coefficient validity does
+not verify the claimed number of trail operations. The historical database
+import remains deferred by user instruction.
+
+## Original obstruction (preserved history)
 
 The public CUDA image, 32-byte DP record, run ID and seed namespace, S3
 registry, PostgreSQL constraints, replay program, and collision resolver
@@ -44,7 +65,7 @@ For each campaign to be opened:
 Passing one campaign's checks opens only that campaign. It does not transfer
 throughput, point validity, or solution status to the other 22.
 
-## Next discriminating work
+## Original implementation sequence (preserved history)
 
 Start with ECCp-131 and ECC2-131 because they are the other 131-bit Level I
 entries in Certicom's 2009 document. Import the exact Appendix A parameters
@@ -75,13 +96,12 @@ all24 curves. Isolated PostgreSQL/mocked AWS controls cover valid/rejected
 admission, immutable retries, verification-before-indexing, crash recovery,
 collision scalar verification, revocation, compaction and fresh-index replay.
 
-This record remains open. The combined release image must complete its Linux
-build and hosted-provider entrypoint check. A live website-issued contributor
-key is needed for the production upload/index canary. Sustained arrival/drain
-measurements and a declared launch fleet rate remain outstanding. Full algebraic
-verification does not attest claimed trail lengths; advertised completion
-percentages stay unavailable pending work verification and an explicit model.
-V2 remains disabled by default until the applicable release gates pass.
+This record remains open under the current release boundary above. The Linux
+build, final-image finite GPU controls and all24 CPU upload/index canaries have
+since completed. Sustained arrival/drain measurements and a declared launch
+fleet rate remain outstanding. Full algebraic verification does not attest
+claimed trail lengths; advertised completion percentages stay unavailable
+pending work verification and an explicit model.
 
 Local image builds failed because Docker Desktop could not start. The system
 volume also reached100% utilization. Completed failed test artifacts were moved

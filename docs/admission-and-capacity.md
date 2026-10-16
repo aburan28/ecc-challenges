@@ -1,5 +1,47 @@
 # Admission, abuse limits, and drain capacity
 
+## Protocol scope
+
+This service has two isolated protocols. The sections below describe the legacy
+ECC2K-130 DP32 path. The generic v2 path supports all24 published Certicom
+instances using56–196-byte affine coefficient records; see
+[v2 storage and recovery](multicurve-storage.md).
+
+V2 uses tiny authenticated JSON control messages at
+`https://ecc-challenges.com/v2/`. Checksum/length/type/encryption-bound S3 PUT
+capabilities carry the raw bytes directly, so large uploads do not occupy web
+tasks. Every record must satisfy the namespace's DP predicate, curve equation
+and `R=aG+bQ` relation before any DynamoDB index write. UUID runs and hashed
+curve/target/walk/codec namespaces isolate the campaigns. Claimed step counts
+are not credited as verified work.
+
+V2 admission limits include eight outstanding reservations and32 pending batches
+per account, eight active runs across both protocols, the shared daily byte
+quota, and a sharded global cap initially512 pending v2 batches. Rejected new
+intents receive429 (account) or503 (global shard) with `Retry-After`; they do not
+obtain an upload capability. Admitted batches remain recoverable from immutable
+S3 objects, PostgreSQL state and receipts even if SQS delivery or a worker fails.
+The reconciler repairs stale unfinished work. Completed runs can be explicitly
+closed without recycling identity or discarding admitted data.
+
+The **audit** service performs v2 verification, conditional DynamoDB indexing
+and collision resolution. Increasing the legacy index or resolver pools adds
+no v2 drain capacity. V2 capacity planning must measure complete verification
+and indexing per curve/record width, source-object and receipt requests,
+PostgreSQL coordination, DynamoDB writes and duplicates, queue age, autoscaling,
+and total cost. `scripts/capacity.py` only models legacy sampled replay and must
+not be used to estimate v2 capacity.
+
+The live all24 single-point canaries establish contribution correctness. A
+bounded duplicate-record backlog/recovery check establishes only its stated
+admission and restart behavior. Neither defines a sustained fresh-point rate or
+a global GPU fleet size. The configured32-auditor maximum also depends on the
+account's effective Fargate vCPU quota; it is30 before the pending256 request.
+Public opening must name the measured operating envelope and retain admission
+caps rather than treating autoscaling as unlimited capacity.
+
+## Legacy protocol
+
 The public endpoint is `https://ecc-challenges.com/v1/` on an AWS Application
 Load Balancer in `us-west-2`, behind AWS WAF and two Global Accelerator static
 addresses. Squarespace remains the DNS provider. ECS web tasks are stateless;
