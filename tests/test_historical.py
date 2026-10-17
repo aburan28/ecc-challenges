@@ -63,6 +63,17 @@ def test_check_object_refuses_bad_objects_and_drops_bad_records():
     assert checked.rejected == {"public_run_range": 1, "not_orbit_key": 1, "above_dp32_weight": 1}
 
 
+def test_runner_delta_keys_are_checked_against_their_name():
+    body = dp(7 << 48 | 1, 0b11) + dp(7 << 48 | 2, 0b101)
+    sha = hashlib.sha256(body).hexdigest()
+    good = f"dp/slot-00007/{sha}-{64:016d}-{128:016d}.bin"
+    assert historical.check_object(good, body, None).records == 2
+    with pytest.raises(historical.SourceRejected, match="sha256 in key"):
+        historical.check_object(f"dp/slot-00007/{'0' * 64}-{64:016d}-{128:016d}.bin", body, None)
+    with pytest.raises(historical.SourceRejected, match="offsets in key"):
+        historical.check_object(f"dp/slot-00007/{sha}-{0:016d}-{128:016d}.bin", body, None)
+
+
 def test_export_load_is_idempotent_and_keeps_historical_collisions(source_bucket, conn, tmp_path):
     a = dp(7 << 48 | 1, 0b11) + dp(7 << 48 | 2, 0b101)
     b = dp(9 << 48 | 5, 0b101) + dp(9 << 48 | 6, 0b1001)   # 0b101 again, other seed

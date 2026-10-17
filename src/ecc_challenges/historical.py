@@ -35,6 +35,9 @@ from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
 
 LEGACY_KEY_RE = re.compile(r"^dp/(slot-\d+)/(\d+)-(\d+)\.bin$")
 ORBIT_KEY_RE = re.compile(r"^dp/(slot-\d+)/([0-9a-f]{32})-(\d+)-([0-9a-f]{64})\.bin$")
+# cryptanalysis ecc2k130/runner/aws/worker.py: one content-addressed delta of
+# whole records, <sha256 of body>-<start offset>-<end offset> in the dp file.
+RUNNER_KEY_RE = re.compile(r"^dp/(slot-\d+)/([0-9a-f]{64})-(\d{16})-(\d{16})\.bin$")
 MARKER_SUFFIX = ".bin.json"
 # A WITNESS=1 client's 72-byte records; never decoded as 32-byte records.
 DP_MAGIC_V2 = b"ECC2KDP2"
@@ -56,7 +59,7 @@ def seed_bytes(seed: int) -> bytes:
 
 
 def is_dp_object(key: str) -> bool:
-    return bool(LEGACY_KEY_RE.match(key) or ORBIT_KEY_RE.match(key))
+    return bool(LEGACY_KEY_RE.match(key) or ORBIT_KEY_RE.match(key) or RUNNER_KEY_RE.match(key))
 
 
 def record_problem(record: bytes) -> str | None:
@@ -95,6 +98,12 @@ def check_object(key: str, body: bytes, marker: bytes | None) -> CheckedObject:
     orbit = ORBIT_KEY_RE.match(key)
     if orbit and orbit.group(4) != digest:
         raise SourceRejected("sha256 in key does not match body")
+    runner = RUNNER_KEY_RE.match(key)
+    if runner:
+        if runner.group(2) != digest:
+            raise SourceRejected("sha256 in key does not match body")
+        if int(runner.group(4)) - int(runner.group(3)) != len(body):
+            raise SourceRejected("offsets in key do not match body length")
     if marker is not None:
         meta = json.loads(marker)
         if meta.get("sha256") not in (None, digest):
