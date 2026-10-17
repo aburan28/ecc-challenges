@@ -57,3 +57,16 @@ jobs:
       - run: docker build -f Dockerfile.admin -t ecc-challenges-admin:ci .
       - run: docker build -f Dockerfile.audit -t ecc-challenges-audit:ci .
       - run: docker build -f worker/Dockerfile -t ecc-challenges-worker:ci .
+      - run: docker build -f worker/Dockerfile.cpu -t ecc-challenges-worker-cpu:ci .
+      - run: docker run --rm --entrypoint /opt/ecc/generic-engine ecc-challenges-worker-cpu:ci --self-test
+
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kubeconform
+        run: |
+          curl -sSLo /tmp/kubeconform.tgz https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-linux-amd64.tar.gz
+          echo "c31518ddd122663b3f3aa874cfe8178cb0988de944f29c74a0b9260920d115d3  /tmp/kubeconform.tgz" | sha256sum -c
+          sudo tar -xzf /tmp/kubeconform.tgz -C /usr/local/bin kubeconform
+      - run: scripts/check_deploy.sh

@@ -1,0 +1,31 @@
+# Podman Quadlet unit: a rootless, systemd-managed worker.
+#
+#   podman secret create ecc-api-key ~/.config/ecc-challenges/api-key
+#   mkdir -p ~/.config/containers/systemd
+#   cp ecc-worker.container ~/.config/containers/systemd/
+#   systemctl --user daemon-reload && systemctl --user start ecc-worker
+#   loginctl enable-linger "$USER"     # keep it running after logout
+#
+# For a GPU: use the GPU image, set ECC_BACKEND=cuda and uncomment AddDevice
+# (needs the NVIDIA Container Toolkit's CDI spec: nvidia-ctk cdi generate).
+[Unit]
+Description=ECC Challenges worker
+
+[Container]
+Image=ghcr.io/aburan28/ecc-challenges-worker-cpu:latest
+Environment=ECC_CAMPAIGN=eccp-131 ECC_BACKEND=cpu ECC_PROTOCOL=2
+# Delivered as an environment secret: no file or mount point needed, and the
+# worker removes it from its environment before starting the engine.
+Secret=ecc-api-key,type=env,target=ECC_API_KEY
+Volume=ecc-worker-data:/data
+ReadOnly=true
+DropCapability=ALL
+NoNewPrivileges=true
+#AddDevice=nvidia.com/gpu=all
+
+[Service]
+Restart=on-failure
+TimeoutStopSec=150
+
+[Install]
+WantedBy=default.target

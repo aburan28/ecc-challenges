@@ -1,0 +1,28 @@
+# Container-based alternative to ecc-worker@.service, e.g. ecc-worker-docker@gpu0.
+# Install: copy to /etc/systemd/system/ and create /etc/ecc-challenges/%i.env
+# from example.env, adding ECC_IMAGE=<image@sha256:...> and, for a GPU,
+# ECC_DOCKER_ARGS=--gpus all. The container runs as UID 10001, so the key
+# must be readable by that group: install -m 0640 -g 10001 key /etc/ecc-challenges/api-key
+[Unit]
+Description=ECC Challenges worker in Docker (%i)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/etc/ecc-challenges/%i.env
+StateDirectory=ecc-challenges/%i
+ExecStartPre=-/usr/bin/docker rm -f ecc-worker-%i
+ExecStartPre=/bin/chown 10001:10001 %S/ecc-challenges/%i
+ExecStart=/usr/bin/docker run --rm --name ecc-worker-%i $ECC_DOCKER_ARGS \
+  -e ECC_CAMPAIGN -e ECC_BACKEND -e ECC_GPU -e ECC_PROTOCOL=2 \
+  -v /etc/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro \
+  -v %S/ecc-challenges/%i:/data \
+  ${ECC_IMAGE}
+ExecStop=/usr/bin/docker stop -t 120 ecc-worker-%i
+TimeoutStopSec=150
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

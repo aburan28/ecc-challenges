@@ -6,10 +6,12 @@ Sign in at **[ecc-challenges.com](https://ecc-challenges.com)**, create an API
 key, and run one Docker container on an NVIDIA GPU. Your worker sends back
 distinguished points; the server checks them and looks for a collision.
 
-- **Run a worker:** see [Contribute](#contribute) below, or the
-  [Modal guide](docs/modal-workers.md) for a rented GPU.
+- **Run a worker:** [Running a worker](docs/running-a-worker.md) covers Docker,
+  Compose, Kubernetes, systemd, Podman, Slurm/Apptainer and Modal, on GPU or
+  CPU (amd64 and arm64).
 - **Work on the code:** read [CONTRIBUTING.md](CONTRIBUTING.md) and the
-  [open problems](problems/README.md).
+  [open problems](problems/README.md). The [local stack](docs/local-stack.md)
+  runs the whole platform on one machine.
 - **Live numbers:** [status page](https://ecc-challenges.com/status) and
   [`/v1/status`](https://ecc-challenges.com/v1/status).
 
@@ -71,7 +73,9 @@ remains deferred; new generic points have their own curve/walk namespaces.
    Container Toolkit so Docker's `--gpus all` can expose the card. The worker
    keeps its run identity and checkpoint in the mounted data directory.
 
-For an RTX PRO 6000 Blackwell worker in your own Modal account, follow the
+For other environments (CPU-only, Kubernetes, systemd, Podman, Slurm) see
+[Running a worker](docs/running-a-worker.md). For an RTX PRO 6000 Blackwell
+worker in your own Modal account, follow the
 [Modal worker guide](docs/modal-workers.md). Start with one bounded worker and
 check its registration, upload, replay, and index status before adding more.
 
