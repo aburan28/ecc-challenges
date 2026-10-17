@@ -199,6 +199,30 @@ def reference_round(ns, states, steps):
     return tuple(output)
 
 
+def test_openmp_engine_matches_serial_engine(cpu_engine, tmp_path, monkeypatch):
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    parallel = tmp_path / "ecc-engine-openmp"
+    built = subprocess.run(
+        [compiler, "-std=c++17", "-O2", "-fopenmp", "-x", "c++",
+         str(ROOT / "worker/generic/engine.cu"), "-o", str(parallel)],
+        capture_output=True, text=True, timeout=180,
+    )
+    if built.returncode:
+        pytest.skip("compiler has no OpenMP support")
+    monkeypatch.setenv("OMP_NUM_THREADS", "4")
+    for campaign in ("eccp-79", "ecc2k-130"):
+        ns = Namespace(campaign, dp_bits=4)
+        initial = tuple(
+            runtime.NativeState(ns.start("18c3053b-96df-4879-a49d-18a52b8fdf8b", trail))
+            for trail in range(37)
+        )
+        serial = runtime.run_round(cpu_engine, "cpu", ns, initial, 64, timeout=300)
+        threaded = runtime.run_round(parallel, "cpu", ns, initial, 64, timeout=300)
+        assert threaded.states == serial.states
+        assert threaded.distinguished == serial.distinguished
+        assert serial.distinguished
+
+
 @pytest.mark.parametrize("campaign", ("eccp-79", "ecc2-79"))
 def test_real_walk_first_dp_and_round_resume(cpu_engine, campaign):
     ns = Namespace(campaign, dp_bits=2)

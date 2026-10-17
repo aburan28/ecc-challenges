@@ -182,7 +182,7 @@ the native self-test, and writes pinned digests to
 has image-push and release-manifest permissions, with no database-secret access.
 No contributor credential enters that build context.
 
-Deploy migration003 and worker/web images before enabling v2. A rollout can set
+Deploy migration 003 and worker/web images before enabling v2. A rollout can set
 `MulticurveCanaryKey` to the ID portion of the designated key while
 `MulticurveEnabled=false`. Only that authenticated key can use v2; public catalog
 availability stays unchanged. The worker queue still processes its batches.

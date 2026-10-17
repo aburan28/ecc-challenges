@@ -800,7 +800,11 @@ int run(int argc, char** argv) {
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
     std::vector<int> errors(job.lanes, 0);
     if (backend == "cpu") {
-        for (std::uint32_t i = 0; i < job.lanes; ++i)
+        // Lanes are independent, so a -fopenmp build spreads them over cores
+        // with output identical to the serial loop.
+        const std::int64_t lanes = job.lanes;
+#pragma omp parallel for schedule(dynamic, 1)
+        for (std::int64_t i = 0; i < lanes; ++i)
             errors[i] = walk_lane(job, states[i]);
     }
 #ifdef __CUDACC__

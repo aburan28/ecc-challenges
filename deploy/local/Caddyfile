@@ -1,0 +1,16 @@
+# TLS front for the local stack. The worker only accepts an HTTPS gateway and
+# upload URLs on *.amazonaws.com, so this proxy answers for both names with
+# certificates from Caddy's own local CA. Nothing here reaches real AWS.
+{
+	local_certs
+	skip_install_trust
+	admin off
+}
+
+ecc-challenges.test, localhost {
+	reverse_proxy web:8080
+}
+
+s3.us-west-2.amazonaws.com, ecc-local.s3.us-west-2.amazonaws.com {
+	reverse_proxy localstack:4566
+}
