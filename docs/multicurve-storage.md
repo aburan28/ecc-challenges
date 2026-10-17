@@ -25,7 +25,22 @@ Each record stores `trail_id:u64le | steps:u64le | x:BE | y:BE | a:BE | b:BE`,
 where `R=aG+bQ`. Widths are fixed per namespace, derived from field and subgroup
 sizes: 56–196 bytes for this registry. Scalars are binary, avoiding database
 numeric precision limits. Finite points whose SHA-256 of canonical x||y has trailing DP bits zero qualify; the first hash byte selects the walk partition.
-Generic default: 20 bits. V1 retains its original DP32 Frobenius predicate.
+V1 retains its original DP32 Frobenius predicate.
+
+DP bits are set per curve (`dp_bits_for` in `multicurve/codec.py`). This walk
+has no automorphism quotient, so a solve takes about E = sqrt(pi*n/2) steps.
+The rule is d = floor(log2 E) - 23, capped at 34. With up to 2^16 walks running
+at once, the steps left in unfinished walks stay under 1% of E, and each curve
+below the cap needs about 2^23.5 (~12 million) DPs. ECCp-79 gets 16 bits,
+ECCp-109 31, and every curve of 130 bits or more 34 (ECC2K-130 about 2^30.8 DPs,
+ECCp-131 about 2^31.4). The DP bit count is part of the namespace, so changing
+the rule starts new namespaces; existing runs keep the setting pinned in their
+manifest.
+
+Every trail keeps the `b` of its start, because jumps add only multiples of G.
+Verification therefore also checks that each DP's `b` equals the start derived
+from its run ID and trail ID, which ties the DP to a server-assigned trail
+without replaying the walk. It does not check the trail's `a` or step count.
 
 ## Submission and processing
 
