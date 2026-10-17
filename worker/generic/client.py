@@ -138,6 +138,15 @@ def default_lanes(backend: str) -> int:
     return 64 if backend == "cuda" else min(4096, 4 * cpu_threads())
 
 
+def engine_for_backend(backend: str, cpu_engine: Path = Path("/opt/ecc/generic-engine-cpu")) -> Path:
+    override = os.environ.get("ECC_GENERIC_ENGINE")
+    if override:
+        return Path(override)
+    if backend == "cpu" and cpu_engine.is_file():
+        return cpu_engine
+    return Path("/opt/ecc/generic-engine")
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = (root / ".contributor.lock").open("a")
@@ -223,7 +232,7 @@ def main(root: Path, key: str, campaign: str) -> int:
 
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
-    engine = Path(os.environ.get("ECC_GENERIC_ENGINE", "/opt/ecc/generic-engine"))
+    engine = engine_for_backend(backend)
     retry = 1
     with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary:
         while not stop:

@@ -51,36 +51,46 @@ that matches what you have:
 
 | Image | For | Architectures |
 | --- | --- | --- |
-| `ghcr.io/aburan28/ecc-challenges-worker@sha256:…` | NVIDIA GPUs (Turing through Blackwell) and ECC2K-130 protocol 1 | amd64 |
-| `ghcr.io/aburan28/ecc-challenges-worker-cpu` | Any CPU, all 24 curves, no NVIDIA stack | amd64, arm64 |
+| `ghcr.io/aburan28/ecc-challenges-worker@sha256:…` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
+| `ghcr.io/aburan28/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
 
-The CPU image is published by the `worker-v*` release workflow alongside the
-GPU image. Use the GPU digest shown on your dashboard. Pin a digest for anything
+The combined image built from this source includes both the CUDA engine and a
+parallel CPU engine, so its pinned digest works on an amd64 machine with or
+without a GPU. The
+smaller CPU-only image is available for arm64 or hosts that cannot pull the
+CUDA-sized image. Use the digest shown on your dashboard and pin it for anything
 long-running so a new release doesn't change the code under a run.
 
-The CPU image uses every core it is given. One worker per machine is the right
-shape for CPUs; set `OMP_NUM_THREADS` to limit it. For GPUs, run one worker per
-card.
+The CPU engine in new combined builds uses every core it is given. One worker
+per machine is the right shape for CPUs; set `OMP_NUM_THREADS` to limit new
+builds. For GPUs, run one worker per card.
 
 ## Docker
 
-The dashboard shows the exact command, with your image digest. For a CPU worker:
+The dashboard shows the exact GPU command, with your image digest. On an amd64
+CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
+ECC_WORKER_IMAGE='ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee'
 mkdir -p "$PWD/ecc-data-eccp-131"
 docker run -d --restart unless-stopped --name ecc-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
   -e ECC_CAMPAIGN=eccp-131 \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-eccp-131:/data" \
-  ghcr.io/aburan28/ecc-challenges-worker-cpu
+  "$ECC_WORKER_IMAGE"
 docker logs -f ecc-eccp-131
 ```
 
+Replace the example digest with the current one shown on your dashboard. The
+published digest above supports all 24 curves on CPU; the OpenMP CPU build in
+this source is included in the next image built from it.
+
 ## Docker Compose
 
-`deploy/docker/compose.yaml` runs CPU and GPU workers with a read-only root
-filesystem, no capabilities and your own UID, so the key can stay mode 0600.
+`deploy/docker/compose.yaml` runs CPU and GPU workers from one
+`ECC_WORKER_IMAGE` digest, with a read-only root filesystem, no capabilities
+and your own UID, so the key can stay mode 0600.
 
 ```sh
 cd deploy/docker
@@ -180,7 +190,7 @@ cluster's policy on long-running jobs and outbound HTTPS before you start.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `ECC_CAMPAIGN` | `ecc2k-130` | Curve ID from the catalog |
-| `ECC_BACKEND` | `auto` (CPU image: `cpu`) | `cuda`, `cpu`, or `auto` (CUDA when `nvidia-smi` sees a GPU) |
+| `ECC_BACKEND` | `auto` (CPU-only image: `cpu`) | `cuda`, `cpu`, or `auto` (CUDA when `nvidia-smi` sees a GPU) |
 | `ECC_GPU` | unset | GPU index for this worker |
 | `OMP_NUM_THREADS` | all available cores | CPU engine threads |
 | `ECC_LANES` | GPU 64, CPU 4 × threads | Parallel walks. Fixed for a run once it starts |
