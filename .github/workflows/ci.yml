@@ -58,6 +58,25 @@ jobs:
       - run: docker build -f Dockerfile.audit -t ecc-challenges-audit:ci .
       - run: docker build -f worker/Dockerfile -t ecc-challenges-worker:ci .
       - run: docker build -f worker/Dockerfile.cpu -t ecc-challenges-worker-cpu:ci .
+      - run: docker run --rm --entrypoint /opt/ecc/generic-engine ecc-challenges-worker:ci --self-test
+      - run: docker run --rm --entrypoint /opt/ecc/generic-engine-cpu ecc-challenges-worker:ci --self-test
+      - name: Run every campaign through the combined image CPU entry point
+        run: |
+          docker run --rm -w /opt/ecc2k130 --entrypoint python3 ecc-challenges-worker:ci -c '
+          from generic.client import engine_for_backend
+          from generic.runtime import NativeState, run_round
+          from ecc_challenges.multicurve.codec import Namespace
+          from ecc_challenges.multicurve.instances import instance_ids
+          campaigns = instance_ids()
+          engine = engine_for_backend("cpu")
+          assert len(campaigns) == 24 and engine.name == "generic-engine-cpu"
+          for campaign in campaigns:
+              ns = Namespace(campaign, dp_bits=1)
+              state = NativeState(ns.start("18c3053b-96df-4879-a49d-18a52b8fdf8b", 0))
+              result = run_round(engine, "cpu", ns, [state], 1)
+              assert result.states[0].steps == 1
+          print("24 campaign CPU rounds passed in the combined image")
+          '
       - run: docker run --rm --entrypoint /opt/ecc/generic-engine ecc-challenges-worker-cpu:ci --self-test
 
   deploy:

@@ -56,6 +56,18 @@ def test_cpu_lane_default_follows_thread_count(monkeypatch):
     assert client.default_lanes('cpu')==4096
 
 
+def test_combined_image_selects_cpu_engine_and_honors_override(tmp_path,monkeypatch):
+    import generic.client as client
+    cpu_engine=tmp_path/'generic-engine-cpu'
+    monkeypatch.delenv('ECC_GENERIC_ENGINE',raising=False)
+    assert client.engine_for_backend('cpu',cpu_engine)==Path('/opt/ecc/generic-engine')
+    cpu_engine.touch()
+    assert client.engine_for_backend('cpu',cpu_engine)==cpu_engine
+    assert client.engine_for_backend('cuda',cpu_engine)==Path('/opt/ecc/generic-engine')
+    monkeypatch.setenv('ECC_GENERIC_ENGINE',str(tmp_path/'custom-engine'))
+    assert client.engine_for_backend('cpu',cpu_engine)==tmp_path/'custom-engine'
+
+
 def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
     import base64
     import generic.client as client

@@ -17,7 +17,7 @@ for overlay in cpu gpu; do
 done
 
 echo "compose"
-ECC_UID=1000 ECC_GID=1000 ECC_GPU_IMAGE=example.invalid/worker \
+ECC_UID=1000 ECC_GID=1000 ECC_WORKER_IMAGE=example.invalid/worker \
   docker compose -f deploy/docker/compose.yaml --profile cpu --profile gpu config -q
 docker compose -f deploy/local/compose.yaml --profile worker config -q
 

@@ -28,7 +28,7 @@ services:
   cpu:
     <<: *worker
     profiles: [cpu]
-    image: ${ECC_CPU_IMAGE:-ghcr.io/aburan28/ecc-challenges-worker-cpu:latest}
+    image: ${ECC_WORKER_IMAGE:?set ECC_WORKER_IMAGE in .env}
     environment:
       <<: *env
       ECC_BACKEND: cpu
@@ -40,7 +40,7 @@ services:
   gpu0:
     <<: *worker
     profiles: [gpu]
-    image: ${ECC_GPU_IMAGE:?set ECC_GPU_IMAGE in .env}
+    image: ${ECC_WORKER_IMAGE:?set ECC_WORKER_IMAGE in .env}
     environment:
       <<: *env
       ECC_BACKEND: cuda
