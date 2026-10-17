@@ -105,7 +105,7 @@ def main():
     source = binding["rows"][0]
     raw = api["s3"].get_object(Bucket="ecc-challenges-data-104186811093",
                                 Key=source["object_key"], VersionId=source["version_id"])["Body"].read(57)
-    ns = namespace("eccp-79")
+    ns = namespace("eccp-79", 20)  # the namespace the recorded binding used
     assert ns.id == binding["namespace_id"] and len(raw) == ns.record_bytes == 56
     assert hashlib.sha256(raw).hexdigest() == source["sha256"]
     records = ns.decode(raw)

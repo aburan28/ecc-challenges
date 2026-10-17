@@ -10,19 +10,34 @@ from dataclasses import dataclass
 from functools import lru_cache
 import hashlib
 import json
+import math
 import struct
 from uuid import UUID
 
 from .instances import get_instance
 
 MAX_BATCH_BYTES = 1024 * 1024
-DEFAULT_DP_BITS = 20
+# Per-curve DP bits: expected rho steps E = sqrt(pi*n/2) for this walk (no
+# automorphism quotient). With up to 2**PLANNED_WALKS_BITS walks running at
+# once, d = floor(log2 E) - PLANNED_WALKS_BITS - 7 keeps the steps left in
+# unfinished walks under 1% of E, and a curve needs about 2**(PLANNED_WALKS_BITS
+# + 7) DPs. MAX_DP_BITS caps the large curves, where the DP count then grows.
+PLANNED_WALKS_BITS = 16
+MAX_DP_BITS = 34
 MAX_TRAIL_STEPS = 1 << 48
 PREFIX = struct.Struct("<QQ")
 
 
 def canonical(value: dict) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+
+
+def expected_steps_log2(order: int) -> float:
+    return (math.log2(order) + math.log2(math.pi / 2)) / 2
+
+
+def dp_bits_for(order: int) -> int:
+    return max(1, min(MAX_DP_BITS, math.floor(expected_steps_log2(order)) - PLANNED_WALKS_BITS - 7))
 
 
 def derive_scalar(domain: bytes, order: int, *, nonzero: bool = False) -> int:
@@ -48,10 +63,12 @@ class Record:
 
 
 class Namespace:
-    def __init__(self, campaign: str, dp_bits: int = DEFAULT_DP_BITS):
-        if not 1 <= dp_bits <= 40:
-            raise ValueError("distinguished bits must be between 1 and 40")
+    def __init__(self, campaign: str, dp_bits: int | None = None):
         self.instance = get_instance(campaign)
+        if dp_bits is None:
+            dp_bits = dp_bits_for(self.instance.n)
+        if type(dp_bits) is not int or not 1 <= dp_bits <= 40:
+            raise ValueError("distinguished bits must be between 1 and 40")
         campaign = self.instance.id
         self.campaign = campaign
         self.dp_bits = dp_bits
@@ -154,13 +171,16 @@ class Namespace:
     def table(self) -> tuple:
         return tuple((self.instance.mul(a, self.instance.G), a, b) for a, b in self.coefficients)
 
-    def start(self, run_id: str, trail_id: int) -> Record:
-        run = UUID(run_id)
-        if not 0 <= trail_id < 1 << 64:
+    def _start_seed(self, run_id: str, trail_id: int, counter: int) -> bytes:
+        run = UUID(str(run_id))
+        if type(trail_id) is not int or not 0 <= trail_id < 1 << 64:
             raise ValueError("trail ID out of range")
-        prefix = b"ecc-start-v2:" + bytes.fromhex(self.id) + run.bytes + trail_id.to_bytes(8, "little")
+        return (b"ecc-start-v2:" + bytes.fromhex(self.id) + run.bytes
+                + trail_id.to_bytes(8, "little") + bytes([counter]))
+
+    def start(self, run_id: str, trail_id: int) -> Record:
         for counter in range(256):
-            seed = prefix + bytes([counter])
+            seed = self._start_seed(run_id, trail_id, counter)
             a = derive_scalar(seed + b"a", self.instance.n)
             b = derive_scalar(seed + b"b", self.instance.n, nonzero=True)
             point = self.instance.mul2(a, b)
@@ -169,7 +189,28 @@ class Namespace:
                 return Record(trail_id, 0, point, a, b)
         raise RuntimeError("unable to derive a finite trail start")
 
+    def check_trail(self, record: Record, run_id: str) -> None:
+        """Jumps add only multiples of G, so b is fixed for a whole trail: a DP
+        must carry the b of the start this run's trail ID derives."""
+        seed = self._start_seed(run_id, record.trail_id, 0)
+        if record.b == derive_scalar(seed + b"b", self.instance.n, nonzero=True):
+            return
+        # Counter 0 yields the point at infinity with probability ~1/n; only
+        # then does the start use a later counter.
+        if record.b != self.start(run_id, record.trail_id).b:
+            raise ValueError("DP b does not match its trail start")
+
 
 @lru_cache(maxsize=96)
-def namespace(campaign: str, dp_bits: int = DEFAULT_DP_BITS) -> Namespace:
+def namespace(campaign: str, dp_bits: int | None = None) -> Namespace:
     return Namespace(campaign, dp_bits)
+
+
+def pinned_namespace(campaign: str, manifest: dict) -> Namespace:
+    """Rebuild the namespace a run or batch was pinned to, so runs registered
+    under an earlier DP setting keep verifying after the default changes."""
+    walk = manifest.get("walk") if isinstance(manifest, dict) else None
+    dp_bits = walk.get("dp_bits") if isinstance(walk, dict) else None
+    if type(dp_bits) is not int:
+        raise ValueError("pinned manifest has no DP bit count")
+    return namespace(campaign, dp_bits)

@@ -20,7 +20,7 @@ import re
 import time
 from uuid import UUID, uuid4
 
-from .codec import MAX_BATCH_BYTES, Record, canonical, namespace
+from .codec import MAX_BATCH_BYTES, Record, canonical, pinned_namespace
 from .index import collision_lead_id
 from .service import Service
 
@@ -191,7 +191,10 @@ class Pipeline:
         return value
 
     def _namespace(self, batch: dict):
-        ns = namespace(batch["campaign_id"])
+        try:
+            ns = pinned_namespace(batch["campaign_id"], batch["namespace_manifest"])
+        except (KeyError, ValueError) as exc:
+            raise RuntimeError("batch namespace differs from the pinned registry") from exc
         if (
             ns.id != batch["namespace_id"]
             or ns.record_bytes != batch["record_bytes"]
@@ -374,9 +377,10 @@ class Pipeline:
                 if witness not in checked_witnesses:
                     ns.verify(records[index])
                     checked_witnesses.add(witness)
+                ns.check_trail(records[index], str(batch["run_id"]))
             except ValueError as exc:
                 raise InvalidBatch(
-                    f"DP record {index} fails canonical algebraic verification"
+                    f"DP record {index} fails verification: {exc}"
                 ) from exc
             start = index * ns.record_bytes
             prefix.update(raw[start:start + ns.record_bytes])

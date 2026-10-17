@@ -5,7 +5,7 @@ import base64
 import hashlib
 import json
 from urllib.parse import parse_qs,urlsplit
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import boto3
 from botocore.config import Config
@@ -13,7 +13,8 @@ from botocore.exceptions import ClientError
 import pytest
 
 from ecc_challenges.multicurve.archive import Archive
-from ecc_challenges.multicurve.codec import Record, canonical, namespace
+from ecc_challenges.multicurve.codec import (PLANNED_WALKS_BITS, Record, canonical, dp_bits_for,
+                                             expected_steps_log2, namespace, pinned_namespace)
 from ecc_challenges.multicurve.curves import Instance
 from ecc_challenges.multicurve.index import PointIndex
 from ecc_challenges.multicurve.instances import all_instances,registry_metadata
@@ -22,8 +23,11 @@ from ecc_challenges.multicurve.service import Service as MultiService
 from ecc_challenges.service import Service,Rejected
 
 
-def dp(ns, trail=1):
-    record = ns.start('04e5b6c1-eafc-4c08-8cb6-0eb1e9c647f9',trail)
+TEST_RUN = '04e5b6c1-eafc-4c08-8cb6-0eb1e9c647f9'
+
+
+def dp(ns, trail=1, run_id=TEST_RUN):
+    record = ns.start(run_id,trail)
     point,a,b=record.point,record.a,record.b
     for steps in range(1,1000):
         delta,da,db=ns.table()[ns.partition(point)]
@@ -32,6 +36,50 @@ def dp(ns, trail=1):
         if ns.distinguished(point):
             return Record(trail,steps,point,a,b)
     raise AssertionError('small-predicate correctness control did not terminate')
+
+
+def colliding(ns, first, scalar, trail=2):
+    """The same point as `first`, written with trail `trail`'s own b, as a
+    second trail reaching it would carry: a2 = a1 + (b1-b2)*scalar."""
+    b = ns.start(TEST_RUN, trail).b
+    return replace(first, trail_id=trail, a=(first.a+(first.b-b)*scalar)%ns.instance.n, b=b)
+
+
+def test_per_curve_dp_bits_bound_overshoot_and_point_count():
+    for instance in all_instances():
+        ns=namespace(instance.id)
+        steps=expected_steps_log2(instance.n)
+        assert ns.dp_bits==dp_bits_for(instance.n)==ns.walk['dp_bits']
+        # Steps left in 2**16 unfinished walks stay under 1% of the search.
+        assert PLANNED_WALKS_BITS+ns.dp_bits-steps<=-7+1e-9
+        if ns.dp_bits<34:
+            assert steps-ns.dp_bits<24.5
+    assert namespace('eccp-79').dp_bits==16
+    assert namespace('ecc2k-130').dp_bits==namespace('eccp-131').dp_bits==34
+
+
+def test_pinned_namespace_keeps_earlier_dp_setting():
+    old=namespace('eccp-131',20)
+    assert old.id!=namespace('eccp-131').id
+    assert pinned_namespace('eccp-131',old.public()) is old
+    with pytest.raises(ValueError):
+        pinned_namespace('eccp-131',{'walk':{}})
+
+
+def test_trail_check_binds_dp_b_to_its_start():
+    ns=namespace('eccp-79',1)
+    record=dp(ns,trail=3)
+    ns.check_trail(record,TEST_RUN)
+    with pytest.raises(ValueError):
+        ns.check_trail(record,str(uuid4()))
+    with pytest.raises(ValueError):
+        ns.check_trail(replace(record,trail_id=4),TEST_RUN)
+    # Algebraically valid (point == aG+bQ) but not from trail 3's start.
+    scalar=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
+    forged=replace(record,a=(record.a-scalar)%ns.instance.n,b=(record.b+1)%ns.instance.n)
+    ns.verify(forged)
+    with pytest.raises(ValueError):
+        ns.check_trail(forged,TEST_RUN)
 
 
 def test_registry_exact_scope_and_published_controls():
@@ -80,16 +128,18 @@ def platform(database,aws_resources,settings,monkeypatch):
                        AttributeDefinitions=[{'AttributeName':'pk','AttributeType':'S'}])
     ns=namespace('eccp-79',1)
     import ecc_challenges.multicurve.service as service_module
-    import ecc_challenges.multicurve.pipeline as pipeline_module
     monkeypatch.setattr(service_module,'namespace',lambda campaign: namespace(campaign,1))
-    monkeypatch.setattr(pipeline_module,'namespace',lambda campaign: namespace(campaign,1))
     legacy=Service(database,storage,settings)
     legacy.upsert_account(123,'test-contributor')
     issued=legacy.create_key(123,'correctness')
     key=legacy.authenticate(issued)
     archive=Archive(storage)
     service=MultiService(legacy,database,archive,settings)
+    # The first run gets TEST_RUN, so dp() records follow its trail starts.
+    ids=iter([UUID(TEST_RUN)])
+    monkeypatch.setattr(service_module,'uuid4',lambda: next(ids,None) or uuid4())
     run=service.register(key,ns.campaign,str(uuid4()))
+    assert run['run_id']==TEST_RUN
     index=PointIndex(table,'points')
     pipeline=Pipeline(legacy,database,archive,settings,index)
     return service,key,run,ns,archive,pipeline,table
@@ -145,7 +195,7 @@ def test_admission_retry_verification_and_collision(platform):
     assert pipeline.process(intent['batch_id'])=='indexed'
     assert pipeline.process(intent['batch_id'])=='indexed'
     scalar=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
-    second=replace(first,trail_id=2,a=(first.a-scalar)%ns.instance.n,b=(first.b+1)%ns.instance.n)
+    second=colliding(ns,first,scalar)
     ns.verify(second)
     next_intent,_=admit(platform,[second],ns.record_bytes)
     assert pipeline.process(next_intent['batch_id'])=='indexed'
@@ -223,7 +273,7 @@ def test_collision_retry_after_prior_return_keeps_lead(platform,monkeypatch):
     first_intent,_=admit(platform,[first])
     assert pipeline.process(first_intent['batch_id'])=='indexed'
     d=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
-    second=replace(first,trail_id=2,a=(first.a-d)%ns.instance.n,b=(first.b+1)%ns.instance.n)
+    second=colliding(ns,first,d)
     second_intent,_=admit(platform,[second],ns.record_bytes)
     original=pipeline._lead
     monkeypatch.setattr(pipeline,'_lead',lambda *args: (_ for _ in ()).throw(OSError('constructed interruption before durable lead')))
@@ -272,7 +322,7 @@ def test_segment_roundtrip_and_archive_rebuild(platform):
     service,key,run,ns,archive,pipeline,table=platform
     first=dp(ns)
     d=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
-    second=replace(first,trail_id=2,a=(first.a-d)%ns.instance.n,b=(first.b+1)%ns.instance.n)
+    second=colliding(ns,first,d)
     intents=[admit(platform,[first])[0],admit(platform,[second],ns.record_bytes)[0]]
     for item in intents:
         assert pipeline.process(item['batch_id'])=='indexed'
@@ -503,3 +553,16 @@ def test_close_refuses_unfinished_upload_and_expires_pressure_once(platform):
     service.close_run(key,run['run_id'])
     with service.db.connection() as conn:
         assert conn.execute('SELECT sum(pending_batches) AS n FROM ecc_public.dp_pressure').fetchone()['n']==0
+
+
+def test_pipeline_rejects_dp_with_another_trails_b(platform):
+    service,key,run,ns,archive,pipeline,table=platform
+    record=dp(ns)
+    scalar=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
+    forged=replace(record,a=(record.a-scalar)%ns.instance.n,b=(record.b+1)%ns.instance.n)
+    ns.verify(forged)
+    intent,_=admit(platform,[forged])
+    assert pipeline.process(intent['batch_id'])=='failed'
+    with service.db.connection() as conn:
+        row=conn.execute('SELECT state,error FROM ecc_public.dp_batches WHERE id=%s',(intent['batch_id'],)).fetchone()
+    assert row['state']=='failed' and 'DP record 0' in row['error']
