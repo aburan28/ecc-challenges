@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import uuid
+
+import boto3
+import psycopg
+from psycopg.rows import dict_row
+import pytest
+
+from ecc_challenges import historical
+from ecc_challenges.queues import QueueWorker
+from ecc_challenges.service import Service
+
+SOURCE = "ecc2k130-590183823895"
+
+
+def dp(seed: int, point: int) -> bytes:
+    return seed.to_bytes(8, "little") + point.to_bytes(24, "little")
+
+
+def orbit_key(slot: int, body: bytes, offset: int = 0) -> str:
+    return f"dp/slot-{slot:05d}/{uuid.UUID(int=slot).hex}-{offset:016d}-{hashlib.sha256(body).hexdigest()}.bin"
+
+
+@pytest.fixture
+def source_bucket(aws_resources):
+    s3 = boto3.client("s3", region_name="us-west-2")
+    s3.create_bucket(Bucket=SOURCE, CreateBucketConfiguration={"LocationConstraint": "us-west-2"})
+    return s3
+
+
+@pytest.fixture
+def conn(postgres_dsn, database):
+    with psycopg.connect(postgres_dsn, row_factory=dict_row, autocommit=True) as c:
+        yield c
+
+
+def put(s3, key: str, body: bytes, marker: dict | None = None) -> None:
+    s3.put_object(Bucket=SOURCE, Key=key, Body=body)
+    if marker is not None:
+        s3.put_object(Bucket=SOURCE, Key=key[:-4] + ".bin.json", Body=json.dumps(marker).encode())
+
+
+def test_check_object_refuses_bad_objects_and_drops_bad_records():
+    good = dp(7 << 48 | 1, 0b11)
+    with pytest.raises(historical.SourceRejected, match="sha256 in key"):
+        historical.check_object(orbit_key(1, b"other"), good, None)
+    with pytest.raises(historical.SourceRejected, match="whole 32-byte"):
+        historical.check_object("dp/slot-00001/1789311001-0000000000000000.bin", good[:31], None)
+    with pytest.raises(historical.SourceRejected, match="witness"):
+        historical.check_object("dp/slot-00001/1789311001-0000000000000000.bin", b"ECC2KDP2" + bytes(24), None)
+    with pytest.raises(historical.SourceRejected, match="record count"):
+        historical.check_object(orbit_key(1, good), good, json.dumps({"sha256": hashlib.sha256(good).hexdigest(), "records": 2}).encode())
+
+    public = dp(50000 << 48 | 1, 0b11)   # reserved for the public gateway
+    odd = dp(7 << 48 | 2, 0b111)         # odd weight is not a canonical orbit key
+    body = good + public + odd
+    checked = historical.check_object("dp/slot-00001/1789311001-0000000000000000.bin", body, None)
+    assert checked.records == 1 and checked.body == good
+    assert checked.rejected == {"public_run_range": 1, "not_canonical_dp32": 1}
+
+
+def test_export_load_is_idempotent_and_keeps_historical_collisions(source_bucket, conn, tmp_path):
+    a = dp(7 << 48 | 1, 0b11) + dp(7 << 48 | 2, 0b101)
+    b = dp(9 << 48 | 5, 0b101) + dp(9 << 48 | 6, 0b1001)   # 0b101 again, other seed
+    put(source_bucket, "dp/slot-00002/1789311001-0000000000000000.bin", a)
+    put(source_bucket, orbit_key(140, b), b, {"sha256": hashlib.sha256(b).hexdigest(), "records": 2})
+    source_bucket.put_object(Bucket=SOURCE, Key="dp/README", Body=b"not a dp object")
+
+    dry = historical.export(source_bucket, SOURCE, None, write=False, log=lambda _: None)
+    assert dry["objects"] == 2 and dry["records"] == 4 and dry["ignored_keys"] == 1
+
+    sink = historical.open_sink(str(tmp_path / "parts"))
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["objects"] == 2
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["skipped_done"] == 2
+
+    first = historical.load(conn, sink, log=lambda _: None)
+    assert first == {"parts": 2, "already_loaded": 0, "records": 4, "inserted": 3, "conflicts": 1}
+    assert historical.load(conn, sink, log=lambda _: None)["already_loaded"] == 2
+
+    rows = conn.execute("SELECT point_key,walk_seed,worker_id FROM public.distinguished_points "
+                        "ORDER BY point_key").fetchall()
+    assert len(rows) == 3
+    # Same encodings as the original ingester and as queues._seed_bytes.
+    row = next(r for r in rows if bytes(r["point_key"]) == (0b11).to_bytes(24, "little"))
+    assert bytes(row["walk_seed"]) == (7 << 48 | 1).to_bytes(8, "big").lstrip(b"\0")
+    assert row["worker_id"] == "dp-slot-00002-1789311001-0000000000000000.bin"
+    # Whichever witness loaded first is stored; the other is kept as a conflict.
+    conflict = conn.execute("SELECT * FROM ecc_public.historical_conflicts").fetchone()
+    assert {bytes(conflict["walk_seed"]), bytes(conflict["stored_seed"])} == {
+        historical.seed_bytes(9 << 48 | 5), historical.seed_bytes(7 << 48 | 2)}
+
+
+def test_load_refuses_a_part_that_changed(source_bucket, conn, tmp_path):
+    body = dp(7 << 48 | 1, 0b11)
+    put(source_bucket, "dp/slot-00002/1789311001-0000000000000000.bin", body)
+    sink = historical.open_sink(str(tmp_path / "parts"))
+    historical.export(source_bucket, SOURCE, sink, log=lambda _: None)
+    part = next((tmp_path / "parts" / "parts").glob("*.bin"))
+    part.write_bytes(dp(7 << 48 | 1, 0b101))
+    with pytest.raises(RuntimeError, match="does not match its sidecar"):
+        historical.load(conn, sink, log=lambda _: None)
+    assert conn.execute("SELECT count(*) AS n FROM public.distinguished_points").fetchone()["n"] == 0
+
+
+def test_backmatch_writes_the_lead_index_one_missed(database, aws_resources, settings, source_bucket, conn, tmp_path):
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, settings)
+    service.upsert_account(1234, "contributor")
+    key = service.authenticate(service.create_key(1234, "test GPU"))
+    run_id = service.register(key, str(uuid.uuid4()))["run_id"]
+    point = 0b110
+    service.upload_batch(key, run_id, 0, dp(run_id << 48 | 1, 0b11) + dp(run_id << 48 | 2, point))
+    with database.connection() as c:
+        c.execute("UPDATE ecc_public.runs SET trusted_at=now() WHERE run_id=%s", (run_id,))
+        c.execute("UPDATE ecc_public.batches SET audit_state='sampled'")
+        batch = c.execute("SELECT id FROM ecc_public.batches").fetchone()["id"]
+    assert QueueWorker(database, storage, settings, sqs).index_one(batch) == "indexed"
+
+    # The historical point arrives after the public batch was indexed.
+    old = dp(7 << 48 | 3, point)
+    put(source_bucket, "dp/slot-00002/1789311001-0000000000000000.bin", old)
+    sink = historical.open_sink(str(tmp_path / "parts"))
+    historical.export(source_bucket, SOURCE, sink, log=lambda _: None)
+    historical.load(conn, sink, log=lambda _: None)
+    assert conn.execute("SELECT count(*) AS n FROM ecc_public.collision_leads").fetchone()["n"] == 0
+
+    assert historical.backmatch(conn, storage, log=lambda _: None)["leads"] == 1
+    assert historical.backmatch(conn, storage, log=lambda _: None) == {"matches": 0, "leads": 0, "same_seed": 0}
+    lead = conn.execute("SELECT * FROM ecc_public.collision_leads").fetchone()
+    assert lead["prior_source"] == "campaign" and lead["batch_id"] == batch and lead["record_index"] == 1
+    assert bytes(lead["prior_seed_bytes"]) == historical.seed_bytes(7 << 48 | 3)
+    assert int(lead["seed"]) == run_id << 48 | 2
+
+
+def test_reconcile_reports_workers_short_of_the_source():
+    out = historical.reconcile({"dp-a": 5, "dp-b": 2}, {"dp-a": 5, "dp-b": 1, "dp-c": 4})
+    assert out["source_total"] == 7 and out["imported_total"] == 10
+    assert out["short"] == {"dp-b": 2} and out["workers_ahead_of_source"] == 1
+
+
+def test_identical_source_bodies_keep_separate_sidecars_and_ledger_rows(source_bucket, conn, tmp_path):
+    body = dp(7 << 48 | 1, 0b11)
+    put(source_bucket, "dp/slot-00002/1789311001-0000000000000000.bin", body)
+    put(source_bucket, "dp/slot-00003/1789311002-0000000000000000.bin", body)
+    sink = historical.open_sink(str(tmp_path / "parts"))
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["objects"] == 2
+    assert len(sink.done_ids()) == 2
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["skipped_done"] == 2
+    assert historical.load(conn, sink, log=lambda _: None) == {
+        "parts": 2, "already_loaded": 0, "records": 2, "inserted": 1, "conflicts": 0}
+    assert conn.execute("SELECT count(*) AS n FROM ecc_public.historical_import_parts").fetchone()["n"] == 2
+
+
+def test_s3_sink_resumes_by_listing(aws_resources, source_bucket, conn):
+    s3 = boto3.client("s3", region_name="us-west-2")
+    body = dp(7 << 48 | 1, 0b11)
+    put(source_bucket, "dp/slot-00002/1789311001-0000000000000000.bin", body)
+    sink = historical.open_sink("s3://ecc-test-corpus/historical-import/test", s3)
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["objects"] == 1
+    assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["skipped_done"] == 1
+    assert historical.load(conn, sink, log=lambda _: None)["inserted"] == 1

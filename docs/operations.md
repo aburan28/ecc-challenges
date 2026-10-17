@@ -20,15 +20,48 @@ Never put a secret value in chat, a shell command, a PR, or a tracked file.
 
 The historical-point table starts empty. New public uploads are archived,
 audited, indexed, and matched against other new public points. Matches with the
-original campaign's existing points are unavailable until a later verified
-import and backmatch. This is a release limitation, not a reason to leave the
-new index queue stopped. Preserve every new batch and candidate so the later
-backmatch can cover the interval before import.
+original campaign's existing points are unavailable until the historical import
+and backmatch below have run. This is not a reason to leave the new index queue
+stopped: every new batch and candidate is preserved, and the backmatch covers
+the interval before import.
 
 The old campaign's run registry currently has no entries in the public range
 50000–65534 (read-only check on 2026-10-14). Reserve that range for the public
 service in both accounts. The isolated registry uses the same format but has
 its own S3 bucket; do not let the original allocator use public run IDs.
+
+## Historical point import
+
+`scripts/historical_import.py` copies the original campaign's points into
+`public.distinguished_points` in one direction. It never connects the public
+service to the original account: the operator runs the export with a read-only
+profile for account 590183823895, and the public database never sees that
+account's credentials. The original S3 `dp/` corpus is the source, because the
+original RDS table is a derived view that can lag it.
+
+1. `export --dry-run` lists and checks the whole corpus and writes nothing. It
+   refuses any object whose `.bin.json` marker or key sha256 disagrees with its
+   body, and drops (and counts) records that are not canonical DP32 keys or whose
+   seed falls in the public run range 50000–65534. Read its summary before going on.
+2. `export --parts s3://<public archive>/historical-import/<date>` writes each
+   source object as a checksum-bound part with a JSON sidecar. It resumes by
+   skipping source keys that already have a sidecar.
+3. `load` runs with the database owner's DSN in `HISTORICAL_DSN`. Each part is
+   re-hashed, inserted with `ON CONFLICT DO NOTHING`, and recorded in
+   `ecc_public.historical_import_parts` in the same transaction, so a rerun skips
+   finished parts. Two historical seeds reaching one point are kept in
+   `ecc_public.historical_conflicts`; any row there is a collision in the
+   original campaign and needs the solver.
+4. `backmatch` runs after the last load. Batches indexed before their point was
+   imported never joined against it; it writes the `campaign` leads that
+   `index_one` would have written, and the resolver picks them up as usual. It is
+   idempotent. Run it again after any later load.
+5. `reconcile` (optional) compares per-worker counts with the original RDS view
+   through a read-only `SOURCE_DSN`. Workers short of the source there need a
+   look; workers ahead of it are the view lagging S3.
+
+Size the database before loading: every historical point is one
+`distinguished_points` row of about 90 bytes with its primary key index.
 
 ## 1. Deploy the foundation and private data stack
 
@@ -167,11 +200,10 @@ stay stable across ALB changes.
   admission after preserving queued work. Keep S3 objects, cursor rows,
   dead-letter messages, and candidate quarantine evidence.
 
-The historical import is deferred. Its later release needs a bounded source
-snapshot, resumable transfer, source/destination count and digest checks,
-catch-up for concurrent original writes, and a backmatch of new public
-candidates against the imported points. Until then, describe collision
-coverage as new-public-to-new-public only.
+Until the historical import above has run and its backmatch has finished,
+describe collision coverage as new-public-to-new-public only. While the original
+fleet is still writing, catch up by rerunning export, load and backmatch: export
+skips source keys it has already copied and picks up new ones.
 
 ## All-curve release builds and canary gate
 
