@@ -5,9 +5,9 @@ There are two ways to help: run a worker, or work on the code.
 ## Run a worker
 
 Sign in at [ecc-challenges.com](https://ecc-challenges.com), create an API key
-and run the `docker run` command your dashboard shows. The
-[README](README.md#contribute) has the details, and the
-[Modal guide](docs/modal-workers.md) covers rented GPUs. If something looks
+and run the `docker run` command your dashboard shows.
+[Running a worker](docs/running-a-worker.md) covers every other setup:
+CPU-only, Compose, Kubernetes, systemd, Podman, Slurm and Modal. If something looks
 wrong (rejected uploads, a crash, a number on the status page that doesn't add
 up), [open an issue](https://github.com/aburan28/ecc-challenges/issues/new/choose)
 with the worker log. Never paste your API key.
@@ -20,7 +20,8 @@ with the worker log. Never paste your API key.
 | --- | --- |
 | `src/ecc_challenges/` | FastAPI website and worker API (`app.py`), templates, status page |
 | `src/ecc_challenges/multicurve/` | v2 protocol for all 24 curves: codec, admission, verification, index |
-| `worker/` | Contributor container: client, generic CPU/CUDA engine |
+| `worker/` | Contributor client and generic CPU/CUDA engine; `Dockerfile` (GPU), `Dockerfile.cpu` (CPU, amd64/arm64) |
+| `deploy/` | Ways to run workers (Compose, Kubernetes, systemd, Podman, Slurm) and the local stack |
 | `verifier/` | Replay and verification code used by the audit image |
 | `sql/` | PostgreSQL migrations, applied in order |
 | `infra/` | CloudFormation stacks |
@@ -49,9 +50,12 @@ TEST_POSTGRES_DSN=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
 
 Use `python -m pytest` rather than bare `pytest` so that `scripts/` is
 importable. S3 and SQS are mocked with moto; no AWS account is needed.
+`scripts/check_deploy.sh` checks everything under `deploy/` (needs kubectl,
+kubeconform, docker compose, systemd-analyze and shellcheck).
 
-To look at the site locally, build an app with a stub database the same way
-`tests/test_catalog.py` does and serve it with uvicorn.
+To run the whole platform locally (site, verifier, emulated AWS and a CPU
+worker uploading real points), use the [local stack](docs/local-stack.md). It
+is the quickest way to try a change to the gateway or the worker end to end.
 
 ### Pull requests
 

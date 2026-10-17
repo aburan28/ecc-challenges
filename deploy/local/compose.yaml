@@ -1,0 +1,138 @@
+# Whole platform on one machine: gateway, verifier, emulated AWS and a CPU
+# worker. For development and testing only; see docs/local-stack.md.
+#
+#   docker compose -f deploy/local/compose.yaml up -d --build
+#   docker compose -f deploy/local/compose.yaml run --rm init python scripts/local_stack.py key me > .local-key
+#   docker compose -f deploy/local/compose.yaml --profile worker up -d worker
+#
+# Site: https://localhost:8443 (accept the local certificate).
+
+name: ecc-local
+
+x-app: &app
+  build:
+    context: ../..
+    dockerfile: Dockerfile.web
+  image: ecc-challenges-web:local
+  environment: &env
+    LOCAL_STACK: "1"
+    DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
+    AWS_REGION: us-west-2
+    AWS_ACCESS_KEY_ID: test
+    AWS_SECRET_ACCESS_KEY: test
+    # S3 goes through the TLS proxy so signed URLs carry the AWS hostname the
+    # worker insists on; SQS and DynamoDB talk to the emulator directly.
+    AWS_ENDPOINT_URL_S3: https://s3.us-west-2.amazonaws.com
+    AWS_ENDPOINT_URL_SQS: http://localstack:4566
+    AWS_ENDPOINT_URL_DYNAMODB: http://localstack:4566
+    AWS_CA_BUNDLE: /ca/root.crt
+    ECC_BUCKET: ecc-local
+    AUDIT_QUEUE_URL: http://localstack:4566/000000000000/audit
+    INDEX_QUEUE_URL: http://localstack:4566/000000000000/index
+    COLLISION_QUEUE_URL: http://localstack:4566/000000000000/collision
+    POINT_INDEX_TABLE: points
+    MULTICURVE_ENABLED: "true"
+    PUBLIC_ORIGIN: https://localhost:8443
+    PUBLIC_WORKER_IMAGE: ghcr.io/aburan28/ecc-challenges-worker@sha256:0000000000000000000000000000000000000000000000000000000000000000
+    KEY_PEPPER: local-stack-pepper-not-a-secret-0000
+    SESSION_SECRET: local-stack-session-not-a-secret-00
+    GITHUB_CLIENT_ID: local-not-configured
+    GITHUB_CLIENT_SECRET: local-not-configured
+  volumes:
+    - local-ca:/ca:ro
+    - ../../scripts:/app/scripts:ro
+    - ../../sql:/app/sql:ro
+  depends_on:
+    init:
+      condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:16.10@sha256:21f6013073bc6b92830a2129570e2f5ec42a6c734b5a985a41e83aa58f54c3c1
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      retries: 30
+
+  localstack:
+    # S3, SQS and DynamoDB. Unlike moto, it keeps S3 checksums from signed
+    # uploads and returns DynamoDB TableIds, both of which the gateway checks.
+    image: localstack/localstack:4.9@sha256:59373b4a27dba3ec15c4db0b7455f0cb68c8a42300e2cbbe362b440f9a131697
+    environment:
+      SERVICES: s3,sqs,dynamodb
+      SQS_ENDPOINT_STRATEGY: "off"
+      LOCALSTACK_HOST: localstack:4566
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:4566/_localstack/health"]
+      interval: 2s
+      retries: 60
+
+  proxy:
+    image: caddy:2.10.2@sha256:c3d7ee5d2b11f9dc54f947f68a734c84e9c9666c92c88a7f30b9cba5da182adb
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+    ports: ["127.0.0.1:8443:443"]
+    networks:
+      default:
+        aliases: [ecc-challenges.test, s3.us-west-2.amazonaws.com, ecc-local.s3.us-west-2.amazonaws.com]
+    healthcheck:
+      test: ["CMD", "test", "-f", "/data/caddy/pki/authorities/local/root.crt"]
+      interval: 2s
+      retries: 30
+
+  init:
+    <<: *app
+    # Root only for this step: publish the proxy's public root certificate
+    # (not its key) where the non-root services can read it.
+    user: "0"
+    command: ["sh", "-c", "install -m 0644 /caddy/caddy/pki/authorities/local/root.crt /ca/root.crt && python /app/scripts/local_stack.py init"]
+    volumes:
+      - caddy-data:/caddy:ro
+      - local-ca:/ca
+      - ../../scripts:/app/scripts:ro
+      - ../../sql:/app/sql:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+      localstack: {condition: service_healthy}
+      proxy: {condition: service_healthy}
+
+  web:
+    <<: *app
+    command: ["uvicorn", "ecc_challenges.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8080",
+              "--proxy-headers", "--forwarded-allow-ips", "*"]
+
+  audit:
+    <<: *app
+    command: ["python", "-m", "ecc_challenges.queues", "audit"]
+
+  reconcile:
+    <<: *app
+    command: ["python", "-m", "ecc_challenges.queues", "reconcile"]
+
+  worker:
+    profiles: [worker]
+    build:
+      context: ../..
+      dockerfile: worker/Dockerfile.cpu
+    image: ecc-challenges-worker-cpu:local
+    environment:
+      ECC_API_URL: https://ecc-challenges.test
+      ECC_CAMPAIGN: ${ECC_CAMPAIGN:-eccp-79}
+      ECC_API_KEY_FILE: /run/secrets/ecc_api_key
+      SSL_CERT_FILE: /ca/root.crt
+      OMP_NUM_THREADS: ${OMP_NUM_THREADS:-2}
+    volumes:
+      - local-ca:/ca:ro
+      - ../../.local-key:/run/secrets/ecc_api_key:ro
+      - worker-data:/data
+    depends_on: [web]
+
+volumes:
+  postgres-data:
+  caddy-data:
+  local-ca:
+  worker-data:

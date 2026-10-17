@@ -269,6 +269,9 @@ def run_round(
             text=True,
             timeout=timeout,
             check=False,
+            # Keep Ctrl-C and process-group signals away from the engine: the
+            # client catches them, lets this round finish, then saves state.
+            start_new_session=True,
         )
         if completed.returncode:
             detail = (

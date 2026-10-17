@@ -63,8 +63,8 @@ docker run --gpus all --restart unless-stopped \
   {{ worker_image }}</pre>
   <ul class="plain note">
     <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
-    {% if multicurve_enabled %}<li>No GPU? Remove <code>--gpus all</code> and add <code>-e ECC_BACKEND=cpu</code>.</li>{% endif %}
-    <li>On Modal, follow the <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/modal-workers.md">Modal guide</a>. On RunPod or similar, use the same image, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
+    {% if multicurve_enabled %}<li>No GPU? Drop <code>--gpus all</code> and use the smaller CPU image, <code>ghcr.io/aburan28/ecc-challenges-worker-cpu</code> (amd64 and arm64). It uses every core it gets.</li>{% endif %}
+    <li>Kubernetes, systemd, Podman, Slurm, Modal or no Docker at all: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>. On RunPod or similar, use the same image, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
     <li>If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</li>
   </ul>
 </section>

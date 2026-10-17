@@ -125,6 +125,19 @@ def flush(api: API, ns, state: dict, path: Path):
                           "cursor": state["cursor"]}), flush=True)
 
 
+def cpu_threads() -> int:
+    """Threads the OpenMP engine will use: OMP_NUM_THREADS, else the CPU affinity set."""
+    value = os.environ.get("OMP_NUM_THREADS", "").split(",")[0]
+    if value.isdecimal() and int(value) > 0:
+        return int(value)
+    return len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count() or 1
+
+
+def default_lanes(backend: str) -> int:
+    # Four lanes per thread keeps every core busy while lanes pause at DPs.
+    return 64 if backend == "cuda" else min(4096, 4 * cpu_threads())
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = (root / ".contributor.lock").open("a")
@@ -167,11 +180,12 @@ def main(root: Path, key: str, campaign: str) -> int:
         os.environ["CUDA_VISIBLE_DEVICES"] = selected
     if backend not in ("cpu", "cuda"):
         raise ValueError("ECC_BACKEND must be auto, cpu or cuda")
-    lanes = int(os.environ.get("ECC_LANES", "64" if backend == "cuda" else "4"))
+    path = root / "generic-state.json"
+    saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
+    lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))
     steps = int(os.environ.get("ECC_STEPS_PER_ROUND", "256"))
     if not 1 <= lanes <= 4096 or not 1 <= steps <= 1048576:
         raise ValueError("invalid lane or round size")
-    path = root / "generic-state.json"
     if (root / "state.json").exists():
         raise RuntimeError("state directory contains another protocol; select a separate volume")
     if path.exists():
