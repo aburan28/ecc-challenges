@@ -8,7 +8,7 @@ token permission in AWS's ECR Public managed policy; repository push permissions
 remain restricted to the release repositories. This attempt supplied no image
 or contributor evidence.
 
-Current generic format: ECCJOB03, with SHA-256 point partitioning and DP selection. `cpu-job03.json` records72 passing cases across all24 curves, each with nonempty DP1 output. `job03-controls.tar.gz` preserves all exact inputs and expected outputs. `source-job03-sha256.json` binds the corrected implementation. `cuda-job03-l4.json` records168 passing comparisons/rejections across all24 curves on Modal app ap-wQybTDm1rDjAJZG7ECGE6R, NVIDIA L4 driver610.57.04.
+Current generic format: ECCJOB03, with SHA-256 point partitioning and DP selection. `cpu-job03.json` records 72 passing cases across all 24 curves, each with nonempty DP1 output. `job03-controls.tar.gz` preserves all exact inputs and expected outputs. `source-job03-sha256.json` binds the corrected implementation. `cuda-job03-l4.json` records 168 passing comparisons/rejections across all 24 curves on Modal app ap-wQybTDm1rDjAJZG7ECGE6R, NVIDIA L4 driver 610.57.04.
 
 ## Published image and live service
 
@@ -20,12 +20,12 @@ The initial deployed web/audit/admin images are separately bound by
 `release/build-5dc26c4a365e.json`; the selected contributor image remains the
 separately tested digest above.
 
-`release/final-image-l4-attempt-3.json` records all168 final-image checks passing
-on a real Modal L4, including all24 curves and UID/GID10001. The exact native
+`release/final-image-l4-attempt-3.json` records all 168 final-image checks passing
+on a real Modal L4, including all 24 curves and UID/GID10001. The exact native
 binary SHA256 is `58cfe17630900eaf842d748ba66751a460b0219ec9c7fd59acd6cf4cd90dce23`.
-Attempt1 preserves the anonymous ECR import failure; attempt2 preserves the
+Attempt 1 preserves the anonymous ECR import failure; attempt 2 preserves the
 provider's ignored Docker USER and truncated receipt. Neither failure was
-overwritten. Attempt3 explicitly drops privileges and transports checksummed
+overwritten. Attempt 3 explicitly drops privileges and transports checksummed
 receipt chunks.
 
 `release/live-all24-cpu-attempt-1/plan.json` freezes the real contribution check,
@@ -43,7 +43,7 @@ They provide no sustained fleet-rate measurement or verified trail-work count.
 Public v2 remains gated while the real hosted GPU contribution, required CI and
 sustained fresh-point capacity checks are completed.
 
-`release/ghcr-mirror-attempt-1.json` preserves the older Ubuntu22.04 Skopeo
+`release/ghcr-mirror-attempt-1.json` preserves the older Ubuntu 22.04 Skopeo
 compatibility failure before image copying. The repaired workflow verifies the
 completed copy's digest and anonymously hashes the newly published tag's raw
 manifest before accepting a mirror.
@@ -61,11 +61,11 @@ request occurred in that attempt.
 `release/live-backpressure-attempt-4/` freezes and records the successful
 duplicate-witness check. After the exact old audit tasks reached STOPPED,
 32 one-record batches remained admitted. The next intent returned the precise
-account-backlog429 with Retry-After60 and no upload capability. Restoring the
+account-backlog 429 with Retry-After 60 and no upload capability. Restoring the
 two consumers indexed every acknowledged record; retrying the refused intent
 then succeeded, commit replay retained the same admission receipt and cursor,
-and the run closed. Total raw payload was1848 bytes. This is an admission and
-recovery control, not a fresh unique-point capacity measurement or global503
+and the run closed. Total raw payload was 1848 bytes. This is an admission and
+recovery control, not a fresh unique-point capacity measurement or global 503
 test.
 
 The read-only SQL snapshots `live-pressure-before-attempt-4.json` and
@@ -74,15 +74,15 @@ zero active processing leases before and after. The final snapshot contains
 92 indexed batches. Two terminal SQS deliveries remained invisible in both
 snapshots; no message was purged or deleted to create an empty baseline.
 
-Attempts1–3 and separate recovery receipts retain the harness's regionless-S3
+Attempts 1–3 and separate recovery receipts retain the harness's regionless-S3
 hostname rejection, ECS STOPPING-versus-STOPPED mismatch, and refusal of a
-nonempty queue baseline. Attempt2's unexpected successful intent included a
+nonempty queue baseline. Attempt 2's unexpected successful intent included a
 signed upload capability. Its public result is explicitly redacted and hashes
 the preserved private original; no capability is included in version control.
 
 ## Live collision and website checks
 
-`release/live-published-scalar-collision-attempt-1/` records one56-byte
+`release/live-published-scalar-collision-attempt-1/` records one 56-byte
 constructed equivalent coefficient witness for Certicom's published ECCp-79
 scalar. The deployed verifier indexed it, resolved the collision to that exact
 published answer, and closed the run. The separate
@@ -93,18 +93,18 @@ a deployed correctness control using a supplied answer; its trail steps are
 not verified and it supplies no new challenge-solving result.
 
 `release/live-service-5dc26c4.json` records the completed website deployment,
-selected anonymous GHCR image, HTTPS200 responses for home/status/health/catalog,
+selected anonymous GHCR image, HTTPS 200 responses for home/status/health/catalog,
 and retained private v2 gate. `release/live-website-final/` contains actual
-deployed screenshots and layout checks at390 and1440 pixels, with no stylesheet
-injection. Both pages have24 campaign rows; the status table has10 aligned
-columns. The earlier source-style layout checks additionally cover320 and768
+deployed screenshots and layout checks at 390 and 1440 pixels, with no stylesheet
+injection. Both pages have 24 campaign rows; the status table has 10 aligned
+columns. The earlier source-style layout checks additionally cover 320 and 768
 pixels. The phone navigation overflow was corrected before these final checks.
 
 The earlier `cpu.json`, `cuda-l4.json` and `source-sha256.json` below are superseded raw-coordinate predicate receipts. Their exact sources are retained under `raw-x-v1/`; those receipts establish arithmetic parity only for the earlier proposal.
 
 `cpu.json` records 72 finite transition cases over all 24 published Certicom
 instances. `cuda-l4.json` records 168 successful comparisons/rejections on an
-NVIDIA L4 through Modal app `ap-O0t5St6b2trML1ZEAZWDSm`, driver610.57.04.
+NVIDIA L4 through Modal app `ap-O0t5St6b2trML1ZEAZWDSm`, driver 610.57.04.
 All successful CUDA outputs matched the independently checked CPU outputs byte
 for byte. Invalid infinity, coordinate, coefficient and exhausted step-counter
 controls were rejected. `source-sha256.json` binds the actual sources and exact
@@ -112,10 +112,10 @@ parameter registry used for those controls. These are correctness receipts;
 they contain no throughput estimate or solution-status conclusion.
 
 CPU native arithmetic was compared with the independent Python affine group
-implementation, including scalar limb boundaries through352 bits, infinity
+implementation, including scalar limb boundaries through 352 bits, infinity
 transitions, changing target coefficients, modular wrap and DP termination.
-The parameter registry separately passed all24 on-curve/order/field checks and
-all10 published scalar correctness vectors. Prime tests are probable-prime
+The parameter registry separately passed all 24 on-curve/order/field checks and
+all 10 published scalar correctness vectors. Prime tests are probable-prime
 checks, not formal primality certificates.
 
 Reproduce finite controls:

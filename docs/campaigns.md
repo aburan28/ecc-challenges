@@ -69,11 +69,11 @@ is tracked in [the multi-campaign problem record](../problems/multi-campaign-wor
 
 ## V2 implementation
 
-The generic all24 path now lives under `src/ecc_challenges/multicurve/` and
+The generic all 24 path now lives under `src/ecc_challenges/multicurve/` and
 `worker/generic/`. See [storage and validation](multicurve-storage.md) and
 [provider commands](modal-workers.md). The exact registry supersedes field widths
 in the summary table when they disagree: notably Appendix A's ECCp-191 modulus
-has191 bits. All v2 namespaces bind that exact instance, target and walk.
+has 191 bits. All v2 namespaces bind that exact instance, target and walk.
 The v1 routes remain specific to the original ECC2K-130 Frobenius encoding.
 A new empty volume selects v2; an existing `state.json` resumes v1 unless the
 operator explicitly selects another protocol. A directory from one campaign or
