@@ -39,14 +39,11 @@ def wait(what: str, check, seconds: int = 90):
 def init() -> None:
     database_url = os.environ["DATABASE_URL"]
     wait("PostgreSQL", lambda: psycopg.connect(database_url, connect_timeout=3).close())
+    # Migrations are idempotent, so newer ones apply to an existing database.
     with psycopg.connect(database_url, autocommit=True) as conn:
-        installed = conn.execute("SELECT to_regclass('ecc_public.dp_runs')").fetchone()[0]
-        if installed is None:
-            for migration in sorted(SQL.glob("*.sql")):
-                conn.execute(migration.read_text())
-                print(f"applied {migration.name}")
-        else:
-            print("migrations already applied")
+        for migration in sorted(SQL.glob("*.sql")):
+            conn.execute(migration.read_text())
+            print(f"applied {migration.name}")
 
     region = os.environ.get("AWS_REGION", "us-west-2")
     s3 = boto3.client("s3", region_name=region, config=Config(signature_version="s3v4"))
