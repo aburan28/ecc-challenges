@@ -62,7 +62,7 @@ jobs:
       - run: docker run --rm --entrypoint /opt/ecc/generic-engine-cpu ecc-challenges-worker:ci --self-test
       - name: Run every campaign through the combined image CPU entry point
         run: |
-          docker run --rm --entrypoint python3 ecc-challenges-worker:ci -c '
+          docker run --rm -w /opt/ecc2k130 --entrypoint python3 ecc-challenges-worker:ci -c '
           from generic.client import engine_for_backend
           from generic.runtime import NativeState, run_round
           from ecc_challenges.multicurve.codec import Namespace
