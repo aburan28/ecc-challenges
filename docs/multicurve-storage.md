@@ -2,7 +2,7 @@
 
 Implementation status: v2 is being integrated and is disabled by default. The
 production ECC2K-130 v1 walk keeps its existing encoding and namespace. A catalog
-entry alone never enables a worker. Historical database import is deferred.
+entry alone never enables a worker. The ECC2K-130 v1 historical import is separate; see operations.md.
 
 ## Scope and identities
 
