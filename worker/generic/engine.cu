@@ -173,8 +173,19 @@ HD inline bool inverse_mod(const UInt384& a, const UInt384& m,
 }
 
 HD inline UInt384 binary_xtime(const UInt384& a, const Job& job) {
-    UInt384 r = shift_left(a, 1);
-    if (bit(a, int(job.field_bits) - 1)) r = xor_value(r, job.modulus);
+    UInt384 r{};
+    // Include the modulus's leading bit. For a field of degree m this is
+    // ceil((m + 1) / 32) words, which can be much less than all 12 words.
+    const int words = (int(job.field_bits) + 32) / 32;
+    const std::uint32_t top =
+        (a.w[(job.field_bits - 1) / 32] >> ((job.field_bits - 1) % 32)) & 1U;
+    const std::uint32_t fold = 0U - top;
+    std::uint32_t carry = 0;
+    for (int i = 0; i < words; ++i) {
+        const std::uint32_t word = a.w[i];
+        r.w[i] = ((word << 1) | carry) ^ (job.modulus.w[i] & fold);
+        carry = word >> 31;
+    }
     return r;
 }
 HD inline UInt384 binary_multiply(UInt384 a, const UInt384& b,
@@ -730,6 +741,30 @@ void self_test() {
         if (a) {
             require(binary_inverse(small(a), binary, inv), "binary inverse exists");
             require(is_one(binary_multiply(small(a), inv, binary)), "binary inverse");
+        }
+    }
+    // Compare the bounded-word xtime against the independent full-width
+    // shift and polynomial fold, including every word boundary through 359.
+    for (int degree = 2; degree <= 359; ++degree) {
+        Job check{};
+        check.kind = 1;
+        check.field_bits = std::uint32_t(degree);
+        check.modulus = small(3);
+        check.modulus.w[degree / 32] |= 1U << (degree % 32);
+        for (int pattern = 0; pattern < 4; ++pattern) {
+            UInt384 value{};
+            for (int i = 0; i < (degree + 31) / 32; ++i)
+                value.w[i] = (pattern & 1) ? 0xffffffffU
+                    : std::uint32_t(0x9e3779b9U * std::uint32_t(i + degree + pattern));
+            value.w[(degree - 1) / 32] &=
+                0xffffffffU >> (31 - ((degree - 1) % 32));
+            if (pattern & 2)
+                value.w[(degree - 1) / 32] |= 1U << ((degree - 1) % 32);
+            UInt384 expected = shift_left(value, 1);
+            if (bit(value, degree - 1))
+                expected = xor_value(expected, check.modulus);
+            require(equal(binary_xtime(value, check), expected),
+                    "binary xtime reference mismatch");
         }
     }
     Job curve{}; curve.modulus = small(17); curve.field_bits = 5;
