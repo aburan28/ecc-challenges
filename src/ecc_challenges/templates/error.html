@@ -1,3 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Request could not be completed · ECC Challenges{% endblock %}
-{% block content %}<div class="eyebrow">Request stopped</div><h1 style="font-size:3rem">{{ message }}</h1><p class="muted">Return to the <a href="/dashboard">dashboard</a> or <a href="/">home page</a>.</p>{% endblock %}
+{% block title %}{{ title|default("Something went wrong", true) }} · ECC Challenges{% endblock %}
+{% block content %}
+<div class="kicker">Error{% if status_code %} {{ status_code }}{% endif %}</div>
+<h1>{{ title|default("That didn't work", true) }}</h1>
+<p class="lead">{{ message[:1]|upper }}{{ message[1:] }}.</p>
+<div class="actions">{% if status_code == 401 %}<a class="button" href="/auth/github">Sign in with GitHub</a><a class="button ghost" href="/">Home</a>{% else %}<a class="button" href="/">Home</a><a class="button ghost" href="/status">Status</a>{% endif %}</div>
+{% endblock %}

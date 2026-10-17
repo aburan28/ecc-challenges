@@ -1,26 +1,92 @@
 {% extends "base.html" %}
-{% block title %}ECC Challenges · Distributed elliptic-curve research{% endblock %}
+{% block title %}ECC Challenges · A distributed search on the Certicom curves{% endblock %}
 {% block content %}
-<div class="hero-line"><div><div class="eyebrow">A global compute collaboration</div>
-<h1>Curiosity has<br><em>computing power.</em></h1>
-<p class="lead">{% if multicurve_enabled %}Contribute to any of the 24 Certicom challenges with one container.{% else %}Explore the Certicom challenge set and join the ECC2K-130 distributed walk.{% endif %} Run the public container on an NVIDIA GPU, including one you rent from a cloud provider. The gateway assigns your run and archives distinguished points for checking and collision search.</p>
-<div class="actions"><a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open contributor dashboard{% else %}Start contributing{% endif %} ↗</a><a class="button secondary" href="/status">View campaign status</a></div></div><div class="orbit-art" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="orbit orbit-three"></span><span class="orbit-core"></span></div></div>
-<div class="grid" id="how">
-  <div class="card"><div class="number">01</div><h3>Get a key</h3><p class="muted">Sign in, create a revocable API key, and save it in a local secret file.</p></div>
-  <div class="card"><div class="number">02</div><h3>Run the worker</h3><p class="muted">The container checks the campaign constants and gets a run ID that is never reassigned.</p></div>
-  <div class="card"><div class="number">03</div><h3>Submit points</h3><p class="muted">Complete batches are archived in S3, checked, and indexed. A candidate collision is replayed independently.</p></div>
-</div>
-<section class="section stack" id="research">
-  <div><div class="eyebrow">The research</div><h2>{% if multicurve_enabled %}24 challenges.<br>Shared discovery.{% else %}ECC2K-130{% endif %}</h2><p class="muted">{% if multicurve_enabled %}Choose a prime-field or binary-field challenge. New workers use the portable CPU / CUDA walk; existing ECC2K-130 workers can resume their established Frobenius walk.{% else %}The current campaign uses the established Frobenius sigma walk at distinguished-point weight 32.{% endif %} Workers receive an isolated run identity and keep checkpoints so interrupted work can resume.</p></div>
-  <div class="card"><h3>Verification is part of the computation.</h3><p class="muted">Every v2 point carries a curve relation that is checked independently before collision indexing. Established ECC2K-130 workers use sampled trail replay. Every candidate solution is checked against the published target.</p><p class="muted">Raw points, checksums and verification results are retained for reproducibility.</p></div>
+<section class="hero">
+  <div>
+    <div class="kicker">Certicom ECC Challenge</div>
+    <h1>Run a GPU worker on the open Certicom elliptic-curve challenges.</h1>
+    <p class="lead">In 1997 Certicom published 24 elliptic-curve discrete logarithm problems, from 79 to 359 bits. Its 2009 update lists ten as solved. This project runs a public Pollard rho search on {% if multicurve_enabled %}all of them{% else %}ECC2K-130, the open challenge with the lowest estimated cost in that update{% endif %}. You run one container on an NVIDIA GPU, local or rented, and it joins the search.</p>
+    <div class="actions">
+      <a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
+      <a class="button ghost" href="/status">Live status</a>
+    </div>
+  </div>
+  <figure class="figure">
+    {% include "_curve.html" %}
+    <figcaption>Point addition: the line through P and Q meets the curve once more; reflect it to get P + Q. A discrete logarithm asks how many additions of G give Q.</figcaption>
+  </figure>
 </section>
+
+{% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
+<dl class="stats" aria-label="Current figures">
+  <div class="stat"><dt>Challenges</dt><dd>24<small>published by Certicom</small></dd></div>
+  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>{% if multicurve_enabled %}prime and binary fields{% else %}ECC2K-130{% endif %}</small></dd></div>
+  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>distinguished points stored</small></dd></div>
+  <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
+</dl>
+
+<section class="section" id="how">
+  <div class="section-head"><h2>How to take part</h2><p class="muted">About ten minutes if Docker and the NVIDIA Container Toolkit are already installed.</p></div>
+  <ol class="steps">
+    <li><h3>Get a key</h3><p>Sign in with GitHub and create an API key. You can revoke it at any time.</p></li>
+    <li><h3>Start the worker</h3><p>One <code>docker run</code> command, shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.</p></li>
+    <li><h3>Points come back</h3><p>The worker uploads distinguished points. The server checks them, stores them and compares them with every other worker's points.</p></li>
+  </ol>
+</section>
+
+<section class="section two" id="method">
+  <div>
+    <div class="kicker">The method</div>
+    <h2>How the search works</h2>
+    <p>Each challenge gives a curve, a base point G and a target point Q. The goal is the integer d with Q = dG. Pollard's rho method takes a pseudo-random walk on the curve where every point is a known combination aG + bQ. When two walks reach the same point, the two combinations give d.</p>
+    <p>Keeping every step is impossible, so workers report only <em>distinguished points</em>, ones whose encoding starts with a fixed run of zero bits. Two walks that meet stay together until the next distinguished point, so the server only has to compare those.</p>
+    <p class="note">Expected work for ECC2K-130 is about 2 × 10<sup>18</sup> curve operations, per Certicom's 2009 estimate. That is a lot of GPU time spread across many people.</p>
+  </div>
+  <div class="panel">
+    <h3>What gets checked</h3>
+    <ul class="plain">
+      {% if multicurve_enabled %}<li>Every uploaded point is checked against the curve equation and its stated relation R = aG + bQ before it is indexed.</li>{% endif %}
+      <li>{% if multicurve_enabled %}ECC2K-130 workers on the original walk: the{% else %}The{% endif %} first batch of every run is replayed independently. Later batches are replayed at random, 1 in 128.</li>
+      <li>A failed replay suspends the run, revokes its key and removes its points from collision search.</li>
+      <li>Any collision is recomputed from both trails, and the resulting d is checked against the published Q before it is reported.</li>
+    </ul>
+    <p class="note">Raw uploads and check results are kept so the work can be audited later.</p>
+  </div>
+</section>
+
 <section class="section" id="campaigns">
-  <div class="eyebrow">Certicom catalog</div><h2>Exercises and challenges</h2>
-  <p class="muted">This catalog follows <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} challenge document ↗</a>. Its solution information is a historical snapshot. {% if multicurve_enabled %}All 24 campaigns are available, with validated curve parameters and separate point namespaces.{% else %}The contributor API currently accepts ECC2K-130. The other campaigns open after their container and live contribution checks pass.{% endif %}</p>
-  <div class="table-shell"><table><thead><tr><th>Challenge</th><th>Field</th><th>Field bits</th><th>Class</th><th>Certicom 2009</th><th>Contributor status</th></tr></thead><tbody>
-  {% for challenge in challenges %}
-    <tr><td><code>{{ challenge.public().name }}</code></td><td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td><td>{{ challenge.field_bits }}</td><td>{{ challenge.level.replace("_", " ")|title }}</td><td>{% if challenge.solved_in_2009 %}Solved by 2009{% else %}Unsolved in 2009 document{% endif %}</td><td>{% if multicurve_enabled %}CPU / CUDA worker available{% elif challenge.contribution == "ecc2k130_gpu_v1" %}GPU worker available{% else %}Worker and verifier pending{% endif %}</td></tr>
-  {% endfor %}
-  </tbody></table></div>
+  <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and estimates are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>.</p></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Est. operations</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for challenge in challenges %}
+      {% set is_open = multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1" %}
+      <tr{% if is_open and not challenge.solved_in_2009 %} class="open"{% endif %}>
+        <td><span class="name">{{ challenge.public().name }}</span></td>
+        <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
+        <td class="num">{{ challenge.field_bits }}</td>
+        <td>{{ level_labels[challenge.level] }}</td>
+        <td class="num mono">{{ challenge.estimated_operations_2009 or "—" }}</td>
+        <td>{% if challenge.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="table-note">The solved column is Certicom's 2009 snapshot, not a claim about today. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
+</section>
+
+<section class="section two" id="code">
+  <div>
+    <div class="kicker">Open source</div>
+    <h2>Work on the code</h2>
+    <p>The website, worker, verifier and infrastructure are in one public repository. Faster kernels, independent checks of the verifier and reviews of the protocol are all useful.</p>
+    <div class="actions"><a class="button ghost" href="https://github.com/aburan28/ecc-challenges">View on GitHub</a></div>
+  </div>
+  <ul class="links">
+    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing guide</a><br><span class="note">Local setup, tests and what a good pull request looks like.</span></li>
+    <li><a href="https://github.com/aburan28/ecc-challenges/tree/main/problems">Open problems</a><br><span class="note">Known gaps before the search can scale up.</span></li>
+    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/modal-workers.md">Running on Modal</a><br><span class="note">Step-by-step guide for a rented GPU.</span></li>
+    <li><a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a><br><span class="note">Bugs, questions and suspected bad results.</span></li>
+  </ul>
 </section>
 {% endblock %}

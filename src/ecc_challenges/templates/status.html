@@ -1,28 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Campaign status · ECC Challenges{% endblock %}
+{% block title %}Status · ECC Challenges{% endblock %}
+{% block description %}Live counts for the public ECC Challenges search: archived points, active runs and queue depth for each Certicom challenge.{% endblock %}
 {% block content %}
-<div class="eyebrow">Public campaign ledger</div>
-<div class="hero-line"><div><h1>Every challenge.<br><em>One clear status.</em></h1><p class="lead">The Certicom list, historical work estimates, and the contribution state of this platform in one place.</p></div><div class="orbit-art" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="orbit orbit-three"></span><span class="orbit-core"></span></div></div>
-<div class="stat-grid">
-  <div class="stat"><span class="stat-label">Catalog</span><strong>24</strong><span>published exercises and challenges</span></div>
-  <div class="stat"><span class="stat-label">Compute ready</span><strong>{{ snapshot.compute_ready if snapshot else "—" }}</strong><span>campaigns accepting contributors</span></div>
-  <div class="stat"><span class="stat-label">Archived points</span><strong>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}</strong><span>durably stored across all campaigns</span></div>
-  <div class="stat"><span class="stat-label">Verified v2 points</span><strong>{% if snapshot %}{{ "{:,}".format(snapshot.total_v2_verified_points) }}{% else %}—{% endif %}</strong><span>independent coefficient checks passed</span></div>
-</div>
+<div class="kicker">Status</div>
+<h1>Live status</h1>
+<p class="lead">Counts from this gateway for each challenge. Figures refresh about once a minute.{% if snapshot %} Last read {{ snapshot.as_of[:16].replace("T", " ") }} UTC.{% endif %}</p>
+
+{% set v2 = snapshot and snapshot.compute_ready > 1 %}
+{% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
+<dl class="stats" aria-label="Totals">
+  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of 24 challenges</small></dd></div>
+  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>stored durably</small></dd></div>
+  <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
+  <div class="stat"><dt>Batches queued</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="pending_batches")) }}{% else %}—{% endif %}<small>waiting for checks</small></dd></div>
+</dl>
+
 <section class="section">
-  <div class="section-heading"><div><div class="eyebrow">Status matrix</div><h2>Explore the full set</h2></div><p class="muted">Estimated operations are Certicom's 2009 elliptic-curve-operation estimates, where published. They are a historical reference, not a live forecast.</p></div>
-  {% if not snapshot %}<p class="notice">Live gateway counts are temporarily unavailable. The source catalog remains visible.</p>{% endif %}
-  <div class="table-shell"><table><thead><tr><th>Challenge</th><th>Field</th><th>Bits</th><th>Certicom 2009</th><th>Worker</th><th>Est. operations</th><th>Archived</th><th>V2 verified</th><th>Pending</th><th>Chance</th></tr></thead><tbody>
+  <div class="section-head"><h2>By challenge</h2><p class="muted">Estimated operations are Certicom's 2009 figures, for scale only.</p></div>
+  {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Est. operations</th><th>Status</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Verified</th>{% endif %}<th class="num">Queued</th></tr></thead>
+    <tbody>
     {% for challenge in challenges %}
       {% set row = snapshot.campaigns[loop.index0] if snapshot else challenge.public() %}
-      <tr><td><strong>{{ row.name }}</strong><small>{{ row.level.replace("_", " ")|title }}</small></td><td>{% if row.field == "binary" %}Binary{% else %}Prime{% endif %}</td><td>{{ row.field_bits }}</td><td>{% if row.solved_in_2009 %}<span class="pill pill-solved">Solved by 2009</span>{% else %}<span class="pill pill-neutral">Unsolved in 2009</span>{% endif %}</td><td>{% if row.contribution == "generic_cpu_cuda_v2" %}<span class="pill pill-active">CPU / CUDA ready</span>{% elif row.contribution == "ecc2k130_gpu_v1" %}<span class="pill pill-active">GPU worker ready</span>{% else %}<span class="pill pill-neutral">Integration pending</span>{% endif %}</td><td class="mono">{% if row.estimated_operations_2009 %}{{ row.estimated_operations_2009 }}{% else %}—{% endif %}</td><td>{{ "{:,}".format(row.received_points) if row.received_points is defined and row.received_points is not none else "—" }}</td><td>{{ "{:,}".format(row.generic_verified_points) if row.generic_verified_points is defined and row.generic_verified_points is not none else "—" }}</td><td>{{ row.pending_batches if row.pending_batches is defined and row.pending_batches is not none else "—" }}</td><td>{% if row.solved_in_2009 %}Solved by 2009{% elif row.estimated_completion_probability_percent is defined and row.estimated_completion_probability_percent is not none %}{{ row.estimated_completion_probability_percent }}%{% else %}Unavailable{% endif %}</td></tr>
+      {% set is_open = row.received_points is defined and row.received_points is not none %}
+      <tr{% if is_open and not row.solved_in_2009 %} class="open"{% endif %}>
+        <td><span class="name">{{ row.name }}</span></td>
+        <td class="num">{{ row.field_bits }}</td>
+        <td class="num mono">{{ row.estimated_operations_2009 or "—" }}</td>
+        <td>{% if row.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+        <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
+        <td class="num">{{ "{:,}".format(row.recent_runs_24h) if is_open else "—" }}</td>
+        <td class="num">{{ "{:,}".format(row.received_points) if is_open else "—" }}</td>
+        {% if v2 %}<td class="num">{{ "{:,}".format(row.generic_verified_points) if row.generic_verified_points is not none else "—" }}</td>{% endif %}
+        <td class="num">{{ "{:,}".format(row.pending_batches) if is_open else "—" }}</td>
+      </tr>
     {% endfor %}
-  </tbody></table></div>
+    </tbody>
+  </table></div>
+  <p class="table-note">"Solved by 2009" is Certicom's snapshot from that year, not a claim about today. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
 </section>
-<section class="section stack">
-  <div><div class="eyebrow">Reading the numbers</div><h2>Progress needs evidence.</h2><p class="muted">Archived points have reached durable storage. Every v2 point must pass an independent curve and coefficient check before indexing; established ECC2K-130 workers use sampled trail replay. Point counts alone do not give a reliable fraction of the work needed to find a collision.</p><p class="muted">A completion chance will appear when a campaign has a verified operation count and a documented collision model. Historical points in the earlier account are not included here until an audited import is complete.</p></div>
-  <div class="card metric-card"><div class="eyebrow">ECC2K-130 · this gateway</div><div class="metric-row"><span>Runs assigned</span><strong>{% if snapshot %}{{ snapshot.campaigns[6].total_runs }}{% else %}—{% endif %}</strong></div><div class="metric-row"><span>Runs seen in 24 hours</span><strong>{% if snapshot %}{{ snapshot.campaigns[6].recent_runs_24h }}{% else %}—{% endif %}</strong></div><div class="metric-row"><span>Batches awaiting processing</span><strong>{% if snapshot %}{{ snapshot.campaigns[6].pending_batches }}{% else %}—{% endif %}</strong></div><div class="metric-row"><span>Completion chance</span><strong>Unavailable</strong></div>{% if snapshot %}<small>Snapshot {{ snapshot.as_of }}</small>{% endif %}</div>
+
+<section class="section two">
+  <div>
+    <h2>Reading these numbers</h2>
+    <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
+    <p class="muted">There is no percent-complete figure. Rho is a random search: a collision can arrive at any time, and point counts alone don't say how much verified work was done. A completion estimate will appear once a challenge has an independently checked work count and a published collision model.</p>
+    <p class="muted">Points from the earlier private ECC2K-130 run are not included until an audited import is finished.</p>
+  </div>
+  <div class="panel">
+    <h3>Add a worker</h3>
+    <p class="muted">Any Linux host with an NVIDIA GPU, Docker, persistent storage and outbound HTTPS will do: a workstation, Modal, RunPod or a cloud VM.</p>
+    <a class="button" href="{% if request.session.get('github_id') %}/dashboard{% else %}/auth/github{% endif %}">{% if request.session.get('github_id') %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
+  </div>
 </section>
-<section class="section closing"><div><div class="eyebrow">Take part</div><h2>Put your GPU to work.</h2><p class="muted">Use a local machine, Modal, RunPod, or another provider that can run the published Linux/NVIDIA image with persistent storage and outbound HTTPS.</p></div><a class="button" href="{% if request.session.get('github_id') %}/dashboard{% else %}/auth/github{% endif %}">{% if request.session.get('github_id') %}Open contributor dashboard{% else %}Sign in to contribute{% endif %} <span aria-hidden="true">↗</span></a></section>
-<p class="source-note">Challenge names and historical estimates: <a href="{{ catalog_source }}">Certicom ECC Challenge, updated November 2009 ↗</a>. API consumers can read <a href="/v1/status">the JSON status snapshot</a>.</p>
 {% endblock %}
