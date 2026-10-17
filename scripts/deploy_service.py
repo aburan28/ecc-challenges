@@ -77,6 +77,9 @@ def main() -> None:
     parser.add_argument("--enable-multicurve", action="store_true",
                         help="enable the validated v2 worker, API and point index")
     parser.add_argument("--multicurve-canary-key", default="", help="key ID allowed to test before public v2 enablement")
+    parser.add_argument("--point-index-mode", choices=("dynamodb", "compact"), default="dynamodb",
+                        help="v2 point index: DynamoDB items, or compact S3 parts merged by reconcile")
+    parser.add_argument("--point-index-merge-seconds", type=int, default=3600)
     parser.add_argument("--max-pending-batches", type=int, default=512,
                         help="bounded pending batches per protocol; tune from measured drain capacity")
     args = parser.parse_args()
@@ -174,6 +177,8 @@ def main() -> None:
         "MulticurveEnabled": "true" if args.enable_multicurve else "false",
         "MulticurveCanaryKey": args.multicurve_canary_key,
         "MaxPendingBatches": str(args.max_pending_batches),
+        "PointIndexMode": args.point_index_mode,
+        "PointIndexMergeSeconds": str(args.point_index_merge_seconds),
     }
     print(json.dumps({"stack": "ecc-challenges-service", "tag": args.tag,
                       "images": {key: params[key] for key in ("WebImageUri", "AuditImageUri")},
@@ -183,6 +188,8 @@ def main() -> None:
                       "tasks": {key: params[key] for key in
                                 ("WebTasks", "AuditTasks", "IndexTasks", "ReconcileTasks", "ResolveTasks")},
                       "alert_subscription_requested": bool(params["AlertEmail"]),
+                      "point_index": {"mode": args.point_index_mode,
+                                      "merge_seconds": args.point_index_merge_seconds},
                       "mode": "apply" if args.apply else "plan"}, indent=2))
     if not args.apply:
         return

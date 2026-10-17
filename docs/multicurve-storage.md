@@ -120,6 +120,55 @@ plus a manifest naming all source checksums and versions. Compaction never
 removes raw witnesses. Lifecycle rules may move old compact segments to cheaper
 storage after their minimum storage and access requirements are understood.
 
+## Compact point index
+
+`POINT_INDEX_MODE=compact` replaces the DynamoDB index with sorted 16-byte
+entries in S3 (`multicurve/pointindex.py`). Uploads and verification are
+unchanged: workers still send full records, every record is still checked, and
+the raw batch stays the authority. Only the index is smaller.
+
+```text
+public-gateway/<stream>/pointindex/<namespace>/parts/<part>-<sha256>.bin
+public-gateway/<stream>/v2/pointindex/<namespace>/generation-<n>/<receipt-sha256>.json
+```
+
+| Bytes | Field | Meaning |
+| --- | --- | --- |
+| 0–7 | fingerprint | first 8 bytes of SHA-256(x‖y), the digest the walk already computes |
+| 8–15 | locator | `index_seq` (40 bits) ‖ record index (24 bits), big-endian |
+
+1. Indexing a verified batch only gives it the next `index_seq`
+   (`dp_index_seq`, in PostgreSQL). Nothing is written per point.
+2. The reconcile task merges every `POINT_INDEX_MERGE_SECONDS` (or run
+   `python -m ecc_challenges.queues merge` once). For each namespace with
+   pending batches it reads their raw objects (version- and SHA-256-pinned),
+   makes one entry per distinct (point, witness), and merges them into parts:
+   4,096 sorted files, one per top 12 fingerprint bits.
+3. Each new fingerprint is looked up in its part. A shared fingerprint is
+   resolved from the full records: the same point with another witness becomes
+   a collision lead and is solved as before; the same witness is duplicate work,
+   whose entry is dropped and counted as deduplicated; a different point is a
+   fingerprint false positive (about N²/2⁶⁵ of them for N entries, so roughly
+   0.1 for a full ECC2K-130 solve).
+4. A generation manifest (parts, checksums, counts, leads) is written under
+   `v2/`, then committed by compare-and-swap on `dp_point_index`, together with
+   the batches it covers and their duplicate counts. Parts the new generation
+   replaced are deleted; a lifecycle rule expires their old versions after 7
+   days. Parts live outside `v2/`, which forbids deletes.
+
+The index is derived. `Merger.rebuild(namespace)` discards it, and the next
+merges rebuild it from every indexed batch; counters are adjusted by the
+difference, so a rebuild leaves them unchanged. Batches indexed while the mode
+was `dynamodb` have no `index_seq` and stay in DynamoDB only.
+
+Sizing: a merge rewrites every part that received entries, so its cost grows
+with the index (16 bytes per entry). ECC2K-130 at DP34 is about 2^30.8 entries,
+about 30 GB in S3 (under $1 a month) against about 1 TB of DynamoDB items.
+Merging the part lists is fast (30 million existing plus 1 million new entries
+in about 4 s of CPU); S3 transfer dominates. Below about 100 million entries
+hourly merges are cheap. Above that, merge daily (`POINT_INDEX_MERGE_SECONDS=86400`).
+A collision is found at the first merge after both points are indexed.
+
 ## Capacity, abuse and accounting
 
 API tasks scale behind the existing HTTPS load balancer. Direct S3 upload keeps
