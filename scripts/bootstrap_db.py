@@ -95,6 +95,7 @@ def bootstrap(args) -> None:
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.dp_pressure TO ecc_site_web")
                     cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespace_stats TO ecc_site_web,ecc_site_worker")
                     cursor.execute("GRANT SELECT,INSERT ON ecc_public.dp_index_bindings TO ecc_site_worker")
+                    cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_point_index TO ecc_site_worker")
                     cursor.execute("""
                         GRANT SELECT ON ecc_public.accounts,ecc_public.dp_namespaces TO ecc_site_worker;
                         GRANT SELECT,UPDATE ON ecc_public.dp_runs,ecc_public.dp_batches,

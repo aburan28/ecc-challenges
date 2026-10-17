@@ -9,6 +9,7 @@ Parameters:
   PrivateSubnetBCidr: {Type: String, Default: 10.80.11.0/24}
   DatabaseClass: {Type: String, Default: db.r7g.xlarge}
   DatabaseStorageGiB: {Type: Number, Default: 400, MinValue: 200}
+  StreamId: {Type: String, Default: ecc-challenges-v1}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}
   AdminImageDigest:
@@ -137,6 +138,15 @@ Resources:
       OwnershipControls:
         Rules: [{ObjectOwnership: BucketOwnerEnforced}]
       VersioningConfiguration: {Status: Enabled}
+      LifecycleConfiguration:
+        Rules:
+          # The compact point index is derived from raw batches. Its merge job
+          # deletes superseded parts; this removes their old versions.
+          - Id: expire-superseded-point-index-parts
+            Status: Enabled
+            Prefix: !Sub 'public-gateway/${StreamId}/pointindex/'
+            NoncurrentVersionExpiration: {NoncurrentDays: 7}
+            ExpiredObjectDeleteMarker: true
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}

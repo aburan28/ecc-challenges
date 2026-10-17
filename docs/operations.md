@@ -221,6 +221,26 @@ monitor cost and tune after the sustained capacity gate. The existing
 throughput. A production DP/s claim requires measurements of every distinct
 witness under the deployed curve mix and fleet size.
 
+### Switching the point index to compact S3 parts
+
+The compact index (see `docs/multicurve-storage.md`, "Compact point index")
+replaces DynamoDB items with sorted 16-byte entries in S3.
+
+1. Update the data stack so the bucket gets the lifecycle rule for superseded
+   parts (`scripts/deploy_data.py`).
+2. Run the database bootstrap so `005_compact_point_index.sql` and its grant
+   apply.
+3. Deploy the service with `--point-index-mode compact` and keep
+   `--reconcile-tasks 1`. In compact mode the reconcile task grows to 1 vCPU and
+   4 GB, and merges every `--point-index-merge-seconds` (default 3600).
+4. Watch the reconcile log for `point-index-merge` lines. Each one names the
+   generation, the entry count and any `collision_leads`.
+
+Batches indexed into DynamoDB earlier stay there, so switch before public
+contribution starts. If the index is ever in doubt, call
+`Merger.rebuild(namespace_id)` from an administration task: the next merges
+rebuild it from the raw batches.
+
 ### Public image mirrors
 
 ECR Public anonymous consumers have a fixed monthly data allowance. Shared cloud

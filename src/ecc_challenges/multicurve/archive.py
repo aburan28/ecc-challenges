@@ -73,7 +73,7 @@ class Archive:
 
     def put_receipt(self, namespace_id: str, kind: str, identity: str, value: dict) -> str:
         self.namespace_key(namespace_id)
-        if kind not in {"batches", "admissions", "verified", "collisions", "checkpoints", "compaction"}:
+        if kind not in {"batches", "admissions", "verified", "collisions", "checkpoints", "compaction", "pointindex"}:
             raise ValueError("invalid receipt kind")
         if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", identity):
             raise ValueError("invalid receipt identity")

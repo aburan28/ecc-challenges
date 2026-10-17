@@ -32,6 +32,8 @@ class Settings:
     public_worker_image: str = ""
     multicurve_enabled: bool = False
     point_index_table: str = ""
+    point_index_mode: str = "dynamodb"
+    point_index_merge_seconds: int = 3600
     multicurve_canary_keys: tuple[str, ...] = ()
 
     @classmethod
@@ -65,6 +67,8 @@ class Settings:
             public_worker_image=get("PUBLIC_WORKER_IMAGE", ""),
             multicurve_enabled=get("MULTICURVE_ENABLED", "false").lower() == "true",
             point_index_table=get("POINT_INDEX_TABLE", ""),
+            point_index_mode=get("POINT_INDEX_MODE", "dynamodb"),
+            point_index_merge_seconds=int(get("POINT_INDEX_MERGE_SECONDS", "3600")),
             multicurve_canary_keys=tuple(v.strip() for v in get("MULTICURVE_CANARY_KEYS", "").split(",") if v.strip()),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
@@ -77,6 +81,10 @@ class Settings:
             raise ValueError("KEY_PEPPER and SESSION_SECRET need at least 32 characters")
         if not (1 <= result.run_id_start <= result.run_id_end <= 65534):
             raise ValueError("invalid 16-bit run ID range")
+        if result.point_index_mode not in ("dynamodb", "compact"):
+            raise ValueError("POINT_INDEX_MODE must be dynamodb or compact")
+        if not 10 <= result.point_index_merge_seconds <= 86400:
+            raise ValueError("POINT_INDEX_MERGE_SECONDS must be between 10 and 86400")
         if web and not re.fullmatch(
             r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
             result.public_worker_image,
