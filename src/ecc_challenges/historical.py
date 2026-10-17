@@ -64,8 +64,13 @@ def record_problem(record: bytes) -> str | None:
     x = int.from_bytes(record[8:], "little")
     if PUBLIC_RUN_MIN <= seed >> 48 <= PUBLIC_RUN_MAX:
         return "public_run_range"
-    if x >> 131 or x.bit_count() > DP_WEIGHT or x.bit_count() & 1:
-        return "not_canonical_dp32"
+    if x >> 131 or x.bit_count() & 1:
+        return "not_orbit_key"
+    # The fleet's early runs used DP weight 34. Those points are valid for the
+    # original campaign, but a DP32 walker passes through them without
+    # recording them, so they can never match a public point.
+    if x.bit_count() > DP_WEIGHT:
+        return "above_dp32_weight"
     return None
 
 
@@ -161,14 +166,23 @@ class S3Sink:
         for key in self._sidecar_keys():
             yield json.loads(self.s3.get_object(Bucket=self.bucket, Key=key)["Body"].read())
 
+    def _put_once(self, **kwargs) -> None:
+        # The archive bucket refuses any PutObject without If-None-Match: *.
+        # Parts are content-addressed and sidecars are keyed by source, so an
+        # object that already exists is the one this call would have written.
+        from botocore.exceptions import ClientError
+        try:
+            self.s3.put_object(Bucket=self.bucket, IfNoneMatch="*", ServerSideEncryption="AES256", **kwargs)
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") not in ("PreconditionFailed", "ConditionalRequestConflict"):
+                raise
+
     def put(self, digest: str, body: bytes, sidecar: dict) -> None:
         import base64
         sha = base64.b64encode(bytes.fromhex(digest)).decode()
-        self.s3.put_object(Bucket=self.bucket, Key=f"{self.prefix}{digest}.bin", Body=body,
-                           ChecksumSHA256=sha, ServerSideEncryption="AES256")
-        self.s3.put_object(Bucket=self.bucket, Key=f"{self.prefix}{source_id(sidecar['source_key'])}.json",
-                           Body=json.dumps(sidecar, sort_keys=True).encode(),
-                           ContentType="application/json", ServerSideEncryption="AES256")
+        self._put_once(Key=f"{self.prefix}{digest}.bin", Body=body, ChecksumSHA256=sha)
+        self._put_once(Key=f"{self.prefix}{source_id(sidecar['source_key'])}.json",
+                       Body=json.dumps(sidecar, sort_keys=True).encode(), ContentType="application/json")
 
     def get(self, digest: str) -> bytes:
         return self.s3.get_object(Bucket=self.bucket, Key=f"{self.prefix}{digest}.bin")["Body"].read()
