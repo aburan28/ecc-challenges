@@ -58,8 +58,9 @@ flowchart LR
 ```
 
 This diagram describes v2. The separate legacy ECC2K-130 protocol retains its
-sampled trail replay and PostgreSQL candidate projection. Historical import
-remains deferred; new generic points have their own curve/walk namespaces.
+sampled trail replay and PostgreSQL candidate projection. Historical points are imported
+one way by `scripts/historical_import.py` (see [operations](docs/operations.md#historical-point-import));
+new generic points have their own curve/walk namespaces.
 
 ## Contribute
 
