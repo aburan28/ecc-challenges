@@ -1,0 +1,42 @@
+# NVIDIA GPU workers, one GPU per pod. Needs the NVIDIA device plugin or GPU
+# Operator on the cluster (nodes advertise nvidia.com/gpu).
+#   kubectl apply -k deploy/kubernetes/gpu
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../base]
+nameSuffix: -gpu
+labels:
+  - pairs: {app.kubernetes.io/component: gpu-worker}
+    includeSelectors: true
+images:
+  - name: worker-image
+    newName: ghcr.io/aburan28/ecc-challenges-worker
+    # The digest the website currently publishes; check /v1/campaigns.
+    digest: sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee
+patches:
+  - target: {kind: StatefulSet, name: ecc-worker}
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ecc-worker
+      spec:
+        replicas: 1
+        template:
+          spec:
+            # Uncomment if your cluster uses a RuntimeClass for NVIDIA.
+            # runtimeClassName: nvidia
+            tolerations:
+              - {key: nvidia.com/gpu, operator: Exists, effect: NoSchedule}
+            containers:
+              - name: worker
+                env:
+                  - name: ECC_CAMPAIGN
+                    value: eccp-131
+                  - name: ECC_BACKEND
+                    value: cuda
+                  - name: ECC_GPU
+                    value: "0"
+                resources:
+                  requests: {cpu: "1", memory: 1Gi}
+                  limits: {nvidia.com/gpu: 1, memory: 2Gi}

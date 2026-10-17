@@ -1,0 +1,38 @@
+name: Worker problem
+description: The worker crashes, uploads are rejected, or it won't start.
+labels: [worker]
+body:
+  - type: markdown
+    attributes:
+      value: Never paste your API key. Revoke it on the dashboard if you think it leaked.
+  - type: input
+    id: campaign
+    attributes:
+      label: Challenge
+      placeholder: ecc2k-130
+    validations:
+      required: true
+  - type: input
+    id: host
+    attributes:
+      label: Where it runs
+      placeholder: "RTX 4090, Ubuntu 24.04, driver 560 / Modal L4 / RunPod ..."
+    validations:
+      required: true
+  - type: input
+    id: image
+    attributes:
+      label: Image digest
+      description: The sha256 in your docker run command.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Worker log
+      description: The last 50 lines or so.
+      render: text

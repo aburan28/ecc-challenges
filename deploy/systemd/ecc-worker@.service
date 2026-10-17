@@ -1,0 +1,41 @@
+# One ECC Challenges worker per instance, e.g. ecc-worker@gpu0.
+# Installed by deploy/native/install.sh. Settings: /etc/ecc-challenges/%i.env
+# State: /var/lib/ecc-challenges/%i (kept across restarts; never share it).
+[Unit]
+Description=ECC Challenges worker (%i)
+Documentation=https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=exec
+User=ecc-worker
+Group=ecc-worker
+EnvironmentFile=/etc/ecc-challenges/%i.env
+# The key file can stay root-only; systemd hands the service a private copy.
+LoadCredential=api-key:/etc/ecc-challenges/api-key
+Environment=ECC_API_KEY_FILE=%d/api-key
+StateDirectory=ecc-challenges/%i
+StateDirectoryMode=0700
+Environment=ECC_STATE_DIR=%S/ecc-challenges/%i
+ExecStart=/opt/ecc-challenges/bin/ecc-worker
+# The worker uploads pending points and saves state on SIGTERM.
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=150
+Restart=on-failure
+RestartSec=30
+# Hardening. CUDA needs /dev/nvidia*, so devices stay visible.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

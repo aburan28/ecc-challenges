@@ -70,8 +70,25 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert status["campaigns"][19]["received_points"] is None
         page = client.get("/status")
         assert page.status_code == 200
-        assert b"Every challenge." in page.content
+        assert b"Live status" in page.content
         assert b"2.0e18" in page.content
+        assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
+
+
+def test_html_errors_robots_and_share_metadata():
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        home = client.get("/")
+        assert b'property="og:title"' in home.content
+        assert b"github.com/aburan28/ecc-challenges" in home.content
+        missing = client.get("/no-such-page")
+        assert missing.status_code == 404
+        assert missing.headers["content-type"].startswith("text/html")
+        assert b"Page not found" in missing.content
+        assert client.get("/v1/no-such-route").json() == {"detail": "Not Found"}
+        signed_out = client.get("/dashboard")
+        assert signed_out.status_code == 401 and b"/auth/github" in signed_out.content
+        robots = client.get("/robots.txt")
+        assert robots.status_code == 200 and "Disallow: /dashboard" in robots.text
 
 
 def test_status_reader_caches_database_snapshot():
