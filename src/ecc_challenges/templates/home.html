@@ -18,10 +18,11 @@
 </section>
 
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
+{% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
 <dl class="stats" aria-label="Current figures">
   <div class="stat"><dt>Challenges</dt><dd>24<small>published by Certicom</small></dd></div>
   <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>{% if multicurve_enabled %}prime and binary fields{% else %}ECC2K-130{% endif %}</small></dd></div>
-  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>distinguished points stored</small></dd></div>
+  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}incl. {{ "{:,}".format(imported) }} from the earlier run{% else %}distinguished points stored{% endif %}</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
 

@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import uuid
 
 import boto3
 import psycopg
+from psycopg import sql
 from psycopg.rows import dict_row
 import pytest
 
@@ -174,3 +176,64 @@ def test_s3_sink_resumes_by_listing(aws_resources, source_bucket, conn):
     assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["objects"] == 1
     assert historical.export(source_bucket, SOURCE, sink, log=lambda _: None)["skipped_done"] == 1
     assert historical.load(conn, sink, log=lambda _: None)["inserted"] == 1
+
+
+def ledger_row(conn, source_key: str, inserted: int) -> None:
+    conn.execute("""
+        INSERT INTO ecc_public.historical_import_parts(source_key,part_sha256,records,inserted,conflicts)
+        VALUES (%s,%s,%s,%s,0)
+    """, (source_key, hashlib.sha256(source_key.encode()).hexdigest(), inserted, inserted))
+
+
+def test_status_reports_imported_points_beside_gateway_uploads(database, conn):
+    from ecc_challenges.status import StatusReader
+
+    empty = StatusReader(database, ttl_seconds=0).read()
+    assert empty["total_historical_points"] == 0 and empty["historical_imported_at"] is None
+    ledger_row(conn, "dp/slot-00001/a.bin", 300)
+    ledger_row(conn, "dp/slot-00002/b.bin", 38)
+    snapshot = StatusReader(database, ttl_seconds=0).read()
+    row = next(c for c in snapshot["campaigns"] if c["id"] == "ecc2k-130")
+    assert row["historical_points"] == 338 and row["received_points"] == 0
+    assert snapshot["total_historical_points"] == 338
+    assert snapshot["total_archived_points"] == 0
+    assert snapshot["historical_imported_at"].startswith("20")
+
+
+def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, database, conn):
+    """Web deployed before the bootstrap regrant: the snapshot loses only the import totals."""
+    from ecc_challenges.db import Database
+    from ecc_challenges.status import StatusReader
+
+    ledger_row(conn, "dp/slot-00001/a.bin", 5)
+    password = secrets.token_hex(16)    # CI's PostgreSQL uses password authentication
+    probe_dsn = psycopg.conninfo.make_conninfo(postgres_dsn, user="status_probe", password=password)
+    conn.execute("DROP ROLE IF EXISTS status_probe")
+    conn.execute(sql.SQL("CREATE ROLE status_probe LOGIN PASSWORD {}").format(sql.Literal(password)))
+    try:
+        conn.execute("GRANT USAGE ON SCHEMA ecc_public TO status_probe")
+        conn.execute("""
+            GRANT SELECT ON ecc_public.runs,ecc_public.pressure_shards,ecc_public.dp_namespaces,
+              ecc_public.dp_runs,ecc_public.dp_namespace_stats,ecc_public.dp_batches TO status_probe
+        """)
+        probe = Database(probe_dsn, max_size=1)
+        probe.open()
+        try:
+            # Multicurve on, so statements run after the refused one inside the same transaction.
+            snapshot = StatusReader(probe, ttl_seconds=0, multicurve_enabled=True).read()
+        finally:
+            probe.close()
+        assert snapshot["total_historical_points"] is None
+        assert snapshot["historical_imported_at"] is None
+        assert all(c["historical_points"] is None for c in snapshot["campaigns"])
+        assert snapshot["compute_ready"] == 24 and snapshot["total_archived_points"] == 0
+        conn.execute("GRANT SELECT ON ecc_public.historical_import_totals TO status_probe")
+        probe = Database(probe_dsn, max_size=1)
+        probe.open()
+        try:
+            assert StatusReader(probe, ttl_seconds=0).read()["total_historical_points"] == 5
+        finally:
+            probe.close()
+    finally:
+        conn.execute("DROP OWNED BY status_probe")
+        conn.execute("DROP ROLE status_probe")
