@@ -220,6 +220,21 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: [!GetAtt Database.MasterUserSecret.SecretArn, !Ref WebPasswordArn, !Ref WorkerPasswordArn]
+        # scripts/historical_import.py in this task: read exported parts, and
+        # the public batches a backmatch re-reads. Read only; no other prefix.
+        - PolicyName: historical-import-read
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource:
+                  - !Sub '${DataBucket.Arn}/historical-import/*'
+                  - !Sub '${DataBucket.Arn}/public-gateway/*'
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+                Condition: {StringLike: {s3:prefix: 'historical-import/*'}}
   AdminTask:
     Type: AWS::ECS::TaskDefinition
     Condition: HasAdminImage

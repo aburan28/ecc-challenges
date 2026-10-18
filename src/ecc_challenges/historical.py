@@ -35,6 +35,9 @@ from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
 
 LEGACY_KEY_RE = re.compile(r"^dp/(slot-\d+)/(\d+)-(\d+)\.bin$")
 ORBIT_KEY_RE = re.compile(r"^dp/(slot-\d+)/([0-9a-f]{32})-(\d+)-([0-9a-f]{64})\.bin$")
+# cryptanalysis ecc2k130/runner/aws/worker.py: one content-addressed delta of
+# whole records, <sha256 of body>-<start offset>-<end offset> in the dp file.
+RUNNER_KEY_RE = re.compile(r"^dp/(slot-\d+)/([0-9a-f]{64})-(\d{16})-(\d{16})\.bin$")
 MARKER_SUFFIX = ".bin.json"
 # A WITNESS=1 client's 72-byte records; never decoded as 32-byte records.
 DP_MAGIC_V2 = b"ECC2KDP2"
@@ -56,7 +59,7 @@ def seed_bytes(seed: int) -> bytes:
 
 
 def is_dp_object(key: str) -> bool:
-    return bool(LEGACY_KEY_RE.match(key) or ORBIT_KEY_RE.match(key))
+    return bool(LEGACY_KEY_RE.match(key) or ORBIT_KEY_RE.match(key) or RUNNER_KEY_RE.match(key))
 
 
 def record_problem(record: bytes) -> str | None:
@@ -64,8 +67,13 @@ def record_problem(record: bytes) -> str | None:
     x = int.from_bytes(record[8:], "little")
     if PUBLIC_RUN_MIN <= seed >> 48 <= PUBLIC_RUN_MAX:
         return "public_run_range"
-    if x >> 131 or x.bit_count() > DP_WEIGHT or x.bit_count() & 1:
-        return "not_canonical_dp32"
+    if x >> 131 or x.bit_count() & 1:
+        return "not_orbit_key"
+    # The fleet's early runs used DP weight 34. Those points are valid for the
+    # original campaign, but a DP32 walker passes through them without
+    # recording them, so they can never match a public point.
+    if x.bit_count() > DP_WEIGHT:
+        return "above_dp32_weight"
     return None
 
 
@@ -90,6 +98,12 @@ def check_object(key: str, body: bytes, marker: bytes | None) -> CheckedObject:
     orbit = ORBIT_KEY_RE.match(key)
     if orbit and orbit.group(4) != digest:
         raise SourceRejected("sha256 in key does not match body")
+    runner = RUNNER_KEY_RE.match(key)
+    if runner:
+        if runner.group(2) != digest:
+            raise SourceRejected("sha256 in key does not match body")
+        if int(runner.group(4)) - int(runner.group(3)) != len(body):
+            raise SourceRejected("offsets in key do not match body length")
     if marker is not None:
         meta = json.loads(marker)
         if meta.get("sha256") not in (None, digest):
@@ -161,14 +175,23 @@ class S3Sink:
         for key in self._sidecar_keys():
             yield json.loads(self.s3.get_object(Bucket=self.bucket, Key=key)["Body"].read())
 
+    def _put_once(self, **kwargs) -> None:
+        # The archive bucket refuses any PutObject without If-None-Match: *.
+        # Parts are content-addressed and sidecars are keyed by source, so an
+        # object that already exists is the one this call would have written.
+        from botocore.exceptions import ClientError
+        try:
+            self.s3.put_object(Bucket=self.bucket, IfNoneMatch="*", ServerSideEncryption="AES256", **kwargs)
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") not in ("PreconditionFailed", "ConditionalRequestConflict"):
+                raise
+
     def put(self, digest: str, body: bytes, sidecar: dict) -> None:
         import base64
         sha = base64.b64encode(bytes.fromhex(digest)).decode()
-        self.s3.put_object(Bucket=self.bucket, Key=f"{self.prefix}{digest}.bin", Body=body,
-                           ChecksumSHA256=sha, ServerSideEncryption="AES256")
-        self.s3.put_object(Bucket=self.bucket, Key=f"{self.prefix}{source_id(sidecar['source_key'])}.json",
-                           Body=json.dumps(sidecar, sort_keys=True).encode(),
-                           ContentType="application/json", ServerSideEncryption="AES256")
+        self._put_once(Key=f"{self.prefix}{digest}.bin", Body=body, ChecksumSHA256=sha)
+        self._put_once(Key=f"{self.prefix}{source_id(sidecar['source_key'])}.json",
+                       Body=json.dumps(sidecar, sort_keys=True).encode(), ContentType="application/json")
 
     def get(self, digest: str) -> bytes:
         return self.s3.get_object(Bucket=self.bucket, Key=f"{self.prefix}{digest}.bin")["Body"].read()
