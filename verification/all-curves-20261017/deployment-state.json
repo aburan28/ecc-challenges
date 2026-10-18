@@ -1,0 +1,52 @@
+{
+  "account": "104186811093",
+  "checked_at_unix": 1792283447.553368,
+  "effective_fargate_vcpu_quota": 30.0,
+  "format": "unified-worker-live-deployment-v1",
+  "images": {
+    "AuditImageUri": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-audit@sha256:ae969199b540f391180f79808332ca647c983a8bd16b54bbe7f4a8c47069ebe3",
+    "PublicWorkerImage": "ghcr.io/aburan28/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f",
+    "WebImageUri": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-web@sha256:6c19e1b6131fe5c477b1f6f5e00ba765ff63513b9c57100b02fd8d43a78cd9d7"
+  },
+  "multicurve_enabled": "false",
+  "ok": true,
+  "private_canary_key_count": 1,
+  "services": [
+    {
+      "desired": 2,
+      "name": "ecc-challenges-web",
+      "rollout": "COMPLETED",
+      "running": 2,
+      "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-web:9"
+    },
+    {
+      "desired": 2,
+      "name": "ecc-challenges-audit",
+      "rollout": "COMPLETED",
+      "running": 2,
+      "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-worker:9"
+    },
+    {
+      "desired": 1,
+      "name": "ecc-challenges-index",
+      "rollout": "COMPLETED",
+      "running": 1,
+      "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-index:9"
+    },
+    {
+      "desired": 1,
+      "name": "ecc-challenges-reconcile",
+      "rollout": "COMPLETED",
+      "running": 1,
+      "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-reconcile:9"
+    },
+    {
+      "desired": 1,
+      "name": "ecc-challenges-resolve",
+      "rollout": "COMPLETED",
+      "running": 1,
+      "task_definition": "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-resolve:9"
+    }
+  ],
+  "stack_status": "UPDATE_COMPLETE"
+}

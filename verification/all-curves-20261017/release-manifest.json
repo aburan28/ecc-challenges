@@ -1,0 +1,11 @@
+{
+  "build_id": "ecc-challenges-release:9e84f422-7ba8-46ad-b89c-ef10d37cde93",
+  "images": {
+    "admin": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-admin@sha256:7b2e24b583e9dc63235d7aae5ba6aa814583f0b23d2b9f2978f172f2747917ed",
+    "audit": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-audit@sha256:ae969199b540f391180f79808332ca647c983a8bd16b54bbe7f4a8c47069ebe3",
+    "web": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-web@sha256:6c19e1b6131fe5c477b1f6f5e00ba765ff63513b9c57100b02fd8d43a78cd9d7",
+    "worker": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f"
+  },
+  "source_commit": "5bd0a507869492de86a0d7a4f1bc569a0db0b417",
+  "tag": "allcurves-5bd0a5078694"
+}
