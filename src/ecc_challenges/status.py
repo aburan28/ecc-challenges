@@ -3,11 +3,31 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import logging
 from threading import Lock
 from time import monotonic
 
+from psycopg import errors
+
 from .catalog import CHALLENGES
 from .protocol import CAMPAIGN, RECORD_BYTES
+
+LOG = logging.getLogger(__name__)
+
+
+def _historical_totals(conn):
+    """Imported ECC2K-130 points, or None when this database can't say yet.
+
+    Runs in a savepoint so a missing view (migration 007 not applied) or grant
+    (bootstrap not rerun) leaves the rest of the snapshot intact.
+    """
+    try:
+        with conn.transaction():
+            return conn.execute(
+                "SELECT points,last_loaded_at FROM ecc_public.historical_import_totals").fetchone()
+    except (errors.UndefinedTable, errors.InsufficientPrivilege) as exc:
+        LOG.warning("historical import totals unavailable: %s", type(exc).__name__)
+        return None
 
 
 class StatusReader:
@@ -38,6 +58,7 @@ class StatusReader:
                            COALESCE(sum(pending_bytes), 0) AS pending_bytes
                     FROM ecc_public.pressure_shards
                 """).fetchone()
+                historical = _historical_totals(conn)
                 generic = {}
                 if self.multicurve_enabled:
                     rows = conn.execute("""
@@ -93,6 +114,8 @@ class StatusReader:
                                       + int(current.get("pending_bytes", 0))) if enabled else None,
                     "generic_verified_points": int(current.get("verified", 0)) if self.multicurve_enabled else None,
                     "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None,
+                    # Imported from the earlier private run; not in received_points.
+                    "historical_points": int(historical["points"]) if legacy and historical else None,
                     "estimated_completion_probability_percent": None}
             snapshot = {
                 "as_of": datetime.now(timezone.utc).isoformat(),
@@ -106,5 +129,9 @@ class StatusReader:
             }
             snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
             snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
+            # total_archived_points stays this gateway's uploads only; the import is reported beside it.
+            snapshot["total_historical_points"] = int(historical["points"]) if historical else None
+            snapshot["historical_imported_at"] = (historical["last_loaded_at"].isoformat()
+                                                  if historical and historical["last_loaded_at"] else None)
             self._cached, self._cached_at = snapshot, monotonic()
             return snapshot
