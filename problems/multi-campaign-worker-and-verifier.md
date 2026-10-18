@@ -23,7 +23,7 @@ effective, the configured 32-auditor ceiling is not available in full.
 V2 stays restricted to the designated canary key while these gates are checked.
 Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
-import has its own tool (`scripts/historical_import.py`) and has not yet been run.
+import ran on 2026-10-17; see docs/operations.md, "Historical point import".
 
 ### Consumer-stop and queue-baseline check
 

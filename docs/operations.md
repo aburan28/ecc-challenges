@@ -60,6 +60,14 @@ original RDS table is a derived view that can lag it.
    through a read-only `SOURCE_DSN`. Workers short of the source there need a
    look; workers ahead of it are the view lagging S3.
 
+First run, 2026-10-17, from `historical-import/20261017/`: 40,309 objects exported
+(the 68 `<sha256>-<start>-<end>.bin` runner deltas included), one witness-format
+object refused, 189,871,706 DP34 records dropped as `above_dp32_weight`.
+384,765,103 records loaded in two admin-task runs, 338,034,791 distinct points
+inserted, 0 historical conflicts. Backmatch: 0 matches, as no public ECC2K-130
+points had been indexed yet. The original fleet was still writing, so later
+objects need another export, load and backmatch.
+
 Size the database before loading: every historical point is one
 `distinguished_points` row of about 90 bytes with its primary key index.
 
