@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import uuid
 
 import boto3
 import psycopg
+from psycopg import sql
 from psycopg.rows import dict_row
 import pytest
 
@@ -204,15 +206,17 @@ def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, datab
     from ecc_challenges.status import StatusReader
 
     ledger_row(conn, "dp/slot-00001/a.bin", 5)
+    password = secrets.token_hex(16)    # CI's PostgreSQL uses password authentication
+    probe_dsn = psycopg.conninfo.make_conninfo(postgres_dsn, user="status_probe", password=password)
     conn.execute("DROP ROLE IF EXISTS status_probe")
-    conn.execute("CREATE ROLE status_probe LOGIN")
+    conn.execute(sql.SQL("CREATE ROLE status_probe LOGIN PASSWORD {}").format(sql.Literal(password)))
     try:
         conn.execute("GRANT USAGE ON SCHEMA ecc_public TO status_probe")
         conn.execute("""
             GRANT SELECT ON ecc_public.runs,ecc_public.pressure_shards,ecc_public.dp_namespaces,
               ecc_public.dp_runs,ecc_public.dp_namespace_stats,ecc_public.dp_batches TO status_probe
         """)
-        probe = Database(psycopg.conninfo.make_conninfo(postgres_dsn, user="status_probe"), max_size=1)
+        probe = Database(probe_dsn, max_size=1)
         probe.open()
         try:
             # Multicurve on, so statements run after the refused one inside the same transaction.
@@ -224,7 +228,7 @@ def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, datab
         assert all(c["historical_points"] is None for c in snapshot["campaigns"])
         assert snapshot["compute_ready"] == 24 and snapshot["total_archived_points"] == 0
         conn.execute("GRANT SELECT ON ecc_public.historical_import_totals TO status_probe")
-        probe = Database(psycopg.conninfo.make_conninfo(postgres_dsn, user="status_probe"), max_size=1)
+        probe = Database(probe_dsn, max_size=1)
         probe.open()
         try:
             assert StatusReader(probe, ttl_seconds=0).read()["total_historical_points"] == 5
