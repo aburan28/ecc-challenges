@@ -50,7 +50,6 @@ external volume hashes, including migration from the old mount-root layout.
 The contributor API key was not supplied to any of those checks. The real GPU
 contribution remains a separate pending release gate.
 
-
 `release/ghcr-mirror-attempt-1.json` preserves the older Ubuntu 22.04 Skopeo
 compatibility failure before image copying. The repaired workflow verifies the
 completed copy's digest and anonymously hashes the newly published tag's raw
