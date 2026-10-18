@@ -20,7 +20,7 @@ with the worker log. Never paste your API key.
 | --- | --- |
 | `src/ecc_challenges/` | FastAPI website and worker API (`app.py`), templates, status page |
 | `src/ecc_challenges/multicurve/` | v2 protocol for all 24 curves: codec, admission, verification, index |
-| `worker/` | Contributor client and generic CPU/CUDA engine; `Dockerfile` (GPU), `Dockerfile.cpu` (CPU, amd64/arm64) |
+| `worker/` | Contributor client and generic CPU/CUDA/Metal engine (`generic/ec_core.h` is the shared core; `CMakeLists.txt` builds it on Linux, macOS and Windows); `Dockerfile` (GPU), `Dockerfile.cpu` (CPU, amd64/arm64); `tests/` runs on every platform with only pytest |
 | `deploy/` | Ways to run workers (Compose, Kubernetes, systemd, Podman, Slurm) and the local stack |
 | `verifier/` | Replay and verification code used by the audit image |
 | `sql/` | PostgreSQL migrations, applied in order |
@@ -50,7 +50,9 @@ TEST_POSTGRES_DSN=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
 
 Use `python -m pytest` rather than bare `pytest` so that `scripts/` is
 importable. S3 and SQS are mocked with moto; no AWS account is needed.
-`scripts/check_deploy.sh` checks everything under `deploy/` (needs kubectl,
+The worker tests need no database: `python -m pytest worker/tests` runs them
+anywhere (set `ECC_TEST_ENGINE` to test a prebuilt engine, such as a Metal
+build). `scripts/check_deploy.sh` checks everything under `deploy/` (needs kubectl,
 kubeconform, docker compose, systemd-analyze and shellcheck).
 
 To run the whole platform locally (site, verifier, emulated AWS and a CPU

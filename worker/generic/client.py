@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import base64
-import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import signal
+import subprocess
 import sys
 import tempfile
 import time
@@ -17,7 +17,13 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from ecc_challenges.multicurve.codec import MAX_BATCH_BYTES, MAX_TRAIL_STEPS, canonical, namespace
-from .runtime import NativeState, pack_state, run_round, unpack_states
+from .runtime import BACKENDS, NativeState, pack_state, run_round, unpack_states
+
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+    import msvcrt
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -41,20 +47,35 @@ class GatewayError(RuntimeError):
 def atomic(path: Path, value: dict):
     fd, temporary = tempfile.mkstemp(prefix=".generic-", dir=path.parent)
     try:
-        os.fchmod(fd, 0o600)
+        if os.name != "nt":
+            os.fchmod(fd, 0o600)
         with os.fdopen(fd, "w") as output:
             json.dump(value, output, sort_keys=True)
             output.flush()
             os.fsync(output.fileno())
         os.replace(temporary, path)
-        directory = os.open(path.parent, os.O_RDONLY)
-        try:
-            os.fsync(directory)
-        finally:
-            os.close(directory)
+        # Windows cannot open a directory to flush it; NTFS journals the
+        # rename that os.replace performs.
+        if os.name != "nt":
+            directory = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def lock_state_directory(root: Path):
+    """Hold the state directory exclusively; a second worker fails at once."""
+    handle = (root / ".contributor.lock").open("a+")
+    if fcntl is not None:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    else:
+        handle.seek(0)
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+    return handle
 
 
 class API:
@@ -135,7 +156,7 @@ def cpu_threads() -> int:
 
 def default_lanes(backend: str) -> int:
     # Four lanes per thread keeps every core busy while lanes pause at DPs.
-    return 64 if backend == "cuda" else min(4096, 4 * cpu_threads())
+    return 64 if backend in ("cuda", "metal") else min(4096, 4 * cpu_threads())
 
 
 def engine_for_backend(backend: str, cpu_engine: Path = Path("/opt/ecc/generic-engine-cpu")) -> Path:
@@ -147,10 +168,35 @@ def engine_for_backend(backend: str, cpu_engine: Path = Path("/opt/ecc/generic-e
     return Path("/opt/ecc/generic-engine")
 
 
+def probe_engine(engine: Path) -> dict:
+    """The engine's --probe report, or {} for an engine that predates it."""
+    try:
+        result = subprocess.run([str(engine), "--probe"], capture_output=True,
+                                text=True, timeout=60, check=False)
+        report = json.loads(result.stdout) if result.returncode == 0 else {}
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return {}
+    return report if isinstance(report, dict) else {}
+
+
+def detect_backend() -> str:
+    """Metal on a Mac whose engine has it, CUDA when nvidia-smi sees a GPU, else CPU."""
+    if sys.platform == "darwin":
+        report = probe_engine(engine_for_backend("metal"))
+        if "metal" in report.get("backends", ()) and report.get("metal_devices"):
+            return "metal"
+        return "cpu"
+    try:
+        probe = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                               capture_output=True, timeout=15, check=False)
+        return "cuda" if probe.returncode == 0 and probe.stdout.strip() else "cpu"
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return "cpu"
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
-    lock = (root / ".contributor.lock").open("a")
-    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    lock = lock_state_directory(root)  # held until the process exits
     ns = namespace(campaign)
     api = API(os.environ.get("ECC_API_URL", "https://ecc-challenges.com"), key)
     remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
@@ -170,13 +216,7 @@ def main(root: Path, key: str, campaign: str) -> int:
         raise ValueError("ECC_ACTION must be work or close")
     backend = os.environ.get("ECC_BACKEND", "auto")
     if backend == "auto":
-        import subprocess
-        try:
-            probe = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                                   capture_output=True, timeout=15, check=False)
-            backend = "cuda" if probe.returncode == 0 and probe.stdout.strip() else "cpu"
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            backend = "cpu"
+        backend = detect_backend()
     if "ECC_GPU" in os.environ:
         # This subprocess environment is read by CUDA before device discovery.
         selected = os.environ["ECC_GPU"]
@@ -187,8 +227,8 @@ def main(root: Path, key: str, campaign: str) -> int:
             elif selected not in visible:
                 raise ValueError("ECC_GPU is outside the provider's visible GPU allocation")
         os.environ["CUDA_VISIBLE_DEVICES"] = selected
-    if backend not in ("cpu", "cuda"):
-        raise ValueError("ECC_BACKEND must be auto, cpu or cuda")
+    if backend not in BACKENDS:
+        raise ValueError("ECC_BACKEND must be auto, cpu, cuda or metal")
     path = root / "generic-state.json"
     saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
     lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))
@@ -232,6 +272,8 @@ def main(root: Path, key: str, campaign: str) -> int:
 
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
+    if hasattr(signal, "SIGBREAK"):  # Windows Ctrl-Break and console close
+        signal.signal(signal.SIGBREAK, terminate)
     engine = engine_for_backend(backend)
     retry = 1
     with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary:

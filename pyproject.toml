@@ -28,4 +28,4 @@ where = ["src"]
 ecc_challenges = ["templates/*.html", "multicurve/*.json", "assets/*.png"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "worker/tests"]

@@ -27,6 +27,10 @@ if [ ! -x /opt/ecc-challenges/bin/ecc-worker ]; then
 fi
 systemd-analyze verify deploy/systemd/ecc-worker@.service deploy/systemd/ecc-worker-docker@.service
 
+echo "launchd"
+python3 -c 'import plistlib, sys; plistlib.load(open(sys.argv[1], "rb"))' \
+  deploy/launchd/com.ecc-challenges.worker.plist
+
 echo "shell"
 shellcheck deploy/native/install.sh deploy/hpc/ecc-worker.sbatch scripts/check_deploy.sh
 echo "deploy checks passed"

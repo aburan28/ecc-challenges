@@ -10,6 +10,8 @@ that matches what you have:
 | Several workers on one machine | [Docker Compose](#docker-compose) | `deploy/docker/` |
 | A Kubernetes cluster (CPU or GPU nodes) | [Kubernetes](#kubernetes) | `deploy/kubernetes/` |
 | A server where you'd rather not run containers | [Native install + systemd](#native-install-and-systemd) | `deploy/native/`, `deploy/systemd/` |
+| A Mac (Apple silicon or Intel), using its GPU through Metal | [macOS](#macos) | `deploy/native/install.sh`, `deploy/launchd/` |
+| A Windows PC (x64 or ARM64) | [Windows](#windows) | `deploy/native/install.ps1` |
 | Docker, but managed by systemd | [systemd + Docker](#systemd-with-docker) | `deploy/systemd/ecc-worker-docker@.service` |
 | Rootless Podman | [Podman Quadlet](#podman) | `deploy/podman/` |
 | A university or lab cluster with Slurm | [Apptainer + Slurm](#apptainer-and-slurm) | `deploy/hpc/` |
@@ -148,6 +150,58 @@ the service a private copy. Without root, use
 `deploy/native/install.sh --prefix ~/.local/ecc-challenges --no-systemd` and run
 `~/.local/ecc-challenges/bin/ecc-worker` yourself.
 
+## macOS
+
+Apple silicon and Intel Macs run the native worker. The engine is built with
+both a CPU backend and a Metal backend, and `ECC_BACKEND=auto` picks Metal
+when the engine sees a Metal device. Needs the Xcode command line tools
+(`xcode-select --install`) and Python 3.10+ (python.org or Homebrew; the
+`/usr/bin/python3` that ships with macOS can be older).
+
+```sh
+git clone https://github.com/aburan28/ecc-challenges && cd ecc-challenges
+deploy/native/install.sh --prefix "$HOME/.local/ecc-challenges"
+ECC_CAMPAIGN=eccp-131 ECC_STATE_DIR="$HOME/ecc-data/eccp-131" \
+  ECC_API_KEY_FILE="$HOME/.config/ecc-challenges/api-key" \
+  "$HOME/.local/ecc-challenges/bin/ecc-worker"
+```
+
+The installer prints the engine's `--probe` report, which lists the Metal
+devices it found. It also writes a launchd agent to
+`~/.local/ecc-challenges/com.ecc-challenges.worker.plist`; edit the curve and
+state directory, copy it to `~/Library/LaunchAgents/` and load it with
+`launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.ecc-challenges.worker.plist`.
+`launchctl bootout` sends SIGTERM and allows 150 seconds for the worker to save.
+On a Mac with several GPUs, `ECC_GPU` is an index into the probe's
+`metal_devices` list. The Metal kernel is compiled from the same source as
+the CPU and CUDA engines and must match the CPU backend bit for bit on all 24
+curves before it is trusted (see the checks below). Prefer `cmake -S worker -B
+build` if you want a universal (`arm64;x86_64`) engine or Homebrew's OpenMP.
+
+## Windows
+
+Windows 10/11 on x64 or ARM64 runs the native worker with the CPU backend, and
+with CUDA when the CUDA toolkit is installed (x64). Needs Python 3.10+ from
+python.org, and Visual Studio 2022 or its Build Tools with the "Desktop
+development with C++" workload (which includes CMake). In PowerShell:
+
+```powershell
+git clone https://github.com/aburan28/ecc-challenges; cd ecc-challenges
+powershell -ExecutionPolicy Bypass -File deploy\native\install.ps1
+mkdir $env:USERPROFILE\.config\ecc-challenges
+notepad $env:USERPROFILE\.config\ecc-challenges\api-key    # paste the key, save
+icacls $env:USERPROFILE\.config\ecc-challenges\api-key /inheritance:r /grant:r "${env:USERNAME}:R"
+$env:ECC_CAMPAIGN = 'eccp-131'
+$env:ECC_STATE_DIR = "$env:USERPROFILE\ecc-data\eccp-131"
+& "$env:LOCALAPPDATA\ecc-challenges\bin\ecc-worker.cmd"
+```
+
+Stop it with Ctrl-C; the worker finishes the round, uploads and saves (cmd may
+then ask "Terminate batch job?"; either answer is fine). The wrapper defaults
+`ECC_API_KEY_FILE` to `%USERPROFILE%\.config\ecc-challenges\api-key`. Each
+round's checkpoint is written atomically, so a hard stop (closing the window,
+Task Manager, a reboot) loses at most the round in progress.
+
 ## systemd with Docker
 
 `deploy/systemd/ecc-worker-docker@.service` wraps `docker run` in a unit, with
@@ -190,10 +244,10 @@ cluster's policy on long-running jobs and outbound HTTPS before you start.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `ECC_CAMPAIGN` | `ecc2k-130` | Curve ID from the catalog |
-| `ECC_BACKEND` | `auto` (CPU-only image: `cpu`) | `cuda`, `cpu`, or `auto` (CUDA when `nvidia-smi` sees a GPU) |
-| `ECC_GPU` | unset | GPU index for this worker |
-| `OMP_NUM_THREADS` | all available cores | CPU engine threads |
-| `ECC_LANES` | GPU 64, CPU 4 × threads | Parallel walks. Fixed for a run once it starts |
+| `ECC_BACKEND` | `auto` (CPU-only image: `cpu`) | `cuda`, `metal`, `cpu`, or `auto` (Metal on a Mac whose engine sees a Metal device, CUDA when `nvidia-smi` sees a GPU, else CPU) |
+| `ECC_GPU` | unset | GPU index for this worker (CUDA device, or Metal device from `generic-engine --probe`) |
+| `OMP_NUM_THREADS` | all available cores | CPU engine threads (also honored by builds without OpenMP) |
+| `ECC_LANES` | GPU (CUDA, Metal) 64, CPU 4 × threads | Parallel walks. Fixed for a run once it starts |
 | `ECC_STATE_DIR` | `/data` | Persistent state directory |
 | `ECC_API_KEY_FILE` | `/run/secrets/ecc_api_key` | Key file |
 | `ECC_API_KEY` | unset | Key as an environment variable instead of a file |
@@ -217,3 +271,7 @@ server:
 | Podman Quadlet | Quadlet generator output checked; the same `podman run` uploaded eccp-109 points |
 | Apptainer + Slurm | Not run: no Slurm cluster available. Reviewed only |
 | GPU paths | Not run here (no GPU). The GPU image itself has its own L4 release checks in `verification/` |
+| macOS (arm64, x86_64) | CI `Worker platforms`: `install.sh` and CMake builds with Metal, self-test, all-24-curve CPU walk against a Python reference, Metal-vs-CPU parity on all 24 curves where the runner exposes a Metal device, universal binary, `plutil -lint` on the launchd agent, installed wrapper start-up |
+| Windows (x64, ARM64) | CI `Worker platforms`: `install.ps1` under Windows PowerShell 5.1, self-test, all-24-curve CPU walk against a Python reference, file lock and atomic checkpoint, installed wrapper start-up |
+| Linux arm64 native | CI `Worker platforms`: as Windows, plus CMake and `install.sh` builds |
+| Metal kernel source | Type-checked on every CI host with clang's C++ for OpenCL, which enforces address spaces as Metal does; compiled with `xcrun metal` where the Metal toolchain is installed |

@@ -12,6 +12,7 @@ CONTROLS = Path(os.environ.get("ECC_NATIVE_CONTROLS", "/controls")).resolve()
 app = modal.App("ecc-challenges-native-correctness")
 image = (modal.Image.from_registry("nvidia/cuda:13.0.2-devel-ubuntu24.04", add_python="3.12")
          .add_local_file(ROOT / "worker/generic/engine.cu", "/src/engine.cu", copy=True)
+         .add_local_file(ROOT / "worker/generic/ec_core.h", "/src/ec_core.h", copy=True)
          .run_commands("nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/engine.cu -o /src/engine",
                        "/src/engine --self-test")
          .add_local_dir(CONTROLS, "/controls"))
@@ -46,6 +47,7 @@ def verify():
                          "dp_sha256": hashlib.sha256(dps.read_bytes()).hexdigest() if expected_success else None})
     return {"format": "cuda-native-correctness-v1", "device": device,
             "engine_source_sha256": hashlib.sha256(Path('/src/engine.cu').read_bytes()).hexdigest(),
+            "core_source_sha256": hashlib.sha256(Path('/src/ec_core.h').read_bytes()).hexdigest(),
             "engine_binary_sha256": hashlib.sha256(Path('/src/engine').read_bytes()).hexdigest(),
             "campaigns": len({r['campaign'] for r in rows}), "checks": len(rows), "rows": rows}
 
