@@ -157,12 +157,19 @@ class StatusReader:
                 historical_points = int(historical["points"]) if legacy and historical else 0
                 if legacy:
                     live = int(runs["bytes"]) // RECORD_BYTES
-                    points_by_dp[DP_WEIGHT] = points_by_dp.get(DP_WEIGHT, 0) + live + historical_points
+                    points_by_dp[DP_WEIGHT] = points_by_dp.get(DP_WEIGHT, 0) + live
                     rate_by_dp[DP_WEIGHT] = rate_by_dp.get(DP_WEIGHT, 0) + int(legacy_rate["points"])
-                estimate = progress(points_by_dp, rate_by_dp, challenge.estimated_operations_2009) if enabled else {
-                    "expected_operations_log2": round(math.log2(float(challenge.estimated_operations_2009)), 2)
-                    if challenge.estimated_operations_2009 else None}
+                expected = challenge.estimated_operations_2009
+                # The top-level estimate is this gateway's public runs alone; the
+                # imported run is reported beside it, never folded in silently.
+                estimate = progress(points_by_dp, rate_by_dp, expected) if enabled else {
+                    "expected_operations_log2": round(math.log2(float(expected)), 2) if expected else None}
+                combined = None
+                if historical_points:
+                    combined = progress({**points_by_dp, DP_WEIGHT: points_by_dp[DP_WEIGHT] + historical_points},
+                                        rate_by_dp, expected)
                 return {**challenge.public(self.multicurve_enabled), **estimate,
+                    "including_historical": combined,
                     "historical_points": historical_points if legacy and historical else None,
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
@@ -185,6 +192,8 @@ class StatusReader:
                     "Work is estimated as archived points times 2^dp_bits, the mean walk length "
                     "between distinguished points; it is not a count of verified curve operations. "
                     "expected_work_percent compares it with Certicom's 2009 expected operation count. "
+                    "Top-level figures count this gateway's public runs only; including_historical "
+                    "repeats them with the points imported from the earlier private ECC2K-130 run. "
                     "Rho is a random search: estimated_completion_probability_percent is the chance "
                     "that a collision would have appeared by now, 1 - exp(-pi/4 * (work/expected)^2)."
                 ),

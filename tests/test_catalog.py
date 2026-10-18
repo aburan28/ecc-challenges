@@ -89,11 +89,18 @@ def test_catalog_site_status_and_fail_closed_registration():
         ecc2k130 = status["campaigns"][6]
         assert ecc2k130["historical_points"] == 338_034_791
         assert ecc2k130["points_per_hour"] == 2.0
-        assert ecc2k130["estimated_work_operations"] == (10 + 338_034_791) * 2**32
-        assert ecc2k130["estimated_work_log2"] == 60.33
+        # Public runs alone; the imported run is reported separately, never folded in.
+        assert ecc2k130["estimated_work_operations"] == 10 * 2**32
+        assert ecc2k130["estimated_work_log2"] == 35.32
         assert ecc2k130["expected_operations_log2"] == 60.79
-        assert abs(ecc2k130["expected_work_percent"] - 72.59) < 0.01
-        assert abs(ecc2k130["estimated_completion_probability_percent"] - 33.89) < 0.01
+        assert 0 < ecc2k130["expected_work_percent"] < 1e-5
+        combined = ecc2k130["including_historical"]
+        assert combined["estimated_work_operations"] == (10 + 338_034_791) * 2**32
+        assert combined["estimated_work_log2"] == 60.33
+        assert abs(combined["expected_work_percent"] - 72.59) < 0.01
+        assert abs(combined["estimated_completion_probability_percent"] - 33.89) < 0.01
+        assert combined["points_per_hour"] == ecc2k130["points_per_hour"]
+        assert combined["hours_to_expected_work"] < ecc2k130["hours_to_expected_work"]
         assert ecc2k130["hours_to_expected_work"] > 0
         assert status["campaigns"][19]["expected_operations_log2"] == 64.92
         assert "expected_work_percent" not in status["campaigns"][19]
@@ -102,7 +109,8 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert page.status_code == 200
         assert b"Live status" in page.content
         assert b"2.0e18" in page.content
-        assert b"2<sup>60.8</sup>" in page.content and b'role="progressbar"' in page.content
+        assert b"2<sup>60.8</sup>" in page.content and page.content.count(b'role="progressbar"') == 2
+        assert b"Public runs on this gateway" in page.content and b"72.6% with import" in page.content
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
@@ -180,7 +188,8 @@ def test_account_runs_and_status_against_postgres(database, aws_resources, setti
     ecc2k130 = snapshot["campaigns"][6]
     assert ecc2k130["historical_points"] == 90
     assert ecc2k130["points_per_hour"] == round(5 / 24, 1)
-    assert ecc2k130["estimated_work_operations"] == (5 + 90) * 2**32
+    assert ecc2k130["estimated_work_operations"] == 5 * 2**32
+    assert ecc2k130["including_historical"]["estimated_work_operations"] == (5 + 90) * 2**32
 
 
 def test_status_reader_caches_database_snapshot():
@@ -230,6 +239,7 @@ def test_status_page_keeps_working_when_import_totals_are_unreadable():
         assert status.status_code == 200
         assert status.json()["total_historical_points"] is None
         assert status.json()["campaigns"][6]["historical_points"] is None
+        assert status.json()["campaigns"][6]["including_historical"] is None
         page = client.get("/status").text
         assert ">10<small>stored durably</small>" in page
         assert "Counts cover this gateway only." in page
