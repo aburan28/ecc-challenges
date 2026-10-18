@@ -32,7 +32,7 @@ Parameters:
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   AlertEmail: {Type: String, Default: ''}
   MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
-  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}$'}
+  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}(,[0-9a-f]{24})*$'}
   MaxPendingBatches: {Type: Number, Default: 512, MinValue: 16, MaxValue: 100000}
   PointIndexMode: {Type: String, Default: dynamodb, AllowedValues: [dynamodb, compact]}
   PointIndexMergeSeconds: {Type: Number, Default: 3600, MinValue: 10, MaxValue: 86400}
