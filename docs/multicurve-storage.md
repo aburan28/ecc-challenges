@@ -2,7 +2,7 @@
 
 Implementation status: v2 is being integrated and is disabled by default. The
 production ECC2K-130 v1 walk keeps its existing encoding and namespace. A catalog
-entry alone never enables a worker. Historical database import is deferred.
+entry alone never enables a worker. The ECC2K-130 v1 historical import is separate; see operations.md.
 
 ## Scope and identities
 
@@ -25,7 +25,22 @@ Each record stores `trail_id:u64le | steps:u64le | x:BE | y:BE | a:BE | b:BE`,
 where `R=aG+bQ`. Widths are fixed per namespace, derived from field and subgroup
 sizes: 56–196 bytes for this registry. Scalars are binary, avoiding database
 numeric precision limits. Finite points whose SHA-256 of canonical x||y has trailing DP bits zero qualify; the first hash byte selects the walk partition.
-Generic default: 20 bits. V1 retains its original DP32 Frobenius predicate.
+V1 retains its original DP32 Frobenius predicate.
+
+DP bits are set per curve (`dp_bits_for` in `multicurve/codec.py`). This walk
+has no automorphism quotient, so a solve takes about E = sqrt(pi*n/2) steps.
+The rule is d = floor(log2 E) - 23, capped at 34. With up to 2^16 walks running
+at once, the steps left in unfinished walks stay under 1% of E, and each curve
+below the cap needs about 2^23.5 (~12 million) DPs. ECCp-79 gets 16 bits,
+ECCp-109 31, and every curve of 130 bits or more 34 (ECC2K-130 about 2^30.8 DPs,
+ECCp-131 about 2^31.4). The DP bit count is part of the namespace, so changing
+the rule starts new namespaces; existing runs keep the setting pinned in their
+manifest.
+
+Every trail keeps the `b` of its start, because jumps add only multiples of G.
+Verification therefore also checks that each DP's `b` equals the start derived
+from its run ID and trail ID, which ties the DP to a server-assigned trail
+without replaying the walk. It does not check the trail's `a` or step count.
 
 ## Submission and processing
 
@@ -104,6 +119,55 @@ A segment retains the source batch UUID and record ordinal for every witness,
 plus a manifest naming all source checksums and versions. Compaction never
 removes raw witnesses. Lifecycle rules may move old compact segments to cheaper
 storage after their minimum storage and access requirements are understood.
+
+## Compact point index
+
+`POINT_INDEX_MODE=compact` replaces the DynamoDB index with sorted 16-byte
+entries in S3 (`multicurve/pointindex.py`). Uploads and verification are
+unchanged: workers still send full records, every record is still checked, and
+the raw batch stays the authority. Only the index is smaller.
+
+```text
+public-gateway/<stream>/pointindex/<namespace>/parts/<part>-<sha256>.bin
+public-gateway/<stream>/v2/pointindex/<namespace>/generation-<n>/<receipt-sha256>.json
+```
+
+| Bytes | Field | Meaning |
+| --- | --- | --- |
+| 0–7 | fingerprint | first 8 bytes of SHA-256(x‖y), the digest the walk already computes |
+| 8–15 | locator | `index_seq` (40 bits) ‖ record index (24 bits), big-endian |
+
+1. Indexing a verified batch only gives it the next `index_seq`
+   (`dp_index_seq`, in PostgreSQL). Nothing is written per point.
+2. The reconcile task merges every `POINT_INDEX_MERGE_SECONDS` (or run
+   `python -m ecc_challenges.queues merge` once). For each namespace with
+   pending batches it reads their raw objects (version- and SHA-256-pinned),
+   makes one entry per distinct (point, witness), and merges them into parts:
+   4,096 sorted files, one per top 12 fingerprint bits.
+3. Each new fingerprint is looked up in its part. A shared fingerprint is
+   resolved from the full records: the same point with another witness becomes
+   a collision lead and is solved as before; the same witness is duplicate work,
+   whose entry is dropped and counted as deduplicated; a different point is a
+   fingerprint false positive (about N²/2⁶⁵ of them for N entries, so roughly
+   0.1 for a full ECC2K-130 solve).
+4. A generation manifest (parts, checksums, counts, leads) is written under
+   `v2/`, then committed by compare-and-swap on `dp_point_index`, together with
+   the batches it covers and their duplicate counts. Parts the new generation
+   replaced are deleted; a lifecycle rule expires their old versions after 7
+   days. Parts live outside `v2/`, which forbids deletes.
+
+The index is derived. `Merger.rebuild(namespace)` discards it, and the next
+merges rebuild it from every indexed batch; counters are adjusted by the
+difference, so a rebuild leaves them unchanged. Batches indexed while the mode
+was `dynamodb` have no `index_seq` and stay in DynamoDB only.
+
+Sizing: a merge rewrites every part that received entries, so its cost grows
+with the index (16 bytes per entry). ECC2K-130 at DP34 is about 2^30.8 entries,
+about 30 GB in S3 (under $1 a month) against about 1 TB of DynamoDB items.
+Merging the part lists is fast (30 million existing plus 1 million new entries
+in about 4 s of CPU); S3 transfer dominates. Below about 100 million entries
+hourly merges are cheap. Above that, merge daily (`POINT_INDEX_MERGE_SECONDS=86400`).
+A collision is found at the first merge after both points are indexed.
 
 ## Capacity, abuse and accounting
 

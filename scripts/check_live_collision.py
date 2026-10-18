@@ -43,7 +43,7 @@ def main():
     s3=s.client('s3');bucket='ecc-challenges-data-104186811093'
     raw=s3.get_object(Bucket=bucket,Key=source['object_key'],VersionId=source['version_id'])['Body'].read(57)
     assert len(raw)==56 and hashlib.sha256(raw).hexdigest()==source['sha256']
-    ns=namespace('eccp-79');first=ns.decode(raw)[0];ns.verify(first)
+    ns=namespace('eccp-79',20);first=ns.decode(raw)[0];ns.verify(first)
     scalar=int(registry_metadata()['reference_vectors'][ns.campaign]['scalar'],16)
     assert ns.instance.mul(scalar,ns.instance.G)==ns.instance.Q
     constructed=replace(first,a=(first.a-scalar)%ns.instance.n,b=(first.b+1)%ns.instance.n)

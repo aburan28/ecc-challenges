@@ -6,24 +6,24 @@ Certicom exercises and challenges other than ECC2K-130 through the
 
 ## Current release boundary, 2026-10-16
 
-All24 published instances now have implemented CPU/CUDA workers and the v2
-archive/verifier/index path. The selected published image passed168 checks on
-a real L4 as UID/GID10001. All24 production-predicate CPU contribution checks
+All 24 published instances now have implemented CPU/CUDA workers and the v2
+archive/verifier/index path. The selected published image passed 168 checks on
+a real L4 as UID/GID10001. All 24 production-predicate CPU contribution checks
 also passed against the deployed gateway: upload, index, checkpoint resume,
 and explicit run closure. Exact image/source/S3-version bindings and failed
 attempts are retained in [release evidence](../verification/all-curves-20261016/README.md).
 
 The remaining obstruction is release validation: a real GPU contribution with a
-persistent volume and a sustained fresh-point capacity
-envelope. Anonymous GHCR import and all168 L4 checks passed, and the bounded
-account-backlog/refusal/restart/drain check passed. The AWS account currently has30 Fargate
-vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for256. Until
-effective, the configured32-auditor ceiling is not available in full.
+persistent volume, current-head required CI, and a sustained fresh-point capacity
+envelope. Anonymous GHCR import and all 168 L4 checks passed, and the bounded
+account-backlog/refusal/restart/drain check passed. The AWS account currently has 30 Fargate
+vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for 256. Until
+effective, the configured 32-auditor ceiling is not available in full.
 
 V2 stays restricted to the designated canary key while these gates are checked.
 Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
-import remains deferred by user instruction.
+import ran on 2026-10-17; see docs/operations.md, "Historical point import".
 
 ### Modal checkpoint access obstruction
 
@@ -71,13 +71,13 @@ Modal Secret. No contributor key was sent during these filesystem controls.
 
 The first bounded pressure attempt rejected a valid regionless S3 hostname in
 the harness; its held reservation was completed and indexed normally. The
-second attempt observed ECS runningCount0 while the old tasks were STOPPING.
-Their processes still consumed records, so the intended32-batch backlog never
-formed. All33 acknowledged records subsequently indexed through normal commit
+second attempt observed ECS runningCount 0 while the old tasks were STOPPING.
+Their processes still consumed records, so the intended 32-batch backlog never
+formed. All 33 acknowledged records subsequently indexed through normal commit
 replay, with no lease mutation; that recovery receipt is retained separately.
 
 The next preflight refused a nonzero SQS in-flight count. A read-only SQL task
-then measured59 indexed v2 batches, zero pending v1/v2 batches or bytes, and zero
+then measured 59 indexed v2 batches, zero pending v1/v2 batches or bytes, and zero
 active processing leases, while SQS retained two invisible deliveries. This is
 a delivery-versus-work accounting distinction. The raw SQS count alone cannot
 establish a pending application backlog. No message was purged or deleted to
@@ -86,17 +86,17 @@ make the check pass.
 The corrected bounded check must wait for the exact old task ARNs to become
 STOPPED. Any nonzero in-flight baseline requires a fresh, source-bound read-only
 SQL receipt with zero unfinished work/pressure and matching queue counts.
-Acceptance then requires32 new admitted records, the precise account-cap429 on
+Acceptance then requires 32 new admitted records, the precise account-cap 429 on
 the next intent, normal restart/drain, successful retry, stable commit replay,
 closure and restored service/scaling settings. A final SQL snapshot checks
 pressure returns to baseline. This remains a duplicate-witness engineering
-check; sustained unique-point capacity and global503 behavior require separate
+check; sustained unique-point capacity and global 503 behavior require separate
 tests.
 
-Attempt4 met that bounded acceptance criterion. Its separate before/after SQL
+Attempt 4 met that bounded acceptance criterion. Its separate before/after SQL
 receipts show zero pending bytes/batches for both protocols and zero active v2
 processing leases. This closes the bounded account-refusal and consumer-restart
-check; it leaves fresh-point capacity, global503 and the other release gates
+check; it leaves fresh-point capacity, global 503 and the other release gates
 open.
 
 ## Original obstruction (preserved history)
@@ -157,35 +157,35 @@ each subsequent curve. Certicom source:
 
 ## Implementation evidence, 2026-10-16
 
-The v2 implementation now includes exact parameters for all24 instances,
+The v2 implementation now includes exact parameters for all 24 instances,
 fixed-width affine coefficient witnesses, UUID runs, SHAKE256 full-width seed
 derivation, CPU/CUDA arithmetic, direct immutable S3 upload, full algebraic
 verification, conditional DynamoDB collision indexing, and archive compaction
 and index reconstruction. See [storage design](../docs/multicurve-storage.md)
 and [frozen correctness receipts](../verification/all-curves-20261016/README.md).
 
-All24 parameter checks and10 published scalar controls passed. The CPU engine
-passed72 transition cases; a real Modal L4 passed168 comparisons/rejections over
-all24 curves. Isolated PostgreSQL/mocked AWS controls cover valid/rejected
+All 24 parameter checks and 10 published scalar controls passed. The CPU engine
+passed 72 transition cases; a real Modal L4 passed 168 comparisons/rejections over
+all 24 curves. Isolated PostgreSQL/mocked AWS controls cover valid/rejected
 admission, immutable retries, verification-before-indexing, crash recovery,
 collision scalar verification, revocation, compaction and fresh-index replay.
 
 This record remains open under the current release boundary above. The Linux
-build, final-image finite GPU controls and all24 CPU upload/index canaries have
+build, final-image finite GPU controls and all 24 CPU upload/index canaries have
 since completed. Sustained arrival/drain measurements and a declared launch
 fleet rate remain outstanding. Full algebraic verification does not attest
 claimed trail lengths; advertised completion percentages stay unavailable
 pending work verification and an explicit model.
 
 Local image builds failed because Docker Desktop could not start. The system
-volume also reached100% utilization. Completed failed test artifacts were moved
+volume also reached 100% utilization. Completed failed test artifacts were moved
 intact to the project SSD, and subsequent isolated tests use `.tmp/` there.
 Linux release builds are provided through `infra/build.yaml`; they must produce
 pinned image digests before deployment. No failed receipt was overwritten.
 
 ### DP predicate correction
 
-Before enabling v2, a finite control found every one of32 sampled ECC2-79 G
+Before enabling v2, a finite control found every one of 32 sampled ECC2-79 G
 multiples had odd x. Raw coordinate low bits therefore cannot be assumed to
 supply the intended cross-curve DP density. The initial arithmetic parity tests
 did not require nonempty DP output for every curve and missed this operational
@@ -199,8 +199,8 @@ correctness gate now additionally requires finite DP1 emission on every curve.
 All CPU and GPU transition controls must be rerun for this exact revision.
 The legacy Frobenius predicate is a separate established protocol.
 
-The corrected ECCJOB03 implementation passed the repeated72 CPU cases and168
-real L4 comparisons/rejections across all24 curves. Every curve's DP1 control
+The corrected ECCJOB03 implementation passed the repeated 72 CPU cases and 168
+real L4 comparisons/rejections across all 24 curves. Every curve's DP1 control
 emitted points. Evidence: `verification/all-curves-20261016/cpu-job03.json`,
 `cuda-job03-l4.json`, `job03-controls.tar.gz` and `source-job03-sha256.json`.
 A designated key-ID preview gate permits the live canary without marking v2
@@ -220,6 +220,6 @@ which quota-accounting identity reached the limit.
 This blocks a provider-neutral anonymous-pull release, not the arithmetic check.
 The next steps are a temporary pull-only registry identity for the internal
 canary and an independently accessible public mirror. Acceptance requires an
-anonymous hosted-provider pull of the exact published digest, all168 final-image
+anonymous hosted-provider pull of the exact published digest, all 168 final-image
 controls, and the normal entrypoint contribution check. Publishing an image or
 successfully pulling it inside AWS does not meet that exit condition.

@@ -1,0 +1,28 @@
+# CPU-only contributor image for all 24 Certicom curves (protocol 2).
+# Multi-architecture: builds for linux/amd64 and linux/arm64 and needs no
+# NVIDIA driver or toolkit. The GPU image is worker/Dockerfile.
+FROM python:3.12-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 AS build
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends g++ \
+  && rm -rf /var/lib/apt/lists/*
+COPY worker/generic/engine.cu worker/generic/ec_core.h /build/
+RUN g++ -std=c++17 -O2 -fopenmp -x c++ /build/engine.cu -o /build/generic-engine \
+  && /build/generic-engine --self-test
+
+FROM python:3.12-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+LABEL org.opencontainers.image.source="https://github.com/aburan28/ecc-challenges" \
+      org.opencontainers.image.description="ECC Challenges CPU worker for all Certicom curves"
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgomp1 \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd --uid 10001 --user-group --no-create-home --shell /usr/sbin/nologin ecc \
+  && mkdir /data && chown 10001:10001 /data
+COPY worker/client.py worker/protocol.py /opt/ecc2k130/
+COPY worker/generic/ /opt/ecc2k130/generic/
+COPY src/ecc_challenges/__init__.py /opt/ecc2k130/ecc_challenges/__init__.py
+COPY src/ecc_challenges/multicurve/ /opt/ecc2k130/ecc_challenges/multicurve/
+COPY --from=build /build/generic-engine /opt/ecc/generic-engine
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    ECC_API_KEY_FILE=/run/secrets/ecc_api_key ECC_API_URL=https://ecc-challenges.com \
+    ECC_PROTOCOL=2 ECC_BACKEND=cpu ECC_STATE_DIR=/data
+USER 10001:10001
+VOLUME /data
+ENTRYPOINT ["python3", "/opt/ecc2k130/client.py"]

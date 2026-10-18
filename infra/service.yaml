@@ -32,11 +32,14 @@ Parameters:
   ResolveTasks: {Type: Number, Default: 0, MinValue: 0, MaxValue: 8}
   AlertEmail: {Type: String, Default: ''}
   MulticurveEnabled: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
-  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}$'}
+  MulticurveCanaryKey: {Type: String, Default: '', AllowedPattern: '^$|^[0-9a-f]{24}(,[0-9a-f]{24}){0,7}$'}
   MaxPendingBatches: {Type: Number, Default: 512, MinValue: 16, MaxValue: 100000}
+  PointIndexMode: {Type: String, Default: dynamodb, AllowedValues: [dynamodb, compact]}
+  PointIndexMergeSeconds: {Type: Number, Default: 3600, MinValue: 10, MaxValue: 86400}
 
 Conditions:
   HasAlertEmail: !Not [!Equals [!Ref AlertEmail, '']]
+  CompactPointIndex: !Equals [!Ref PointIndexMode, compact]
 
 Resources:
   PointIndex:
@@ -252,6 +255,10 @@ Resources:
               - Effect: Allow
                 Action: [dynamodb:PutItem, dynamodb:DescribeTable]
                 Resource: !GetAtt PointIndex.Arn
+              # Derived compact index parts; superseded parts are deleted.
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:DeleteObject]
+                Resource: !Sub arn:aws:s3:::${Bucket}/public-gateway/${StreamId}/pointindex/*
               - Effect: Allow
                 Action: [sqs:ReceiveMessage, sqs:DeleteMessage, sqs:GetQueueAttributes, sqs:ChangeMessageVisibility, sqs:SendMessage]
                 Resource: [!Ref AuditQueueArn, !Ref IndexQueueArn, !Ref CollisionQueueArn]
@@ -275,6 +282,8 @@ Resources:
             - {Name: PUBLIC_ORIGIN, Value: !Sub 'https://${DomainName}'}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: POINT_INDEX_MODE, Value: !Ref PointIndexMode}
+            - {Name: POINT_INDEX_MERGE_SECONDS, Value: !Ref PointIndexMergeSeconds}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
@@ -313,6 +322,8 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: POINT_INDEX_MODE, Value: !Ref PointIndexMode}
+            - {Name: POINT_INDEX_MERGE_SECONDS, Value: !Ref PointIndexMergeSeconds}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
@@ -346,6 +357,8 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: POINT_INDEX_MODE, Value: !Ref PointIndexMode}
+            - {Name: POINT_INDEX_MERGE_SECONDS, Value: !Ref PointIndexMergeSeconds}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
@@ -366,8 +379,8 @@ Resources:
       Family: ecc-challenges-reconcile
       RequiresCompatibilities: [FARGATE]
       NetworkMode: awsvpc
-      Cpu: '256'
-      Memory: '512'
+      Cpu: !If [CompactPointIndex, '1024', '256']
+      Memory: !If [CompactPointIndex, '4096', '512']
       ExecutionRoleArn: !GetAtt ExecutionRole.Arn
       TaskRoleArn: !GetAtt WorkerTaskRole.Arn
       ContainerDefinitions:
@@ -379,6 +392,8 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: POINT_INDEX_MODE, Value: !Ref PointIndexMode}
+            - {Name: POINT_INDEX_MERGE_SECONDS, Value: !Ref PointIndexMergeSeconds}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}
@@ -412,6 +427,8 @@ Resources:
             - {Name: AWS_REGION, Value: !Ref AWS::Region}
             - {Name: ECC_BUCKET, Value: !Ref Bucket}
             - {Name: POINT_INDEX_TABLE, Value: !Ref PointIndex}
+            - {Name: POINT_INDEX_MODE, Value: !Ref PointIndexMode}
+            - {Name: POINT_INDEX_MERGE_SECONDS, Value: !Ref PointIndexMergeSeconds}
             - {Name: MULTICURVE_ENABLED, Value: !Ref MulticurveEnabled}
             - {Name: MAX_PENDING_BATCHES, Value: !Sub '${MaxPendingBatches}'}
             - {Name: MULTICURVE_CANARY_KEYS, Value: !Ref MulticurveCanaryKey}

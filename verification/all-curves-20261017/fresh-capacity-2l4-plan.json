@@ -1,0 +1,13 @@
+{
+  "app_name": "ecc-capacity-94e6109c20c5",
+  "campaign": "eccp-79",
+  "duration_seconds": 600,
+  "format": "v2-fresh-capacity-gate-v1",
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f",
+  "intended_fleet_l4": 1,
+  "namespace_id": "4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a",
+  "ok": false,
+  "source_commit": "5bd0a507869492de86a0d7a4f1bc569a0db0b417",
+  "started_at_unix": 1792282301.193124,
+  "test_fleet_l4": 2
+}

@@ -1,14 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Contributor dashboard · ECC Challenges{% endblock %}
+{% block title %}Dashboard · ECC Challenges{% endblock %}
 {% block content %}
-<div class="eyebrow">Contributor dashboard</div><h1 style="font-size:clamp(2.3rem,5vw,4rem)">Your worker access</h1>
-<p class="muted">Signed in as <strong>{{ login }}</strong>. A key can be used to start and resume workers. Revoking it stops uploads for its runs.</p>
-{% if issued %}<div class="card" role="alert" style="border-color:var(--gold);margin:28px 0"><h3>Copy this key now</h3><p class="muted">It is shown only once. Store it as a local file with mode 0600 and mount it read-only into the container.</p><div class="code secret">{{ issued }}</div></div>{% endif %}
-<div class="stack" style="margin-top:40px">
-  <section class="card"><h2>Create an API key</h2><p class="muted">Up to three active keys per GitHub account.</p><form method="post" action="/keys"><input type="hidden" name="csrf" value="{{ csrf }}"><label for="label">Key name</label><input id="label" name="label" type="text" maxlength="80" required placeholder="My GPU workstation"><p style="margin-top:18px"><button class="button" type="submit">Generate key</button></p></form></section>
-  <section class="card"><h2>Run a worker</h2><p class="muted">{% if multicurve_enabled %}One image supports all 24 Certicom campaigns on CPU or NVIDIA CUDA. Select a campaign below; give each worker its own persistent directory.{% else %}The published image computes ECC2K-130.{% endif %} Save the key as <code>~/.config/ecc-challenges/api-key</code> with mode 0600. Set a distinct GPU_ID and data directory for each container. Pin the immutable image digest from the published container package for a long-running worker.</p><div class="code">GPU_ID=0
+<div class="section-head" style="align-items:center">
+  <div><div class="kicker">Dashboard</div><h1 style="margin:0">Your workers</h1></div>
+  <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button ghost small" type="submit">Sign out {{ login }}</button></form>
+</div>
+
+{% if issued %}
+<div class="panel alert" role="alert" style="margin-top:28px">
+  <h3>Copy your new key now</h3>
+  <p class="muted">This is the only time it is shown. Save it to a file only you can read:</p>
+  <div class="code secret">{{ issued }}</div>
+  <pre><span class="c"># paste the key when prompted, then press Ctrl-D</span>
+mkdir -p ~/.config/ecc-challenges
+(umask 077; cat > ~/.config/ecc-challenges/api-key)</pre>
+</div>
+{% endif %}
+
+<section class="section" style="margin-top:36px">
+  <div class="section-head"><h2>1. API keys</h2><p class="muted">Up to three active keys per account. Revoking a key stops uploads from every run that uses it.</p></div>
+  <div class="two" style="gap:28px;align-items:start">
+    <form class="panel" method="post" action="/keys">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <label for="label">Name for the new key</label>
+      <div class="row"><input id="label" name="label" type="text" maxlength="80" required placeholder="e.g. home RTX 4090" style="flex:1 1 200px"><button class="button" type="submit">Create key</button></div>
+    </form>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th></th></tr></thead>
+      <tbody>
+      {% for key in keys %}
+        <tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
+          <td class="num">{% if key.revoked_at %}<span class="tag">Revoked</span>{% else %}<form class="inline" method="post" action="/keys/{{ key.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger" type="submit">Revoke</button></form>{% endif %}</td></tr>
+      {% else %}
+        <tr><td colspan="4" class="muted">No keys yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">{% if multicurve_enabled %}Use Docker or a native Windows or macOS worker.{% else %}The current public campaign needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>.{% endif %}</p></div>
+  {% if multicurve_enabled %}
+  <form method="get" action="/dashboard" style="margin-bottom:18px">
+    <label for="campaign">Challenge</label>
+    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for challenge in challenges %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</select><button class="button ghost" type="submit">Update command</button></div>
+  </form>
+  {% endif %}
+<pre><span class="c"># one directory per GPU; keep it between restarts</span>
+GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
 mkdir -p "$PWD/ecc-data-$CAMPAIGN-$GPU_ID"
+
 docker run --gpus all --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_GPU="$GPU_ID" \
@@ -17,9 +60,18 @@ docker run --gpus all --restart unless-stopped \
   -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-$CAMPAIGN-$GPU_ID:/data" \
-  {{ worker_image }}</div><p class="muted" style="margin-top:18px">On Modal, use the <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/modal-workers.md">Modal launcher</a>. On RunPod or another container host, use this same pinned image, attach persistent storage at <code>/data</code>, and provide the key as a mounted file or the <code>ECC_API_KEY</code> environment secret. Treat provider configuration containing a key as sensitive.</p></section>
-</div>
-<section class="section"><h2>Choose a campaign</h2><p class="muted">The catalog lists all {{ challenges|length }} Certicom exercises and challenges. {% if multicurve_enabled %}All 24 are available. The prime and binary field implementations use each challenge’s exact published parameters. Existing ECC2K-130 workers continue their established walk. For a CPU worker, remove <code>--gpus all</code> and add <code>-e ECC_BACKEND=cpu -e ECC_PROTOCOL=2</code>.{% else %}ECC2K-130 is the campaign accepted by this worker image and gateway today. Other campaigns will appear here when a compatible worker and independent verifier are deployed.{% endif %}</p>{% if multicurve_enabled %}<form method="get" action="/dashboard"><label for="campaign">Campaign</label><select id="campaign" name="campaign">{% for challenge in challenges %}<option value="{{ challenge.id }}" {% if challenge.id == selected_campaign %}selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</select><button class="button secondary" type="submit">Update command</button></form>{% endif %}<p><a href="/#campaigns">View the full catalog</a></p></section>
-<section class="section"><h2>Keys</h2><div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Key ID</th><th>Created</th><th>Status</th><th></th></tr></thead><tbody>{% for key in keys %}<tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td><td>{% if key.revoked_at %}Revoked{% else %}Active{% endif %}</td><td>{% if not key.revoked_at %}<form class="inline" method="post" action="/keys/{{ key.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger" type="submit">Revoke</button></form>{% endif %}</td></tr>{% else %}<tr><td colspan="5" class="muted">No keys yet.</td></tr>{% endfor %}</tbody></table></div></section>
-<form method="post" action="/logout" style="margin-top:38px"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button secondary" type="submit">Sign out</button></form>
+  {{ worker_image }}</pre>
+  <ul class="plain note">
+    <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
+    {% if multicurve_enabled %}<li>On an amd64 CPU host, use this same image without <code>--gpus all</code> or <code>-e ECC_GPU</code>; it selects the CPU backend. New builds use <code>OMP_NUM_THREADS</code> to limit CPU threads.</li>{% endif %}
+    {% if multicurve_enabled %}<li>On Windows, run the native CPU worker or build its optional CUDA engine. On macOS, run the native Metal worker. Both use the same persistent checkpoint format; follow the <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">native setup steps</a>.</li>{% endif %}
+    <li>Kubernetes, systemd, Podman, Slurm, Modal or no Docker at all: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>. On RunPod or similar, use the same image, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
+    <li>If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</li>
+  </ul>
+</section>
+
+<section class="section">
+  <h2>3. Check it's working</h2>
+  <p class="muted">Within a few minutes your run should appear in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="https://github.com/aburan28/ecc-challenges/issues">open an issue</a>.</p>
+</section>
 {% endblock %}

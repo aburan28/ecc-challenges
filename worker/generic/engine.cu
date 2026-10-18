@@ -1,460 +1,47 @@
 // Portable affine EC walk engine. This implementation prioritizes correctness;
-// CPU and CUDA share the same fixed-width arithmetic and walk transition.
-// Compile as C++17 with -x c++ or as CUDA with nvcc -x cu.
+// CPU, CUDA and Metal share the fixed-width arithmetic and walk transition in
+// ec_core.h. Compile as C++17 with -x c++ (GCC, Clang, MSVC), as CUDA with
+// nvcc -x cu, or for Metal through engine_metal.mm on macOS.
+#include <algorithm>
+#include <atomic>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <system_error>
+#include <thread>
 #include <vector>
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
-#define HD __host__ __device__
-#else
-#define HD
 #endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+#include "ec_core.h"
 
 namespace ecc {
-constexpr int WORDS = 12;
 constexpr std::size_t JOB_BYTES = 6568;
 constexpr std::size_t STATE_BYTES = 216;
 constexpr std::uint32_t MAX_LANES = 4096;
 constexpr std::uint32_t MAX_ROUND_STEPS = 1048576;
-
-// Words are little endian. Persistence always uses explicit byte encoding.
-struct UInt384 { std::uint32_t w[WORDS]; };
-struct Point { UInt384 x, y; std::uint32_t infinity; };
-struct Jump { UInt384 x, y, da, db; };
-struct Job {
-    std::uint32_t kind, field_bits, scalar_bits, dp_bits;
-    std::uint32_t lanes, steps_per_round, table_size, reserved;
-    UInt384 modulus, a, b, n, gx, gy, qx, qy;
-    Jump jumps[32];
-};
-struct State {
-    UInt384 x, y, a, b;
-    std::uint64_t trail_id, steps;
-    std::uint32_t active, infinity;
-};
-static_assert(sizeof(UInt384) == 48, "unexpected integer layout");
 static_assert(sizeof(State) == STATE_BYTES, "unexpected state layout");
 
-HD inline UInt384 small(std::uint32_t n) {
-    UInt384 r{}; r.w[0] = n; return r;
-}
-HD inline bool is_zero(const UInt384& a) {
-    std::uint32_t r = 0;
-    for (int i = 0; i < WORDS; ++i) r |= a.w[i];
-    return r == 0;
-}
-HD inline bool is_one(const UInt384& a) {
-    if (a.w[0] != 1) return false;
-    for (int i = 1; i < WORDS; ++i) if (a.w[i]) return false;
-    return true;
-}
-HD inline int compare(const UInt384& a, const UInt384& b) {
-    for (int i = WORDS - 1; i >= 0; --i) {
-        if (a.w[i] < b.w[i]) return -1;
-        if (a.w[i] > b.w[i]) return 1;
-    }
-    return 0;
-}
-HD inline bool equal(const UInt384& a, const UInt384& b) {
-    return compare(a, b) == 0;
-}
-HD inline bool bit(const UInt384& a, int i) {
-    return ((a.w[i / 32] >> (i % 32)) & 1U) != 0;
-}
-HD inline int bit_length(const UInt384& a) {
-    for (int i = WORDS - 1; i >= 0; --i) {
-        std::uint32_t v = a.w[i];
-        if (v) {
-            int n = 0;
-            while (v) { ++n; v >>= 1; }
-            return i * 32 + n;
-        }
-    }
-    return 0;
-}
-HD inline UInt384 xor_value(const UInt384& a, const UInt384& b) {
-    UInt384 r{};
-    for (int i = 0; i < WORDS; ++i) r.w[i] = a.w[i] ^ b.w[i];
-    return r;
-}
-HD inline UInt384 add_raw(const UInt384& a, const UInt384& b) {
-    UInt384 r{};
-    std::uint64_t carry = 0;
-    for (int i = 0; i < WORDS; ++i) {
-        const std::uint64_t t = std::uint64_t(a.w[i]) + b.w[i] + carry;
-        r.w[i] = std::uint32_t(t);
-        carry = t >> 32;
-    }
-    return r;
-}
-HD inline UInt384 subtract_raw(const UInt384& a, const UInt384& b) {
-    UInt384 r{};
-    std::uint64_t borrow = 0;
-    for (int i = 0; i < WORDS; ++i) {
-        const std::uint64_t t = std::uint64_t(b.w[i]) + borrow;
-        r.w[i] = std::uint32_t(std::uint64_t(a.w[i]) - t);
-        borrow = std::uint64_t(a.w[i]) < t ? 1 : 0;
-    }
-    return r;
-}
-HD inline UInt384 shift_right_one(const UInt384& a) {
-    UInt384 r{};
-    std::uint32_t carry = 0;
-    for (int i = WORDS - 1; i >= 0; --i) {
-        r.w[i] = (a.w[i] >> 1) | (carry << 31);
-        carry = a.w[i] & 1U;
-    }
-    return r;
-}
-HD inline UInt384 shift_left(const UInt384& a, int bits) {
-    UInt384 r{};
-    const int words = bits / 32, rem = bits % 32;
-    for (int i = WORDS - 1; i >= words; --i) {
-        const int j = i - words;
-        r.w[i] = a.w[j] << rem;
-        if (rem && j > 0) r.w[i] |= a.w[j - 1] >> (32 - rem);
-    }
-    return r;
-}
+#ifdef ECC_METAL
+// Defined in engine_metal.mm, which includes this file.
+void run_metal(const Job& job, std::vector<State>& states,
+               std::vector<int>& errors);
+std::vector<std::string> metal_devices();
+std::string metal_source();
+#endif
 
-// Reduced operands and moduli below 2^360 leave room for the unreduced sum.
-HD inline UInt384 add_mod(const UInt384& a, const UInt384& b,
-                           const UInt384& m) {
-    UInt384 r = add_raw(a, b);
-    if (compare(r, m) >= 0) r = subtract_raw(r, m);
-    return r;
-}
-HD inline UInt384 subtract_mod(const UInt384& a, const UInt384& b,
-                                const UInt384& m) {
-    if (compare(a, b) >= 0) return subtract_raw(a, b);
-    return subtract_raw(m, subtract_raw(b, a));
-}
-HD inline UInt384 multiply_mod(UInt384 a, const UInt384& b,
-                                const UInt384& m) {
-    UInt384 r{};
-    const int limit = bit_length(b);
-    for (int i = 0; i < limit; ++i) {
-        if (bit(b, i)) r = add_mod(r, a, m);
-        a = add_mod(a, a, m);
-    }
-    return r;
-}
-HD inline UInt384 half_mod(UInt384 a, const UInt384& m) {
-    if (a.w[0] & 1U) a = add_raw(a, m);
-    return shift_right_one(a);
-}
-
-// Binary extended GCD. The watchdog is well above the bit-reduction bound;
-// noninvertible input returns failure and never masquerades as a zero inverse.
-HD inline bool inverse_mod(const UInt384& a, const UInt384& m,
-                             UInt384& result) {
-    if (is_zero(a) || !(m.w[0] & 1U)) return false;
-    UInt384 u = a, v = m, x = small(1), y{};
-    for (int watchdog = 0; watchdog < 8192; ++watchdog) {
-        if (is_one(u)) { result = x; return true; }
-        if (is_one(v)) { result = y; return true; }
-        if (is_zero(u) || is_zero(v)) return false;
-        if (!(u.w[0] & 1U)) {
-            u = shift_right_one(u); x = half_mod(x, m);
-        } else if (!(v.w[0] & 1U)) {
-            v = shift_right_one(v); y = half_mod(y, m);
-        } else if (compare(u, v) >= 0) {
-            u = subtract_raw(u, v); x = subtract_mod(x, y, m);
-        } else {
-            v = subtract_raw(v, u); y = subtract_mod(y, x, m);
-        }
-    }
-    return false;
-}
-
-HD inline UInt384 binary_xtime(const UInt384& a, const Job& job) {
-    UInt384 r = shift_left(a, 1);
-    if (bit(a, int(job.field_bits) - 1)) r = xor_value(r, job.modulus);
-    return r;
-}
-HD inline UInt384 binary_multiply(UInt384 a, const UInt384& b,
-                                   const Job& job) {
-    UInt384 r{};
-    const int limit = bit_length(b);
-    for (int i = 0; i < limit; ++i) {
-        if (bit(b, i)) r = xor_value(r, a);
-        a = binary_xtime(a, job);
-    }
-    return r;
-}
-HD inline UInt384 binary_xpower(UInt384 a, int power, const Job& job) {
-    for (int i = 0; i < power; ++i) a = binary_xtime(a, job);
-    return a;
-}
-HD inline bool binary_inverse(const UInt384& a, const Job& job,
-                                UInt384& result) {
-    if (is_zero(a)) return false;
-    UInt384 u = a, v = job.modulus, x = small(1), y{};
-    for (int watchdog = 0; watchdog < 8192; ++watchdog) {
-        if (is_one(u)) { result = x; return true; }
-        if (is_one(v)) { result = y; return true; }
-        if (is_zero(u) || is_zero(v)) return false;
-        int shift = bit_length(u) - bit_length(v);
-        if (shift < 0) {
-            UInt384 tmp = u; u = v; v = tmp;
-            tmp = x; x = y; y = tmp;
-            shift = -shift;
-        }
-        u = xor_value(u, shift_left(v, shift));
-        // Keep the Bezout coefficients reduced instead of needing 768 bits.
-        x = xor_value(x, binary_xpower(y, shift, job));
-    }
-    return false;
-}
-HD inline UInt384 field_add(const UInt384& a, const UInt384& b,
-                             const Job& job) {
-    return job.kind ? xor_value(a, b) : add_mod(a, b, job.modulus);
-}
-HD inline UInt384 field_subtract(const UInt384& a, const UInt384& b,
-                                  const Job& job) {
-    return job.kind ? xor_value(a, b) : subtract_mod(a, b, job.modulus);
-}
-HD inline UInt384 field_multiply(const UInt384& a, const UInt384& b,
-                                  const Job& job) {
-    return job.kind ? binary_multiply(a, b, job)
-                    : multiply_mod(a, b, job.modulus);
-}
-HD inline bool field_inverse(const UInt384& a, const Job& job,
-                               UInt384& result) {
-    return job.kind ? binary_inverse(a, job, result)
-                    : inverse_mod(a, job.modulus, result);
-}
-HD inline Point identity() {
-    Point r{}; r.infinity = 1; return r;
-}
-HD inline bool point_equal(const Point& a, const Point& b) {
-    if (a.infinity || b.infinity) return a.infinity == b.infinity;
-    return equal(a.x, b.x) && equal(a.y, b.y);
-}
-HD inline bool on_curve(const Point& p, const Job& job) {
-    if (p.infinity) return true;
-    const UInt384 x2 = field_multiply(p.x, p.x, job);
-    const UInt384 x3 = field_multiply(x2, p.x, job);
-    const UInt384 y2 = field_multiply(p.y, p.y, job);
-    if (job.kind) {
-        const UInt384 left = field_add(y2, field_multiply(p.x, p.y, job), job);
-        const UInt384 right = field_add(
-            field_add(x3, field_multiply(job.a, x2, job), job), job.b, job);
-        return equal(left, right);
-    }
-    const UInt384 right = field_add(
-        field_add(x3, field_multiply(job.a, p.x, job), job), job.b, job);
-    return equal(y2, right);
-}
-
-// y^2 = x^3 + ax + b (prime), or y^2 + xy = x^3 + ax^2 + b (binary).
-HD inline bool point_add(const Point& p, const Point& q, const Job& job,
-                           Point& result) {
-    if (p.infinity) { result = q; return true; }
-    if (q.infinity) { result = p; return true; }
-    UInt384 slope{}, inverse{};
-    if (equal(p.x, q.x)) {
-        if (!equal(p.y, q.y) || (job.kind ? is_zero(p.x) : is_zero(p.y))) {
-            result = identity(); return true;
-        }
-        if (job.kind) {
-            if (!field_inverse(p.x, job, inverse)) return false;
-            slope = field_add(p.x, field_multiply(p.y, inverse, job), job);
-            result.x = field_add(
-                field_add(field_multiply(slope, slope, job), slope, job),
-                job.a, job);
-            result.y = field_add(
-                field_multiply(p.x, p.x, job),
-                field_multiply(field_add(slope, small(1), job), result.x, job),
-                job);
-        } else {
-            const UInt384 x2 = field_multiply(p.x, p.x, job);
-            const UInt384 numerator = field_add(
-                field_add(field_add(x2, x2, job), x2, job), job.a, job);
-            const UInt384 denominator = field_add(p.y, p.y, job);
-            if (!field_inverse(denominator, job, inverse)) return false;
-            slope = field_multiply(numerator, inverse, job);
-            result.x = field_subtract(
-                field_multiply(slope, slope, job),
-                field_add(p.x, p.x, job), job);
-            result.y = field_subtract(
-                field_multiply(slope, field_subtract(p.x, result.x, job), job),
-                p.y, job);
-        }
-    } else {
-        const UInt384 numerator = field_subtract(q.y, p.y, job);
-        const UInt384 denominator = field_subtract(q.x, p.x, job);
-        if (!field_inverse(denominator, job, inverse)) return false;
-        slope = field_multiply(numerator, inverse, job);
-        if (job.kind) {
-            result.x = field_add(
-                field_add(field_add(field_multiply(slope, slope, job),
-                                    slope, job), p.x, job),
-                field_add(q.x, job.a, job), job);
-            result.y = field_add(
-                field_add(field_multiply(slope, field_add(p.x, result.x, job),
-                                         job), result.x, job), p.y, job);
-        } else {
-            result.x = field_subtract(
-                field_subtract(field_multiply(slope, slope, job), p.x, job),
-                q.x, job);
-            result.y = field_subtract(
-                field_multiply(slope, field_subtract(p.x, result.x, job), job),
-                p.y, job);
-        }
-    }
-    result.infinity = 0;
-    return true;
-}
-HD inline std::uint32_t rotate_right(std::uint32_t value, unsigned bits) {
-    return (value >> bits) | (value << (32 - bits));
-}
-
-// SHA-256 for the complete public point encoding (at most 90 bytes).
-// An automatic constant table works in both the host and device compilation.
-HD inline bool sha256_short(const std::uint8_t* input, unsigned length,
-                            std::uint8_t digest[32]) {
-    if (length > 90 || (length && input == nullptr)) return false;
-    const std::uint32_t k[64] = {
-        0x428a2f98U, 0x71374491U, 0xb5c0fbcfU, 0xe9b5dba5U,
-        0x3956c25bU, 0x59f111f1U, 0x923f82a4U, 0xab1c5ed5U,
-        0xd807aa98U, 0x12835b01U, 0x243185beU, 0x550c7dc3U,
-        0x72be5d74U, 0x80deb1feU, 0x9bdc06a7U, 0xc19bf174U,
-        0xe49b69c1U, 0xefbe4786U, 0x0fc19dc6U, 0x240ca1ccU,
-        0x2de92c6fU, 0x4a7484aaU, 0x5cb0a9dcU, 0x76f988daU,
-        0x983e5152U, 0xa831c66dU, 0xb00327c8U, 0xbf597fc7U,
-        0xc6e00bf3U, 0xd5a79147U, 0x06ca6351U, 0x14292967U,
-        0x27b70a85U, 0x2e1b2138U, 0x4d2c6dfcU, 0x53380d13U,
-        0x650a7354U, 0x766a0abbU, 0x81c2c92eU, 0x92722c85U,
-        0xa2bfe8a1U, 0xa81a664bU, 0xc24b8b70U, 0xc76c51a3U,
-        0xd192e819U, 0xd6990624U, 0xf40e3585U, 0x106aa070U,
-        0x19a4c116U, 0x1e376c08U, 0x2748774cU, 0x34b0bcb5U,
-        0x391c0cb3U, 0x4ed8aa4aU, 0x5b9cca4fU, 0x682e6ff3U,
-        0x748f82eeU, 0x78a5636fU, 0x84c87814U, 0x8cc70208U,
-        0x90befffaU, 0xa4506cebU, 0xbef9a3f7U, 0xc67178f2U,
-    };
-    std::uint8_t padded[128]{};
-    for (unsigned i = 0; i < length; ++i) padded[i] = input[i];
-    padded[length] = 0x80;
-    const unsigned blocks = length < 56 ? 1 : 2;
-    const std::uint64_t bit_length = std::uint64_t(length) * 8;
-    for (unsigned i = 0; i < 8; ++i)
-        padded[blocks * 64 - 1 - i] = std::uint8_t(bit_length >> (8 * i));
-    std::uint32_t hash[8] = {
-        0x6a09e667U, 0xbb67ae85U, 0x3c6ef372U, 0xa54ff53aU,
-        0x510e527fU, 0x9b05688cU, 0x1f83d9abU, 0x5be0cd19U,
-    };
-    for (unsigned block = 0; block < blocks; ++block) {
-        std::uint32_t w[64]{};
-        const unsigned base = block * 64;
-        for (unsigned i = 0; i < 16; ++i) {
-            const unsigned p = base + i * 4;
-            w[i] = (std::uint32_t(padded[p]) << 24)
-                 | (std::uint32_t(padded[p + 1]) << 16)
-                 | (std::uint32_t(padded[p + 2]) << 8)
-                 | std::uint32_t(padded[p + 3]);
-        }
-        for (unsigned i = 16; i < 64; ++i) {
-            const std::uint32_t s0 = rotate_right(w[i - 15], 7)
-                                  ^ rotate_right(w[i - 15], 18)
-                                  ^ (w[i - 15] >> 3);
-            const std::uint32_t s1 = rotate_right(w[i - 2], 17)
-                                  ^ rotate_right(w[i - 2], 19)
-                                  ^ (w[i - 2] >> 10);
-            w[i] = w[i - 16] + s0 + w[i - 7] + s1;
-        }
-        std::uint32_t a = hash[0], b = hash[1], c = hash[2], d = hash[3];
-        std::uint32_t e = hash[4], f = hash[5], g = hash[6], h = hash[7];
-        for (unsigned i = 0; i < 64; ++i) {
-            const std::uint32_t s1 = rotate_right(e, 6)
-                                  ^ rotate_right(e, 11)
-                                  ^ rotate_right(e, 25);
-            const std::uint32_t choice = (e & f) ^ (~e & g);
-            const std::uint32_t t1 = h + s1 + choice + k[i] + w[i];
-            const std::uint32_t s0 = rotate_right(a, 2)
-                                  ^ rotate_right(a, 13)
-                                  ^ rotate_right(a, 22);
-            const std::uint32_t majority = (a & b) ^ (a & c) ^ (b & c);
-            const std::uint32_t t2 = s0 + majority;
-            h = g; g = f; f = e; e = d + t1;
-            d = c; c = b; b = a; a = t1 + t2;
-        }
-        hash[0] += a; hash[1] += b; hash[2] += c; hash[3] += d;
-        hash[4] += e; hash[5] += f; hash[6] += g; hash[7] += h;
-    }
-    for (unsigned i = 0; i < 8; ++i)
-        for (unsigned j = 0; j < 4; ++j)
-            digest[i * 4 + j] = std::uint8_t(hash[i] >> (24 - j * 8));
-    return true;
-}
-
-HD inline bool point_digest(const UInt384& x, const UInt384& y,
-                             const Job& job, std::uint8_t digest[32]) {
-    const unsigned width = (job.field_bits + 7) / 8;
-    if (width < 1 || width > 45) return false;
-    std::uint8_t encoded[90]{};
-    for (unsigned i = 0; i < width; ++i) {
-        const unsigned byte = width - 1 - i;
-        const unsigned word = byte / 4, shift = (byte % 4) * 8;
-        encoded[i] = std::uint8_t(x.w[word] >> shift);
-        encoded[width + i] = std::uint8_t(y.w[word] >> shift);
-    }
-    return sha256_short(encoded, 2 * width, digest);
-}
-
-// Low bits of the digest interpreted as a big-endian integer are its tail.
-HD inline bool digest_distinguished(const std::uint8_t digest[32],
-                                     std::uint32_t bits) {
-    if (bits < 1 || bits > 40) return false;
-    const unsigned bytes = bits / 8, remainder = bits % 8;
-    for (unsigned i = 0; i < bytes; ++i)
-        if (digest[31 - i]) return false;
-    return !remainder ||
-        !(digest[31 - bytes] & ((1U << remainder) - 1U));
-}
-
-HD inline int walk_lane(const Job& job, State& state) {
-    if (!state.active) return 0;
-    std::uint8_t digest[32]{};
-    std::uint32_t index = 0;
-    if (!state.infinity) {
-        if (!point_digest(state.x, state.y, job, digest)) return 3;
-        index = digest[0] & 31U;
-    }
-    for (std::uint32_t i = 0; i < job.steps_per_round; ++i) {
-        if (state.steps == UINT64_MAX) return 2;
-        const Jump& jump = job.jumps[index];
-        const Point current{state.x, state.y, state.infinity};
-        const Point delta{jump.x, jump.y, 0};
-        Point next{};
-        if (!point_add(current, delta, job, next)) return 1;
-        state.x = next.x; state.y = next.y; state.infinity = next.infinity;
-        state.a = add_mod(state.a, jump.da, job.n);
-        state.b = add_mod(state.b, jump.db, job.n);
-        ++state.steps;
-        if (state.infinity) {
-            index = 0;
-            continue;
-        }
-        if (!point_digest(state.x, state.y, job, digest)) return 3;
-        if (digest_distinguished(digest, job.dp_bits)) {
-            state.active = 0;
-            return 0;
-        }
-        // Reuse this digest when selecting the next transition.
-        index = digest[0] & 31U;
-    }
-    return 0;
-}
 #ifdef __CUDACC__
 __global__ void walk_kernel(const Job* job, State* states, int* errors) {
     const std::uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < job->lanes) errors[index] = walk_lane(*job, states[index]);
+    if (index < job->lanes)
+        errors[index] = walk_lane(*job, states[index], job->steps_per_round);
 }
 #endif
 
@@ -779,18 +366,112 @@ void self_test() {
                  "\"prime_control_order\":19,\"binary_field_bits\":4}\n";
 }
 
+unsigned cpu_threads() {
+#ifdef _OPENMP
+    return unsigned(std::max(1, omp_get_max_threads()));
+#else
+    // Builds without OpenMP (Apple Clang, plain MSVC) honor the same knob, so
+    // the client's lane sizing and container CPU limits behave identically.
+    const char* value = std::getenv("OMP_NUM_THREADS");
+    unsigned parsed = 0;
+    for (; value && *value >= '0' && *value <= '9' && parsed < 100000; ++value)
+        parsed = parsed * 10 + unsigned(*value - '0');
+    if (parsed) return parsed;
+    return std::max(1U, std::thread::hardware_concurrency());
+#endif
+}
+
+// Lanes are independent, so spreading them over cores gives output identical
+// to the serial loop. OpenMP is used when the compiler provides it.
+void run_cpu(const Job& job, std::vector<State>& states,
+             std::vector<int>& errors) {
+    const int lanes = int(job.lanes);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1)
+    for (int i = 0; i < lanes; ++i)
+        errors[i] = walk_lane(job, states[i], job.steps_per_round);
+#else
+    std::atomic<int> next{0};
+    auto worker = [&]() {
+        for (int i = next++; i < lanes; i = next++)
+            errors[i] = walk_lane(job, states[i], job.steps_per_round);
+    };
+    const unsigned wanted = std::min(cpu_threads(), unsigned(lanes));
+    std::vector<std::thread> pool;
+    try {
+        for (unsigned t = 1; t < wanted; ++t) pool.emplace_back(worker);
+    } catch (const std::system_error&) {
+        // Fewer threads only changes the schedule, never the output.
+    }
+    worker();
+    for (std::thread& thread : pool) thread.join();
+#endif
+}
+
+std::string json_string(const std::string& value) {
+    std::string out = "\"";
+    for (const char c : value) {
+        if (c == '"' || c == '\\') out += '\\';
+        if (static_cast<unsigned char>(c) >= 0x20) out += c;
+    }
+    return out + "\"";
+}
+
+// Reports the compiled backends and visible devices so a client can choose a
+// backend without starting a round.
+void probe() {
+    std::vector<std::string> backends{"cpu"};
+    std::cout << "{\"cpu_threads\":" << cpu_threads();
+#ifdef _OPENMP
+    std::cout << ",\"openmp\":true";
+#else
+    std::cout << ",\"openmp\":false";
+#endif
+#ifdef __CUDACC__
+    backends.push_back("cuda");
+    int count = 0;
+    if (cudaGetDeviceCount(&count) != cudaSuccess) count = 0;
+    std::cout << ",\"cuda_devices\":" << count;
+#endif
+#ifdef ECC_METAL
+    backends.push_back("metal");
+    std::cout << ",\"metal_devices\":[";
+    const std::vector<std::string> devices = metal_devices();
+    for (std::size_t i = 0; i < devices.size(); ++i)
+        std::cout << (i ? "," : "") << json_string(devices[i]);
+    std::cout << "]";
+#endif
+    std::cout << ",\"backends\":[";
+    for (std::size_t i = 0; i < backends.size(); ++i)
+        std::cout << (i ? "," : "") << json_string(backends[i]);
+    std::cout << "]}\n";
+}
+
 int run(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--self-test") {
         self_test(); return 0;
     }
+    if (argc == 2 && std::string(argv[1]) == "--probe") {
+        probe(); return 0;
+    }
+#ifdef ECC_METAL
+    if (argc == 2 && std::string(argv[1]) == "--emit-metal-source") {
+        std::cout << metal_source(); return 0;
+    }
+#endif
     require(argc == 7 && std::string(argv[1]) == "--backend",
-            "usage: engine --backend cpu|cuda JOB INPUT_STATES OUTPUT_STATES DP_STATES"
-            "\n       engine --self-test");
+            "usage: engine --backend cpu|cuda|metal JOB INPUT_STATES OUTPUT_STATES DP_STATES"
+            "\n       engine --self-test | --probe");
     const std::string backend = argv[2];
-    require(backend == "cpu" || backend == "cuda", "unknown backend");
+    require(backend == "cpu" || backend == "cuda" || backend == "metal",
+            "unknown backend");
 #ifndef __CUDACC__
     require(backend != "cuda",
             "CUDA backend unavailable in this build; compile engine.cu using nvcc");
+#endif
+#ifndef ECC_METAL
+    require(backend != "metal",
+            "Metal backend unavailable in this build; build engine_metal.mm on macOS");
 #endif
     require(std::string(argv[5]) != std::string(argv[6]),
             "output state and DP paths must differ");
@@ -799,12 +480,12 @@ int run(int argc, char** argv) {
     std::vector<std::uint32_t> was_active(job.lanes);
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
     std::vector<int> errors(job.lanes, 0);
-    if (backend == "cpu") {
-        for (std::uint32_t i = 0; i < job.lanes; ++i)
-            errors[i] = walk_lane(job, states[i]);
-    }
+    if (backend == "cpu") run_cpu(job, states, errors);
 #ifdef __CUDACC__
-    else run_cuda(job, states, errors);
+    else if (backend == "cuda") run_cuda(job, states, errors);
+#endif
+#ifdef ECC_METAL
+    else if (backend == "metal") run_metal(job, states, errors);
 #endif
     for (std::uint32_t i = 0; i < job.lanes; ++i)
         require(errors[i] == 0, "lane " + std::to_string(i) +

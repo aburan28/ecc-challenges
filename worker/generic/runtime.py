@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 import math
+import os
 import struct
 import subprocess
 import tempfile
@@ -23,6 +24,14 @@ MAX_LANES = 4096
 MAX_ROUND_STEPS = 1 << 20
 JOB_HEADER = struct.Struct("<8s8I")
 STATE_TAIL = struct.Struct("<QQII")
+BACKENDS = ("cpu", "cuda", "metal")
+# Keep Ctrl-C and process-group signals away from the engine: the client
+# catches them, lets the round finish, then saves state. Windows delivers
+# console Ctrl-C to the whole process group instead of to a session.
+ISOLATE_ENGINE = (
+    {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    if os.name == "nt" else {"start_new_session": True}
+)
 
 
 def _unsigned(value: int, bits: int, name: str) -> int:
@@ -216,11 +225,11 @@ def run_round(
     """Run one bounded round; accept outputs only after complete validation.
 
     The caller retains its prior checkpoint until this function returns.
-    A requested CUDA failure is reported directly; backend selection belongs
-    to the caller.
+    A requested CUDA or Metal failure is reported directly; backend selection
+    belongs to the caller.
     """
-    if backend not in ("cpu", "cuda"):
-        raise ValueError("backend must be cpu or cuda")
+    if backend not in BACKENDS:
+        raise ValueError("backend must be cpu, cuda or metal")
     if (
         type(timeout) not in (int, float)
         or not math.isfinite(timeout)
@@ -269,6 +278,7 @@ def run_round(
             text=True,
             timeout=timeout,
             check=False,
+            **ISOLATE_ENGINE,
         )
         if completed.returncode:
             detail = (

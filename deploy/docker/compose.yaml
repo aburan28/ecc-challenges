@@ -1,0 +1,55 @@
+# Contributor workers with Docker Compose.
+#
+#   cd deploy/docker
+#   cp example.env .env            # pick the curve, image and your UID/GID
+#   install -m 0600 /dev/stdin api-key   # paste the key, then Ctrl-D
+#   docker compose --profile cpu up -d   # or --profile gpu
+#   docker compose logs -f
+#
+# Each service keeps its state in ./data/<service>. Never delete or share a
+# data directory while its run is active; copy the service to add workers.
+x-worker: &worker
+  restart: unless-stopped
+  # Run as you, so the 0600 key file and data directories stay yours.
+  user: "${ECC_UID:?set ECC_UID in .env}:${ECC_GID:?set ECC_GID in .env}"
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  stop_grace_period: 2m
+  environment: &env
+    ECC_CAMPAIGN: ${ECC_CAMPAIGN:-eccp-131}
+    ECC_PROTOCOL: "2"
+    ECC_API_URL: ${ECC_API_URL:-https://ecc-challenges.com}
+    ECC_API_KEY_FILE: /run/secrets/ecc_api_key
+    HOME: /tmp
+
+services:
+  cpu:
+    <<: *worker
+    profiles: [cpu]
+    image: ${ECC_WORKER_IMAGE:?set ECC_WORKER_IMAGE in .env}
+    environment:
+      <<: *env
+      ECC_BACKEND: cpu
+      OMP_NUM_THREADS: ${ECC_CPU_THREADS:-}
+    volumes:
+      - ./api-key:/run/secrets/ecc_api_key:ro
+      - ./data/cpu:/data
+
+  gpu0:
+    <<: *worker
+    profiles: [gpu]
+    image: ${ECC_WORKER_IMAGE:?set ECC_WORKER_IMAGE in .env}
+    environment:
+      <<: *env
+      ECC_BACKEND: cuda
+      ECC_GPU: "0"
+    volumes:
+      - ./api-key:/run/secrets/ecc_api_key:ro
+      - ./data/gpu0:/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - {driver: nvidia, device_ids: ["0"], capabilities: [gpu]}

@@ -13,9 +13,10 @@ from authlib.integrations.starlette_client import OAuth
 import boto3
 from botocore.config import Config
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 from starlette.concurrency import run_in_threadpool
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from .db import Database
@@ -28,6 +29,11 @@ from .storage import Storage
 from .status import StatusReader
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
+ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
+# Images the templates reference, served from the package by name only.
+ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
+ROBOTS = "User-agent: *\nDisallow: /dashboard\nDisallow: /keys\nDisallow: /auth/\nDisallow: /v1/\nDisallow: /v2/\n"
 LOG = logging.getLogger(__name__)
 
 
@@ -151,8 +157,20 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             headers["Retry-After"] = str(exc.retry_after)
         if request.url.path.startswith(("/v1/", "/v2/")) or request.url.path == "/health":
             return JSONResponse({"error": str(exc)}, status_code=exc.status, headers=headers)
-        return TEMPLATES.TemplateResponse(request, "error.html", {"message": str(exc)},
-                                          status_code=exc.status, headers=headers)
+        return error_page(request, exc.status, str(exc), headers)
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_error(request: Request, exc: StarletteHTTPException):
+        if request.url.path.startswith(("/v1/", "/v2/")) or request.url.path == "/health":
+            return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers)
+        message = "there is nothing at this address" if exc.status_code == 404 else str(exc.detail).lower()
+        return error_page(request, exc.status_code, message, exc.headers)
+
+    def error_page(request: Request, status: int, message: str, headers=None):
+        return TEMPLATES.TemplateResponse(request, "error.html",
+                                          {"message": message, "status_code": status,
+                                           "title": ERROR_TITLES.get(status)},
+                                          status_code=status, headers=headers)
 
     @app.get("/health")
     async def health():
@@ -162,11 +180,27 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             return {"ok": True}
         return await run_in_threadpool(check)
 
+    @app.get("/robots.txt", response_class=PlainTextResponse)
+    async def robots():
+        return PlainTextResponse(ROBOTS, headers={"Cache-Control": "public, max-age=86400"})
+
+    @app.get("/assets/{name}")
+    async def asset(name: str):
+        if name not in ASSETS:
+            raise StarletteHTTPException(404)
+        return Response(ASSETS[name], media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=86400"})
+
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed")
+            snapshot = None
         return TEMPLATES.TemplateResponse(request, "home.html", {"signed_in": bool(request.session.get("github_id")),
                                           "challenges": CHALLENGES, "catalog_source": SOURCE_URL,
-                                          "catalog_date": SOURCE_DATE,
+                                          "catalog_date": SOURCE_DATE, "snapshot": snapshot,
                                           "multicurve_enabled": multicurve_enabled},
                                           headers={"Cache-Control": "private, no-store"})
 

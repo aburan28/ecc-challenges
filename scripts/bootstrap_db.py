@@ -32,9 +32,9 @@ def set_login(conn, name: str, password: str, limit: int) -> None:
 
 
 def verify_logins(args, web_password: str, worker_password: str) -> None:
-    for role, password, campaign_read, candidate_write in (
-        ("ecc_site_web", web_password, False, False),
-        ("ecc_site_worker", worker_password, True, True),
+    for role, password, campaign_read, candidate_write, totals_read in (
+        ("ecc_site_web", web_password, False, False, True),
+        ("ecc_site_worker", worker_password, True, True, False),
     ):
         with psycopg.connect(host=args.host, port=5432, dbname=args.database,
                              user=role, password=password, sslmode="verify-full",
@@ -44,9 +44,10 @@ def verify_logins(args, web_password: str, worker_password: str) -> None:
                        AND has_column_privilege(current_user,'public.distinguished_points','point_key','SELECT')
                        AND has_column_privilege(current_user,'public.distinguished_points','walk_seed','SELECT')
                        AND has_column_privilege(current_user,'public.distinguished_points','worker_id','SELECT'),
-                       has_table_privilege(current_user,'ecc_public.candidate_points','INSERT')
+                       has_table_privilege(current_user,'ecc_public.candidate_points','INSERT'),
+                       has_table_privilege(current_user,'ecc_public.historical_import_totals','SELECT')
             """).fetchone()
-            if actual != (campaign_read, candidate_write):
+            if actual != (campaign_read, candidate_write, totals_read):
                 raise RuntimeError(f"unexpected privileges for {role}: {actual}")
             conn.execute("SELECT count(*) FROM ecc_public.runs").fetchone()
             print(f"{role}: TLS login, schema, and permissions verified", flush=True)
@@ -88,6 +89,7 @@ def bootstrap(args) -> None:
                         TO ecc_site_web
                     """)
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.pressure_shards TO ecc_site_web")
+                    cursor.execute("GRANT SELECT ON ecc_public.historical_import_totals TO ecc_site_web")
                     cursor.execute("""
                         GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespaces,
                           ecc_public.dp_runs,ecc_public.dp_batches TO ecc_site_web
@@ -95,6 +97,7 @@ def bootstrap(args) -> None:
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.dp_pressure TO ecc_site_web")
                     cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespace_stats TO ecc_site_web,ecc_site_worker")
                     cursor.execute("GRANT SELECT,INSERT ON ecc_public.dp_index_bindings TO ecc_site_worker")
+                    cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_point_index TO ecc_site_worker")
                     cursor.execute("""
                         GRANT SELECT ON ecc_public.accounts,ecc_public.dp_namespaces TO ecc_site_worker;
                         GRANT SELECT,UPDATE ON ecc_public.dp_runs,ecc_public.dp_batches,

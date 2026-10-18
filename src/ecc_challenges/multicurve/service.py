@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 from psycopg.types.json import Jsonb
 
 from ..service import Rejected
-from .codec import MAX_BATCH_BYTES, canonical, namespace
+from .codec import MAX_BATCH_BYTES, canonical, namespace, pinned_namespace
 
 LOG = logging.getLogger(__name__)
 HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -68,7 +68,10 @@ class Service:
             raise Rejected(401, "run or key is unavailable")
         if row["closed_at"] is not None and not allow_closed:
             raise Rejected(409, "run is closed; use a new state directory to register another run")
-        ns = self._namespace(row["campaign_id"])
+        try:
+            ns = pinned_namespace(row["campaign_id"], row["manifest"])
+        except (KeyError, ValueError):
+            raise Rejected(503, "assigned namespace is unavailable") from None
         if (ns.id != row["namespace_id"] or ns.record_bytes != row["record_bytes"]
                 or canonical(ns.public()) != canonical(row["manifest"])):
             raise Rejected(503, "assigned namespace is unavailable")

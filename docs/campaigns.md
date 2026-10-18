@@ -12,8 +12,14 @@ does not assert that a challenge remains unsolved today.
 The public [status page](https://ecc-challenges.com/status) and
 `GET /v1/status` are served by this application. The database query reads the
 bounded run table and 16 pressure shards, and is cached for 60 seconds per web
-task. ECC2K-130 counts cover this isolated public gateway only. Historical
-points in the earlier account are outside these totals until an audited import.
+task. Runs, queue depth and `total_archived_points` cover this isolated public
+gateway only. Points imported from the earlier account (338,034,791 distinct
+DP32 points on 2026-10-17) are reported beside them as `total_historical_points`
+and the ECC2K-130 row's `historical_points`, read from the
+`ecc_public.historical_import_totals` view; the page adds them to the point
+totals and says so. Every new public point is matched against them. If the web
+role can't read the view, those fields are `null` and the page falls back to
+gateway-only counts.
 
 An uploaded point count is not a count of independently verified operations.
 The status response therefore leaves
@@ -69,11 +75,11 @@ is tracked in [the multi-campaign problem record](../problems/multi-campaign-wor
 
 ## V2 implementation
 
-The generic all24 path now lives under `src/ecc_challenges/multicurve/` and
+The generic all 24 path now lives under `src/ecc_challenges/multicurve/` and
 `worker/generic/`. See [storage and validation](multicurve-storage.md) and
 [provider commands](modal-workers.md). The exact registry supersedes field widths
 in the summary table when they disagree: notably Appendix A's ECCp-191 modulus
-has191 bits. All v2 namespaces bind that exact instance, target and walk.
+has 191 bits. All v2 namespaces bind that exact instance, target and walk.
 The v1 routes remain specific to the original ECC2K-130 Frobenius encoding.
 A new empty volume selects v2; an existing `state.json` resumes v1 unless the
 operator explicitly selects another protocol. A directory from one campaign or

@@ -3,8 +3,8 @@
 ## Protocol scope
 
 This service has two isolated protocols. The sections below describe the legacy
-ECC2K-130 DP32 path. The generic v2 path supports all24 published Certicom
-instances using56–196-byte affine coefficient records; see
+ECC2K-130 DP32 path. The generic v2 path supports all 24 published Certicom
+instances using 56–196-byte affine coefficient records; see
 [v2 storage and recovery](multicurve-storage.md).
 
 V2 uses tiny authenticated JSON control messages at
@@ -15,10 +15,10 @@ and `R=aG+bQ` relation before any DynamoDB index write. UUID runs and hashed
 curve/target/walk/codec namespaces isolate the campaigns. Claimed step counts
 are not credited as verified work.
 
-V2 admission limits include eight outstanding reservations and32 pending batches
+V2 admission limits include eight outstanding reservations and 32 pending batches
 per account, eight active runs across both protocols, the shared daily byte
-quota, and a sharded global cap initially512 pending v2 batches. Rejected new
-intents receive429 (account) or503 (global shard) with `Retry-After`; they do not
+quota, and a sharded global cap initially 512 pending v2 batches. Rejected new
+intents receive 429 (account) or 503 (global shard) with `Retry-After`; they do not
 obtain an upload capability. Admitted batches remain recoverable from immutable
 S3 objects, PostgreSQL state and receipts even if SQS delivery or a worker fails.
 The reconciler repairs stale unfinished work. Completed runs can be explicitly
@@ -32,11 +32,11 @@ PostgreSQL coordination, DynamoDB writes and duplicates, queue age, autoscaling,
 and total cost. `scripts/capacity.py` only models legacy sampled replay and must
 not be used to estimate v2 capacity.
 
-The live all24 single-point canaries establish contribution correctness. A
+The live all 24 single-point canaries establish contribution correctness. A
 bounded duplicate-record backlog/recovery check establishes only its stated
 admission and restart behavior. Neither defines a sustained fresh-point rate or
-a global GPU fleet size. The configured32-auditor maximum also depends on the
-account's effective Fargate vCPU quota; it is30 before the pending256 request.
+a global GPU fleet size. The configured 32-auditor maximum also depends on the
+account's effective Fargate vCPU quota; it is 30 before the pending 256 request.
 Public opening must name the measured operating envelope and retain admission
 caps rather than treating autoscaling as unlimited capacity.
 
@@ -61,7 +61,7 @@ public candidates, while the new account's S3 bucket holds raw batches.
 
 The WAF blocks more than 10,000 requests per 5 minutes from one IP, and more
 than 300 per 5 minutes for authentication or key routes. Both rate rules return
-HTTP429 with Retry-After60, so shared-provider throttling is retryable rather
+HTTP 429 with Retry-After 60, so shared-provider throttling is retryable rather
 than a permanent permission error. The application has
 a 240-token per-key burst bucket refilling 4 tokens/s; a 1 MiB DP upload costs 16
 tokens. A key is limited to 5 GiB/day across DP batches and checkpoints, and an account to three active keys, eight active runs, and 64 lifetime run IDs. The pending batch counter is sharded 16 ways and admission

@@ -435,7 +435,7 @@ def main() -> None:
     from .settings import Settings
     from .storage import Storage
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("audit", "index", "resolve", "reconcile"))
+    parser.add_argument("mode", choices=("audit", "index", "resolve", "reconcile", "merge"))
     args = parser.parse_args()
     settings = Settings.from_env(web=False)
     db = Database(settings.database_url, max_size=2, statement_timeout_ms=600000)
@@ -445,22 +445,51 @@ def main() -> None:
     worker = QueueWorker(db, Storage(s3, sqs, settings.bucket, settings.stream_id), settings, sqs)
     if settings.multicurve_enabled or settings.multicurve_canary_keys:
         from .multicurve.archive import Archive
-        from .multicurve.index import PointIndex
         from .multicurve.pipeline import Pipeline
         from .service import Service
-        client = boto3.client("dynamodb", region_name=settings.region, config=Config(
-            connect_timeout=5, read_timeout=20, max_pool_connections=32,
-            retries={"total_max_attempts": 1}))
-        point_index = PointIndex(client, settings.point_index_table)
-        point_index.bind_generation(db)
+        archive = Archive(worker.storage)
+        if settings.point_index_mode == "compact":
+            from .multicurve.pointindex import CompactPointIndex
+            point_index = CompactPointIndex(archive)
+        else:
+            from .multicurve.index import PointIndex
+            client = boto3.client("dynamodb", region_name=settings.region, config=Config(
+                connect_timeout=5, read_timeout=20, max_pool_connections=32,
+                retries={"total_max_attempts": 1}))
+            point_index = PointIndex(client, settings.point_index_table)
+            point_index.bind_generation(db)
         worker.multicurve = Pipeline(Service(db, worker.storage, settings), db,
-            Archive(worker.storage), settings, point_index)
+            archive, settings, point_index)
+    merger = None
+    if getattr(worker, "multicurve", None) and settings.point_index_mode == "compact":
+        from .multicurve.pointindex import Merger
+        merger = Merger(worker.multicurve, worker.multicurve.point_index)
     try:
-        if args.mode == "reconcile":
+        if args.mode == "merge":
+            if merger is None:
+                raise SystemExit("merge needs POINT_INDEX_MODE=compact and multicurve enabled")
+            for result in merger.merge_all():
+                print(json.dumps({"kind": "point-index-merge", "namespace_id": result["namespace_id"],
+                                  "generation": result["generation"], "entries": result["entries"],
+                                  "matches": result["matches"]}), flush=True)
+        elif args.mode == "reconcile":
+            merge_at = 0.0
             while True:
                 n = worker.repair_outbox()
                 if getattr(worker, "multicurve", None):
                     n += worker.multicurve.repair()
+                if merger is not None and time.monotonic() >= merge_at:
+                    merge_at = time.monotonic() + settings.point_index_merge_seconds
+                    try:
+                        for result in merger.merge_all():
+                            print(json.dumps({"kind": "point-index-merge",
+                                              "namespace_id": result["namespace_id"],
+                                              "generation": result["generation"],
+                                              "entries": result["entries"],
+                                              "matches": result["matches"]}), flush=True)
+                    except Exception as exc:
+                        # The next interval retries; merges are idempotent.
+                        print(json.dumps({"kind": "point-index-merge", "error": type(exc).__name__}), flush=True)
                 time.sleep(1 if n else 30)
         else:
             worker.poll(args.mode)

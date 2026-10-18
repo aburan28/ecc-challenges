@@ -2,7 +2,7 @@
 
 The launcher reads the current pinned worker image and enabled campaigns from
 `https://ecc-challenges.com/v1/campaigns`. It refuses a disabled campaign or v2
-release. It supports all24 campaign IDs when v2 is enabled. A real L4 passed the
+release. It supports all 24 campaign IDs when v2 is enabled. A real L4 passed the
 [all-curve arithmetic controls](../verification/all-curves-20261016/README.md);
 final image and contributor canaries are separate release checks.
 
@@ -21,7 +21,7 @@ Replace the campaign with any enabled ID in the catalog. CPU workers use
 `--gpu none --backend cpu`. CUDA requires a compatible NVIDIA driver and a
 supported GPU; the generic binary includes Turing through Blackwell targets.
 The preserved ECC2K-130 sigma binary is an explicit `--protocol 1` path for its
-original compatible GPU configuration. New workers use protocol2 by default.
+original compatible GPU configuration. New workers use protocol 2 by default.
 
 Each `(campaign,protocol,worker index)` has its own named sandbox and volume.
 The launcher keeps its state in `/data/ecc-state`, owned by UID/GID10001 with
@@ -44,7 +44,7 @@ states atomically, and can replay already admitted batches using stable batch
 acknowledgements after an older checkpoint is restored. Losing the checkpoint
 completely still requires operator recovery; server DP archives remain intact.
 
-The launcher sends the key as a Modal Secret and writes a mode0600 file inside
+The launcher sends the key as a Modal Secret and writes a mode 0600 file inside
 the sandbox. Keys and signed upload URLs are not logged. Revoke a key on the
 website when access should stop. GPU time and persistent storage are billed to
 the contributor's provider account. `stop` preserves its volume and server data.

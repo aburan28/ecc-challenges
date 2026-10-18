@@ -20,7 +20,7 @@ import re
 import time
 from uuid import UUID, uuid4
 
-from .codec import MAX_BATCH_BYTES, Record, canonical, namespace
+from .codec import MAX_BATCH_BYTES, Record, canonical, pinned_namespace
 from .index import collision_lead_id
 from .service import Service
 
@@ -191,7 +191,10 @@ class Pipeline:
         return value
 
     def _namespace(self, batch: dict):
-        ns = namespace(batch["campaign_id"])
+        try:
+            ns = pinned_namespace(batch["campaign_id"], batch["namespace_manifest"])
+        except (KeyError, ValueError) as exc:
+            raise RuntimeError("batch namespace differs from the pinned registry") from exc
         if (
             ns.id != batch["namespace_id"]
             or ns.record_bytes != batch["record_bytes"]
@@ -374,9 +377,10 @@ class Pipeline:
                 if witness not in checked_witnesses:
                     ns.verify(records[index])
                     checked_witnesses.add(witness)
+                ns.check_trail(records[index], str(batch["run_id"]))
             except ValueError as exc:
                 raise InvalidBatch(
-                    f"DP record {index} fails canonical algebraic verification"
+                    f"DP record {index} fails verification: {exc}"
                 ) from exc
             start = index * ns.record_bytes
             prefix.update(raw[start:start + ns.record_bytes])
@@ -653,6 +657,11 @@ class Pipeline:
         return state
 
     def _index(self, batch: dict, ns, token: UUID, records: list[Record]) -> None:
+        if getattr(self.point_index, "mode", None) == "compact":
+            # The compact index matches points when it merges this batch.
+            unique = len({(ns.point_key(r), ns.witness(r)) for r in records})
+            self._finish_index(batch, ns, token, unique, len(records) - unique, set(), compact=True)
+            return
         new_points = 0
         first_indices = {}
         for index, record in enumerate(records):
@@ -696,25 +705,31 @@ class Pipeline:
 
         if new_points + duplicates != len(records):
             raise RuntimeError("index accounting does not cover the verified batch")
-        self.archive.put_receipt(
-            ns.id,
-            "checkpoints",
-            str(batch["id"]),
-            {
-                "protocol": 2,
-                "kind": "batch-indexed",
-                "source": self._source(batch),
-                "verified_key": batch["verified_key"],
-                "new_points": new_points,
-                "deduplicated_points": duplicates,
-                "collision_leads": sorted(leads),
-            },
-        )
+        self._finish_index(batch, ns, token, new_points, duplicates, leads)
+
+    def _finish_index(self, batch: dict, ns, token: UUID, new_points: int,
+                      duplicates: int, leads: set, *, compact: bool = False) -> None:
+        receipt = {
+            "protocol": 2,
+            "kind": "batch-indexed",
+            "source": self._source(batch),
+            "verified_key": batch["verified_key"],
+            "new_points": new_points,
+            "deduplicated_points": duplicates,
+            "collision_leads": sorted(leads),
+        }
+        if compact:
+            # Counts are within this batch; the merge moves cross-batch
+            # duplicates and reports collision leads in its generation.
+            receipt["index"] = "compact-pending-merge"
+        self.archive.put_receipt(ns.id, "checkpoints", str(batch["id"]), receipt)
         with self.db.connection() as conn:
             changed = conn.execute(
                 """
                 UPDATE ecc_public.dp_batches
                 SET state='indexed',new_points=%s,deduplicated_points=%s,
+                    index_seq=CASE WHEN %s THEN coalesce(index_seq,
+                        nextval('ecc_public.dp_index_seq')) ELSE index_seq END,
                     indexed_at=clock_timestamp(),progress_at=clock_timestamp(),
                     pressure_released_at=clock_timestamp(),
                     processing_token=NULL,verification_lease_until=NULL,error=NULL
@@ -725,7 +740,7 @@ class Pipeline:
                 RETURNING byte_length,pressure_shard
                 """,
                 (
-                    new_points, duplicates, batch["id"], token,
+                    new_points, duplicates, compact, batch["id"], token,
                     batch["verified_key"],
                 ),
             ).fetchone()

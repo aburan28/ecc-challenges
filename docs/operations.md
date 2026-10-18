@@ -20,15 +20,66 @@ Never put a secret value in chat, a shell command, a PR, or a tracked file.
 
 The historical-point table starts empty. New public uploads are archived,
 audited, indexed, and matched against other new public points. Matches with the
-original campaign's existing points are unavailable until a later verified
-import and backmatch. This is a release limitation, not a reason to leave the
-new index queue stopped. Preserve every new batch and candidate so the later
-backmatch can cover the interval before import.
+original campaign's existing points are unavailable until the historical import
+and backmatch below have run. This is not a reason to leave the new index queue
+stopped: every new batch and candidate is preserved, and the backmatch covers
+the interval before import.
 
 The old campaign's run registry currently has no entries in the public range
 50000–65534 (read-only check on 2026-10-14). Reserve that range for the public
 service in both accounts. The isolated registry uses the same format but has
 its own S3 bucket; do not let the original allocator use public run IDs.
+
+## Historical point import
+
+`scripts/historical_import.py` copies the original campaign's points into
+`public.distinguished_points` in one direction. It never connects the public
+service to the original account: the operator runs the export with a read-only
+profile for account 590183823895, and the public database never sees that
+account's credentials. The original S3 `dp/` corpus is the source, because the
+original RDS table is a derived view that can lag it.
+
+1. `export --dry-run` lists and checks the whole corpus and writes nothing. It
+   refuses any object whose `.bin.json` marker or key sha256 disagrees with its
+   body, and drops (and counts) records that are not canonical DP32 keys or whose
+   seed falls in the public run range 50000–65534. Read its summary before going on.
+2. `export --parts s3://<public archive>/historical-import/<date>` writes each
+   source object as a checksum-bound part with a JSON sidecar. It resumes by
+   skipping source keys that already have a sidecar.
+3. `load` runs with the database owner's DSN in `HISTORICAL_DSN`. Each part is
+   re-hashed, inserted with `ON CONFLICT DO NOTHING`, and recorded in
+   `ecc_public.historical_import_parts` in the same transaction, so a rerun skips
+   finished parts. Two historical seeds reaching one point are kept in
+   `ecc_public.historical_conflicts`; any row there is a collision in the
+   original campaign and needs the solver.
+4. `backmatch` runs after the last load. Batches indexed before their point was
+   imported never joined against it; it writes the `campaign` leads that
+   `index_one` would have written, and the resolver picks them up as usual. It is
+   idempotent. Run it again after any later load.
+5. `reconcile` (optional) compares per-worker counts with the original RDS view
+   through a read-only `SOURCE_DSN`. Workers short of the source there need a
+   look; workers ahead of it are the view lagging S3.
+
+First run, 2026-10-17, from `historical-import/20261017/`: 40,309 objects exported
+(the 68 `<sha256>-<start>-<end>.bin` runner deltas included), one witness-format
+object refused, 189,871,706 DP34 records dropped as `above_dp32_weight`.
+384,765,103 records loaded in two admin-task runs, 338,034,791 distinct points
+inserted, 0 historical conflicts. Backmatch: 0 matches, as no public ECC2K-130
+points had been indexed yet. The original fleet was still writing, so later
+objects need another export, load and backmatch. Export to the same
+`historical-import/20261017/` prefix: it skips sources that already have a
+sidecar there, while a new prefix exports everything again.
+
+The status page reads the import's totals through
+`ecc_public.historical_import_totals` (`sql/007_historical_totals.sql`), which
+the database bootstrap creates and grants to `ecc_site_web`. Run the bootstrap
+admin task once after merging that migration. Until it runs, the page shows
+gateway-only counts and logs `historical import totals unavailable`; order
+against the web deploy doesn't matter. Each later load raises the figure within
+a minute, with no deploy.
+
+Size the database before loading: every historical point is one
+`distinguished_points` row of about 90 bytes with its primary key index.
 
 ## 1. Deploy the foundation and private data stack
 
@@ -167,11 +218,10 @@ stay stable across ALB changes.
   admission after preserving queued work. Keep S3 objects, cursor rows,
   dead-letter messages, and candidate quarantine evidence.
 
-The historical import is deferred. Its later release needs a bounded source
-snapshot, resumable transfer, source/destination count and digest checks,
-catch-up for concurrent original writes, and a backmatch of new public
-candidates against the imported points. Until then, describe collision
-coverage as new-public-to-new-public only.
+Until the historical import above has run and its backmatch has finished,
+describe collision coverage as new-public-to-new-public only. While the original
+fleet is still writing, catch up by rerunning export, load and backmatch: export
+skips source keys it has already copied and picks up new ones.
 
 ## All-curve release builds and canary gate
 
@@ -182,7 +232,7 @@ the native self-test, and writes pinned digests to
 has image-push and release-manifest permissions, with no database-secret access.
 No contributor credential enters that build context.
 
-Deploy migration003 and worker/web images before enabling v2. A rollout can set
+Deploy migration 003 and worker/web images before enabling v2. A rollout can set
 `MulticurveCanaryKey` to the ID portion of the designated key while
 `MulticurveEnabled=false`. Only that authenticated key can use v2; public catalog
 availability stays unchanged. The worker queue still processes its batches.
@@ -220,6 +270,26 @@ monitor cost and tune after the sustained capacity gate. The existing
 `scripts/capacity.py` models the legacy sampled verifier and cannot establish v2
 throughput. A production DP/s claim requires measurements of every distinct
 witness under the deployed curve mix and fleet size.
+
+### Switching the point index to compact S3 parts
+
+The compact index (see `docs/multicurve-storage.md`, "Compact point index")
+replaces DynamoDB items with sorted 16-byte entries in S3.
+
+1. Update the data stack so the bucket gets the lifecycle rule for superseded
+   parts (`scripts/deploy_data.py`).
+2. Run the database bootstrap so `005_compact_point_index.sql` and its grant
+   apply.
+3. Deploy the service with `--point-index-mode compact` and keep
+   `--reconcile-tasks 1`. In compact mode the reconcile task grows to 1 vCPU and
+   4 GB, and merges every `--point-index-merge-seconds` (default 3600).
+4. Watch the reconcile log for `point-index-merge` lines. Each one names the
+   generation, the entry count and any `collision_leads`.
+
+Batches indexed into DynamoDB earlier stay there, so switch before public
+contribution starts. If the index is ever in doubt, call
+`Merger.rebuild(namespace_id)` from an administration task: the next merges
+rebuild it from the raw batches.
 
 ### Public image mirrors
 

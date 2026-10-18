@@ -1,0 +1,124 @@
+name: Worker platforms
+
+# Builds the engine natively and runs the portable worker tests on every
+# supported host: Linux, macOS (with Metal) and Windows, on x86-64 and arm64.
+# Metal parity tests run where the runner exposes a Metal device and are
+# reported as skipped otherwise.
+
+concurrency:
+  group: worker-platforms-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - worker/**
+      - deploy/native/**
+      - deploy/launchd/**
+      - src/ecc_challenges/multicurve/**
+      - pyproject.toml
+      - .github/workflows/worker-platforms.yml
+  push:
+    branches: [main]
+    paths:
+      - worker/**
+      - deploy/native/**
+      - deploy/launchd/**
+      - src/ecc_challenges/multicurve/**
+      - pyproject.toml
+      - .github/workflows/worker-platforms.yml
+
+permissions:
+  contents: read
+
+env:
+  # A well-formed but unissued key: the smoke test stops at the first request.
+  SMOKE_KEY: ecc1_000000000000000000000000_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+jobs:
+  unix:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, os: ubuntu-24.04 }
+          - { name: linux-arm64, os: ubuntu-24.04-arm }
+          - { name: macos-arm64-metal, os: macos-15 }
+          - { name: macos-x86_64-metal, os: macos-15-intel }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'pytest>=8,<10'
+      - name: Native installer (no CMake)
+        run: sh deploy/native/install.sh --prefix "$RUNNER_TEMP/ecc" --no-systemd
+      - name: CMake build
+        run: |
+          cmake -S worker -B "$RUNNER_TEMP/build"
+          cmake --build "$RUNNER_TEMP/build" --parallel
+          ctest --test-dir "$RUNNER_TEMP/build" --output-on-failure
+          "$RUNNER_TEMP/build/generic-engine" --probe
+      - name: Worker tests (CMake engine)
+        env:
+          ECC_TEST_ENGINE: ${{ runner.temp }}/build/generic-engine
+        run: python -m pytest -q -rs worker/tests
+      - name: Worker tests (installed engine)
+        env:
+          ECC_TEST_ENGINE: ${{ runner.temp }}/ecc/bin/generic-engine
+        run: python -m pytest -q -rs worker/tests
+      - name: Installed wrapper reaches the gateway request
+        run: |
+          set +e
+          out=$(ECC_API_KEY="$SMOKE_KEY" ECC_API_URL=https://127.0.0.1:9 \
+                ECC_CAMPAIGN=eccp-79 ECC_STATE_DIR="$RUNNER_TEMP/state" \
+                "$RUNNER_TEMP/ecc/bin/ecc-worker" 2>&1)
+          echo "$out" | tail -5
+          echo "$out" | grep -qE 'URLError|Connection refused'
+      - name: Universal binary and launchd agent (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cmake -S worker -B "$RUNNER_TEMP/universal" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake --build "$RUNNER_TEMP/universal" --parallel
+          lipo "$RUNNER_TEMP/universal/generic-engine" -verify_arch arm64 x86_64
+          plutil -lint deploy/launchd/com.ecc-challenges.worker.plist \
+            "$RUNNER_TEMP/ecc/com.ecc-challenges.worker.plist"
+
+  windows:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x86_64, os: windows-2025, arch: x64 }
+          - { name: windows-arm64, os: windows-11-arm, arch: arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.arch }}
+      - run: python -m pip install 'pytest>=8,<10'
+      - name: Native installer (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./deploy/native/install.ps1 -Prefix "$env:RUNNER_TEMP\ecc"
+      - name: Worker tests (installed engine)
+        env:
+          ECC_TEST_ENGINE: ${{ runner.temp }}\ecc\bin\generic-engine.exe
+        run: python -m pytest -q -rs worker/tests
+      - name: Installed wrapper reaches the gateway request
+        shell: pwsh
+        run: |
+          $env:ECC_API_KEY = $env:SMOKE_KEY
+          $env:ECC_API_URL = 'https://127.0.0.1:9'
+          $env:ECC_CAMPAIGN = 'eccp-79'
+          $env:ECC_STATE_DIR = "$env:RUNNER_TEMP\state"
+          $out = & "$env:RUNNER_TEMP\ecc\bin\ecc-worker.cmd" 2>&1 | Out-String
+          $out.Split("`n") | Select-Object -Last 5
+          if ($out -notmatch 'URLError|actively refused|ConnectionRefused') { exit 1 }
+          exit 0

@@ -1,17 +1,36 @@
 # ECC Challenges
 
+A public, distributed Pollard rho search on the
+[Certicom ECC challenges](https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf).
+Sign in at **[ecc-challenges.com](https://ecc-challenges.com)**, create an API
+key, and run one Docker container on an NVIDIA GPU, or the native worker on a
+Mac (Metal) or a Windows PC. Your worker sends back
+distinguished points; the server checks them and looks for a collision.
+
+- **Run a worker:** [Running a worker](docs/running-a-worker.md) covers Docker,
+  Compose, Kubernetes, systemd, Podman, Slurm/Apptainer, Modal, macOS and
+  Windows, on GPU (CUDA, Metal) or CPU (x86-64 and arm64).
+- **Work on the code:** read [CONTRIBUTING.md](CONTRIBUTING.md) and the
+  [open problems](problems/README.md). The [local stack](docs/local-stack.md)
+  runs the whole platform on one machine.
+- **Live numbers:** [status page](https://ecc-challenges.com/status) and
+  [`/v1/status`](https://ecc-challenges.com/v1/status).
+
+## How the gateway is built
+
 `ecc-challenges.com` is the distributed contribution gateway for the 24 published
 Certicom ECC challenges. Contributors sign in with GitHub, generate a revocable
 API key, and run a pinned Linux container on a workstation or cloud provider.
-The generic v2 worker supports prime and binary fields through359 bits, with
-CPU and NVIDIA CUDA backends. Existing ECC2K-130 v1 state keeps its original
-Frobenius walk and32-byte record format.
+The generic v2 worker supports prime and binary fields through 359 bits, with
+CPU, NVIDIA CUDA and Apple Metal backends that share one arithmetic core
+(`worker/generic/ec_core.h`), on Linux, macOS and Windows. Existing ECC2K-130 v1 state keeps its original
+Frobenius walk and 32-byte record format.
 
 Release status: the all-curve v2 path is implemented and disabled by default
 pending the hosted GPU contribution, current-head CI and sustained fresh-point
-capacity release gates. All24 real CPU contribution checks passed upload,
-indexing, checkpoint resume and closure. The selected public image passed168
-checks on a Modal L4, including an anonymous GHCR pull. The bounded32-batch
+capacity release gates. All 24 real CPU contribution checks passed upload,
+indexing, checkpoint resume and closure. The selected public image passed 168
+checks on a Modal L4, including an anonymous GHCR pull. The bounded 32-batch
 account backpressure and consumer-restart control passed, as did a deployed
 collision control using Certicom's published ECCp-79 scalar.
 See [correctness receipts](verification/all-curves-20261016/README.md)
@@ -41,8 +60,9 @@ flowchart LR
 ```
 
 This diagram describes v2. The separate legacy ECC2K-130 protocol retains its
-sampled trail replay and PostgreSQL candidate projection. Historical import
-remains deferred; new generic points have their own curve/walk namespaces.
+sampled trail replay and PostgreSQL candidate projection. Historical points are imported
+one way by `scripts/historical_import.py` (see [operations](docs/operations.md#historical-point-import));
+new generic points have their own curve/walk namespaces.
 
 ## Contribute
 
@@ -56,7 +76,9 @@ remains deferred; new generic points have their own curve/walk namespaces.
    Container Toolkit so Docker's `--gpus all` can expose the card. The worker
    keeps its run identity and checkpoint in the mounted data directory.
 
-For an RTX PRO 6000 Blackwell worker in your own Modal account, follow the
+For other environments (CPU-only, Kubernetes, systemd, Podman, Slurm) see
+[Running a worker](docs/running-a-worker.md). For an RTX PRO 6000 Blackwell
+worker in your own Modal account, follow the
 [Modal worker guide](docs/modal-workers.md). Start with one bounded worker and
 check its registration, upload, replay, and index status before adding more.
 
@@ -105,7 +127,9 @@ monitoring, and exact replay of every collision lead remain essential.
 
 ```sh
 uv sync --extra test
-PATH=/opt/homebrew/opt/postgresql@16/bin:$PATH uv run pytest -q
+# Needs PostgreSQL 16 binaries on PATH (initdb, pg_ctl), or set TEST_POSTGRES_DSN.
+# macOS: PATH=/opt/homebrew/opt/postgresql@16/bin:$PATH
+uv run python -m pytest -q
 aws cloudformation validate-template --template-body file://infra/foundation.yaml
 aws cloudformation validate-template --template-body file://infra/data.yaml
 aws cloudformation validate-template --template-body file://infra/service.yaml

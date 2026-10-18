@@ -1,0 +1,39 @@
+# CPU workers, any architecture (amd64 or arm64), no GPU needed.
+#   kubectl apply -k deploy/kubernetes/cpu
+# Change the curve, replica count or CPU size in the patch below.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../base]
+nameSuffix: -cpu
+labels:
+  - pairs: {app.kubernetes.io/component: cpu-worker}
+    includeSelectors: true
+images:
+  - name: worker-image
+    newName: ghcr.io/aburan28/ecc-challenges-worker-cpu
+    newTag: latest   # pin a digest for long runs: digest: sha256:...
+patches:
+  - target: {kind: StatefulSet, name: ecc-worker}
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ecc-worker
+      spec:
+        replicas: 1
+        template:
+          spec:
+            containers:
+              - name: worker
+                env:
+                  - name: ECC_CAMPAIGN
+                    value: eccp-131
+                  - name: ECC_BACKEND
+                    value: cpu
+                  # Engine threads follow the CPU limit.
+                  - name: OMP_NUM_THREADS
+                    valueFrom:
+                      resourceFieldRef: {resource: limits.cpu, divisor: "1"}
+                resources:
+                  requests: {cpu: "2", memory: 256Mi}
+                  limits: {cpu: "2", memory: 512Mi}

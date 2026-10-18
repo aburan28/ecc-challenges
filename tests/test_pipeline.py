@@ -269,3 +269,18 @@ def test_http_worker_protocol(database, aws_resources, settings):
                                 headers={"Authorization": f"Bearer {secret}",
                                          "Content-Type": "application/octet-stream"})
         assert oversized.status_code == 413
+
+
+def test_footer_credits_isogeny_labs_with_served_logos(database, aws_resources, settings):
+    storage, _, _, _, _ = aws_resources
+    app = create_app(settings, db=database, storage=storage)
+    with TestClient(app, base_url="https://ecc-challenges.com") as client:
+        page = client.get("/status").text
+        assert "Powered by" in page and 'href="https://isogenylabs.io/"' in page
+        for scheme in ("light", "dark"):
+            assert f"/assets/isogeny-labs-{scheme}.png" in page
+            logo = client.get(f"/assets/isogeny-labs-{scheme}.png")
+            assert logo.status_code == 200 and logo.headers["content-type"] == "image/png"
+            assert logo.content.startswith(b"\x89PNG\r\n\x1a\n")
+        assert client.get("/assets/missing.png").status_code == 404
+        assert client.get("/assets/..%2fapp.py").status_code == 404
