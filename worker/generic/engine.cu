@@ -4,6 +4,7 @@
 // nvcc -x cu, or for Metal through engine_metal.mm on macOS.
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -35,6 +36,9 @@ void run_metal(const Job& job, std::vector<State>& states,
                std::vector<int>& errors);
 std::vector<std::string> metal_devices();
 std::string metal_source();
+// Seconds the last run_metal spent compiling the kernel and building its
+// pipeline, reported separately from the walk itself.
+extern double metal_setup_seconds;
 #endif
 
 #ifdef __CUDACC__
@@ -480,6 +484,9 @@ int run(int argc, char** argv) {
     std::vector<std::uint32_t> was_active(job.lanes);
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
     std::vector<int> errors(job.lanes, 0);
+    // The receipt's walk_seconds covers only the backend, so throughput can
+    // be measured apart from process start-up and job validation.
+    const auto walk_start = std::chrono::steady_clock::now();
     if (backend == "cpu") run_cpu(job, states, errors);
 #ifdef __CUDACC__
     else if (backend == "cuda") run_cuda(job, states, errors);
@@ -487,6 +494,8 @@ int run(int argc, char** argv) {
 #ifdef ECC_METAL
     else if (backend == "metal") run_metal(job, states, errors);
 #endif
+    const double walk_seconds = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - walk_start).count();
     for (std::uint32_t i = 0; i < job.lanes; ++i)
         require(errors[i] == 0, "lane " + std::to_string(i) +
                 (errors[i] == 2 ? ": step counter exhausted" :
@@ -501,7 +510,13 @@ int run(int argc, char** argv) {
     }
     write_file(argv[5], output); write_file(argv[6], dps);
     std::cout << "{\"backend\":\"" << backend << "\",\"lanes\":" << job.lanes
-              << ",\"distinguished_points\":" << dps.size() / STATE_BYTES << "}\n";
+              << ",\"distinguished_points\":" << dps.size() / STATE_BYTES
+              << ",\"walk_seconds\":" << walk_seconds;
+#ifdef ECC_METAL
+    if (backend == "metal")
+        std::cout << ",\"metal_setup_seconds\":" << metal_setup_seconds;
+#endif
+    std::cout << "}\n";
     return 0;
 }
 } // namespace ecc

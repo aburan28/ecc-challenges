@@ -66,6 +66,8 @@ id<MTLDevice> select_device() {
 
 } // namespace
 
+double metal_setup_seconds = 0;
+
 std::string metal_source() {
     return std::string(core_source) + kernel_source;
 }
@@ -84,6 +86,7 @@ void run_metal(const Job& job, std::vector<State>& states,
     @autoreleasepool {
         id<MTLDevice> device = select_device();
         NSError* error = nil;
+        const auto setup_start = std::chrono::steady_clock::now();
         const std::string source = metal_source();
         id<MTLLibrary> library = [device
             newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()]
@@ -95,6 +98,8 @@ void run_metal(const Job& job, std::vector<State>& states,
         id<MTLComputePipelineState> pipeline =
             [device newComputePipelineStateWithFunction:function error:&error];
         require(pipeline != nil, "Metal pipeline creation: " + describe(error));
+        metal_setup_seconds = std::chrono::duration<double>(
+            std::chrono::steady_clock::now() - setup_start).count();
         id<MTLCommandQueue> queue = [device newCommandQueue];
         require(queue != nil, "Metal command queue creation failed");
 
