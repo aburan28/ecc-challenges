@@ -31,6 +31,8 @@ from .status import StatusReader
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
+# Images the templates reference, served from the package by name only.
+ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
 ROBOTS = "User-agent: *\nDisallow: /dashboard\nDisallow: /keys\nDisallow: /auth/\nDisallow: /v1/\nDisallow: /v2/\n"
 LOG = logging.getLogger(__name__)
 
@@ -181,6 +183,13 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     @app.get("/robots.txt", response_class=PlainTextResponse)
     async def robots():
         return PlainTextResponse(ROBOTS, headers={"Cache-Control": "public, max-age=86400"})
+
+    @app.get("/assets/{name}")
+    async def asset(name: str):
+        if name not in ASSETS:
+            raise StarletteHTTPException(404)
+        return Response(ASSETS[name], media_type="image/png",
+                        headers={"Cache-Control": "public, max-age=86400"})
 
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
