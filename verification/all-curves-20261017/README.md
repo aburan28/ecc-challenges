@@ -4,7 +4,7 @@ This directory binds the release image, hosted checks, live contribution, and a 
 
 ## Exact release
 
-- Source commit: `5bd0a507869492de86a0d7a4f1bc569a0db0b417` (merged PR #22). Its four CI jobs passed on the merge commit.
+- Source commit: `5bd0a507869492de86a0d7a4f1bc569a0db0b417` (merged PR #22). Its four CI jobs passed on the merge commit. The later main commit `8de59139b7ae0a50bd97e4843336b3532a3265b0` also passed all four required jobs in CI run `39081888157`.
 - AWS CodeBuild: `ecc-challenges-release:9e84f422-7ba8-46ad-b89c-ef10d37cde93`, succeeded. The [release manifest](release-manifest.json) is S3 object `release-builds/5bd0a507869492de86a0d7a4f1bc569a0db0b417/manifest.json` in `ecc-challenges-data-104186811093`, version `IiihsgAi9YF6miBWuCasDzPhD10RL1U2`.
 - Unified worker: `public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f`. GitHub workflow run `39080671840` copied this exact manifest to `ghcr.io/aburan28/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f`; an unauthenticated manifest GET independently hashed to the same digest.
 - The web and audit image digests in the manifest were deployed together with that worker digest. The [post-cleanup deployment snapshot](deployment-state.json) confirms five stable ECS services, the live GHCR digest, one retained private canary key, and public v2 enrollment still gated. Subsequent main commits through `8de59139b7ae0a50bd97e4843336b3532a3265b0` changed no worker, multicurve, app, or settings source files.
