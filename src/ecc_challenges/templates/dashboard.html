@@ -40,7 +40,7 @@ mkdir -p ~/.config/ecc-challenges
 </section>
 
 <section class="section">
-  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">Needs Docker{% if not multicurve_enabled %} and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>{% endif %}.</p></div>
+  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">{% if multicurve_enabled %}Use Docker or a native Windows or macOS worker.{% else %}The current public campaign needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>.{% endif %}</p></div>
   {% if multicurve_enabled %}
   <form method="get" action="/dashboard" style="margin-bottom:18px">
     <label for="campaign">Challenge</label>
@@ -64,6 +64,7 @@ docker run --gpus all --restart unless-stopped \
   <ul class="plain note">
     <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
     {% if multicurve_enabled %}<li>On an amd64 CPU host, use this same image without <code>--gpus all</code> or <code>-e ECC_GPU</code>; it selects the CPU backend. New builds use <code>OMP_NUM_THREADS</code> to limit CPU threads.</li>{% endif %}
+    {% if multicurve_enabled %}<li>On Windows, run the native CPU worker or build its optional CUDA engine. On macOS, run the native Metal worker. Both use the same persistent checkpoint format; follow the <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">native setup steps</a>.</li>{% endif %}
     <li>Kubernetes, systemd, Podman, Slurm, Modal or no Docker at all: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>. On RunPod or similar, use the same image, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
     <li>If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</li>
   </ul>
