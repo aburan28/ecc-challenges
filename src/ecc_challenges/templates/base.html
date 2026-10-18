@@ -140,6 +140,9 @@
     .site-footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
     .site-footer nav{gap:20px;flex-wrap:wrap}
     .site-footer a{color:var(--muted)}.site-footer a:hover{color:var(--ink)}
+    .site-footer .powered{justify-content:center;margin-top:28px}
+    .powered a{display:inline-flex;align-items:center;gap:12px;color:var(--faint);font-size:.8rem;letter-spacing:.02em;text-decoration:none}
+    .powered img{display:block;width:144px;height:auto}
 
     @media (max-width:860px){
       .hero,.two{grid-template-columns:1fr;gap:36px}
@@ -180,6 +183,15 @@
       <a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a>
       <a href="/v1/status">Status JSON</a>
     </nav>
+  </div>
+  <div class="wrap powered">
+    <a href="https://isogenylabs.io/">
+      <span>Powered by</span>
+      <picture>
+        <source srcset="/assets/isogeny-labs-dark.png" width="144" height="54" media="(prefers-color-scheme: dark)">
+        <img src="/assets/isogeny-labs-light.png" width="144" height="38" alt="Isogeny Labs">
+      </picture>
+    </a>
   </div></footer>
 </body>
 </html>
