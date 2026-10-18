@@ -24,7 +24,13 @@ def main() -> None:
     parser.add_argument("--account-id", required=True)
     parser.add_argument("--region", default="us-west-2")
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--historical", choices=("load", "backmatch"),
+                        help="run scripts/historical_import.py in the admin task instead of the bootstrap")
+    parser.add_argument("--parts", help="s3://<data bucket>/historical-import/<run> for --historical load")
+    parser.add_argument("--wait-hours", type=float, default=0.33)
     args = parser.parse_args()
+    if args.historical == "load" and not (args.parts or "").startswith("s3://"):
+        parser.error("--historical load needs --parts s3://...")
     if len(args.account_id) != 12 or not args.account_id.isdigit():
         parser.error("--account-id must be 12 digits")
     session = boto3.Session(profile_name=args.profile, region_name=args.region)
@@ -44,24 +50,40 @@ def main() -> None:
     if not is_pinned_admin_image(image, args.account_id, args.region):
         raise RuntimeError("admin task image is not a pinned destination-account image")
     cluster = outputs["AdminClusterName"]
+    overrides = {}
+    if args.historical:
+        # Reuse the owner secret and host the task definition already pins.
+        pinned = definition["containerDefinitions"][0]["command"]
+        flag = {pinned[i]: pinned[i + 1] for i in range(2, len(pinned) - 1, 2)}
+        command = ["python", "/app/scripts/historical_import.py", "--region", args.region, args.historical,
+                   "--owner-secret", flag["--owner-secret"], "--host", flag["--host"]]
+        if args.historical == "load":
+            command += ["--parts", args.parts]
+        else:
+            command += ["--bucket", outputs["DataBucketName"]]
+        overrides = {"containerOverrides": [{"name": definition["containerDefinitions"][0]["name"],
+                                             "command": command}]}
     network = {"awsvpcConfiguration": {
         "subnets": [outputs["PublicSubnetA"], outputs["PublicSubnetB"]],
         "securityGroups": [outputs["AdminSecurityGroupId"]],
         "assignPublicIp": "ENABLED",
     }}
-    print(json.dumps({"cluster": cluster, "task_definition": task_definition,
-                      "network": network, "mode": "apply" if args.apply else "plan"}, indent=2))
+    print(json.dumps({"cluster": cluster, "task_definition": task_definition, "network": network,
+                      "command": overrides["containerOverrides"][0]["command"] if overrides else "bootstrap",
+                      "mode": "apply" if args.apply else "plan"}, indent=2))
     if not args.apply:
         return
     result = ecs.run_task(cluster=cluster, taskDefinition=task_definition,
-                          launchType="FARGATE", networkConfiguration=network,
-                          startedBy="ecc-challenges-db-bootstrap")
+                          launchType="FARGATE", networkConfiguration=network, overrides=overrides,
+                          startedBy=("ecc-challenges-historical-" + args.historical
+                                     if args.historical else "ecc-challenges-db-bootstrap"))
     if result["failures"] or len(result["tasks"]) != 1:
         raise RuntimeError(f"admin task did not start: {result['failures']}")
     task_arn = result["tasks"][0]["taskArn"]
     print(f"admin task started: {task_arn}", flush=True)
     ecs.get_waiter("tasks_stopped").wait(cluster=cluster, tasks=[task_arn],
-                                           WaiterConfig={"Delay": 15, "MaxAttempts": 80})
+                                           WaiterConfig={"Delay": 15,
+                                                         "MaxAttempts": max(80, int(args.wait_hours * 240))})
     task = ecs.describe_tasks(cluster=cluster, tasks=[task_arn])["tasks"][0]
     containers = task.get("containers", [])
     if task.get("stopCode") != "EssentialContainerExited" or len(containers) != 1 or \

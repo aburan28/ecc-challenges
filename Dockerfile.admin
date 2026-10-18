@@ -4,7 +4,9 @@ WORKDIR /app
 COPY requirements.lock /app/
 RUN pip install --no-cache-dir --require-hashes -r requirements.lock \
   && useradd --uid 10001 --create-home --shell /usr/sbin/nologin ecc
-COPY scripts/bootstrap_db.py /app/scripts/bootstrap_db.py
+COPY scripts/bootstrap_db.py scripts/historical_import.py /app/scripts/
+COPY src/ecc_challenges/__init__.py src/ecc_challenges/protocol.py src/ecc_challenges/storage.py \
+     src/ecc_challenges/historical.py /app/src/ecc_challenges/
 COPY sql/ /app/sql/
 COPY infra/rds-ca.pem /app/infra/rds-ca.pem
 RUN chown -R 10001:10001 /app

@@ -51,10 +51,18 @@ def session(profile: str | None, account: str | None, region: str):
     return s
 
 
-def connect(env: str, read_only: bool = False):
+def connect(env: str, read_only: bool = False, owner=None):
+    """A DSN from the environment, or, inside the admin task, the RDS owner secret over verified TLS."""
+    if owner is not None and getattr(owner, "owner_secret", None):
+        secret = json.loads(session(None, None, owner.region).client("secretsmanager")
+                            .get_secret_value(SecretId=owner.owner_secret)["SecretString"])
+        return psycopg.connect(host=owner.host, port=5432, dbname=owner.database,
+                               user=secret["username"], password=secret["password"],
+                               sslmode="verify-full", sslrootcert=str(owner.ca), connect_timeout=15,
+                               row_factory=dict_row, autocommit=True)
     dsn = os.environ.get(env)
     if not dsn:
-        raise SystemExit(f"set {env} to the database DSN")
+        raise SystemExit(f"set {env} to the database DSN, or pass --owner-secret and --host")
     conn = psycopg.connect(dsn, row_factory=dict_row, autocommit=True)
     if read_only:
         conn.execute("SET default_transaction_read_only = on")
@@ -88,10 +96,18 @@ def main() -> int:
 
     bm = sub.add_parser("backmatch")
     bm.add_argument("--bucket", required=True)
-    bm.add_argument("--stream-id", required=True)
+    bm.add_argument("--stream-id", default="", help="unused by backmatch; batch keys come from the database")
     bm.add_argument("--profile")
     bm.add_argument("--account")
     bm.add_argument("--dsn-env", default="HISTORICAL_DSN")
+
+    root = Path(__file__).resolve().parents[1]
+    for p in (ld, bm):
+        # Inside the admin task the task role reads the RDS-managed owner secret.
+        p.add_argument("--owner-secret", help="RDS owner secret ARN (admin task); replaces --dsn-env")
+        p.add_argument("--host")
+        p.add_argument("--database", default="rho_dp")
+        p.add_argument("--ca", type=Path, default=root / "infra/rds-ca.pem")
 
     rc = sub.add_parser("reconcile")
     rc.add_argument("--source-dsn-env", default="SOURCE_DSN")
@@ -111,11 +127,11 @@ def main() -> int:
     elif args.command == "load":
         parts_s3 = (session(args.parts_profile, args.parts_account, args.region).client("s3")
                     if args.parts.startswith("s3://") else None)
-        with connect(args.dsn_env) as conn:
+        with connect(args.dsn_env, owner=args) as conn:
             summary = historical.load(conn, historical.open_sink(args.parts, parts_s3), log=log)
     elif args.command == "backmatch":
         s3 = session(args.profile, args.account, args.region).client("s3")
-        with connect(args.dsn_env) as conn:
+        with connect(args.dsn_env, owner=args) as conn:
             summary = historical.backmatch(conn, Storage(s3, None, args.bucket, args.stream_id), log=log)
     else:
         with connect(args.source_dsn_env, read_only=True) as source, connect(args.dsn_env) as target:
