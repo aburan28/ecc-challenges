@@ -1,0 +1,42 @@
+{
+  "boot_sha256": "1d276740ea2dc9daf14456be23462c8183b4d79d48f7684de24a98754a72e4d6",
+  "device": "NVIDIA L4, GPU-7df1a949-599e-df1f-4cf6-d687eb3e84f7, 610.57.04",
+  "error_type": "ValueError",
+  "format": "modal-gpu-contributor-canary-execution-v1",
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f",
+  "modal_app_id": "ap-uUrVrmmRmUKzKiPfg210zI",
+  "modal_sandbox_id": "sb-u8IFt8u3dEZ6rnDljzkXKR",
+  "ok": false,
+  "result": {
+    "backend": "cuda",
+    "campaign": "eccp-79",
+    "elapsed_seconds": 1.481022718,
+    "engine_binary_sha256": "684e82314efd104d1a39fb39c870d3a16b6717bacea6a7e01aa8cc7bfef92e4b",
+    "error": "first_run_entrypoint_exit",
+    "error_type": "RuntimeError",
+    "final_checkpoint": null,
+    "format": "live-contributor-entrypoint-canary-v1",
+    "gid": 10001,
+    "lanes": 256,
+    "namespace_id": "6c6316cd5971c4ee2bae84016f59fdf57ecfa2e4b868591b0e81ff2c2494d6f4",
+    "ok": false,
+    "phases": [
+      {
+        "exit_code": 1,
+        "forced_stop": false,
+        "phase": "first_run",
+        "stderr_bytes": 99,
+        "stderr_sha256": "d8d8e85f8b55edc3e60068ef0f20375a634e34b7728b1c8716587f30dd931209",
+        "stdout_bytes": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "release_image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f",
+    "round_steps": 256,
+    "uid": 10001
+  },
+  "root_name": "case-46602a0a8adf",
+  "sandbox_exit_code": 1,
+  "sandbox_stderr": "",
+  "volume_name": "ecc-release-canary-46602a0a8adf"
+}

@@ -1,0 +1,934 @@
+{
+  "end_utc": "2026-10-18T00:24:32.293615+00:00",
+  "format": "v2-fresh-capacity-cloudwatch-v1",
+  "metrics": {
+    "AWS/RDS/CPUUtilization": [
+      {
+        "Average": 20.516666666666666,
+        "Maximum": 20.516666666666666,
+        "Sum": 20.516666666666666,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 20.066666666666666,
+        "Maximum": 20.066666666666666,
+        "Sum": 20.066666666666666,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 20.116666666666664,
+        "Maximum": 20.116666666666664,
+        "Sum": 20.116666666666664,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 23.803333333333335,
+        "Maximum": 23.803333333333335,
+        "Sum": 23.803333333333335,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 20.764244171513326,
+        "Maximum": 20.764244171513326,
+        "Sum": 20.764244171513326,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 21.423213482022305,
+        "Maximum": 21.423213482022305,
+        "Sum": 21.423213482022305,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 22.925,
+        "Maximum": 22.925,
+        "Sum": 22.925,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 21.811666666666664,
+        "Maximum": 21.811666666666664,
+        "Sum": 21.811666666666664,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 20.466325561240645,
+        "Maximum": 20.466325561240645,
+        "Sum": 20.466325561240645,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 21.62905430181006,
+        "Maximum": 21.62905430181006,
+        "Sum": 21.62905430181006,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 24.8158394720176,
+        "Maximum": 24.8158394720176,
+        "Sum": 24.8158394720176,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Percent"
+      },
+      {
+        "Average": 21.457975700404994,
+        "Maximum": 21.457975700404994,
+        "Sum": 21.457975700404994,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Percent"
+      }
+    ],
+    "AWS/RDS/DatabaseConnections": [
+      {
+        "Average": 10.0,
+        "Maximum": 10.0,
+        "Sum": 10.0,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 10.0,
+        "Maximum": 10.0,
+        "Sum": 10.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 10.0,
+        "Maximum": 10.0,
+        "Sum": 10.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 10.0,
+        "Maximum": 10.0,
+        "Sum": 10.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 11.0,
+        "Maximum": 11.0,
+        "Sum": 11.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 11.0,
+        "Maximum": 11.0,
+        "Sum": 11.0,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 11.0,
+        "Maximum": 11.0,
+        "Sum": 11.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 11.0,
+        "Maximum": 11.0,
+        "Sum": 11.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 12.0,
+        "Maximum": 12.0,
+        "Sum": 12.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 13.0,
+        "Maximum": 13.0,
+        "Sum": 13.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 13.0,
+        "Maximum": 13.0,
+        "Sum": 13.0,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 13.0,
+        "Maximum": 13.0,
+        "Sum": 13.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 13.0,
+        "Maximum": 13.0,
+        "Sum": 13.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count"
+      }
+    ],
+    "AWS/RDS/ReadIOPS": [
+      {
+        "Average": 1.89952511872032,
+        "Maximum": 1.89952511872032,
+        "Sum": 1.89952511872032,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.0166725020423815,
+        "Maximum": 0.0166725020423815,
+        "Sum": 0.0166725020423815,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.03333444448148272,
+        "Maximum": 0.03333444448148272,
+        "Sum": 0.03333444448148272,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.016665000166650002,
+        "Maximum": 0.016665000166650002,
+        "Sum": 0.016665000166650002,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.016671390227231048,
+        "Maximum": 0.016671390227231048,
+        "Sum": 0.016671390227231048,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 1.899873341777215,
+        "Maximum": 1.899873341777215,
+        "Sum": 1.899873341777215,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.01665889251682548,
+        "Maximum": 0.01665889251682548,
+        "Sum": 0.01665889251682548,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 1.8999366687777075,
+        "Maximum": 1.8999366687777075,
+        "Sum": 1.8999366687777075,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.01667111229661243,
+        "Maximum": 0.01667111229661243,
+        "Sum": 0.01667111229661243,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count/Second"
+      }
+    ],
+    "AWS/RDS/ReadLatency": [
+      {
+        "Average": 0.001,
+        "Maximum": 0.001,
+        "Sum": 0.001,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.001,
+        "Maximum": 0.001,
+        "Sum": 0.001,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.001,
+        "Maximum": 0.001,
+        "Sum": 0.001,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Seconds"
+      }
+    ],
+    "AWS/RDS/WriteIOPS": [
+      {
+        "Average": 797.8505373656586,
+        "Maximum": 797.8505373656586,
+        "Sum": 797.8505373656586,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 777.9389452975208,
+        "Maximum": 777.9389452975208,
+        "Sum": 777.9389452975208,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 1100.9366978899297,
+        "Maximum": 1100.9366978899297,
+        "Sum": 1100.9366978899297,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 979.5520447955205,
+        "Maximum": 979.5520447955205,
+        "Sum": 979.5520447955205,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 893.3864594968575,
+        "Maximum": 893.3864594968575,
+        "Sum": 893.3864594968575,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 853.4597693487101,
+        "Maximum": 853.4597693487101,
+        "Sum": 853.4597693487101,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 909.2772168349495,
+        "Maximum": 909.2772168349495,
+        "Sum": 909.2772168349495,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 770.0590019667322,
+        "Maximum": 770.0590019667322,
+        "Sum": 770.0590019667322,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 728.5473733348894,
+        "Maximum": 728.5473733348894,
+        "Sum": 728.5473733348894,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 1013.5936562937296,
+        "Maximum": 1013.5936562937296,
+        "Sum": 1013.5936562937296,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 772.3075897470085,
+        "Maximum": 772.3075897470085,
+        "Sum": 772.3075897470085,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 821.3023472926113,
+        "Maximum": 821.3023472926113,
+        "Sum": 821.3023472926113,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count/Second"
+      },
+      {
+        "Average": 1099.1002999000334,
+        "Maximum": 1099.1002999000334,
+        "Sum": 1099.1002999000334,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count/Second"
+      }
+    ],
+    "AWS/RDS/WriteLatency": [
+      {
+        "Average": 0.015545064693648428,
+        "Maximum": 0.015545064693648428,
+        "Sum": 0.015545064693648428,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.013925428803250537,
+        "Maximum": 0.013925428803250537,
+        "Sum": 0.013925428803250537,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.013970223828237479,
+        "Maximum": 0.013970223828237479,
+        "Sum": 0.013970223828237479,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.013742355261688852,
+        "Maximum": 0.013742355261688852,
+        "Sum": 0.013742355261688852,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.013371797941106055,
+        "Maximum": 0.013371797941106055,
+        "Sum": 0.013371797941106055,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.014157490801252127,
+        "Maximum": 0.014157490801252127,
+        "Sum": 0.014157490801252127,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.010819979987114993,
+        "Maximum": 0.010819979987114993,
+        "Sum": 0.010819979987114993,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.01049659539118661,
+        "Maximum": 0.01049659539118661,
+        "Sum": 0.01049659539118661,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.010905308829284033,
+        "Maximum": 0.010905308829284033,
+        "Sum": 0.010905308829284033,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.010967280012369997,
+        "Maximum": 0.010967280012369997,
+        "Sum": 0.010967280012369997,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.011247526769087524,
+        "Maximum": 0.011247526769087524,
+        "Sum": 0.011247526769087524,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.012249290596248756,
+        "Maximum": 0.012249290596248756,
+        "Sum": 0.012249290596248756,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.010876199722769729,
+        "Maximum": 0.010876199722769729,
+        "Sum": 0.010876199722769729,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Seconds"
+      }
+    ],
+    "AWS/SQS/ApproximateAgeOfOldestMessage": [
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Seconds"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Seconds"
+      }
+    ],
+    "AWS/SQS/ApproximateNumberOfMessagesVisible": [
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 1.0,
+        "Maximum": 1.0,
+        "Sum": 1.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count"
+      }
+    ],
+    "AWS/SQS/NumberOfMessagesReceived": [
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9583333333333334,
+        "Maximum": 1.0,
+        "Sum": 23.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9814814814814815,
+        "Maximum": 1.0,
+        "Sum": 53.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9782608695652174,
+        "Maximum": 1.0,
+        "Sum": 45.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975609756097561,
+        "Maximum": 1.0,
+        "Sum": 40.0,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9767441860465116,
+        "Maximum": 1.0,
+        "Sum": 42.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9714285714285714,
+        "Maximum": 1.0,
+        "Sum": 34.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975609756097561,
+        "Maximum": 1.0,
+        "Sum": 40.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9705882352941176,
+        "Maximum": 1.0,
+        "Sum": 33.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9767441860465116,
+        "Maximum": 1.0,
+        "Sum": 42.0,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975,
+        "Maximum": 1.0,
+        "Sum": 39.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.95,
+        "Maximum": 1.0,
+        "Sum": 19.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count"
+      }
+    ],
+    "AWS/SQS/NumberOfMessagesSent": [
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:10:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.0,
+        "Maximum": 0.0,
+        "Sum": 0.0,
+        "Timestamp": "2026-10-17T17:11:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9583333333333334,
+        "Maximum": 1.0,
+        "Sum": 23.0,
+        "Timestamp": "2026-10-17T17:12:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9814814814814815,
+        "Maximum": 1.0,
+        "Sum": 53.0,
+        "Timestamp": "2026-10-17T17:13:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9782608695652174,
+        "Maximum": 1.0,
+        "Sum": 45.0,
+        "Timestamp": "2026-10-17T17:14:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975609756097561,
+        "Maximum": 1.0,
+        "Sum": 40.0,
+        "Timestamp": "2026-10-17T17:15:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9767441860465116,
+        "Maximum": 1.0,
+        "Sum": 42.0,
+        "Timestamp": "2026-10-17T17:16:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9714285714285714,
+        "Maximum": 1.0,
+        "Sum": 34.0,
+        "Timestamp": "2026-10-17T17:17:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975609756097561,
+        "Maximum": 1.0,
+        "Sum": 40.0,
+        "Timestamp": "2026-10-17T17:18:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9705882352941176,
+        "Maximum": 1.0,
+        "Sum": 33.0,
+        "Timestamp": "2026-10-17T17:19:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.9767441860465116,
+        "Maximum": 1.0,
+        "Sum": 42.0,
+        "Timestamp": "2026-10-17T17:20:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.975,
+        "Maximum": 1.0,
+        "Sum": 39.0,
+        "Timestamp": "2026-10-17T17:21:00-07:00",
+        "Unit": "Count"
+      },
+      {
+        "Average": 0.95,
+        "Maximum": 1.0,
+        "Sum": 19.0,
+        "Timestamp": "2026-10-17T17:22:00-07:00",
+        "Unit": "Count"
+      }
+    ]
+  },
+  "missing_metrics": [],
+  "ok": true,
+  "period_seconds": 60,
+  "source_receipt_sha256": "152d6a63097a157c561cd512c5b02dfb3b16490304c3ad52a5853ab112a50a3f",
+  "start_utc": "2026-10-18T00:10:41.193124+00:00"
+}

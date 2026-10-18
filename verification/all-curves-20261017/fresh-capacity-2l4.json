@@ -1,0 +1,1600 @@
+{
+  "app_name": "ecc-capacity-94e6109c20c5",
+  "campaign": "eccp-79",
+  "closed_run_ids": [
+    "f7510113-560a-48d5-b64a-95ae1a743fa7",
+    "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+  ],
+  "duration_seconds": 600,
+  "ended_at_unix": 1792282952.293615,
+  "errors": [],
+  "final_run_statuses": [
+    {
+      "batches": {
+        "indexed": {
+          "batches": 173,
+          "records": 194
+        }
+      },
+      "campaign": "eccp-79",
+      "closed_at": null,
+      "cursor": 10864,
+      "pending_batch_id": null,
+      "record_bytes": 56,
+      "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+      "total_bytes": 10864,
+      "total_records": 194
+    },
+    {
+      "batches": {
+        "indexed": {
+          "batches": 237,
+          "records": 264
+        }
+      },
+      "campaign": "eccp-79",
+      "closed_at": null,
+      "cursor": 14784,
+      "pending_batch_id": null,
+      "record_bytes": 56,
+      "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+      "total_bytes": 14784,
+      "total_records": 264
+    }
+  ],
+  "format": "v2-fresh-capacity-gate-v1",
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:d2a7354ee00f1bdddc0931895b19e1b60140812a1d315d223b897f28157a1f9f",
+  "intended_fleet_l4": 1,
+  "measurement_elapsed_seconds": 600.003258458,
+  "namespace_id": "4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a",
+  "ok": true,
+  "samples": [
+    {
+      "at_unix": 1792282341.164727,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 1.541000003157933e-06,
+      "workers": [
+        {
+          "checkpoint": null,
+          "exit_code": null,
+          "index": 0,
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 0,
+            "lanes": 64,
+            "next_trail": 64,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {},
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 0,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 0,
+            "total_records": 0
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282371.1665401,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 30.00164995800001,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 448,
+            "lanes": 64,
+            "next_trail": 72,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 8,
+                "records": 8
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 448,
+            "pending_batch_id": "87de650f-2da1-4beb-b54b-f10401138546",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 448,
+            "total_records": 8
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 616,
+            "lanes": 64,
+            "next_trail": 75,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 10,
+                "records": 11
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 616,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 616,
+            "total_records": 11
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282401.1701398,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 60.005085125,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 1008,
+            "lanes": 64,
+            "next_trail": 82,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 17,
+                "records": 18
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 1008,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 1008,
+            "total_records": 18
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 1736,
+            "lanes": 64,
+            "next_trail": 95,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 28,
+                "records": 30
+              },
+              "verified": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 1736,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 1736,
+            "total_records": 31
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282431.170249,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 90.005029708,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 1680,
+            "lanes": 64,
+            "next_trail": 95,
+            "pending": "2d00000000000000386e00000000000058726df48292849202c11c4accc8d3fd15b711a91832e4d28542f7cce9b011d682128e9e9bc7b5ea",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 28,
+                "records": 31
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 1736,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 1736,
+            "total_records": 31
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 2520,
+            "lanes": 64,
+            "next_trail": 109,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 43,
+                "records": 45
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 2520,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 2520,
+            "total_records": 45
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282461.166605,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 120.00122116600002,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 2128,
+            "lanes": 64,
+            "next_trail": 103,
+            "pending": "040000000000000045a100000000000055d853b9141ca99f8e7b5a4db23d329a312201f743c9c1d72a956f9b9087341a42bdbc315b658ac6",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 35,
+                "records": 38
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 2128,
+            "pending_batch_id": "ee736a2f-0e65-4031-b639-4953c6033511",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 2128,
+            "total_records": 38
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 3248,
+            "lanes": 64,
+            "next_trail": 122,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 55,
+                "records": 58
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 3248,
+            "pending_batch_id": "caf826a1-b477-4bbe-87ae-cb2e45deed3f",
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 3248,
+            "total_records": 58
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282491.16694,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 150.00139191600002,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 2632,
+            "lanes": 64,
+            "next_trail": 112,
+            "pending": "67000000000000008f280000000000005f90aa6b090a85d2bc5014da473f33896409d3b7435f00fb0acecebec3884ab43ff4b789bed8db76",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 44,
+                "records": 47
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 2632,
+            "pending_batch_id": "57f94758-311d-4f89-a9cf-9edbe90b348f",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 2632,
+            "total_records": 47
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 4144,
+            "lanes": 64,
+            "next_trail": 138,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 71,
+                "records": 74
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 4144,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 4144,
+            "total_records": 74
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282521.168952,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 180.00323937500002,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 3248,
+            "lanes": 64,
+            "next_trail": 123,
+            "pending": "5d00000000000000f98700000000000048ba69082b8fdb99fb6e4bb4c7514bdff9193e72599a2125117bfa01f899037dc35f38412dd5a18a",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 54,
+                "records": 58
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 3248,
+            "pending_batch_id": "8b293fb6-795e-4a82-b75a-5c39c2547ff3",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 3248,
+            "total_records": 58
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 5040,
+            "lanes": 64,
+            "next_trail": 154,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 84,
+                "records": 90
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 5040,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 5040,
+            "total_records": 90
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282551.170976,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 210.00509870800002,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 3584,
+            "lanes": 64,
+            "next_trail": 128,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 60,
+                "records": 64
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 3584,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 3584,
+            "total_records": 64
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 5712,
+            "lanes": 64,
+            "next_trail": 166,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 94,
+                "records": 102
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 5712,
+            "pending_batch_id": "3287ad54-84a6-4155-ba24-ab3c0e762e48",
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 5712,
+            "total_records": 102
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282581.167229,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 240.0011875,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 4032,
+            "lanes": 64,
+            "next_trail": 137,
+            "pending": "7500000000000000c7740000000000006062155013ecb87edefb58c4198ea0a38d41c7394a46f63ca5093ea4bc5a5d119ede6286f6c349ba",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 68,
+                "records": 73
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 4088,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 4088,
+            "total_records": 73
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 6552,
+            "lanes": 64,
+            "next_trail": 181,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 106,
+                "records": 117
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 6552,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 6552,
+            "total_records": 117
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282611.1691341,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 1
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 270.002929,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 4536,
+            "lanes": 64,
+            "next_trail": 145,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 75,
+                "records": 81
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 2
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 4536,
+            "pending_batch_id": "9d4e6cdc-4fee-49ca-9246-1ba2ffe06fc8",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 4536,
+            "total_records": 81
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 7448,
+            "lanes": 64,
+            "next_trail": 197,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 120,
+                "records": 133
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 7448,
+            "pending_batch_id": "a11461ab-cbe3-4f62-a6e1-86c777d6306e",
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 7448,
+            "total_records": 133
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282641.171406,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 300.005035208,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 5320,
+            "lanes": 64,
+            "next_trail": 159,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 85,
+                "records": 95
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 5320,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 5320,
+            "total_records": 95
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 8288,
+            "lanes": 64,
+            "next_trail": 212,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 132,
+                "records": 148
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 8288,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 8288,
+            "total_records": 148
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282671.168867,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 330.00247724999997,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 5824,
+            "lanes": 64,
+            "next_trail": 169,
+            "pending": "2100000000000000d4e40100000000000f5494b72f468678c6da07e3aed8775c6975ad5e4dc70318c835c72e79ab4955be66b95628ae0db3",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "admitted": {
+                "batches": 1,
+                "records": 1
+              },
+              "indexed": {
+                "batches": 93,
+                "records": 104
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 5880,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 5880,
+            "total_records": 105
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 8792,
+            "lanes": 64,
+            "next_trail": 221,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 139,
+                "records": 157
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 8792,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 8792,
+            "total_records": 157
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282701.1668868,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 360.000362958,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 6384,
+            "lanes": 64,
+            "next_trail": 178,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 102,
+                "records": 114
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 6384,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 6384,
+            "total_records": 114
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 9352,
+            "lanes": 64,
+            "next_trail": 231,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 148,
+                "records": 167
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 9352,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 9352,
+            "total_records": 167
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282731.174977,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 390.00829462499996,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 6888,
+            "lanes": 64,
+            "next_trail": 188,
+            "pending": "ab00000000000000a1470000000000003508b80f1496fdb2b48c2d46c419e5e3bc5ec1bc3a8b37d02b02d6db03ab58d949d26fdb2c6f9964",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 111,
+                "records": 124
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 6944,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 6944,
+            "total_records": 124
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 10248,
+            "lanes": 64,
+            "next_trail": 247,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 162,
+                "records": 183
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 10248,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 10248,
+            "total_records": 183
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282761.166968,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 420.00012429099996,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 7448,
+            "lanes": 64,
+            "next_trail": 198,
+            "pending": "8e000000000000008bfc0000000000004b95fcd80166f3d7e73e52577561e34d4f05f5132b2ce045dd10955bbbc7472e3847bf74814db02d",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 119,
+                "records": 133
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 7448,
+            "pending_batch_id": "378b564f-9e52-47b7-800e-0854dc6fc1b3",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 7448,
+            "total_records": 133
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 11088,
+            "lanes": 64,
+            "next_trail": 262,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 175,
+                "records": 198
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 11088,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 11088,
+            "total_records": 198
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282791.169485,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 450.00247874999997,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 7728,
+            "lanes": 64,
+            "next_trail": 203,
+            "pending": "9300000000000000eb150100000000005abeb408bf45b25aebd823fbfdcc7737e22adead5b9a9aae7f5f3f51e9de1a3e4b8ae64f80b7072a",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 125,
+                "records": 139
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 7784,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 7784,
+            "total_records": 139
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 11312,
+            "lanes": 64,
+            "next_trail": 267,
+            "pending": "f0000000000000001c8a000000000000456ca0a5862964321b4f6122774c7358021b963b3515a064d5e010d6bf1d21e0ee9980111d38e6ae",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 180,
+                "records": 203
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 11368,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 11368,
+            "total_records": 203
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282821.171245,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 480.0040755,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 8344,
+            "lanes": 64,
+            "next_trail": 213,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 134,
+                "records": 149
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 8344,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 8344,
+            "total_records": 149
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 12040,
+            "lanes": 64,
+            "next_trail": 279,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 191,
+                "records": 215
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 12040,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 12040,
+            "total_records": 215
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282851.170945,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 510.00361320799993,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 9072,
+            "lanes": 64,
+            "next_trail": 226,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 145,
+                "records": 162
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 9072,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 9072,
+            "total_records": 162
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 12768,
+            "lanes": 64,
+            "next_trail": 292,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 202,
+                "records": 228
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 12768,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 12768,
+            "total_records": 228
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282881.16804,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 0
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 540.000545375,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 9688,
+            "lanes": 64,
+            "next_trail": 237,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 154,
+                "records": 173
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 9688,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 9688,
+            "total_records": 173
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 13440,
+            "lanes": 64,
+            "next_trail": 304,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 214,
+                "records": 240
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 13440,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 13440,
+            "total_records": 240
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    },
+    {
+      "at_unix": 1792282911.17275,
+      "audit_queue": {
+        "ApproximateNumberOfMessages": 0,
+        "ApproximateNumberOfMessagesDelayed": 0,
+        "ApproximateNumberOfMessagesNotVisible": 1
+      },
+      "audit_service": {
+        "desiredCount": 2,
+        "pendingCount": 0,
+        "runningCount": 2
+      },
+      "elapsed_seconds": 570.0050934999999,
+      "workers": [
+        {
+          "checkpoint": {
+            "cursor": 10304,
+            "lanes": 64,
+            "next_trail": 249,
+            "pending": "4f000000000000005a0203000000000043af02c1d21f4ca2667c3302669e8ddf14f1b1a6478561fe9f5c6daef95d064d1139dad65c32637c",
+            "round_steps": 256,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+          },
+          "exit_code": null,
+          "index": 0,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 163,
+                "records": 184
+              },
+              "reserved": {
+                "batches": 1,
+                "records": 1
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 10304,
+            "pending_batch_id": "35d721cd-f8e6-405b-8935-2d43f8bde4b2",
+            "record_bytes": 56,
+            "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7",
+            "total_bytes": 10304,
+            "total_records": 184
+          },
+          "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY"
+        },
+        {
+          "checkpoint": {
+            "cursor": 13888,
+            "lanes": 64,
+            "next_trail": 312,
+            "pending": "",
+            "round_steps": 256,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+          },
+          "exit_code": null,
+          "index": 1,
+          "run_status": {
+            "batches": {
+              "indexed": {
+                "batches": 222,
+                "records": 248
+              }
+            },
+            "campaign": "eccp-79",
+            "closed_at": null,
+            "cursor": 13888,
+            "pending_batch_id": null,
+            "record_bytes": 56,
+            "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+            "total_bytes": 13888,
+            "total_records": 248
+          },
+          "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD"
+        }
+      ]
+    }
+  ],
+  "source_commit": "5bd0a507869492de86a0d7a4f1bc569a0db0b417",
+  "started_at_unix": 1792282301.193124,
+  "test_fleet_l4": 2,
+  "workers": [
+    {
+      "checkpoint_sha256": "e183b90a11cc1033e278e4724d996531a50ec9bc0d0c1ca6e264fb97571db6eb",
+      "exit_code": 137,
+      "final_checkpoint": {
+        "cursor": 10864,
+        "lanes": 64,
+        "namespace_id": "4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a",
+        "next_trail": 258,
+        "pending": "",
+        "round_steps": 256,
+        "run_id": "f7510113-560a-48d5-b64a-95ae1a743fa7"
+      },
+      "index": 0,
+      "sandbox_id": "sb-aW4Cm81BUhSWQO6PV0D1aY",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 19546,
+      "stdout_sha256": "1c5fd0099602bd481bca9fec02b85f623a9ab75b72a2e690f8aba4858f3773a4",
+      "upload_paused_events": 0,
+      "volume_name": "ecc-capacity-94e6109c20c5-worker-0-state"
+    },
+    {
+      "checkpoint_sha256": "153c3f9cbeb2569f871b370b22ef5d49be23def118107d4997216029d36241c7",
+      "exit_code": 137,
+      "final_checkpoint": {
+        "cursor": 14784,
+        "lanes": 64,
+        "namespace_id": "4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a",
+        "next_trail": 328,
+        "pending": "",
+        "round_steps": 256,
+        "run_id": "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5"
+      },
+      "index": 1,
+      "sandbox_id": "sb-n0UPvbQajWJEEiBfqJ0NZD",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 26844,
+      "stdout_sha256": "99ce64490f88d10acc310f4f05c822e2a5d49bde19af5cb916ad13205fbcc15d",
+      "upload_paused_events": 0,
+      "volume_name": "ecc-capacity-94e6109c20c5-worker-1-state"
+    }
+  ]
+}

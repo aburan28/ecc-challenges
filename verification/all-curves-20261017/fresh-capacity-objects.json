@@ -1,0 +1,2894 @@
+{
+  "duplicate_points": 0,
+  "expected_records": {
+    "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5": 264,
+    "f7510113-560a-48d5-b64a-95ae1a743fa7": 194
+  },
+  "format": "v2-fresh-capacity-object-audit-v1",
+  "namespace_id": "4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a",
+  "object_count": 410,
+  "objects": [
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=00/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008568-00b803db12aab5116b82a18fb4a38f2c73d9ef01d5d0bdc94daf1a101dde2ffb.bin",
+      "records": 1,
+      "sha256": "00b803db12aab5116b82a18fb4a38f2c73d9ef01d5d0bdc94daf1a101dde2ffb",
+      "version_id": "iTADw9.Hfz5Ia.1rqrD7od.6Elj6knti"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=00/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001960-00d756309006449dc4da8e878d94121b44a26d8efd8d442f14a4db18a3500e7c.bin",
+      "records": 1,
+      "sha256": "00d756309006449dc4da8e878d94121b44a26d8efd8d442f14a4db18a3500e7c",
+      "version_id": "SRPjkRNL.MwYyB.sfY8WxPhxz3x66fES"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=01/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006944-012f0fd38abebacb92d42a7287ff0ad6dbafb2397536ce3fae5ce42c27227228.bin",
+      "records": 1,
+      "sha256": "012f0fd38abebacb92d42a7287ff0ad6dbafb2397536ce3fae5ce42c27227228",
+      "version_id": "CY895.rn9fODS_yp7PomL546CQbUGxMD"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=01/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007056-01b36df2c41b27e262fb6565b819d31a2de60a62ca2c01141f79733692d7e32c.bin",
+      "records": 2,
+      "sha256": "01b36df2c41b27e262fb6565b819d31a2de60a62ca2c01141f79733692d7e32c",
+      "version_id": "x25SsWOgOtdvZx6I_26sW2riM4ODrcjh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=01/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007280-0134052a5abad08cf9fcc7bfcf973ff8cd9ebd08d4714ca9043d7bf94a086ad7.bin",
+      "records": 1,
+      "sha256": "0134052a5abad08cf9fcc7bfcf973ff8cd9ebd08d4714ca9043d7bf94a086ad7",
+      "version_id": "3q2Os7K5YnTF_PpayCpMiDg8G21NE4gL"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=02/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013832-023224cace7f3a9aa24dd396eb6a9aa7c0af459e20e4c2f1e0ee73885f13e923.bin",
+      "records": 1,
+      "sha256": "023224cace7f3a9aa24dd396eb6a9aa7c0af459e20e4c2f1e0ee73885f13e923",
+      "version_id": "lLnJcnBWxT02SFGPKFlmB1l7CdneAwki"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=02/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005712-02ff9741475cfe92d1760a899914e86d1423da10b9213ead2e54cf715dd0b698.bin",
+      "records": 1,
+      "sha256": "02ff9741475cfe92d1760a899914e86d1423da10b9213ead2e54cf715dd0b698",
+      "version_id": "AhKSD.QRYLLSHnP368L.ShGFfoE.QLwy"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=03/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008792-031e157417f901ce0bf3c2282e30e777cc84f72156aa114e7c0909ffa65a8397.bin",
+      "records": 1,
+      "sha256": "031e157417f901ce0bf3c2282e30e777cc84f72156aa114e7c0909ffa65a8397",
+      "version_id": "L8f1BP863CIueSD28PuEAmNWP15u9_TR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=04/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003248-0418e3f7e8b7b32a6b4c9928c6a1ed512ab4aad4444634db68b7773f584dc29c.bin",
+      "records": 1,
+      "sha256": "0418e3f7e8b7b32a6b4c9928c6a1ed512ab4aad4444634db68b7773f584dc29c",
+      "version_id": "ellSiBsSSyUZeyz01BODQELwI0mg5jYv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=05/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012096-054312394c5a772e71081bd320f962cf9a001997435d59830f50cef6bd1c7bd6.bin",
+      "records": 1,
+      "sha256": "054312394c5a772e71081bd320f962cf9a001997435d59830f50cef6bd1c7bd6",
+      "version_id": "BwDjNRTiHNBHxLdOlEKICK2TEM30zeJO"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=05/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001792-057b139e15b390a6b1842ab6338e9142db70e62f99040496ea9e11716cf57b64.bin",
+      "records": 1,
+      "sha256": "057b139e15b390a6b1842ab6338e9142db70e62f99040496ea9e11716cf57b64",
+      "version_id": "OkBLtRRfKsQkF69yf66gOxvQokcRgkZw"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=05/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007280-05b9fe476ae9ebb62f982f3ad3685fe89277567015cd6e4c5fdf2d47c75c5ae2.bin",
+      "records": 1,
+      "sha256": "05b9fe476ae9ebb62f982f3ad3685fe89277567015cd6e4c5fdf2d47c75c5ae2",
+      "version_id": "th7S4ZiMtUy2dT46z3nKIFXkufmLjDkP"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=06/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006440-06ba0c976a31e1adfe19d444beb5693b5e87432e5eea0d4da0957869fd770220.bin",
+      "records": 1,
+      "sha256": "06ba0c976a31e1adfe19d444beb5693b5e87432e5eea0d4da0957869fd770220",
+      "version_id": "cGEBeHyJmXCYvFwXf5z_5R7tNzpN7Bs4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=06/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002520-067c7e2cdcc68f2447945baeb9d76089e519c8187d095b6ec4dcb8ea20e89b91.bin",
+      "records": 1,
+      "sha256": "067c7e2cdcc68f2447945baeb9d76089e519c8187d095b6ec4dcb8ea20e89b91",
+      "version_id": "pJUn_TMzhTC17SNA1ULbE95HCaI4FOjO"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=07/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007000-07ba319830bf2a8aac62a9313b4b265182dd723a27ba2bfe6d9a223637bcd6dd.bin",
+      "records": 1,
+      "sha256": "07ba319830bf2a8aac62a9313b4b265182dd723a27ba2bfe6d9a223637bcd6dd",
+      "version_id": "yhMvWjyz1SmnKeX7Cbu0wiNc16FbK2ZY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=07/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004032-0705f6b607c9f4716d08c2adcd0184b08d8a70d42aae4d7ccffe1fc059501e60.bin",
+      "records": 1,
+      "sha256": "0705f6b607c9f4716d08c2adcd0184b08d8a70d42aae4d7ccffe1fc059501e60",
+      "version_id": "8q1yRIH9m6oUZlizuFN6yk5XnyIhvH7a"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=07/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006048-07483702e7b166f372153e5fe341a1831518e23dcaef75ecb7b76c49132cb6a1.bin",
+      "records": 2,
+      "sha256": "07483702e7b166f372153e5fe341a1831518e23dcaef75ecb7b76c49132cb6a1",
+      "version_id": "aVuC9Sil9i78dAS.Q3GS1UuolXc6mIfQ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=09/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002464-0946e96a8f7dca7a211d5db6dadeae491d9076ab83b3718d8ea004a6f063b5c4.bin",
+      "records": 1,
+      "sha256": "0946e96a8f7dca7a211d5db6dadeae491d9076ab83b3718d8ea004a6f063b5c4",
+      "version_id": "9GhhMgQw4z2h43C9yM3jYR8Ic3sRAxAN"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0a/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008176-0a63e7079ffde19592ad8557587ae3f21489b3f9465100fdcd9200c8c33be38b.bin",
+      "records": 2,
+      "sha256": "0a63e7079ffde19592ad8557587ae3f21489b3f9465100fdcd9200c8c33be38b",
+      "version_id": "jHPeN815533gE87XvRht7vyOAKkrJrAV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011928-0b2a97a512c3c6e5928f0614d41011248a00ef65090928f1c7cdaf7f8021bcf3.bin",
+      "records": 1,
+      "sha256": "0b2a97a512c3c6e5928f0614d41011248a00ef65090928f1c7cdaf7f8021bcf3",
+      "version_id": "1Uqpk0I8ut84S4.c4NNh_O8h3DKVCA8A"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014224-0bfa8634ac81799740afbe241d1a6e0f4da8b2e3530ec1112df7b09dd3524305.bin",
+      "records": 1,
+      "sha256": "0bfa8634ac81799740afbe241d1a6e0f4da8b2e3530ec1112df7b09dd3524305",
+      "version_id": "ib62uXMRHfv2euaujL5KukhgPtcQodEb"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009128-0d7b95069f25b42eb13fd5f61dc3d616031e369ca3124cd3c13561f63eee7e97.bin",
+      "records": 2,
+      "sha256": "0d7b95069f25b42eb13fd5f61dc3d616031e369ca3124cd3c13561f63eee7e97",
+      "version_id": "4Gj.AnqJgAm1bcnN__58KIUUHjkWlC4L"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012992-0dd4e990dd7bdc70e1744771af8cc2e57c5c654a007b5c8ac4d63ca0483a7347.bin",
+      "records": 1,
+      "sha256": "0dd4e990dd7bdc70e1744771af8cc2e57c5c654a007b5c8ac4d63ca0483a7347",
+      "version_id": "cqx5R.peyTaIJRALH2YF5XdWgcGAXXZ3"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0e/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002688-0e9a675c0f91e334224d7580b79f94bce9a4f0fe402fdee44d0cc08c1b0e5fb7.bin",
+      "records": 2,
+      "sha256": "0e9a675c0f91e334224d7580b79f94bce9a4f0fe402fdee44d0cc08c1b0e5fb7",
+      "version_id": "EU.vwXR50uW43UMOds9EnJ2eFuUBmPOB"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001008-0efddbf292690fe06dbcd9c0612545555a9dc00d8ea794dd278762930f9e7603.bin",
+      "records": 2,
+      "sha256": "0efddbf292690fe06dbcd9c0612545555a9dc00d8ea794dd278762930f9e7603",
+      "version_id": "gJigxWcwmXJqTmeUrRuIsfSSSEHJRtxA"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002464-0fbf8000cfcfb88b436b4aebc6a53fb6f8aec96479747ee3c55427688aea1019.bin",
+      "records": 1,
+      "sha256": "0fbf8000cfcfb88b436b4aebc6a53fb6f8aec96479747ee3c55427688aea1019",
+      "version_id": "hRhFbYUW.VZqgMl7VAOCHqGNeFvsaIcL"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=0f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002296-0f7ab803729d5e317c7aa7b73a745b48c8427a328cd3d00bcbb8d15187310489.bin",
+      "records": 1,
+      "sha256": "0f7ab803729d5e317c7aa7b73a745b48c8427a328cd3d00bcbb8d15187310489",
+      "version_id": "pWmw70Ha2wcHCbV7T5POqi573l7L39FP"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=10/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001736-10fd4b0137b34099f1fe9ebe9cb9a253857ddcd7663688e2590d5076afd9bf66.bin",
+      "records": 1,
+      "sha256": "10fd4b0137b34099f1fe9ebe9cb9a253857ddcd7663688e2590d5076afd9bf66",
+      "version_id": "hxMRuwDoWWMNjpgW5848nNzBuluLx4sr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=10/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001680-1022c858758ba4d81ba67723162f62eb31eefc0a8d68ccdd4722bc73c9eb4435.bin",
+      "records": 1,
+      "sha256": "1022c858758ba4d81ba67723162f62eb31eefc0a8d68ccdd4722bc73c9eb4435",
+      "version_id": "HHtBbrWVJ0PhYb7br42p9kuEEHQ.Kp8w"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=10/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002632-10a4c243aa781855970048fd20e73715d9fccf16b6590b4dcdade4be59360379.bin",
+      "records": 1,
+      "sha256": "10a4c243aa781855970048fd20e73715d9fccf16b6590b4dcdade4be59360379",
+      "version_id": "WwuPY796XaKKMpFl8jRgNaBOlCvDSeGj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=10/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007560-1087c5c10324ef73cf24eefde2e0fc6d0c61206f06f8173656f1e107a260b8d3.bin",
+      "records": 1,
+      "sha256": "1087c5c10324ef73cf24eefde2e0fc6d0c61206f06f8173656f1e107a260b8d3",
+      "version_id": "J8mHZ1RS_L_Kn9ZCwiHvSHtDzFz3EKsa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=11/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002072-115b0260f4342aa750a84c33330011e2e7164b7251cfac391a03e61e24611fff.bin",
+      "records": 1,
+      "sha256": "115b0260f4342aa750a84c33330011e2e7164b7251cfac391a03e61e24611fff",
+      "version_id": "5ctAZcEeTAilFcHTxXW83PDKcrnfkJ9r"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=11/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000168-11279dd1c9cfd02b719bb494a10c616cce0e6fa43bce7b291b04ed96baa97868.bin",
+      "records": 1,
+      "sha256": "11279dd1c9cfd02b719bb494a10c616cce0e6fa43bce7b291b04ed96baa97868",
+      "version_id": "wazhGGOD4lewUDMStLVFOMywNsDfl.wR"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=12/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006832-12dcf9cd402423d7882104224177b2ac6bdb6b5d8c3dbb38738dd80085aaa2ed.bin",
+      "records": 2,
+      "sha256": "12dcf9cd402423d7882104224177b2ac6bdb6b5d8c3dbb38738dd80085aaa2ed",
+      "version_id": "nGs22Nyjff_FY5menTn2HGMElM3oWTDX"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=14/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000392-1458622ae5a10b788da4c494952b46ca7169498f325e9eb6129c70e545f7fb5c.bin",
+      "records": 2,
+      "sha256": "1458622ae5a10b788da4c494952b46ca7169498f325e9eb6129c70e545f7fb5c",
+      "version_id": "2FeEY.xXSpHdhysbcVclNG0mYYS8Zs3D"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=14/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004200-141a5ba270bc28d2dd32fb4db47f18076881a1e9364a2ad0da7fa930897e16bc.bin",
+      "records": 1,
+      "sha256": "141a5ba270bc28d2dd32fb4db47f18076881a1e9364a2ad0da7fa930897e16bc",
+      "version_id": "R6VhhSj5174IZWaOsOwtKyaR7bnf3c6S"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=16/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006328-167b4d8320f34da3aafcc53e95d8ef6d27b86da80938c78054ac99927d15c6b5.bin",
+      "records": 1,
+      "sha256": "167b4d8320f34da3aafcc53e95d8ef6d27b86da80938c78054ac99927d15c6b5",
+      "version_id": "Yuvp2ToFE11gwR3NzqRQ0u17mlJPYj.H"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=18/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001624-180bebc3cabe1c1c4d99f854d2b9678b5f9a53189b6166ade80820a3f7f50106.bin",
+      "records": 1,
+      "sha256": "180bebc3cabe1c1c4d99f854d2b9678b5f9a53189b6166ade80820a3f7f50106",
+      "version_id": "O29kwPKDj2ysx5XpNK2OGcD87JwAsegv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=18/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004592-188956e855463dfe70218b4b6d768a8918d79e75c3418490c36de70414018cdc.bin",
+      "records": 1,
+      "sha256": "188956e855463dfe70218b4b6d768a8918d79e75c3418490c36de70414018cdc",
+      "version_id": "Fp1Q4MjeYGbBFNrndotYuprS6JzlZmwC"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=19/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005040-19716bb813d18a8ce250673f54d541751b04b671bbf917769ed986278f45acee.bin",
+      "records": 1,
+      "sha256": "19716bb813d18a8ce250673f54d541751b04b671bbf917769ed986278f45acee",
+      "version_id": "_3VrA5bl6RhSTia3N4spQi0Gv9naonl7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001904-1a918d0996bb359435523a4b18c0f483c976a199539b53c0e1638c527fbaaba4.bin",
+      "records": 1,
+      "sha256": "1a918d0996bb359435523a4b18c0f483c976a199539b53c0e1638c527fbaaba4",
+      "version_id": "hv3OchpzNCc.SsyMK6SaT_iHL3CTScZ5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003920-1ac14b85c2d09260e1910a44fe790e973d230dd27aea9f35cb1136d56a1d8aac.bin",
+      "records": 1,
+      "sha256": "1ac14b85c2d09260e1910a44fe790e973d230dd27aea9f35cb1136d56a1d8aac",
+      "version_id": "OE4jwS1_WO4LWTSU4Z7mq12__gZ4ly8Y"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005376-1b24370f1c4a517b9c4b84754565af3619ef9df705bf60eb07f99df5964e824c.bin",
+      "records": 1,
+      "sha256": "1b24370f1c4a517b9c4b84754565af3619ef9df705bf60eb07f99df5964e824c",
+      "version_id": "gVuIx31S7YMeIny5UPkhoZFKBsxFLxDh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1b/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007896-1b16e190af4374c8dc80394622551ef2cf8b8ba5bbfc18513898ea71d5494d52.bin",
+      "records": 1,
+      "sha256": "1b16e190af4374c8dc80394622551ef2cf8b8ba5bbfc18513898ea71d5494d52",
+      "version_id": "GagGkyevJCcrJUu.Ki7SgpCdHmiEty0T"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1d/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003976-1deaefa3a71fe8e9620b48fad833c60b87967d41d03885df2884546613b9192b.bin",
+      "records": 1,
+      "sha256": "1deaefa3a71fe8e9620b48fad833c60b87967d41d03885df2884546613b9192b",
+      "version_id": "gJ5l9R5a.VE9jqi9KtjMygWmPOqn02bz"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005824-1ed604f9f3e18dd1efbd226bd569521fd79c3edc4d8e4f9ad28bfd8a78382f19.bin",
+      "records": 1,
+      "sha256": "1ed604f9f3e18dd1efbd226bd569521fd79c3edc4d8e4f9ad28bfd8a78382f19",
+      "version_id": "bGxAn_CjtKFCkwuFVvS.dtIUWYgaTlsY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=1f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000952-1f34ac56e4a5ab1d2d7a5ac087a46ce33cdff5bf5922ac1b9d10890d9f980e1a.bin",
+      "records": 1,
+      "sha256": "1f34ac56e4a5ab1d2d7a5ac087a46ce33cdff5bf5922ac1b9d10890d9f980e1a",
+      "version_id": "umxxPE03Li5XCNAbP3UbLkFgBOVwvc5s"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=20/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000392-207a2f7af910c8056fc30c5effc109ac6f86a2dbc71403c2c44e466d8aba388f.bin",
+      "records": 1,
+      "sha256": "207a2f7af910c8056fc30c5effc109ac6f86a2dbc71403c2c44e466d8aba388f",
+      "version_id": "k_MN7VBmC4zexc_DK.9tepq7UaPNTjRK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=22/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004032-225ff7f01bcddd226c27cc791ed3107876e675149210599edca5c6633fd3a2af.bin",
+      "records": 1,
+      "sha256": "225ff7f01bcddd226c27cc791ed3107876e675149210599edca5c6633fd3a2af",
+      "version_id": "Vd8TGILFwaOWwu5PHT9owgNmqNW6V9zo"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=23/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005040-2347e55453614f6f6aa07fd02f4a2fdf815361abc589c3785c21da2b478b2439.bin",
+      "records": 2,
+      "sha256": "2347e55453614f6f6aa07fd02f4a2fdf815361abc589c3785c21da2b478b2439",
+      "version_id": "ruXt8cL84pc0ZIz89AgVqofKQAebpAM3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=24/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014392-24960823dd06bf08bb8a9738a95e13e7a8839a14fb59e4300e64c51ca27f6efd.bin",
+      "records": 1,
+      "sha256": "24960823dd06bf08bb8a9738a95e13e7a8839a14fb59e4300e64c51ca27f6efd",
+      "version_id": "6c0xNvvKhzXH3FVRv3iNAY1.ELRvjepU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=24/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014560-24bc2a24d3d780201b18f07148a5ae511ce3c5b09b40bd07c359af88fd0740e0.bin",
+      "records": 1,
+      "sha256": "24bc2a24d3d780201b18f07148a5ae511ce3c5b09b40bd07c359af88fd0740e0",
+      "version_id": "abs7xBaDL5Xbc649kFs_9CZ_hWdfu9hA"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=25/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004144-253b3656069238003b59ec664d4a39f8f3f61835a32c27bc6a77290f62121bab.bin",
+      "records": 1,
+      "sha256": "253b3656069238003b59ec664d4a39f8f3f61835a32c27bc6a77290f62121bab",
+      "version_id": "P5cM0ZFsw0l4ZWN0iwj8Ox3Q0ZDALGQ3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=26/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007896-267dfbc5f779477ddda451e1bc559279997e8337920f01395d65e03b5c73ae10.bin",
+      "records": 1,
+      "sha256": "267dfbc5f779477ddda451e1bc559279997e8337920f01395d65e03b5c73ae10",
+      "version_id": "Ayne0ltzfHizRtOmXnQo3ttuBzHkxWZQ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=27/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004312-2761e73d58093e14c68b8a5426a62dc94e6a007c60fc31c88f8e25470be53ea9.bin",
+      "records": 2,
+      "sha256": "2761e73d58093e14c68b8a5426a62dc94e6a007c60fc31c88f8e25470be53ea9",
+      "version_id": "tjmytPny.3e00Q23pygmIm7JbIW1HRNj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=29/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001344-2909ac695aed577af5342b6f248e77634059c24a20ffe5a26a48618f13acfb90.bin",
+      "records": 1,
+      "sha256": "2909ac695aed577af5342b6f248e77634059c24a20ffe5a26a48618f13acfb90",
+      "version_id": "dmIL3MUQG1p4ywLvuehqRDYe8gvzbsvt"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007616-2affbd4e30db3637881c4d3a51f4a4707482f1156ca90b820eadeb6fc7797c6e.bin",
+      "records": 2,
+      "sha256": "2affbd4e30db3637881c4d3a51f4a4707482f1156ca90b820eadeb6fc7797c6e",
+      "version_id": "cSvKzTiJUkOnO9Gi2wAJRgglmzzG3uir"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008064-2a143197c63ead46317f00d0d8fa5100d134c82567fb8cc62b2f44635cc4f514.bin",
+      "records": 1,
+      "sha256": "2a143197c63ead46317f00d0d8fa5100d134c82567fb8cc62b2f44635cc4f514",
+      "version_id": "3zadqu3OmwXNXFyfv8GqmG3dvzRyiBCv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009016-2cbafdb3fbce2143af0560d98caf3ef7ccbc8b44a47562859c4ae4246af85158.bin",
+      "records": 1,
+      "sha256": "2cbafdb3fbce2143af0560d98caf3ef7ccbc8b44a47562859c4ae4246af85158",
+      "version_id": "u7piepEmFHLUHq0qjuQe0MhIGM3HOxDV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001176-2c5d59b13e1f79de0c97a106f3c6534446a1b9b5b7ddde1c52e87b5d3b09a4a5.bin",
+      "records": 1,
+      "sha256": "2c5d59b13e1f79de0c97a106f3c6534446a1b9b5b7ddde1c52e87b5d3b09a4a5",
+      "version_id": "oEoJME32HmvW5uIrsKg7EQ6dg_BLYY97"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004256-2c326c363483b9804b1c284e2e82b38acd0a4e83c88bd404be7ee9a6811e37d5.bin",
+      "records": 1,
+      "sha256": "2c326c363483b9804b1c284e2e82b38acd0a4e83c88bd404be7ee9a6811e37d5",
+      "version_id": "ZXloPND1wZjGznHtOXQlF2QrqzSpMYvN"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2e/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014336-2e6dea0412e1c3fd2817e02cc0fe1c8f62ccaad897fec781bf5e8c4e55b5dacd.bin",
+      "records": 1,
+      "sha256": "2e6dea0412e1c3fd2817e02cc0fe1c8f62ccaad897fec781bf5e8c4e55b5dacd",
+      "version_id": "UTrbABzR0x_WTH8w.acqSmR.Jiho2MMg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007224-2e4d5585f95389ac52ff5e8350f125cc359fc4c2c0a67725b70f83505f2f0d33.bin",
+      "records": 1,
+      "sha256": "2e4d5585f95389ac52ff5e8350f125cc359fc4c2c0a67725b70f83505f2f0d33",
+      "version_id": "yucnen3yC_k4OJmx7bBxpzxst0Ytf5An"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007224-2f516913a8dec05cdcef40ba65ec5f6b79f28ce053ef44b954442af9fcc41031.bin",
+      "records": 1,
+      "sha256": "2f516913a8dec05cdcef40ba65ec5f6b79f28ce053ef44b954442af9fcc41031",
+      "version_id": "1cIJRUXiQrA6mPnuhLfiF1r_PG_.oAHZ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=2f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013384-2fc075c908826417bf8169046cfe21f3531674a200766891a553027b8ea70df4.bin",
+      "records": 1,
+      "sha256": "2fc075c908826417bf8169046cfe21f3531674a200766891a553027b8ea70df4",
+      "version_id": "xVLPF5edIW9JtD7i3In8rt2FqwdG.OWW"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=30/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009240-301ac19c487e5b534b5d88e28e62f26aad835b120f21ab74b688cbb486951af8.bin",
+      "records": 1,
+      "sha256": "301ac19c487e5b534b5d88e28e62f26aad835b120f21ab74b688cbb486951af8",
+      "version_id": "M9NMTQsSywj9RPcmHuqw9_tIAu3Mpyg."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=30/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009576-30d0f67120c9344b9c252eb388f311516cef3ca640264e2357ad3c8b17700ffd.bin",
+      "records": 1,
+      "sha256": "30d0f67120c9344b9c252eb388f311516cef3ca640264e2357ad3c8b17700ffd",
+      "version_id": "6pz6sfodYd1cLENBc2ocLv_I8BhvvXSo"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=30/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001288-303fbd3e74c83355d2566f8a97dbb2ed6e2bef93a3e414780a0bda421c67b5aa.bin",
+      "records": 1,
+      "sha256": "303fbd3e74c83355d2566f8a97dbb2ed6e2bef93a3e414780a0bda421c67b5aa",
+      "version_id": "ha7S5x9wrrLn9mEEOWD5sPEHLKurkBxq"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=30/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002016-30a6d12d068a48c000ac92aac0348dfd50ca25ca9a6375c6935f7cecf7a94784.bin",
+      "records": 1,
+      "sha256": "30a6d12d068a48c000ac92aac0348dfd50ca25ca9a6375c6935f7cecf7a94784",
+      "version_id": "U3IwHr3Xn6vS51hDaFqrKaK3VQe.o51K"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=30/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006944-300d1d7ea52a860c7ef747e4dd49928f88e83872a841709b2fdd8069bf96383d.bin",
+      "records": 2,
+      "sha256": "300d1d7ea52a860c7ef747e4dd49928f88e83872a841709b2fdd8069bf96383d",
+      "version_id": "4C6CUrhm3dNckvmOQT6cnHWiMCjtkYbL"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=31/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002800-31cf29b2e9ad01a3277a41d5bdbf14bfdd68b7c8de1d5a72beba563215593eb4.bin",
+      "records": 2,
+      "sha256": "31cf29b2e9ad01a3277a41d5bdbf14bfdd68b7c8de1d5a72beba563215593eb4",
+      "version_id": "1kHobYCtn.KoxgvAbsa8HnnwHeu_nnft"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=31/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005880-317ac521499b099d536e8a3675ae9fbfa1ab1e811b892480b83bf90939dfbad8.bin",
+      "records": 1,
+      "sha256": "317ac521499b099d536e8a3675ae9fbfa1ab1e811b892480b83bf90939dfbad8",
+      "version_id": "1HA1uKEP0Aa7hSGp1gF1uW3Nx_pPut_h"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=32/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001400-32ab511999a6a12b55e218fcbc510ddf2144129ce79244f8efcd0a1f0d591263.bin",
+      "records": 1,
+      "sha256": "32ab511999a6a12b55e218fcbc510ddf2144129ce79244f8efcd0a1f0d591263",
+      "version_id": "FDpLzPqkJ5BiuqH6fpr0b5vu9C2ANMsI"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=32/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003360-32f8a73278f540cb32ccaee9284bdc2256d2f81302800924570d48a4334edfc3.bin",
+      "records": 1,
+      "sha256": "32f8a73278f540cb32ccaee9284bdc2256d2f81302800924570d48a4334edfc3",
+      "version_id": "Qs4JM0X5kXcGNSR.NkgZ4hZ8dvBm7FIk"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=32/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000336-320f4dcc1bf813d90267af9059cdfb6f5b927dc6901728ad6d53814680e07a7b.bin",
+      "records": 1,
+      "sha256": "320f4dcc1bf813d90267af9059cdfb6f5b927dc6901728ad6d53814680e07a7b",
+      "version_id": "pGYgRsnc48ce8pJFOdyocqdK9qGDR._L"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=32/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006440-326ea62b6f8c13d6f7ae843f92b89ad48cd59751b09315b787aa9eb49efb275b.bin",
+      "records": 1,
+      "sha256": "326ea62b6f8c13d6f7ae843f92b89ad48cd59751b09315b787aa9eb49efb275b",
+      "version_id": "FJ7SQ4k4i12vGKpLVtIrhRUhmBket8Ox"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=34/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000336-347b23d2fb248bc08a2b0b189b45d485eecf2548d77c958019404f6f9be781ee.bin",
+      "records": 1,
+      "sha256": "347b23d2fb248bc08a2b0b189b45d485eecf2548d77c958019404f6f9be781ee",
+      "version_id": "IRiPcYebYgIT6Nx4u2LiaKckdCHdf7J1"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=34/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002240-34bfdac43c0bb700b10b4132e2069a9479f04c11ed7dd63b5bfb4c9c1063c0a8.bin",
+      "records": 1,
+      "sha256": "34bfdac43c0bb700b10b4132e2069a9479f04c11ed7dd63b5bfb4c9c1063c0a8",
+      "version_id": "wb43np52pwO8t6_WPIlVoN_15E.Cb87Q"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=34/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013496-340fb2bf9789a822096bc297d8cbee5445880e451b9b22f1d18b80139eeb7af5.bin",
+      "records": 1,
+      "sha256": "340fb2bf9789a822096bc297d8cbee5445880e451b9b22f1d18b80139eeb7af5",
+      "version_id": "xn0SB2S82wJxNzLUlzvJ1._RsEgPogFX"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=34/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007112-34e3f9e6bb2463d456a937a7604760f8433851fe5c4db791aa9346e00a8780ae.bin",
+      "records": 1,
+      "sha256": "34e3f9e6bb2463d456a937a7604760f8433851fe5c4db791aa9346e00a8780ae",
+      "version_id": "PPeXXJrL12HY4nHd9BU8_fnt_CNYcYZZ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=35/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014448-35f3a0ed27d49e6d5479b0f39994c2db08417669d02a18f78a11e5dab23449c7.bin",
+      "records": 1,
+      "sha256": "35f3a0ed27d49e6d5479b0f39994c2db08417669d02a18f78a11e5dab23449c7",
+      "version_id": "1N3e.jT9Mv.N_I6Di02d8nvQdBokTvOf"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=36/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008288-36e9ff3a309db16bee9e0d0daaa35efad82470296478df6ef864c412b493c471.bin",
+      "records": 1,
+      "sha256": "36e9ff3a309db16bee9e0d0daaa35efad82470296478df6ef864c412b493c471",
+      "version_id": "pudlGc26fuTo4awzkvv4QBpFjo78VzcE"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=37/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002408-376a54d2fdf5760dad97e7a3e75b60977711dd9273b4a316b8a1dede0ecfe82a.bin",
+      "records": 1,
+      "sha256": "376a54d2fdf5760dad97e7a3e75b60977711dd9273b4a316b8a1dede0ecfe82a",
+      "version_id": "t_MmRV6KAP7XKPSQDcFqhjsKgdsKiwo6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=37/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002856-37bf71c1a60fa9b1a4de6e2b3dd8932473d53d3a66fac48a5f040bf678693641.bin",
+      "records": 1,
+      "sha256": "37bf71c1a60fa9b1a4de6e2b3dd8932473d53d3a66fac48a5f040bf678693641",
+      "version_id": "AhZw_BQEcDt70ZQoYJT8aqNRo2_d_rqY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=37/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011984-37684c430d409d5826864b80799b1d380192c169d2a75a6f0dc4f52698930e86.bin",
+      "records": 1,
+      "sha256": "37684c430d409d5826864b80799b1d380192c169d2a75a6f0dc4f52698930e86",
+      "version_id": "UCUzGXgzSiBq5aYpYv8fOL8uxc7ltALO"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=37/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003416-37830c43278e888d80d33b184f6216035859134489e723fcfbc8f8d6df9fccba.bin",
+      "records": 1,
+      "sha256": "37830c43278e888d80d33b184f6216035859134489e723fcfbc8f8d6df9fccba",
+      "version_id": "NTmxuFeb08bpDCdBYU1zxqUKhxTltN4V"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=37/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006384-37ac29403036f882e9a503cff3a6e10245cf5b10558921edb5188022a6323be2.bin",
+      "records": 1,
+      "sha256": "37ac29403036f882e9a503cff3a6e10245cf5b10558921edb5188022a6323be2",
+      "version_id": "sijrYTsRdVE.Q2Q4iGGP.1.Bx4bwy.kh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=38/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000560-38e8a1f7321b671c8400abb24ac492477ce8e8825f6b01fb10463591b055b1ea.bin",
+      "records": 1,
+      "sha256": "38e8a1f7321b671c8400abb24ac492477ce8e8825f6b01fb10463591b055b1ea",
+      "version_id": "KLi7cTi6nZAz99vuwE71jH2mIlLkRbOn"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=39/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007392-39e718c5414f98796db0db8fe048a440f645e62323fcfa885fbf67481ac76214.bin",
+      "records": 1,
+      "sha256": "39e718c5414f98796db0db8fe048a440f645e62323fcfa885fbf67481ac76214",
+      "version_id": "Iak373v57JYUJcH_DXdL8kGmd6BrvE71"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=39/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003752-39ab39795af4286b4beb64b838ff88a6628c26f7425a902fee16b7792dff9ebe.bin",
+      "records": 1,
+      "sha256": "39ab39795af4286b4beb64b838ff88a6628c26f7425a902fee16b7792dff9ebe",
+      "version_id": "yXaSyWU9XXNLbVCSW6j8DuLfp9QI6ZWs"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=3a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006608-3a1061c503a7bf7ad381655d3297464b21bdd2d3f8212de8b984ab449aecc89a.bin",
+      "records": 1,
+      "sha256": "3a1061c503a7bf7ad381655d3297464b21bdd2d3f8212de8b984ab449aecc89a",
+      "version_id": "VSLqwqg6vJxLQ7v2q4cjWc9D4OCug7wT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=3b/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002072-3b49fbd9f117dcf2ce45e475db2fc690a0e05c5f8f948cac13973c8749c230fb.bin",
+      "records": 1,
+      "sha256": "3b49fbd9f117dcf2ce45e475db2fc690a0e05c5f8f948cac13973c8749c230fb",
+      "version_id": "fbDLSnS81uMnHPBSrPq2yrLgpqO0jcct"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=3c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002408-3c1edefb9eadefc79083bc3628e6e7710bb6e54f975f0d0f9fc3e8423b594c24.bin",
+      "records": 1,
+      "sha256": "3c1edefb9eadefc79083bc3628e6e7710bb6e54f975f0d0f9fc3e8423b594c24",
+      "version_id": "z79uEDY5W7LB1LwHbDRbTmkcyOihK1Va"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=3d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011648-3daba9e89277747156f4244907efee1bd4b3dde64dc0aeeb3846be48ffccc7d2.bin",
+      "records": 1,
+      "sha256": "3daba9e89277747156f4244907efee1bd4b3dde64dc0aeeb3846be48ffccc7d2",
+      "version_id": "UJcxcvj_dZpdwL9u9DXv3AvwUzj4X6pj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=3e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003808-3e0fc072f6187760d81f302a2cb0ea35598ecca0c08fc50c50c07bb106a2c762.bin",
+      "records": 1,
+      "sha256": "3e0fc072f6187760d81f302a2cb0ea35598ecca0c08fc50c50c07bb106a2c762",
+      "version_id": "m17oENsjCud7sri97DxIwi3Brly1OUdk"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=40/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002128-407bdaa63ab7b8c4565a0350817b2ca7d106b33ec0081422fe9d13f509977ad8.bin",
+      "records": 1,
+      "sha256": "407bdaa63ab7b8c4565a0350817b2ca7d106b33ec0081422fe9d13f509977ad8",
+      "version_id": "FyROT5g_Ts8XKaMUjOzn9BjKe8w5LD3H"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=40/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010976-404078c5f637d15db6ea418d89c3b64490acece4a39eb41be945aa3f8dd707f3.bin",
+      "records": 1,
+      "sha256": "404078c5f637d15db6ea418d89c3b64490acece4a39eb41be945aa3f8dd707f3",
+      "version_id": "1G93mbUi_Dc4sjGXcM_4g5d.RiPF1Dbl"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=40/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000056-40a9990c93922ee42a878663c14cb5ba1d02f5a4403d07021aa7ed30c285f9a5.bin",
+      "records": 1,
+      "sha256": "40a9990c93922ee42a878663c14cb5ba1d02f5a4403d07021aa7ed30c285f9a5",
+      "version_id": "a_oYdInyz1Rvu8emKtCrv7_YRMMxOWR7"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=40/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005320-40952df5d11395c0c2a254efd5a32b9e064cef972f7cca0dca3896fcfaeec020.bin",
+      "records": 2,
+      "sha256": "40952df5d11395c0c2a254efd5a32b9e064cef972f7cca0dca3896fcfaeec020",
+      "version_id": "NdX.RxwZZLPsqqe_tkV9CdFNTqOh4lGG"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=41/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001512-4145ff9c67d5a85cc050d77a172df07add940eba47becd765e15b41d8db37942.bin",
+      "records": 1,
+      "sha256": "4145ff9c67d5a85cc050d77a172df07add940eba47becd765e15b41d8db37942",
+      "version_id": "eZ7hYECiXtRk3G8sos8YwuJ44ER4yln5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=41/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004760-41dec45f5fa9d23f12a2f87e664fc5738da86cd86f95cb85aef72ff276ef6586.bin",
+      "records": 1,
+      "sha256": "41dec45f5fa9d23f12a2f87e664fc5738da86cd86f95cb85aef72ff276ef6586",
+      "version_id": ".A6oGffPiveFqbRI_5lSHdk1FM6WDCu."
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=44/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005880-44379eca30411f8f3c5d9321756367d4632ee7061050d36aa1bd3c600ddf294a.bin",
+      "records": 2,
+      "sha256": "44379eca30411f8f3c5d9321756367d4632ee7061050d36aa1bd3c600ddf294a",
+      "version_id": "8V.v5o0vJDZNlF.Ss0UXshj5Uc09uwpv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=44/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012824-445a9622ee0d9c591f8da74613dabe1baca7744292243a5c79c2af95cedcce8a.bin",
+      "records": 1,
+      "sha256": "445a9622ee0d9c591f8da74613dabe1baca7744292243a5c79c2af95cedcce8a",
+      "version_id": "82b8BluvxcOsIuaeaGxRrsZ3UudEZjI3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=45/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013720-452bc765e94fa567f526094cf6c67f3ca78404c9fcb12f06572b3d619cd24777.bin",
+      "records": 1,
+      "sha256": "452bc765e94fa567f526094cf6c67f3ca78404c9fcb12f06572b3d619cd24777",
+      "version_id": "FAWpe8OSZNboVetqBHCXFnPNA.qIZchl"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=46/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003920-464d5f21134585bb82c118586885eb2e548bc8cd4476a5cbd219a40a946336e7.bin",
+      "records": 1,
+      "sha256": "464d5f21134585bb82c118586885eb2e548bc8cd4476a5cbd219a40a946336e7",
+      "version_id": "3eI.9Gc6.nUJtC2xtjp3JZ_6Lg__rfwo"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=47/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005544-472b2d2895728bdbf314beb52b1ba63c07b2ca304345687ce7ff59f68890a993.bin",
+      "records": 1,
+      "sha256": "472b2d2895728bdbf314beb52b1ba63c07b2ca304345687ce7ff59f68890a993",
+      "version_id": "6MF8zwDaCNEFYAitJOgZZW.Bvr54eiql"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=47/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000784-471ec974c76d8259a6b8cec192d2083fcccb63181846f02850d959b6d713d6f4.bin",
+      "records": 1,
+      "sha256": "471ec974c76d8259a6b8cec192d2083fcccb63181846f02850d959b6d713d6f4",
+      "version_id": "6526B2bMZ1xVoI64PPOPpsqhV.gGhre5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=47/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008848-47145a50014f06a64c3c1021a6aebaf037c3f9d31d8b6618ab595663f6de7d57.bin",
+      "records": 1,
+      "sha256": "47145a50014f06a64c3c1021a6aebaf037c3f9d31d8b6618ab595663f6de7d57",
+      "version_id": "RgH.jw84ey1fYQiajFVKd1wvlfsWGwUQ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=48/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001120-484b61cf02b143845a40054ba409920fbbb70e3a12e509d1487fe998f9562857.bin",
+      "records": 1,
+      "sha256": "484b61cf02b143845a40054ba409920fbbb70e3a12e509d1487fe998f9562857",
+      "version_id": "Lz3WBxRwo8xEMu5quRCleHh9FYCxoJgK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=48/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012488-48ee24dfecb868372b4e71d14fe40fbf30bc875ef03c007b30728f54a59d2b76.bin",
+      "records": 1,
+      "sha256": "48ee24dfecb868372b4e71d14fe40fbf30bc875ef03c007b30728f54a59d2b76",
+      "version_id": "9gzo6OLblVyMmbBDwBrTt9_1dMjx3Qcv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=49/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005264-49499ff37d98e57975cc18617672ab5e4e42460be004cc3bfd232c2d322932f9.bin",
+      "records": 1,
+      "sha256": "49499ff37d98e57975cc18617672ab5e4e42460be004cc3bfd232c2d322932f9",
+      "version_id": "ZKGvHVy1whD0Hj0LPCNEwSIu4qdRwSkp"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007168-4a18fcbe0db9b9602497dd40ac61c57a0eb7a8ff58bbb270b0a04487130798e6.bin",
+      "records": 1,
+      "sha256": "4a18fcbe0db9b9602497dd40ac61c57a0eb7a8ff58bbb270b0a04487130798e6",
+      "version_id": "Ehmz_q2Em_YDZfyKArMni5KCaZBHIS7q"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007784-4ba38fa710d44caad37ba3572f3677a98256467c93c605c901b473db30afed37.bin",
+      "records": 1,
+      "sha256": "4ba38fa710d44caad37ba3572f3677a98256467c93c605c901b473db30afed37",
+      "version_id": "NzIeqHyNIFnlL3nCzP4mxQrmxgNTNmfJ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008176-4be20fc69503034113bbc5cf9180881d6564852127f0ece3fa4aac1a571ba1a0.bin",
+      "records": 2,
+      "sha256": "4be20fc69503034113bbc5cf9180881d6564852127f0ece3fa4aac1a571ba1a0",
+      "version_id": "C6GV2Q_JgnLLS5oFZWK.59ia9pqUU6LR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001232-4c470f0559a29e6f27521c91c22a702e5605b4064735b87f5ee43ade48dee0fe.bin",
+      "records": 1,
+      "sha256": "4c470f0559a29e6f27521c91c22a702e5605b4064735b87f5ee43ade48dee0fe",
+      "version_id": "ytnsen.onMFN5f.sq.JCVUnJlXwbjVXZ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010752-4c18239c66fdcc63b26faee4297a3230dc0c2810a69ea7d5b4f5382eb4c82a7d.bin",
+      "records": 1,
+      "sha256": "4c18239c66fdcc63b26faee4297a3230dc0c2810a69ea7d5b4f5382eb4c82a7d",
+      "version_id": "E1QUmx_mwqSq9ZllaJWQJkW2h_hNAWuJ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009968-4c2ffe74464a2f0a2b6c01ad5628b140091fc6c9cec79dcdfd3f87b2b7793c1b.bin",
+      "records": 1,
+      "sha256": "4c2ffe74464a2f0a2b6c01ad5628b140091fc6c9cec79dcdfd3f87b2b7793c1b",
+      "version_id": "6Ij2N0AEwwXxMNQ9RdI3DtmQPs5Lp2nF"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4e/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000672-4ea502b3b212465e52836f95d500b2891e23040ac2d63934b9e96066f38684e8.bin",
+      "records": 1,
+      "sha256": "4ea502b3b212465e52836f95d500b2891e23040ac2d63934b9e96066f38684e8",
+      "version_id": "ZEkHy_4L4yd4hF2CkS2MWyJYH4aJgdWK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007616-4e9d0bcf43d6cc97a45f604f18eab1168fb418ce0f5531d4ade8da330afc6258.bin",
+      "records": 1,
+      "sha256": "4e9d0bcf43d6cc97a45f604f18eab1168fb418ce0f5531d4ade8da330afc6258",
+      "version_id": "2YP_43SNLs.FZkx7dQnzyZ3xezi2vdrt"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008960-4ea6f70f89f8cd754e4f2bc5459af9064527330bbf4e9f11a77a9bde680e5d97.bin",
+      "records": 1,
+      "sha256": "4ea6f70f89f8cd754e4f2bc5459af9064527330bbf4e9f11a77a9bde680e5d97",
+      "version_id": "8xG7Kl11vU5lKGKCcDceBy7xhmNdXWqT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=4f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004200-4f9fe8787c4ae25f1cca2a590b0c3442c68e3abd246e48108a6eb4747b238f8d.bin",
+      "records": 1,
+      "sha256": "4f9fe8787c4ae25f1cca2a590b0c3442c68e3abd246e48108a6eb4747b238f8d",
+      "version_id": "avaOW91CCWr4EPVaL6DQ67H9H.VmYYxv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=50/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001120-503924a095fb218945df1a9c13524f7f6ba58b745f70bd910b7c2299ed122793.bin",
+      "records": 1,
+      "sha256": "503924a095fb218945df1a9c13524f7f6ba58b745f70bd910b7c2299ed122793",
+      "version_id": "BmHwrtQgDBEgqVqfyktq1FT.thfiviCi"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=50/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008904-501cf9c2e9842511698477d254067046c62f7c072dc0562b2e4a6bc531b8b69d.bin",
+      "records": 1,
+      "sha256": "501cf9c2e9842511698477d254067046c62f7c072dc0562b2e4a6bc531b8b69d",
+      "version_id": "zlRbLJD8KLmTJd1UZ7y3uMMYQKMQ_kRq"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=51/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006216-5132925be99dc3251d32b0d5f89b8d1e67f0a933dd8afbef876cd1272c8a7b89.bin",
+      "records": 2,
+      "sha256": "5132925be99dc3251d32b0d5f89b8d1e67f0a933dd8afbef876cd1272c8a7b89",
+      "version_id": "vUV4.VbV31TrgOg5qAAZNxZ0CjfeLea."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=51/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002352-5141841beab25e86dfdf9fb3836c1a44f92af69f11c4bc097b00191013a3cc2f.bin",
+      "records": 1,
+      "sha256": "5141841beab25e86dfdf9fb3836c1a44f92af69f11c4bc097b00191013a3cc2f",
+      "version_id": "hs6qyicKVU4sdOMaxnlks2cfP3Y2UvQ2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=52/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001176-526e63d4c1862783d0ff808a580e5a4327429c30eac95e4b34080070243b8430.bin",
+      "records": 1,
+      "sha256": "526e63d4c1862783d0ff808a580e5a4327429c30eac95e4b34080070243b8430",
+      "version_id": "YsYY.7OCIcYCUr8nz2O0Fp200f71dEik"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=53/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013552-532b37f14896e20dd8d5e81775d77a51893ffc159b0eb1630bc456bf20b4a3b1.bin",
+      "records": 1,
+      "sha256": "532b37f14896e20dd8d5e81775d77a51893ffc159b0eb1630bc456bf20b4a3b1",
+      "version_id": "33KnqxMM1dOeFRJYm0TvZn8BA82nkMxz"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=53/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014280-53401a54ced18b61aab99f0fb60d2fab609c95ff86a749cb0882f9265bdd9c28.bin",
+      "records": 1,
+      "sha256": "53401a54ced18b61aab99f0fb60d2fab609c95ff86a749cb0882f9265bdd9c28",
+      "version_id": "SCYW9moQjKI.Y4EGUW3cScjX8Q2mRNvp"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=53/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007952-53566214be307bef6be3ab61c2e6a2d02bce4890b74a17d5372644ec699568d5.bin",
+      "records": 1,
+      "sha256": "53566214be307bef6be3ab61c2e6a2d02bce4890b74a17d5372644ec699568d5",
+      "version_id": "uIRX0cMeFH58KTGv4aAQS4be1Od3jd7Y"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=56/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003136-56b1dba3b6f0ab1512e9cc89757fbd3b1f6fafc78a04d549405ca0dab0eb02fc.bin",
+      "records": 1,
+      "sha256": "56b1dba3b6f0ab1512e9cc89757fbd3b1f6fafc78a04d549405ca0dab0eb02fc",
+      "version_id": "hJHabK1kbFsyiciA7hFOcBNHIZTri2Ou"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=56/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011144-56cf689c7d89322afa8e60b77ec41ad2f0d3d58900fa78e3d8775d0662961662.bin",
+      "records": 1,
+      "sha256": "56cf689c7d89322afa8e60b77ec41ad2f0d3d58900fa78e3d8775d0662961662",
+      "version_id": "KQ3XiDrWBF6r7eb5d8W4NCgRa7VUfKxd"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=57/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008624-57a211b7a82b0e6c93d0519c5ca6cf60cb120fb512f3d02a8b97347ec044a980.bin",
+      "records": 1,
+      "sha256": "57a211b7a82b0e6c93d0519c5ca6cf60cb120fb512f3d02a8b97347ec044a980",
+      "version_id": "UbpDmBvDXizdh..ldJSFybt2frogy54U"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=58/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007952-586cd2428b7bb2302d0eb5f4d876433427129c73413c2621ac369688ad1ca580.bin",
+      "records": 1,
+      "sha256": "586cd2428b7bb2302d0eb5f4d876433427129c73413c2621ac369688ad1ca580",
+      "version_id": "LfUWG_nUiUSGSbi2kdGMImHkDFbk8Enn"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=58/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012376-58d611aa9b0e2ad400a48eb15156474dd9b8f4a1f3d26f10737dd72152f41dc5.bin",
+      "records": 2,
+      "sha256": "58d611aa9b0e2ad400a48eb15156474dd9b8f4a1f3d26f10737dd72152f41dc5",
+      "version_id": "lkif7cE4ZfiBJ_5vZ.0bFvy_N6tDLook"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=58/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013272-5889314dd133c21225429ac5d0fce687eab731c80cddc82183d78e4284647eb3.bin",
+      "records": 1,
+      "sha256": "5889314dd133c21225429ac5d0fce687eab731c80cddc82183d78e4284647eb3",
+      "version_id": "pY.0P2rMYZoA7DB.sqeOvXFnj_m.kCF3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=58/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003472-585c6b9ae7c0676499755947d0c01037a040f6003dfbdd98b329d50d4a2adb6b.bin",
+      "records": 1,
+      "sha256": "585c6b9ae7c0676499755947d0c01037a040f6003dfbdd98b329d50d4a2adb6b",
+      "version_id": "pc1Qhgcm.42jFhQJQq6v0rvp.uqjOcQi"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=59/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001680-593ec4f3748587405bb8e39162cf4f123dc6c837797a60b14d8241eafb450e10.bin",
+      "records": 1,
+      "sha256": "593ec4f3748587405bb8e39162cf4f123dc6c837797a60b14d8241eafb450e10",
+      "version_id": "YX6fbthPM6IlzXmvMeYQz97yu.IoPwmy"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=59/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007728-599e59a125c23a84e9728c2e15a66746285025b122ddffed85881e8fbacb3f3d.bin",
+      "records": 1,
+      "sha256": "599e59a125c23a84e9728c2e15a66746285025b122ddffed85881e8fbacb3f3d",
+      "version_id": "2lh_wdbvwiQ8Se6IWJAyivHFW2HkC7r7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013664-5a681edb4d9ccd46b8c1c01110fd4b13ec1d85937816099d083ebdf0044bbc93.bin",
+      "records": 1,
+      "sha256": "5a681edb4d9ccd46b8c1c01110fd4b13ec1d85937816099d083ebdf0044bbc93",
+      "version_id": "4CsbZEp2r54LjolnIcEwTUwmLq9EFJfV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5a/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010304-5a48c7419fbbbd185d572355c708b51f34311d444c69a31dfa90fda84e96c476.bin",
+      "records": 1,
+      "sha256": "5a48c7419fbbbd185d572355c708b51f34311d444c69a31dfa90fda84e96c476",
+      "version_id": "Lp7Z8h4MLTArms4t7QBwKJxwMQSqjQmN"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010864-5c59e9f0113ae2b02cd0c3bb13c566762ca6ae87c7ed1fce4c380fad9a24b683.bin",
+      "records": 1,
+      "sha256": "5c59e9f0113ae2b02cd0c3bb13c566762ca6ae87c7ed1fce4c380fad9a24b683",
+      "version_id": "QVBUceCO0yMo9PWfz.GHufimhq.fvspu"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003528-5cfc709d9f46b7a7851e62a74f636d4c67ddd1a6434d19dc66b6f0d8c67b6671.bin",
+      "records": 1,
+      "sha256": "5cfc709d9f46b7a7851e62a74f636d4c67ddd1a6434d19dc66b6f0d8c67b6671",
+      "version_id": "furJtoq0tWHWGwFkptNRs0MCAGT66DVV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001064-5d6d2835ff785875cdffeabb1c26f3cb4961be8645ca737e48320211259321c6.bin",
+      "records": 1,
+      "sha256": "5d6d2835ff785875cdffeabb1c26f3cb4961be8645ca737e48320211259321c6",
+      "version_id": "sgq3TtMjBrQoR6lnd8G04cjgaUMmASWa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014728-5dae99492770156a3a2e7c2fa33f032a7cffd2a49508e285de5c3c9a966f7668.bin",
+      "records": 1,
+      "sha256": "5dae99492770156a3a2e7c2fa33f032a7cffd2a49508e285de5c3c9a966f7668",
+      "version_id": "7fApHEGWTFT6On0ZcbIT9cShVq01yUyN"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5d/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002968-5d6c4923905b4921cf543ee1d190eb24e22d623e2cde8deafb1b80547225e093.bin",
+      "records": 1,
+      "sha256": "5d6c4923905b4921cf543ee1d190eb24e22d623e2cde8deafb1b80547225e093",
+      "version_id": "cUEL29hsALi7iLJY9ogZcH35xaYiKWnD"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5d/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009688-5db462ffb237e2dba2dd13e664d13a3603a1d01cd99faa290527c88576718670.bin",
+      "records": 1,
+      "sha256": "5db462ffb237e2dba2dd13e664d13a3603a1d01cd99faa290527c88576718670",
+      "version_id": "BaCWP97uag1UUBLhxEPnOPUiLB4zVMl."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5e/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003696-5ee1408616dba792cb780a52c8aaf6bfe2e23aa3dd59aa1ffe3a51feb6b7035b.bin",
+      "records": 1,
+      "sha256": "5ee1408616dba792cb780a52c8aaf6bfe2e23aa3dd59aa1ffe3a51feb6b7035b",
+      "version_id": "SC7188wwM6jFPGElz4AX01ODD_CGD8mJ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008400-5e4e07d06db7fa709565500540a1b3d2dc32e5d3ea5670866907f8af52f54772.bin",
+      "records": 2,
+      "sha256": "5e4e07d06db7fa709565500540a1b3d2dc32e5d3ea5670866907f8af52f54772",
+      "version_id": "ywCUjOR5ZAmtUjKgOiPujufwRlwUoPzS"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002184-5f9dc1edf9f9a9195b7e618cd403a9417827dcce79b2dbb7457189bcc482101f.bin",
+      "records": 1,
+      "sha256": "5f9dc1edf9f9a9195b7e618cd403a9417827dcce79b2dbb7457189bcc482101f",
+      "version_id": "P11QCnx9Jjfjq_tky40VzXAPNw8yd1qu"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006272-5f044c55ae61da634b2430bfae0c021d1a3b70a5f48cdd91600257751a208216.bin",
+      "records": 1,
+      "sha256": "5f044c55ae61da634b2430bfae0c021d1a3b70a5f48cdd91600257751a208216",
+      "version_id": "Idbz1DSDilcN.nWvKN3x1oU_hS6F0ScM"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=5f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006888-5f874660568820c4476ec5392e63610d1f0d84b8d5733f72cc1bc417266fc334.bin",
+      "records": 1,
+      "sha256": "5f874660568820c4476ec5392e63610d1f0d84b8d5733f72cc1bc417266fc334",
+      "version_id": "yZTDFOn10t97FLmYbD01.329JPBygKCT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=62/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001848-622ca6272af6873a311e67253b93fd208bcfc779c37e2f35f3d88d38d0874fb6.bin",
+      "records": 1,
+      "sha256": "622ca6272af6873a311e67253b93fd208bcfc779c37e2f35f3d88d38d0874fb6",
+      "version_id": "f8zK0vT5c1JanmnNvgl3Q_qhtNOiohYn"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=62/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003416-6229e6d1e589dd3fa60b42a2e9bf930db523058a3856dc92d916ba84c7c7405e.bin",
+      "records": 1,
+      "sha256": "6229e6d1e589dd3fa60b42a2e9bf930db523058a3856dc92d916ba84c7c7405e",
+      "version_id": "knXaeqHATXmJcuBOgxG8epEDhI1jIWk7"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=62/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004536-623598cd723b8ec58c0fc942a21c216ce77a1732e888f6568a261620b7f58db1.bin",
+      "records": 2,
+      "sha256": "623598cd723b8ec58c0fc942a21c216ce77a1732e888f6568a261620b7f58db1",
+      "version_id": "y.JNfZbV9Emeko_pkNR0XsN6G3yWsMbU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=64/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003864-64abd10ec3137222ba3ba2b1f7a062144fa77471e1111cd1dffe6691a7af913b.bin",
+      "records": 1,
+      "sha256": "64abd10ec3137222ba3ba2b1f7a062144fa77471e1111cd1dffe6691a7af913b",
+      "version_id": "XZdxW5_SiFddSXSdPNpm8G0AbyrtIEGo"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=64/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006776-64ac03b5f94cd3fc282f204979df13156c3a93fb04099dda32f49b1fc6c76bba.bin",
+      "records": 1,
+      "sha256": "64ac03b5f94cd3fc282f204979df13156c3a93fb04099dda32f49b1fc6c76bba",
+      "version_id": "i1MQ_LDpFKlw8cHJE_OoP7qWUIZchIJH"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=65/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000560-658280049bf80b169c6d20e64a6b6edbef90c845299ab0e2f63df692e8e34b50.bin",
+      "records": 1,
+      "sha256": "658280049bf80b169c6d20e64a6b6edbef90c845299ab0e2f63df692e8e34b50",
+      "version_id": "KjaDJbqDRq_7S8jaNBmbFr0kLOqMBIU."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=65/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012544-65c64393cdf1a48997d7793fee11343a0bfa94c4238c713f26793c02c85894fb.bin",
+      "records": 1,
+      "sha256": "65c64393cdf1a48997d7793fee11343a0bfa94c4238c713f26793c02c85894fb",
+      "version_id": "U4wCtT3wAK7GodxL4f6W08S4NLM7Uw1F"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=65/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007392-657439d6b2ddaf47bc4cab35621e48cf40863fc77197ce90f6b560f293974a3b.bin",
+      "records": 1,
+      "sha256": "657439d6b2ddaf47bc4cab35621e48cf40863fc77197ce90f6b560f293974a3b",
+      "version_id": "3q8hgfIpyHlsFxv9XQsekgmqlt9hswOa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=66/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011872-66b7e400ec77e845f6d4ff273417f09e46ef40e274fe0a02a8e43c7223c4615c.bin",
+      "records": 1,
+      "sha256": "66b7e400ec77e845f6d4ff273417f09e46ef40e274fe0a02a8e43c7223c4615c",
+      "version_id": "sn3D2QebvsMTkNjedmq_0yUwvzntrsYo"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=66/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006664-66dc86196ac996cd5f5352135a2da63487787f9d27cb80871bb61c48d55d924a.bin",
+      "records": 1,
+      "sha256": "66dc86196ac996cd5f5352135a2da63487787f9d27cb80871bb61c48d55d924a",
+      "version_id": "AEIweMXLc95kCniZREOcxvSm10WWmYF7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=67/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008456-67dc480786f25412f8032ae98210cb0965ec4b850695770cc7f73e29b2511c65.bin",
+      "records": 1,
+      "sha256": "67dc480786f25412f8032ae98210cb0965ec4b850695770cc7f73e29b2511c65",
+      "version_id": "JktIcNFx_7rxlZwQ4ifzaRwdHTf2crTX"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=67/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007448-67cb532dc07d1ebe82d1b121cae18ba44194417f155a2b3118c1745a8fab105d.bin",
+      "records": 1,
+      "sha256": "67cb532dc07d1ebe82d1b121cae18ba44194417f155a2b3118c1745a8fab105d",
+      "version_id": "7pBLZBlyeWpcAVn2szCMw2oHPSaGNS6J"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=67/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010696-67eaf6ee41c32f3e50f5c012bcc679d98dbf5240d5683eebe359b5be058bd06e.bin",
+      "records": 1,
+      "sha256": "67eaf6ee41c32f3e50f5c012bcc679d98dbf5240d5683eebe359b5be058bd06e",
+      "version_id": "FbyOGiU07tXc99qzlT4aNI.daJTG2N1a"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=68/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001736-68b796d3a93a2e02f7c3b07b41b3ea3ae495eb99fcd06abb63b87221d3f37ff3.bin",
+      "records": 1,
+      "sha256": "68b796d3a93a2e02f7c3b07b41b3ea3ae495eb99fcd06abb63b87221d3f37ff3",
+      "version_id": "5cKME7DrFWmXquhjf_dRHZuDjRHlVHAK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=68/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007056-68a5c8182ab4923712b6e4bd390a71d31ca90d3bc03f1862306d4f9adc1387a3.bin",
+      "records": 1,
+      "sha256": "68a5c8182ab4923712b6e4bd390a71d31ca90d3bc03f1862306d4f9adc1387a3",
+      "version_id": "8MYnhVmdh.__mDZQ8pUqiggsfl_0mt6v"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=69/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001792-6911226a587e4bc03e6c767fe9b4e0f5e3f6e96bca7e9979c38e324bffb70e5d.bin",
+      "records": 1,
+      "sha256": "6911226a587e4bc03e6c767fe9b4e0f5e3f6e96bca7e9979c38e324bffb70e5d",
+      "version_id": "PSEmPvuPejZSbmkWdokAyKNjcJygAC7M"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=69/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006496-69d70aee014efb3aeca4a27fd347fc295baebb2fa69faca57b36e93a3fc1a4ca.bin",
+      "records": 1,
+      "sha256": "69d70aee014efb3aeca4a27fd347fc295baebb2fa69faca57b36e93a3fc1a4ca",
+      "version_id": "M1OTkx1FlLs1bolG5ejX.q01N3BjhNg6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008792-6ae187c25ee599022821effde67fbd8aedc4209e2b593226d53e573309ab4e9f.bin",
+      "records": 1,
+      "sha256": "6ae187c25ee599022821effde67fbd8aedc4209e2b593226d53e573309ab4e9f",
+      "version_id": "R38kprdMgv02mUbFeGDwOpBIpVcE5Uwt"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6a/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009856-6a88fbe74768ac86fa25780e2da8233bd9df3b4d4aa014b126e470b37a2145e4.bin",
+      "records": 1,
+      "sha256": "6a88fbe74768ac86fa25780e2da8233bd9df3b4d4aa014b126e470b37a2145e4",
+      "version_id": "FicFqBL7Z0XDYItXmjKEdMxUaUBDEPmr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004088-6cfac215e762fc469a6d72b4abf17a2382d8a7aa7234cf77e8d7531254ce5130.bin",
+      "records": 1,
+      "sha256": "6cfac215e762fc469a6d72b4abf17a2382d8a7aa7234cf77e8d7531254ce5130",
+      "version_id": "WDaJ.5kDPgeDnqVWW_fRei4.IMGDSxAF"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006048-6cbf8bc23e0d2f2b92ebc7236bd4622c7eb02faf25c2b500548d255ff1ebf8b1.bin",
+      "records": 1,
+      "sha256": "6cbf8bc23e0d2f2b92ebc7236bd4622c7eb02faf25c2b500548d255ff1ebf8b1",
+      "version_id": "oLSx7hp7C5aYQExajstWEAHGx1mlViVg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010808-6c851424353309025e615a3ca40a7d942d428562d1c6aaf2bf6506cc67d01272.bin",
+      "records": 1,
+      "sha256": "6c851424353309025e615a3ca40a7d942d428562d1c6aaf2bf6506cc67d01272",
+      "version_id": "UH.42TAPIxXR65VRdE0FAfOPCsR23lrd"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013440-6c05bb6803e4dce8984e17e636cdd85eca2f20c3e7ada162e27c25025715543b.bin",
+      "records": 1,
+      "sha256": "6c05bb6803e4dce8984e17e636cdd85eca2f20c3e7ada162e27c25025715543b",
+      "version_id": "qGwT8RGkEFfVbl3KXlXmbHrJHnV.yaQP"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012768-6db4f5da6cca513359d566ed7adabcc06ad3c72abd566cdfd8696f4396b6c870.bin",
+      "records": 1,
+      "sha256": "6db4f5da6cca513359d566ed7adabcc06ad3c72abd566cdfd8696f4396b6c870",
+      "version_id": "maM97LnHgfzqcZKtOCPixCC1k0Z395fk"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013216-6d2b32d17b424f3fc690736cf5d80cfff9a85e1b46d91e063ea965c949ad5eb3.bin",
+      "records": 1,
+      "sha256": "6d2b32d17b424f3fc690736cf5d80cfff9a85e1b46d91e063ea965c949ad5eb3",
+      "version_id": "uPRrpLj83nvMIHXmQgJbg.eflb061hq3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000448-6e625dfd8ef74872128b775cf3716806b3925e3270b5e8e1d72616c90142636d.bin",
+      "records": 1,
+      "sha256": "6e625dfd8ef74872128b775cf3716806b3925e3270b5e8e1d72616c90142636d",
+      "version_id": "Uue6EAGmO7VTf1O_yHRtRW6VZBVbQ2qF"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005768-6ed0a019d782ce29e440d729474cf28c03e501256d524bc7f24a6e4fece57011.bin",
+      "records": 1,
+      "sha256": "6ed0a019d782ce29e440d729474cf28c03e501256d524bc7f24a6e4fece57011",
+      "version_id": "ICNJrZZJFqmTyeeU7cjfn3enXG_NtiaU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010248-6f408e2f1755ee6bef4f55a59331a9ac0ce7cfa06a708eb8022b08e9474b34ac.bin",
+      "records": 1,
+      "sha256": "6f408e2f1755ee6bef4f55a59331a9ac0ce7cfa06a708eb8022b08e9474b34ac",
+      "version_id": "8vMVaHJwYm1AtlKZ0pHHOFNn1MiIikcv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010584-6fb64f4a69dabba640a3a9d1202ed9c6eea4ff8ed6c1c72f063806fb74cd8073.bin",
+      "records": 1,
+      "sha256": "6fb64f4a69dabba640a3a9d1202ed9c6eea4ff8ed6c1c72f063806fb74cd8073",
+      "version_id": "Ux4JmMUfTZYGVaYymOJROMZE6TnLlhr2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=6f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004928-6fd9d851224728f7ee9231f57ee82f59a9b4d71856d48925107e28d4d0fbf287.bin",
+      "records": 1,
+      "sha256": "6fd9d851224728f7ee9231f57ee82f59a9b4d71856d48925107e28d4d0fbf287",
+      "version_id": "F.8R7JlEiGZZ7O3pg0dMQMLBxiYLUHyn"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=70/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008960-70c35f19d22adeaedb86176d555593bcce63e22e5c53dd19c347056cdaa9f4b4.bin",
+      "records": 1,
+      "sha256": "70c35f19d22adeaedb86176d555593bcce63e22e5c53dd19c347056cdaa9f4b4",
+      "version_id": "vvniJbsmWMrH6toOm1uqJKTG6mWRBNdh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=71/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011592-715a620c7ad95b7fbdd25dd85c9194599d4386d500d79bc6b8db7b0f8a728492.bin",
+      "records": 1,
+      "sha256": "715a620c7ad95b7fbdd25dd85c9194599d4386d500d79bc6b8db7b0f8a728492",
+      "version_id": "nyiXcsRfiw5DOM0aVjmjVD2bCItVMar3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000896-72ae338e17fbc5dcd385e1023d075f3af580a208ecbc03c7a1c8f71bde2d56b2.bin",
+      "records": 1,
+      "sha256": "72ae338e17fbc5dcd385e1023d075f3af580a208ecbc03c7a1c8f71bde2d56b2",
+      "version_id": "7LxbdtbMfxBD7whk_rYDz0hlVwD9C35g"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001456-726267748b24e1c8f34bf4dc6212f4a2b7db77c712ca41a269c13fc4cdade3cb.bin",
+      "records": 1,
+      "sha256": "726267748b24e1c8f34bf4dc6212f4a2b7db77c712ca41a269c13fc4cdade3cb",
+      "version_id": "2uQoUM5W3FvUtivRHByuBFAqhQtxOm1L"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002632-72c9b1e84bbce6f5471d0153e1b894ab93fc8a1bea94a86791a74f0b4101c971.bin",
+      "records": 1,
+      "sha256": "72c9b1e84bbce6f5471d0153e1b894ab93fc8a1bea94a86791a74f0b4101c971",
+      "version_id": "ifMtSnmW_70pAU_Q50y1tznGTR53L7Rh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009464-7225a47b1ca9a1e9b1e6ab4c7279a01e5c855b86be0f69b6723bb277a7b1af3d.bin",
+      "records": 1,
+      "sha256": "7225a47b1ca9a1e9b1e6ab4c7279a01e5c855b86be0f69b6723bb277a7b1af3d",
+      "version_id": "6fh8SCZxf78NSWAK9.UDekrlmVgRPmgU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011312-7265fdb6d08100ef27a99fb282d82b22e57adae391b6b4ed6a42f7cabbe3800f.bin",
+      "records": 1,
+      "sha256": "7265fdb6d08100ef27a99fb282d82b22e57adae391b6b4ed6a42f7cabbe3800f",
+      "version_id": "TTDJY81BEibb3yNBUOYjEdZQDFsVyj_c"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000616-7252385e1a80dfa3fa1d35c513def7756d58d89fd18cc4e503a0e23d50cb18f6.bin",
+      "records": 1,
+      "sha256": "7252385e1a80dfa3fa1d35c513def7756d58d89fd18cc4e503a0e23d50cb18f6",
+      "version_id": "hc_D5V6trDy9Hmd5C45pbzkrUt1ycI88"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=72/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005656-72dd31f5000662b79455b78521e0bc866ac19f335224193f33cf6743602512fc.bin",
+      "records": 1,
+      "sha256": "72dd31f5000662b79455b78521e0bc866ac19f335224193f33cf6743602512fc",
+      "version_id": "h_fCVcWuzxyYo4PuhbFtGS5eTtxCG004"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=73/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006832-735b423c2cb2d49d1cf470fdd16895854013076c4ea12fa4e0f39d58334228c6.bin",
+      "records": 1,
+      "sha256": "735b423c2cb2d49d1cf470fdd16895854013076c4ea12fa4e0f39d58334228c6",
+      "version_id": "2YMSyANht_O8Tvxf2JbDvYGDxvnURs4Y"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=74/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008008-746ebe6101bc20a273f9f6a9833776da2f63bf3d8ca3bf2176dea4fd332c80b2.bin",
+      "records": 1,
+      "sha256": "746ebe6101bc20a273f9f6a9833776da2f63bf3d8ca3bf2176dea4fd332c80b2",
+      "version_id": "bju6LOKW0xslEKlS2qT3tEpC1vIAEEAb"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=75/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012040-7515419b975d314ad91f876c4483e9cc1793fa201aaec3cddc6cb7f78169d49b.bin",
+      "records": 1,
+      "sha256": "7515419b975d314ad91f876c4483e9cc1793fa201aaec3cddc6cb7f78169d49b",
+      "version_id": "VW_naJQzsgOAUaAV5thabY_xBqp_q1BH"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=76/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008904-76931f86915309de9b7eb5334028b38ef09ee29f80decad949e7e91b46472f9a.bin",
+      "records": 1,
+      "sha256": "76931f86915309de9b7eb5334028b38ef09ee29f80decad949e7e91b46472f9a",
+      "version_id": "Ws0JHWBm6qqhsGjLKGXXDLepWwFdsvrv"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=76/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011536-76f70ed8e87a010cd8234fe3bee6c10783c0d524585dfa52064ef295a30d5de8.bin",
+      "records": 1,
+      "sha256": "76f70ed8e87a010cd8234fe3bee6c10783c0d524585dfa52064ef295a30d5de8",
+      "version_id": "Mwe1btpF7B6WmXBIh1nQQaG1zGG89t2F"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=78/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000784-78b7a448ee34f26dc74e5f22bb434fb22b09fb0ed51581cfe7b54942b6c85b84.bin",
+      "records": 1,
+      "sha256": "78b7a448ee34f26dc74e5f22bb434fb22b09fb0ed51581cfe7b54942b6c85b84",
+      "version_id": "jCGwaQrvQJtgXzqNeBqQOLZbYpUNmxGc"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=78/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005152-78ed58c3d3bc1014052466d0a01f5d748d31d62816c93367d74098a867047b2e.bin",
+      "records": 2,
+      "sha256": "78ed58c3d3bc1014052466d0a01f5d748d31d62816c93367d74098a867047b2e",
+      "version_id": "s3x9A3iFqQkgtCJ6wy4Qb1urFC76jN_Z"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=79/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001008-7937aaa807c41d6c7bd9af4f5cd4e8f6111696b1dd39bd60e66408aa3d08f1d7.bin",
+      "records": 1,
+      "sha256": "7937aaa807c41d6c7bd9af4f5cd4e8f6111696b1dd39bd60e66408aa3d08f1d7",
+      "version_id": "ZUu6XjeWldv0MOPzIBv4BLk2sywqu9O_"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=79/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006664-79ae1bfa79db933f82c2252024ce394caabfa8f338afe38c3a74530dccb9e998.bin",
+      "records": 1,
+      "sha256": "79ae1bfa79db933f82c2252024ce394caabfa8f338afe38c3a74530dccb9e998",
+      "version_id": "bLOZ4kaDMyRqUYh8uLz2WD8pBhsTK2z9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=79/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012320-79c60a6cc05c7222bb363dee74f33a3edfc5dd4178f763af2986c94de31d2d4d.bin",
+      "records": 1,
+      "sha256": "79c60a6cc05c7222bb363dee74f33a3edfc5dd4178f763af2986c94de31d2d4d",
+      "version_id": "KbF7q.8hlfPAS9DXROnZ5x7IIRvprYZH"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005432-7ab34d98457768aa3a4b4baa9b97d232699a53a7084cf76c68b591b23a4c46c5.bin",
+      "records": 2,
+      "sha256": "7ab34d98457768aa3a4b4baa9b97d232699a53a7084cf76c68b591b23a4c46c5",
+      "version_id": "RfGbdPQQBsPEBxynfOJ0Y7Ua27JeCSO5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003472-7b568543f29cf97ed76dd412c33d78e7fb307137250705001403f1ba0c46ba7d.bin",
+      "records": 1,
+      "sha256": "7b568543f29cf97ed76dd412c33d78e7fb307137250705001403f1ba0c46ba7d",
+      "version_id": "g1hRyMXnamE_EpQBGd.Bm7wjepPNNil5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004480-7b4bf89ecea3ec333479dfa0f3ed50e43b772afeb0734573374f18f17abeea3d.bin",
+      "records": 1,
+      "sha256": "7b4bf89ecea3ec333479dfa0f3ed50e43b772afeb0734573374f18f17abeea3d",
+      "version_id": "iAe33pmrzat8bjsVY0LZP7qj2vPQCR6O"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006776-7b1e52356895b6c511729346f6e6fe8883975518a23a611f4055a53ade112e6a.bin",
+      "records": 1,
+      "sha256": "7b1e52356895b6c511729346f6e6fe8883975518a23a611f4055a53ade112e6a",
+      "version_id": "t2Flj2_Yuk9ovCHXX3z8aL0DZkWSFL.I"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014672-7b19d6dfd4890b8501ff6f6c504219917650bcd0662958763b8e96448b89121b.bin",
+      "records": 1,
+      "sha256": "7b19d6dfd4890b8501ff6f6c504219917650bcd0662958763b8e96448b89121b",
+      "version_id": "zPL522rSorF2.isrUV55wr4EkULtR.XM"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7b/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010640-7b4d0a648ae90c41c39ffff4dd9aabe036d91b4016350c95c7b44f2f8210ea58.bin",
+      "records": 1,
+      "sha256": "7b4d0a648ae90c41c39ffff4dd9aabe036d91b4016350c95c7b44f2f8210ea58",
+      "version_id": "Y14bbknqXSlyzRE_1_C7eXInHao79pPE"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006160-7cb6340e83cab0c2c312c52e270686a14e41032d65bfe7429279d6addc9e2b90.bin",
+      "records": 1,
+      "sha256": "7cb6340e83cab0c2c312c52e270686a14e41032d65bfe7429279d6addc9e2b90",
+      "version_id": "VHdY8Ol1_DOTyPbmUlzc7_Niut86Jk9K"
+    },
+    {
+      "bytes": 168,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010024-7c62c5de8e3b9950c3ed71bfe226bbc10b1d291d34c0e7091d075b42083d39d5.bin",
+      "records": 3,
+      "sha256": "7c62c5de8e3b9950c3ed71bfe226bbc10b1d291d34c0e7091d075b42083d39d5",
+      "version_id": ".JWNiMowqHHvz5XO3DKU4F5s6A1DlJFB"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7e/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014168-7e5720640699b4732a09b66ab0255869f4b368c0fa7fa7d0fe42d5f842e03dff.bin",
+      "records": 1,
+      "sha256": "7e5720640699b4732a09b66ab0255869f4b368c0fa7fa7d0fe42d5f842e03dff",
+      "version_id": "ouIT3PYPwJitHrRXABppxSFTP3IdvzyW"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001512-7e1192481111b7080e40e8077a6cd3e29f758b62901ad837d3d0a75f58d228a2.bin",
+      "records": 2,
+      "sha256": "7e1192481111b7080e40e8077a6cd3e29f758b62901ad837d3d0a75f58d228a2",
+      "version_id": "vSIIjcXL6QLRxpFoCA..E_Hw5j_EiHNP"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=7e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009072-7e25773a14fa8c143a4c1f638c4b4144a8a2d68347b15c476fec92bb11e02fca.bin",
+      "records": 2,
+      "sha256": "7e25773a14fa8c143a4c1f638c4b4144a8a2d68347b15c476fec92bb11e02fca",
+      "version_id": "zU7L2cCTad7KpQButvI_uw0eLpSLOrkZ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=80/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000168-80bf2aba921f00cadd4ac2b5298f817b2ceb329afb566a04c252c2cf799bf915.bin",
+      "records": 1,
+      "sha256": "80bf2aba921f00cadd4ac2b5298f817b2ceb329afb566a04c252c2cf799bf915",
+      "version_id": "N5jAkwdm9CEvmDipCxENzqQ48pdp_5WH"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=80/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011816-8019fd4f5ea08ac097f27be4d12e2cd91213dde5c1da9cdde1cae004c40a3334.bin",
+      "records": 1,
+      "sha256": "8019fd4f5ea08ac097f27be4d12e2cd91213dde5c1da9cdde1cae004c40a3334",
+      "version_id": "u4EI3o1KsyStkgTNI6sT5EdjtMe6H8T3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=80/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006328-80082651149de95dc4205487d6ce7407e068bf398b9e6c4eb64cbadae5be842f.bin",
+      "records": 1,
+      "sha256": "80082651149de95dc4205487d6ce7407e068bf398b9e6c4eb64cbadae5be842f",
+      "version_id": "RDNrlgFOzDkLkOVKpH89bAb1PDu3Rvng"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=80/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010528-80dac20c16a863bdd56c5e3b334d3d02f1a0f871c08a7a414243a8f5acb4f53c.bin",
+      "records": 1,
+      "sha256": "80dac20c16a863bdd56c5e3b334d3d02f1a0f871c08a7a414243a8f5acb4f53c",
+      "version_id": "Mro6.hmJP9K.ZS1pPIsCzOU1ErxhPPx3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=81/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006384-81dc934fb0cf41530e1a7d68b1d851816d2598767f3199b8ba3584209df032b0.bin",
+      "records": 1,
+      "sha256": "81dc934fb0cf41530e1a7d68b1d851816d2598767f3199b8ba3584209df032b0",
+      "version_id": "jawv4YsGZRo8LtV7SD1.Os_MbnL9sgIY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=81/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000112-81365e5f2e0eb142a54fa7ed56c20a470fed857ab8db9d61de3576f75c0d9d6e.bin",
+      "records": 1,
+      "sha256": "81365e5f2e0eb142a54fa7ed56c20a470fed857ab8db9d61de3576f75c0d9d6e",
+      "version_id": "2yfZB7BBAzsjN4glMAZSLHLIfAzESLHo"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=83/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002688-83aef8a8105faa8bb5560b857f1667f3ba60dece62e7741c94c487a7639a30f7.bin",
+      "records": 1,
+      "sha256": "83aef8a8105faa8bb5560b857f1667f3ba60dece62e7741c94c487a7639a30f7",
+      "version_id": "GUGCZ2Fdd66YiG__5LFV_w5andnwDAhm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=84/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000280-84ed21a6df5484a14c709424f144c9dd457dbeab89bb8df3995b5500def642f7.bin",
+      "records": 1,
+      "sha256": "84ed21a6df5484a14c709424f144c9dd457dbeab89bb8df3995b5500def642f7",
+      "version_id": "KP36vtmXMRab3vTL_BgiJPL58yJOorF3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=85/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002296-85e37dd6dd6f0fad226ff16d393bd787140614ac273d1ec1483a877b23294287.bin",
+      "records": 1,
+      "sha256": "85e37dd6dd6f0fad226ff16d393bd787140614ac273d1ec1483a877b23294287",
+      "version_id": "XhbYPlk8z.CvEJM_GuY42FEjPcsYq80S"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=85/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007728-8539a4f9d5fb39d68dadb60d0775ddfefdb5dac34d56177f12c2b046ef0e52ad.bin",
+      "records": 1,
+      "sha256": "8539a4f9d5fb39d68dadb60d0775ddfefdb5dac34d56177f12c2b046ef0e52ad",
+      "version_id": "97ABvUN7OF5A1WoEAPqKiukdJpCeT3te"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=85/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008568-8589b8b58387d28ccd98e8b87bcd38460fa29ca6a285b2637b25af080c566f5c.bin",
+      "records": 1,
+      "sha256": "8589b8b58387d28ccd98e8b87bcd38460fa29ca6a285b2637b25af080c566f5c",
+      "version_id": "1T59zHDigV1MZF9PjT.BoCKZ5yRp91E0"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=85/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010360-85a71b6ae0e3ff9590bb1f4b31b186fc47860b30df6c8d4ce8ff92ee3cede245.bin",
+      "records": 1,
+      "sha256": "85a71b6ae0e3ff9590bb1f4b31b186fc47860b30df6c8d4ce8ff92ee3cede245",
+      "version_id": "7DyTQiXcNrdSK3HKXNkt5IpCdUAGD1Tm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=86/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000112-863dea4b629e94ca5c6a8c7c3848067dd86c407e2ba774f2a96d763d5b84cbb4.bin",
+      "records": 1,
+      "sha256": "863dea4b629e94ca5c6a8c7c3848067dd86c407e2ba774f2a96d763d5b84cbb4",
+      "version_id": "Hru_9SPX9QvzGHiPbJ_Tz32exCBZ4vkd"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=86/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008008-86e7d713d8415e7dbf704fe3bcb23e3d67975dd8239a3e4990b05584ab2fc077.bin",
+      "records": 1,
+      "sha256": "86e7d713d8415e7dbf704fe3bcb23e3d67975dd8239a3e4990b05584ab2fc077",
+      "version_id": "OsWL.QBrkzuwyIOPPDeKxLxr._RCkWzR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=87/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002240-87dccb03d50c2921d671b0f8a2c4ee84d944c69a8fdbea4a6f78966a762f0782.bin",
+      "records": 1,
+      "sha256": "87dccb03d50c2921d671b0f8a2c4ee84d944c69a8fdbea4a6f78966a762f0782",
+      "version_id": "99E0tf.1o7zYkF8OLt3yum6mccGmfPm9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=87/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005432-874c6186ba3a3a6895194b858afa35a79ca20d4f4115d395c44498596910a674.bin",
+      "records": 1,
+      "sha256": "874c6186ba3a3a6895194b858afa35a79ca20d4f4115d395c44498596910a674",
+      "version_id": "SdVAlWe4Ox.7epmMrtrJ5_2vTAMvOp2I"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=88/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000280-8828a28f25729e8dedc16c42d44014e92a3f1c5c5f54be672f8921135590e1ed.bin",
+      "records": 1,
+      "sha256": "8828a28f25729e8dedc16c42d44014e92a3f1c5c5f54be672f8921135590e1ed",
+      "version_id": "3o985.g7PeAEulgMDawPTrnGyx2zGtz0"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=88/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003528-88fa369b93f739a2d924e37abb58ec21235246afdefa03631070c66db9b05b5b.bin",
+      "records": 1,
+      "sha256": "88fa369b93f739a2d924e37abb58ec21235246afdefa03631070c66db9b05b5b",
+      "version_id": "dcPGt5__DSZYL_QjR7FO.N33YLlifHqZ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=88/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006552-88f2ea79c3c4db3f0f4130eb2412c3aedf552605ea58b2ae9867aa8bb1f1d0d3.bin",
+      "records": 2,
+      "sha256": "88f2ea79c3c4db3f0f4130eb2412c3aedf552605ea58b2ae9867aa8bb1f1d0d3",
+      "version_id": "KkGKT2ipmk4dS327uex6y8rqMCeJMDy_"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=88/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008680-8882e93e02d91c5e781de77f23c8d2fb61d5f6d11c9960915d312eea12a3c2a2.bin",
+      "records": 2,
+      "sha256": "8882e93e02d91c5e781de77f23c8d2fb61d5f6d11c9960915d312eea12a3c2a2",
+      "version_id": "r3Hju.nuqkyaPM5cbS6T5iCX2mqjLsCO"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=89/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009520-89eae1bacb3490a34430bbb6daf545ddaeed331033f4f869684d034907595f9c.bin",
+      "records": 1,
+      "sha256": "89eae1bacb3490a34430bbb6daf545ddaeed331033f4f869684d034907595f9c",
+      "version_id": "6ygyK9Y8MzU7uQCtLYjrbB5WpoIWEjWw"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=89/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001456-891aa1c9e0ba5acdc79962fba62685cbf8d4a2265fc00fdf4609b55d482fc84b.bin",
+      "records": 1,
+      "sha256": "891aa1c9e0ba5acdc79962fba62685cbf8d4a2265fc00fdf4609b55d482fc84b",
+      "version_id": "bU0Ht94mtooZHFV_4zNIdBjH7iB5ADaR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014000-8ae7282b4e223fd17e3ee469b8ebfdd8e1372986afef29f2063859de32698794.bin",
+      "records": 1,
+      "sha256": "8ae7282b4e223fd17e3ee469b8ebfdd8e1372986afef29f2063859de32698794",
+      "version_id": "GBLPxGW8iaseA.JefzKOiDZzwhvuSJyl"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8b/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009408-8b955ae8f891843006ae324ca2c3244ffd2b44f75cb3ce6cdecf21f36a619565.bin",
+      "records": 1,
+      "sha256": "8b955ae8f891843006ae324ca2c3244ffd2b44f75cb3ce6cdecf21f36a619565",
+      "version_id": "1cNAG2xEfTVLRE7Uhsi3qIOqxqWgcxk0"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009520-8c93ae7d5db98dbcea0edd1138b9a198755f93ac15e4be4f1b8520390023e805.bin",
+      "records": 1,
+      "sha256": "8c93ae7d5db98dbcea0edd1138b9a198755f93ac15e4be4f1b8520390023e805",
+      "version_id": "q2nCxvGDgJOnLQueRnf8gh21SlTcjQyJ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008344-8d51d35fb9416624952abcb3897d29ae2c26993c237fc81c3c4c07205c5e9f6b.bin",
+      "records": 2,
+      "sha256": "8d51d35fb9416624952abcb3897d29ae2c26993c237fc81c3c4c07205c5e9f6b",
+      "version_id": "6iM.mVxM8sydYzyMdz2XD75CBlSFFRM9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009296-8ffc5866a80cb963dc1d0f1e50bd454170f265d38fc16bc00ae42ba70ed9981e.bin",
+      "records": 1,
+      "sha256": "8ffc5866a80cb963dc1d0f1e50bd454170f265d38fc16bc00ae42ba70ed9981e",
+      "version_id": "0cnp5_5tHh6TZhNYA4uzQYMHEi.No2Vr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005992-8f3ba8e19f880128ef7f64794179c36ab3484894a947f6e1d28956f718aaa155.bin",
+      "records": 1,
+      "sha256": "8f3ba8e19f880128ef7f64794179c36ab3484894a947f6e1d28956f718aaa155",
+      "version_id": "qZR4oIM8G2F09gzqJnH.NyHZFOKi16KP"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=8f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009240-8f975e6f8f5b106ad3fcd98cdc5807163eefd9af3ce5bafae449fca7b3fdbc58.bin",
+      "records": 1,
+      "sha256": "8f975e6f8f5b106ad3fcd98cdc5807163eefd9af3ce5bafae449fca7b3fdbc58",
+      "version_id": "0SDNVYGyka.2v6GwoVbwxlqkn4Ze5BdF"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=90/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002128-903f4973ae50e318e586d321c426e8b2c27415d38dac79f7515e4e7fb937dc2e.bin",
+      "records": 1,
+      "sha256": "903f4973ae50e318e586d321c426e8b2c27415d38dac79f7515e4e7fb937dc2e",
+      "version_id": "lVw3eqb3Zs4KreWgy_n2ndwmF132.JUm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=92/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007448-92a43ac28448bc40e85853b18ed0ee50876146cae2447e9af464ac38eadec328.bin",
+      "records": 1,
+      "sha256": "92a43ac28448bc40e85853b18ed0ee50876146cae2447e9af464ac38eadec328",
+      "version_id": "LhBfI.HR7s8ZcxRWGer91KC.i0Eotdtq"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=93/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003640-93126b83f0c8c3fd5b2ec762c3ef45186df04dd34e87c2206fa9c254fd3ed3af.bin",
+      "records": 1,
+      "sha256": "93126b83f0c8c3fd5b2ec762c3ef45186df04dd34e87c2206fa9c254fd3ed3af",
+      "version_id": "S3kEBopPlsd9L6hn7lsxnmmsRoWPVZKi"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=96/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010192-964e5b42851d9e71fc3a35fb3f8f0f72f0b1b26b6ccce2aefb480f3ed78d304b.bin",
+      "records": 1,
+      "sha256": "964e5b42851d9e71fc3a35fb3f8f0f72f0b1b26b6ccce2aefb480f3ed78d304b",
+      "version_id": "gqg06PX5doiH7oNOvvFRBY9GERZ_5VQz"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=97/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011760-978bb40bc1e13f9f310a815ffb5c5b9a435ae01cc43ce9bc776dddd81f30644d.bin",
+      "records": 1,
+      "sha256": "978bb40bc1e13f9f310a815ffb5c5b9a435ae01cc43ce9bc776dddd81f30644d",
+      "version_id": "fUM2xpHdg0h8uhlUHV51HIvGr_rJNOQU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=98/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003304-9834b427e08f21818fb8b290bae8a0655fc9ffe74bf6f53f1d03c510fa6aebc3.bin",
+      "records": 1,
+      "sha256": "9834b427e08f21818fb8b290bae8a0655fc9ffe74bf6f53f1d03c510fa6aebc3",
+      "version_id": "FuRyX_eD9KUjvBElLilL4BNtovC4kizj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=98/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007784-98e843ecf65d9a7a2ab9247c24099af13dcea3856dcfe53a6210bf3b41c0c4ea.bin",
+      "records": 1,
+      "sha256": "98e843ecf65d9a7a2ab9247c24099af13dcea3856dcfe53a6210bf3b41c0c4ea",
+      "version_id": "ZDMsWW7tsojNxB4t9pGeXMW1tj5.VwM6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=99/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000056-990bac9f186f67f5286daf9b932e613fd15308578721f9ebf136a8e860ed5dba.bin",
+      "records": 1,
+      "sha256": "990bac9f186f67f5286daf9b932e613fd15308578721f9ebf136a8e860ed5dba",
+      "version_id": "cCeOpnLYdPrHwva7u1HjdkJdkRXzy1bG"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=99/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000224-99f390780cac505eb85925fab2928c123e8c6fa1743609adb598e75e7b14e2c3.bin",
+      "records": 1,
+      "sha256": "99f390780cac505eb85925fab2928c123e8c6fa1743609adb598e75e7b14e2c3",
+      "version_id": "E5Hg.ilzT3GFwOaP52ui.I13luIFZvuE"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009800-9af5665fa429b808970d8af9a6b86776672ff52489a286fdd49eeaa94e292302.bin",
+      "records": 1,
+      "sha256": "9af5665fa429b808970d8af9a6b86776672ff52489a286fdd49eeaa94e292302",
+      "version_id": "B3645J882Ml4D8..4QlO19Bu8vTTV9b6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9a/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011088-9abc8b271e092e31c5e7f9b7438616394295214dd15ad8183509f46b8d5acedf.bin",
+      "records": 1,
+      "sha256": "9abc8b271e092e31c5e7f9b7438616394295214dd15ad8183509f46b8d5acedf",
+      "version_id": "6ZBdCqmjqBAdU6_jHjcPGI5Jy78Lvcpu"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9b/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000616-9ba0fd3c3a1475f151b1e2c6f82cf63c18290a6933abf7f8fd82d9b62307aaff.bin",
+      "records": 1,
+      "sha256": "9ba0fd3c3a1475f151b1e2c6f82cf63c18290a6933abf7f8fd82d9b62307aaff",
+      "version_id": "9PK5XfgYMNjKMR92VFIRJs44UEIj.zCJ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9c/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011368-9c843df06883c03b33eea981ef5c9e6153aa4885d96362db3a106072dcb7ec2b.bin",
+      "records": 2,
+      "sha256": "9c843df06883c03b33eea981ef5c9e6153aa4885d96362db3a106072dcb7ec2b",
+      "version_id": "6dm0SiMEAGTcEq8_H9e_A2s_4e8nrOQA"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9c/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007168-9cf6607091442296f3ff3139898e6b620a17d38275086eed59b17f028656edbf.bin",
+      "records": 1,
+      "sha256": "9cf6607091442296f3ff3139898e6b620a17d38275086eed59b17f028656edbf",
+      "version_id": "n7catW1q.t_.3x0Wc9WPrbLXpnD6Rz9f"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9d/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010696-9da3a2f15a84e6fc2f568cccc6bd07e024a86e942af03df3f1106ad85c879872.bin",
+      "records": 1,
+      "sha256": "9da3a2f15a84e6fc2f568cccc6bd07e024a86e942af03df3f1106ad85c879872",
+      "version_id": "v.9AkTDYi3Too63ZGfCUcWBV68kwRZ_P"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9d/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005152-9df3631abccad1a5a1ad34e8933b74664bc514712a4477a633f3c02c816943c1.bin",
+      "records": 2,
+      "sha256": "9df3631abccad1a5a1ad34e8933b74664bc514712a4477a633f3c02c816943c1",
+      "version_id": "RZwko.5pqv32pPwtpPWVcOJMlI_n9bJE"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9e/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005488-9ef6483f875b0085228a1c50a6bb94e68ada81ae2910f861d2d3f416ece77956.bin",
+      "records": 1,
+      "sha256": "9ef6483f875b0085228a1c50a6bb94e68ada81ae2910f861d2d3f416ece77956",
+      "version_id": "Ynz0SH8SM5G_bee4RBQLXVnR_vw79cfT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9f/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002912-9fa715b95ccf359803a99c44542c82aa7c66bfe252ee50264867fa72f0e24da7.bin",
+      "records": 1,
+      "sha256": "9fa715b95ccf359803a99c44542c82aa7c66bfe252ee50264867fa72f0e24da7",
+      "version_id": "DRiPaQiaIgBCX6JwOhrjvSxNFH8cYzGw"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004088-9f72132acb5a00126326a84813ca7ba60fd9ad9a2a4e1a89bfafa7952f1d951c.bin",
+      "records": 1,
+      "sha256": "9f72132acb5a00126326a84813ca7ba60fd9ad9a2a4e1a89bfafa7952f1d951c",
+      "version_id": "f9XTpcrA8W5aKrdj6FjDsCtxJNcb0IS_"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=9f/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010584-9f708338487de037babb055bcb18016c8259e12d646e4171dc06424798b03396.bin",
+      "records": 1,
+      "sha256": "9f708338487de037babb055bcb18016c8259e12d646e4171dc06424798b03396",
+      "version_id": "Qi8xDDJaO938VEdFGPgClUkoWn2MDWE3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006160-a16636475ed94ad28eec8e9fc1abbb8ef8f962d7e4680fa9cc79f2cc60b29f94.bin",
+      "records": 1,
+      "sha256": "a16636475ed94ad28eec8e9fc1abbb8ef8f962d7e4680fa9cc79f2cc60b29f94",
+      "version_id": "g1ucR5JtM783EBA1pSjygIstYt8NOAGe"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a2/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001568-a2b54d20c6e7462454b8c0a273b5d2ec33baf53946804a71e1017fd9bf2a9685.bin",
+      "records": 1,
+      "sha256": "a2b54d20c6e7462454b8c0a273b5d2ec33baf53946804a71e1017fd9bf2a9685",
+      "version_id": "qvxvR4xXAGfxXg4i3sbYX0KbDkfQuOmB"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a2/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004648-a27e6caa9a4ad92b0fa374d823d3df9879790cc4e2b14b4e21ead2d211866cc9.bin",
+      "records": 2,
+      "sha256": "a27e6caa9a4ad92b0fa374d823d3df9879790cc4e2b14b4e21ead2d211866cc9",
+      "version_id": "xmTE3IndTH8gk_EZ7phDOzYPZFsnYBGw"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a4/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004144-a4aaf9352571dfc345a4f85f4cd56876b791e0604100492b6cbce63d788021ac.bin",
+      "records": 1,
+      "sha256": "a4aaf9352571dfc345a4f85f4cd56876b791e0604100492b6cbce63d788021ac",
+      "version_id": "qQgo1rhPY3bZ6LwAOf7_1DR6Ea4V.qTL"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a4/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000672-a4b3982b65e7f82ae1870db7be764a39f34ee36b340a6fdb70c2003d0e0d4d24.bin",
+      "records": 1,
+      "sha256": "a4b3982b65e7f82ae1870db7be764a39f34ee36b340a6fdb70c2003d0e0d4d24",
+      "version_id": "boKsJcvaa78B13iVKCBiNNDYAIPzUhOx"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a4/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003696-a4143aa3c6091fe24d88080f33fef0e4e54d9414f7a7e3f1d5fe7a13eb8b8894.bin",
+      "records": 1,
+      "sha256": "a4143aa3c6091fe24d88080f33fef0e4e54d9414f7a7e3f1d5fe7a13eb8b8894",
+      "version_id": "jzwP_1ViX37VaFqnHACHVrswf8tWL4dr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a5/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006720-a5f01b16ecfddab2146ce0399158dea2b340914dc9dedb61ede515f1215ed887.bin",
+      "records": 1,
+      "sha256": "a5f01b16ecfddab2146ce0399158dea2b340914dc9dedb61ede515f1215ed887",
+      "version_id": "m5lyQNe0.iI_jMY.hIGyDn50fMKt0CkM"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a6/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003080-a6f02d3a742a99e7ac5a11d92b5048f2e193b018eb264a7412fbb1dd44dc0010.bin",
+      "records": 1,
+      "sha256": "a6f02d3a742a99e7ac5a11d92b5048f2e193b018eb264a7412fbb1dd44dc0010",
+      "version_id": "SzVv2Cev24Z9WXl35pVWbluB7kFnYIq0"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a6/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009352-a6209dd1a5b35d13cba992b7994ed9ad0e64066d12d974b411479a23618f1373.bin",
+      "records": 2,
+      "sha256": "a6209dd1a5b35d13cba992b7994ed9ad0e64066d12d974b411479a23618f1373",
+      "version_id": "e07nxtKlSPet3QdNCGxCof9MO53Yq2ez"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a6/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007504-a6c4d0dfc2de9370b42c100c54aff0f96610ade4add7f1fd9d75f3a69c62b514.bin",
+      "records": 1,
+      "sha256": "a6c4d0dfc2de9370b42c100c54aff0f96610ade4add7f1fd9d75f3a69c62b514",
+      "version_id": "Eajq3sJbCtQAKl.9N9s6YTZUqU_neR1P"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=a6/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008120-a6f9dfccc13ce9cfdd2c0b111d46b11eadcf221f7a0a2e4cf50de6093a70e9f3.bin",
+      "records": 1,
+      "sha256": "a6f9dfccc13ce9cfdd2c0b111d46b11eadcf221f7a0a2e4cf50de6093a70e9f3",
+      "version_id": "32Lp8rxtgjzEFXiNVTb6M6yGzTVsRc3U"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=aa/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012264-aaa46f1b2e488776b930d8ad4423cc2012d48223e72ad7d7a859c895ccfccaa3.bin",
+      "records": 1,
+      "sha256": "aaa46f1b2e488776b930d8ad4423cc2012d48223e72ad7d7a859c895ccfccaa3",
+      "version_id": "dNmZb81uFl_.LD55o.RE87o9MUU1o7O8"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ab/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001848-ab0fdce9ac93b12eab0f801b5e1cb3d7c28c1779caf70ea9ce1c8c4f3970478e.bin",
+      "records": 1,
+      "sha256": "ab0fdce9ac93b12eab0f801b5e1cb3d7c28c1779caf70ea9ce1c8c4f3970478e",
+      "version_id": "iueoSt8QxVA_.OQfUUlq.FePp8_wapUj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ab/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004816-ab38b9e656b224bd55e08051844982c2900ce3cd3d27bee642ded586097370f3.bin",
+      "records": 1,
+      "sha256": "ab38b9e656b224bd55e08051844982c2900ce3cd3d27bee642ded586097370f3",
+      "version_id": "OjP87jiKjpIiU3caol1lVAhuU8d4aLnt"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ab/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009744-ab19fd1846da6505b1ff963444954ee9ac760c6707fabb890c8e33dd45016d32.bin",
+      "records": 1,
+      "sha256": "ab19fd1846da6505b1ff963444954ee9ac760c6707fabb890c8e33dd45016d32",
+      "version_id": "qNlo_7IQKspfAOK2N9rS15EoF9kcJErS"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ac/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012712-ac4dec9832d8041b9a7d6ed1cbcad517eb79e070540d8e02b623b8e515122076.bin",
+      "records": 1,
+      "sha256": "ac4dec9832d8041b9a7d6ed1cbcad517eb79e070540d8e02b623b8e515122076",
+      "version_id": "szRG2EFDtaY5Qj1Ue9O6DKtw6K8ADWk4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ad/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003584-ad262dad1ac2074dacd4a288c958211b2c305e518d5f95bd94eb5c7676e848c4.bin",
+      "records": 1,
+      "sha256": "ad262dad1ac2074dacd4a288c958211b2c305e518d5f95bd94eb5c7676e848c4",
+      "version_id": "XRz07.dzyqfc51xKXxbSjglaM1KGl4Fu"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ad/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011480-ad696ff42001cfd91a8070c668ba0807e91400e781b0da0c9bddf62451187c97.bin",
+      "records": 1,
+      "sha256": "ad696ff42001cfd91a8070c668ba0807e91400e781b0da0c9bddf62451187c97",
+      "version_id": "tApVFnjwt.ooj2Lt4XwfDANb1_8l5OTc"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ad/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000728-adea065f04f941d5f6728cdd942161962a2968616a10b6ea9994c0f47ab75a84.bin",
+      "records": 1,
+      "sha256": "adea065f04f941d5f6728cdd942161962a2968616a10b6ea9994c0f47ab75a84",
+      "version_id": "_j5cW2rmmI.XqQXbExMtD6h.r86HOEJe"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ae/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008120-ae57e883a31a55c9d5f69e0741140d33733a58ccf3fd09b5b74d3c2517ae69ae.bin",
+      "records": 1,
+      "sha256": "ae57e883a31a55c9d5f69e0741140d33733a58ccf3fd09b5b74d3c2517ae69ae",
+      "version_id": "OnQXdxOLdvQ_2brgVNRLvGJBrm_N3mbR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=af/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002184-af4a8dc2415d587592b07ef2bb5053b759accd9d042906a5c35a4dc67d36c9c1.bin",
+      "records": 1,
+      "sha256": "af4a8dc2415d587592b07ef2bb5053b759accd9d042906a5c35a4dc67d36c9c1",
+      "version_id": "CybkpO5QKsZ3o_jJZXPUzaoR6qYA_JZC"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=af/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012656-afd952bce177f2c43ea28d102693c352bb6a5048296f5e5880625926d1423d90.bin",
+      "records": 1,
+      "sha256": "afd952bce177f2c43ea28d102693c352bb6a5048296f5e5880625926d1423d90",
+      "version_id": "pogeIZWFfXeWO23dVHaHGRafO1Hj07Tg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=af/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014504-af51072b91c432c318770340f8a970f654f91a7a3a13ef2415030ecd8a590af4.bin",
+      "records": 1,
+      "sha256": "af51072b91c432c318770340f8a970f654f91a7a3a13ef2415030ecd8a590af4",
+      "version_id": "LntuSW5ijRnNsaemeKf9Q8ADRIAMsVNx"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=af/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010472-af9a54222058a69ff764eb8b922822d36cdb54b60be988d421534a3202eb2226.bin",
+      "records": 1,
+      "sha256": "af9a54222058a69ff764eb8b922822d36cdb54b60be988d421534a3202eb2226",
+      "version_id": "kUbCapLymr_4eMQlot09GAamzxCYHBeT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b0/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005992-b0a7231dab8958d5162499e1f84c1c038d366525f5fcbc50904bf51108c11487.bin",
+      "records": 1,
+      "sha256": "b0a7231dab8958d5162499e1f84c1c038d366525f5fcbc50904bf51108c11487",
+      "version_id": "FygvT3TWoGpzWgT2nQQtxbb788WWt7MR"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003976-b1de6100ec3792319276268ca925a3c3be5ae69ef5f23e215fdc77700566615b.bin",
+      "records": 1,
+      "sha256": "b1de6100ec3792319276268ca925a3c3be5ae69ef5f23e215fdc77700566615b",
+      "version_id": "d4qW4_3jcNfCCoLXyAVbgC3WERUlLtPS"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013608-b10fd81d802bfeffe3b1300efe9fef23d38b6f1610537afa8a363f6c88cbfd6c.bin",
+      "records": 1,
+      "sha256": "b10fd81d802bfeffe3b1300efe9fef23d38b6f1610537afa8a363f6c88cbfd6c",
+      "version_id": "s4xIh10LzCCJco7ByF066zJiqovkxXvr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b3/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008848-b3309c3848b1388d1ba36b2d1c4b5e7cc66c6ed42f5aff545148ecee8f4fa27a.bin",
+      "records": 1,
+      "sha256": "b3309c3848b1388d1ba36b2d1c4b5e7cc66c6ed42f5aff545148ecee8f4fa27a",
+      "version_id": "1Ly_bV9G_YPM_rC5U3MW2yKKvf03Nv5N"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b3/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001624-b353875c139502396957ce89194c0c9f58347bd417b23de5cb278bc064a47a88.bin",
+      "records": 1,
+      "sha256": "b353875c139502396957ce89194c0c9f58347bd417b23de5cb278bc064a47a88",
+      "version_id": "MCqjOUBlS8.7l2oBnH969h_kx4inc2E."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b3/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005936-b341b638efd3a4a7fa0f1905f544fff2b1a6e5df948ea892b508ee48d9f11d78.bin",
+      "records": 1,
+      "sha256": "b341b638efd3a4a7fa0f1905f544fff2b1a6e5df948ea892b508ee48d9f11d78",
+      "version_id": "Ioh109z.3eX8aS97oczCbwtg9qVvyVcc"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b5/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009800-b5535e480b449f5330e0e45d8f1442b4ba6fd4a67f44a6b63c2df8117ae22729.bin",
+      "records": 1,
+      "sha256": "b5535e480b449f5330e0e45d8f1442b4ba6fd4a67f44a6b63c2df8117ae22729",
+      "version_id": "LYuAKpZVyOxgjeBwHOBo2uKLqMEAsBAf"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b6/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006552-b6ddfc5a2734c63427072c2b7efc821aae5897302205dc91dee6029d00efc6e2.bin",
+      "records": 1,
+      "sha256": "b6ddfc5a2734c63427072c2b7efc821aae5897302205dc91dee6029d00efc6e2",
+      "version_id": "D1GnNp2QK2niNRjUFRUG.HvUtyyBmvfG"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b6/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009016-b6ce223544242e4ea434348347f023cefcdc31daa5250018df2854bdf1b41197.bin",
+      "records": 1,
+      "sha256": "b6ce223544242e4ea434348347f023cefcdc31daa5250018df2854bdf1b41197",
+      "version_id": "m79r.KxBL2y6Mu2cFwGDphD3UKGSRwPD"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b6/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009576-b68e888a9d56e283488ec0e60bc94841ea54a1c8cd73190edb8d476993325df1.bin",
+      "records": 1,
+      "sha256": "b68e888a9d56e283488ec0e60bc94841ea54a1c8cd73190edb8d476993325df1",
+      "version_id": "vgafi5lawNStQ0IJwGniIdsfcEWjIKHm"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004648-b73685a3d13efee25536e6da651c41fd527fc28b8dfda71dd85faa65e8a91d1a.bin",
+      "records": 2,
+      "sha256": "b73685a3d13efee25536e6da651c41fd527fc28b8dfda71dd85faa65e8a91d1a",
+      "version_id": "kB6UyR2QHNDuxIOr2tD96t8fi0B6eqT2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010024-b7234ef11193d4cde8ee68fcfad1d17522b45017543a6fc24c38b42d34f2fdeb.bin",
+      "records": 1,
+      "sha256": "b7234ef11193d4cde8ee68fcfad1d17522b45017543a6fc24c38b42d34f2fdeb",
+      "version_id": "R4QhIqt.9gZPksevCvxCqY50TOxj7YeU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b8/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002800-b8acc3d9b59174f13f7296ada787882eddb6b9952ef388c13d92798185009793.bin",
+      "records": 1,
+      "sha256": "b8acc3d9b59174f13f7296ada787882eddb6b9952ef388c13d92798185009793",
+      "version_id": "IYmJxFKvr8IAZTFMwL5FygtQUCE1WK5T"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003192-b972240962556c736093cf2d5495c9fd901670894acb359b22656a6baed01f40.bin",
+      "records": 1,
+      "sha256": "b972240962556c736093cf2d5495c9fd901670894acb359b22656a6baed01f40",
+      "version_id": "gh4PShLiOn4lNPepaiOzdAJDKgMT_kkl"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005712-b97c758dac47edd1c8345dfb41d832372f45fab8fee4a2e6710d1a1dae1361a5.bin",
+      "records": 1,
+      "sha256": "b97c758dac47edd1c8345dfb41d832372f45fab8fee4a2e6710d1a1dae1361a5",
+      "version_id": "ZP9kllef38ecbf03twOi0U1O4gpJ3Ysm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=b9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006104-b9cfd37399ebf5a25e465144e3d78c6e99f44ad41eb3357e8e22a72c2f11ff9b.bin",
+      "records": 1,
+      "sha256": "b9cfd37399ebf5a25e465144e3d78c6e99f44ad41eb3357e8e22a72c2f11ff9b",
+      "version_id": "MkjEB.uPzYrwkGElt9KGeilMhVVNu1Lx"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ba/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009912-bab5982743ba0d63b867608097d5abb9a3b4a7568cce21cc69f833fe64941a2e.bin",
+      "records": 2,
+      "sha256": "bab5982743ba0d63b867608097d5abb9a3b4a7568cce21cc69f833fe64941a2e",
+      "version_id": "H9HhQMVcggJeUxJAzKx6KpbzZsAaUaax"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=bb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004816-bb9f597bdb160832a79683ee1605673ca2e31221ef1d24269d59a43ea4512ace.bin",
+      "records": 1,
+      "sha256": "bb9f597bdb160832a79683ee1605673ca2e31221ef1d24269d59a43ea4512ace",
+      "version_id": "uzdDPIXco3KJ2cc8FZbCHolk4z1Ayis6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=bd/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014616-bd86f3ecfd8895e54773d048af32d3e6a9d8c1879149db1b77609ccac7f4dcc8.bin",
+      "records": 1,
+      "sha256": "bd86f3ecfd8895e54773d048af32d3e6a9d8c1879149db1b77609ccac7f4dcc8",
+      "version_id": "nckFcuxU_q.N_xHNOoasLFph6v3ak4av"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=bd/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001232-bd102fc7fa94131dab2bd1b4268b12078fd0275d9f44e9bc83d6c19002c89745.bin",
+      "records": 1,
+      "sha256": "bd102fc7fa94131dab2bd1b4268b12078fd0275d9f44e9bc83d6c19002c89745",
+      "version_id": "lw840lglkOfvEd_n9PCdh7RPWsFnBpB4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=be/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004480-be04a27ca46b67c9e1ebfbaf7ad5d5a5c3682e17ead3a7b08f87e04230ca7175.bin",
+      "records": 1,
+      "sha256": "be04a27ca46b67c9e1ebfbaf7ad5d5a5c3682e17ead3a7b08f87e04230ca7175",
+      "version_id": "EVf7oMKfUrxxfgh.e8wJmcjugxlGvRA7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=bf/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002520-bfd6718e754035ee920c611378140dc1544fb1ae2369e79d4ba3f44a5a8b230e.bin",
+      "records": 1,
+      "sha256": "bfd6718e754035ee920c611378140dc1544fb1ae2369e79d4ba3f44a5a8b230e",
+      "version_id": "UPHtkbPVek3GWxiTqMxV4XxWlsL0TziI"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=bf/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010080-bf39aaa9e7f9b5574971a36a962f703f0a5d5570f4731d0ea79728703c40bf88.bin",
+      "records": 1,
+      "sha256": "bf39aaa9e7f9b5574971a36a962f703f0a5d5570f4731d0ea79728703c40bf88",
+      "version_id": "A6j4kGz8Zfub820Oqfa9W790WhKAuqwE"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c0/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000006720-c09714515f5ad803e28770066b8481cb7c26d208e2b31d5b2d724d199099cb75.bin",
+      "records": 1,
+      "sha256": "c09714515f5ad803e28770066b8481cb7c26d208e2b31d5b2d724d199099cb75",
+      "version_id": "wPXKLEaQd6X1xoORBnPEQ_1Qi0xjdMvH"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c0/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010472-c04163ca5f8c5271dcd7823af32afe68a6ce6aea6c77de4ab322ca630371def5.bin",
+      "records": 2,
+      "sha256": "c04163ca5f8c5271dcd7823af32afe68a6ce6aea6c77de4ab322ca630371def5",
+      "version_id": "M8SIj1xy6Zrr4ufU4yjYQRR.hLgug2T_"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c0/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003192-c0a1042274128be35352c2c083818179d5271d6961fc92a5d1663dda7277acbf.bin",
+      "records": 1,
+      "sha256": "c0a1042274128be35352c2c083818179d5271d6961fc92a5d1663dda7277acbf",
+      "version_id": "CoZAXjFVWfx9HybaG8.USKmS8b3rAOp0"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c3/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012600-c3d958471d07f0635ba66f359e9965a10749cb59078c36d8415c09f77ddc6587.bin",
+      "records": 1,
+      "sha256": "c3d958471d07f0635ba66f359e9965a10749cb59078c36d8415c09f77ddc6587",
+      "version_id": "auxm_6E2bNPuk8hUMtybTpE1orJtqlb7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c3/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007840-c3a6bd1c85ea4ca0bd74ab7cf467b46d5169a20223bcd47792399adc00d6bd23.bin",
+      "records": 1,
+      "sha256": "c3a6bd1c85ea4ca0bd74ab7cf467b46d5169a20223bcd47792399adc00d6bd23",
+      "version_id": "jjWKmo7542GA31Bfv3r7L7dREDElvJZT"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c4/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000224-c40b4f510a716c0c73e3f88488d90709b579893a7a8d974daea0170a3a97c7d7.bin",
+      "records": 1,
+      "sha256": "c40b4f510a716c0c73e3f88488d90709b579893a7a8d974daea0170a3a97c7d7",
+      "version_id": "scp4g519odAe1Z0c6mu4djTfhfBIBBcd"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c5/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001904-c51ee56b1ab49668b7c19ee76b4ac0335640fb636efed4ffb553b66a591ea6da.bin",
+      "records": 1,
+      "sha256": "c51ee56b1ab49668b7c19ee76b4ac0335640fb636efed4ffb553b66a591ea6da",
+      "version_id": ".6UPWACtE90AE9OziUVzJ1sbIPTrI_TQ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c6/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008512-c667adc3a3ddd974b7255a3bbb78e749b3e9265545d918b51e20d520bd58dcaa.bin",
+      "records": 1,
+      "sha256": "c667adc3a3ddd974b7255a3bbb78e749b3e9265545d918b51e20d520bd58dcaa",
+      "version_id": "nr9aHBkW.yMTyMmJ8JJyMiYsl6FIVmgn"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000504-c7f232f7a79cddba9499796a80723cd0aca460df10e467197cf74550ede8f483.bin",
+      "records": 1,
+      "sha256": "c7f232f7a79cddba9499796a80723cd0aca460df10e467197cf74550ede8f483",
+      "version_id": "GA2kbs4i3H47pETT7J6IL8VWrr6i4tQC"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003808-c77b51fbcdb3e4a8fbaa9f63df28d1817d0f7403666f79a6f3af55ea27056b51.bin",
+      "records": 1,
+      "sha256": "c77b51fbcdb3e4a8fbaa9f63df28d1817d0f7403666f79a6f3af55ea27056b51",
+      "version_id": "qnS4aKHq4tfcIgFTirUIpUZ8HGl5rtPj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c7/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000952-c7a22ea5d7df8b92d418354c95b1a81b467af90a85bc165afc172d240b6ff3bb.bin",
+      "records": 1,
+      "sha256": "c7a22ea5d7df8b92d418354c95b1a81b467af90a85bc165afc172d240b6ff3bb",
+      "version_id": "I1wUKvbxn6M.I_PnoP786.P7FFwMlxcW"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c7/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002576-c7d1a125ba2bd381f65e2acb0ef958b993d4df4d3fb6fde52388f90db1ccc16e.bin",
+      "records": 1,
+      "sha256": "c7d1a125ba2bd381f65e2acb0ef958b993d4df4d3fb6fde52388f90db1ccc16e",
+      "version_id": "PobAcjtC3dfo8t0ciX9knwJzsXlogPWA"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c7/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010752-c743ef48fe3c2f7d6cc2e65e31ec11570d9deee32d8a055a43c569d5a521fe28.bin",
+      "records": 1,
+      "sha256": "c743ef48fe3c2f7d6cc2e65e31ec11570d9deee32d8a055a43c569d5a521fe28",
+      "version_id": "bLtc4NZcKKWklWsZZEpd_ABxbKDc2ur7"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c8/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007504-c8e617dfbb125e475053cd46345363aaaa6ac40f015db5d98c0f78dc218c13b7.bin",
+      "records": 2,
+      "sha256": "c8e617dfbb125e475053cd46345363aaaa6ac40f015db5d98c0f78dc218c13b7",
+      "version_id": "R96jtT5bQd84HySpOO9EvPaF7i8C3uGJ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c8/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006216-c8183a46c5e142501ec4bb8eddc74dc5fa0d71c79d2aa6ad78154aaf77053ae3.bin",
+      "records": 1,
+      "sha256": "c8183a46c5e142501ec4bb8eddc74dc5fa0d71c79d2aa6ad78154aaf77053ae3",
+      "version_id": "uR08DLdgr6Pp2LarV.CxO6dcl6WbjeJ6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c8/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007672-c80fa1b262538a021f2c949f3fc5cf2629c05fcff734f7f031ed18ede785106a.bin",
+      "records": 1,
+      "sha256": "c80fa1b262538a021f2c949f3fc5cf2629c05fcff734f7f031ed18ede785106a",
+      "version_id": "D0nQuBdquPwe7WUCyxbAn7lls_8w9B3q"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=c9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010920-c9a7cc19ed914ca4fa3e236870d48787b71316cc6f1253bf894e3e45dc470293.bin",
+      "records": 1,
+      "sha256": "c9a7cc19ed914ca4fa3e236870d48787b71316cc6f1253bf894e3e45dc470293",
+      "version_id": "Mc4SsQ1RJTcILF4z6SKZavnj9TJD05i9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ca/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001960-caa3a55205162b0a00009a1085901625b8f98a63f854c4ea2be1a3967a7c7b6d.bin",
+      "records": 1,
+      "sha256": "caa3a55205162b0a00009a1085901625b8f98a63f854c4ea2be1a3967a7c7b6d",
+      "version_id": "jAswBTTM_6akJoMaQ2bqBD4o207vvaMu"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ca/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003248-ca0e1562f898b960de3b8837210f9b25328e039800c3978740eae424b1e3bd72.bin",
+      "records": 1,
+      "sha256": "ca0e1562f898b960de3b8837210f9b25328e039800c3978740eae424b1e3bd72",
+      "version_id": "PStVXzQt96IHnAxnEHVReN7ypHZRsbvr"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ca/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014112-ca4dc41abd61a92fef14d8d5c4281368454dca8cf9d25e8523d6cd1fad4498d2.bin",
+      "records": 1,
+      "sha256": "ca4dc41abd61a92fef14d8d5c4281368454dca8cf9d25e8523d6cd1fad4498d2",
+      "version_id": "yI38eOVvJt8GuPs6A3pVgOzfZbZVz7TM"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=cb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009688-cbaebc53a8e2c01a91878e45c872cefce562441f8f338d8c9a7d81fce55f5660.bin",
+      "records": 1,
+      "sha256": "cbaebc53a8e2c01a91878e45c872cefce562441f8f338d8c9a7d81fce55f5660",
+      "version_id": "BI1AdVZ6GQVgz9bARMCWpBAdEJ3QjV1R"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=cb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011032-cb368ade5dba4db86a0aed6d58c4368be833ac011b5762fc615df6f8da3d46eb.bin",
+      "records": 1,
+      "sha256": "cb368ade5dba4db86a0aed6d58c4368be833ac011b5762fc615df6f8da3d46eb",
+      "version_id": "xStwhJwixYS7XC1bOzP1UZXB95prHqDg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=cb/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003024-cb1cbf793d68c4623b41db87f9742ba149e50fec5f9518fd3da6fef85327167a.bin",
+      "records": 1,
+      "sha256": "cb1cbf793d68c4623b41db87f9742ba149e50fec5f9518fd3da6fef85327167a",
+      "version_id": "M48Me.fBAvUJ0JnbNyyE13pTtTL6kcH1"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ce/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010416-ceb2fbd82049881f6661a47f1f420689b02ce83beee040561a235ec0311e28b7.bin",
+      "records": 1,
+      "sha256": "ceb2fbd82049881f6661a47f1f420689b02ce83beee040561a235ec0311e28b7",
+      "version_id": "hDMK2F5WNDBsZpochusfImBzvAIJ9pEm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=cf/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000840-cf5a1db6c0875a235c3b57574b12cdaba89c9e7c041aee6d4a9e08b052cdeba8.bin",
+      "records": 1,
+      "sha256": "cf5a1db6c0875a235c3b57574b12cdaba89c9e7c041aee6d4a9e08b052cdeba8",
+      "version_id": "jrSI8vINOcF3F.EnUxyEWLV0J57PWbYC"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=cf/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000007336-cf7b7d7998c1d3a122b59e16bfc50006369435d101c93cd11f0d6d1fbcf20e0c.bin",
+      "records": 1,
+      "sha256": "cf7b7d7998c1d3a122b59e16bfc50006369435d101c93cd11f0d6d1fbcf20e0c",
+      "version_id": "uQZE2rcNruQa7d8oRP5_9yLw_2gK_p2w"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d1/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000000-d19a2e8a6101346a715ec181550b297f1160d4c95720b377ca6b71f7744cc914.bin",
+      "records": 1,
+      "sha256": "d19a2e8a6101346a715ec181550b297f1160d4c95720b377ca6b71f7744cc914",
+      "version_id": "tBAsyuTQ8pwFQopxcFtxxYqkMzbrM6D_"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d2/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000728-d2fdd7f3516048019f4eb44e2223fb2314e1f91bd8d5428d9dc9e891fbe64ffb.bin",
+      "records": 1,
+      "sha256": "d2fdd7f3516048019f4eb44e2223fb2314e1f91bd8d5428d9dc9e891fbe64ffb",
+      "version_id": "fGycbj.vpKqyx1hyQf6yNjyuIx_ZTIN_"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d2/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004928-d29e06e6b71838524a96440882048621feb76faae5774fd37cb479897d490e0a.bin",
+      "records": 2,
+      "sha256": "d29e06e6b71838524a96440882048621feb76faae5774fd37cb479897d490e0a",
+      "version_id": "RfHHPf79AQnN5Udj_30RaYn1WH9gqSBK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d2/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004872-d2547f2f81ace998de4891c81e1d40a2b7c50f8c7368671c1efe9baed0351445.bin",
+      "records": 1,
+      "sha256": "d2547f2f81ace998de4891c81e1d40a2b7c50f8c7368671c1efe9baed0351445",
+      "version_id": "YaXjfEOeDDRE3m4r58ivLF4Dc5DE2Pg7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d4/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009912-d4427d4225b7717b90b3d7c2df59b80490c088ac8086035b70925e1ae2ee4c9f.bin",
+      "records": 1,
+      "sha256": "d4427d4225b7717b90b3d7c2df59b80490c088ac8086035b70925e1ae2ee4c9f",
+      "version_id": "WXRNkeeTkKGh1Y19DQunh_ejM08B0mGV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d5/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002016-d5ebd153dfe9b749e49dd85b0d0c6cd885410e19e4d077acd2acea22e6c4db36.bin",
+      "records": 1,
+      "sha256": "d5ebd153dfe9b749e49dd85b0d0c6cd885410e19e4d077acd2acea22e6c4db36",
+      "version_id": "dnztReHPRjuhFpva8UBncpg3XAC0dBty"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d5/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003864-d5e29573dc02aa660a94a43cd222d8a039e1304cd9686a79352352bced8fa5a9.bin",
+      "records": 1,
+      "sha256": "d5e29573dc02aa660a94a43cd222d8a039e1304cd9686a79352352bced8fa5a9",
+      "version_id": "UnfLrgnhURFDhb0QGD25tE7.m_sVCkU7"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d5/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003360-d5e0b6fcca713a0cd5b276208aa23db7a7b026cb9282a19abb80123fc90f0e99.bin",
+      "records": 1,
+      "sha256": "d5e0b6fcca713a0cd5b276208aa23db7a7b026cb9282a19abb80123fc90f0e99",
+      "version_id": "5W6PbnYjrVtnTeINYxq1ZQPLUlB3.oqJ"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008680-d7b94917aa25086cd9cd53bb1d33aa28d8713fa57f47b54bd9565cad7aebda99.bin",
+      "records": 2,
+      "sha256": "d7b94917aa25086cd9cd53bb1d33aa28d8713fa57f47b54bd9565cad7aebda99",
+      "version_id": "mQc6BtllOEquUpz_QuxQMK213Wi5b4q9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=d8/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013104-d8ec949530582135410905f1dc1f5035a62bdf4c796d713cb6a6d5ee8f22079e.bin",
+      "records": 1,
+      "sha256": "d8ec949530582135410905f1dc1f5035a62bdf4c796d713cb6a6d5ee8f22079e",
+      "version_id": "C9nVx3S.IKg7OedJlUUpcrQcRoRXCJrD"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=da/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005656-da60d5b94b10c0412dd659a578e9807c5c0dd35db55e55d8219fb522e0deac28.bin",
+      "records": 1,
+      "sha256": "da60d5b94b10c0412dd659a578e9807c5c0dd35db55e55d8219fb522e0deac28",
+      "version_id": "Pc3kzEjIqFIW56ITjpAWS6GVOtyk.q7y"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=da/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009072-da9754c0374e21634c16b855d65cd23ebf093285570e7fc2c4d9f8ccee3eaa55.bin",
+      "records": 1,
+      "sha256": "da9754c0374e21634c16b855d65cd23ebf093285570e7fc2c4d9f8ccee3eaa55",
+      "version_id": "G3bzCLWfGnjXQUophEnf8TKq57r6DMXh"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=da/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003304-dafd63869f59e32ed3f8033337ac622fd58097cd33688006140d1c94e39b8af0.bin",
+      "records": 1,
+      "sha256": "dafd63869f59e32ed3f8033337ac622fd58097cd33688006140d1c94e39b8af0",
+      "version_id": "KQQ7WvwqZ3vNFxNmlbDMNUy3Lxx7b_HD"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=db/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000001288-dbc4bd3a83c2d724538e360be88d5e08fb59bb25e46bf70e7dc3c27431ab95ba.bin",
+      "records": 2,
+      "sha256": "dbc4bd3a83c2d724538e360be88d5e08fb59bb25e46bf70e7dc3c27431ab95ba",
+      "version_id": "qrgvI4k.H8VVNpEICz6VvUocCtCloGz4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=db/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004536-db03f08cb859ed836cbe2e8dfd73729c4158f598ed22899340dc43d522c5280a.bin",
+      "records": 1,
+      "sha256": "db03f08cb859ed836cbe2e8dfd73729c4158f598ed22899340dc43d522c5280a",
+      "version_id": "RQIvVPJQVQkXwyHexFLwbq5nfbu6XNnL"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=db/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011256-dbd65bdfe3199a910bb535ae0e550b43b83bfba2884ecc84396a857342ab81ae.bin",
+      "records": 1,
+      "sha256": "dbd65bdfe3199a910bb535ae0e550b43b83bfba2884ecc84396a857342ab81ae",
+      "version_id": "05Nv4kv7Y0FF5H5V6YTja6110II72nL3"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=dc/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004424-dc09e39bf50108e1dcb4bda9896aabe4186db042a9064712ce5430c439433bce.bin",
+      "records": 1,
+      "sha256": "dc09e39bf50108e1dcb4bda9896aabe4186db042a9064712ce5430c439433bce",
+      "version_id": "TDUjGpYhV2Zey.KDgTZk4m3sIBiw_97P"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=de/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000000000-de5a5889ac8a99558ef463b79a5cd446984ef94e271a1d33a1a31ff365d0fdd2.bin",
+      "records": 1,
+      "sha256": "de5a5889ac8a99558ef463b79a5cd446984ef94e271a1d33a1a31ff365d0fdd2",
+      "version_id": "XxfxQXnUxy8yG2C40zW6cB2gS_Vfp_fQ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=de/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005264-de243f009d30f7b45b7e049c270f0950b03ad93456695a1775b6b166fe58dd66.bin",
+      "records": 1,
+      "sha256": "de243f009d30f7b45b7e049c270f0950b03ad93456695a1775b6b166fe58dd66",
+      "version_id": "OHcrT935oDHxTY.o4bQRw.Q5v8gZq.Ol"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=de/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005768-de89bae12cfcf3de11cb4709b48b9329f0491a67d14816bdca97d26c0db72542.bin",
+      "records": 2,
+      "sha256": "de89bae12cfcf3de11cb4709b48b9329f0491a67d14816bdca97d26c0db72542",
+      "version_id": "VkiRCzu4HY5Aeo49aVncy1VVYn.ANvCY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=de/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000001400-de8738512473ee19d49de68b18c5026cd49b389b3404a5790aed8c4c963936ea.bin",
+      "records": 1,
+      "sha256": "de8738512473ee19d49de68b18c5026cd49b389b3404a5790aed8c4c963936ea",
+      "version_id": "dZCjZPSDpCXvSY2l2nN3QczCv0PSxRZH"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=de/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009632-de7cb95d8a9bc3e69821c7bd8a223323762656356b1d252968f591db08c88419.bin",
+      "records": 1,
+      "sha256": "de7cb95d8a9bc3e69821c7bd8a223323762656356b1d252968f591db08c88419",
+      "version_id": "RK_V4okWpZJm2DowFGCKLPmEvpBbmKYa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=df/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009632-df225b330bfcdf6b5cfba0587634d45dc4892f9481c64cef3874544c5e3b5fe9.bin",
+      "records": 1,
+      "sha256": "df225b330bfcdf6b5cfba0587634d45dc4892f9481c64cef3874544c5e3b5fe9",
+      "version_id": "QCIZqDKRzHqSHa5v0vFmkwVJRLlJacgv"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=df/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013888-dfdec5f608335f5a2de28a27d248194a8ef130e63eeb96b31d37ca8b9f6af997.bin",
+      "records": 2,
+      "sha256": "dfdec5f608335f5a2de28a27d248194a8ef130e63eeb96b31d37ca8b9f6af997",
+      "version_id": "sLfVfS9bPphTQ5puHw1l8duRolUrW_f1"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=df/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004760-dfafa0f0a7efa656d351af0540bd85464c0465ee01ca776957310285f59514a5.bin",
+      "records": 1,
+      "sha256": "dfafa0f0a7efa656d351af0540bd85464c0465ee01ca776957310285f59514a5",
+      "version_id": "zIV1MLBR4JzbMNBed5WwVYI2eA05v1vW"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=df/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005544-df31eda7c7c79094bbd8bf4aba5ccfd34ef74cea2db2c1faf4ad4d9f9d4ea415.bin",
+      "records": 1,
+      "sha256": "df31eda7c7c79094bbd8bf4aba5ccfd34ef74cea2db2c1faf4ad4d9f9d4ea415",
+      "version_id": "abvMGH1jm7CrhHaH0lHSfnm2Ww10aSjK"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=df/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000005600-df9c1999ee4dcc22a59a7cbd9dab001bf7ccff4e5cd2806ab98c2215f08a668a.bin",
+      "records": 1,
+      "sha256": "df9c1999ee4dcc22a59a7cbd9dab001bf7ccff4e5cd2806ab98c2215f08a668a",
+      "version_id": "Rnb8mxb_kMR5i_MudRDyuIs3XpBcVIBa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e0/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000014056-e041c26edc2d7f642771a63446684f58cc402812b672881147ce07d2c52d4efe.bin",
+      "records": 1,
+      "sha256": "e041c26edc2d7f642771a63446684f58cc402812b672881147ce07d2c52d4efe",
+      "version_id": "yPcdU1hkmQnC6HsyeWCQasfy6qWx9aeC"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e0/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008064-e069b1fe92a471f08481b5ff585eb89c8ac772b035563dd5cb2daf33ee02bdec.bin",
+      "records": 1,
+      "sha256": "e069b1fe92a471f08481b5ff585eb89c8ac772b035563dd5cb2daf33ee02bdec",
+      "version_id": "r_JxiUruDKZS78shIu0BKBIFv3HfGc1w"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e0/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010416-e077b6899fad5c6cac589bf17d2ca5f12d1eeb95467f19a6105d46d2c0fe9419.bin",
+      "records": 1,
+      "sha256": "e077b6899fad5c6cac589bf17d2ca5f12d1eeb95467f19a6105d46d2c0fe9419",
+      "version_id": "X1xidEqPamaK_epSAaQ1rTXaRQLJI7md"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010136-e1a41f8d0fb2ee8e2a5b8a31d9413f654b17784904a2ea93baa946730d8f63d4.bin",
+      "records": 1,
+      "sha256": "e1a41f8d0fb2ee8e2a5b8a31d9413f654b17784904a2ea93baa946730d8f63d4",
+      "version_id": "eKFkLj5FT0dMLfpqFJI6dNpNP7Xm2pzl"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010640-e120c54654dce30c54257b5ddc47b317c1d5a4d9974b5ea7de28fcdc28e55e6d.bin",
+      "records": 1,
+      "sha256": "e120c54654dce30c54257b5ddc47b317c1d5a4d9974b5ea7de28fcdc28e55e6d",
+      "version_id": "YKaY1hMktThk14nI_kKK2eQcY5cKxYg2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e1/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008344-e197c60b47fdd0bb1740ec139706da17105bde6c16e484f1ff2b2865a199ac06.bin",
+      "records": 1,
+      "sha256": "e197c60b47fdd0bb1740ec139706da17105bde6c16e484f1ff2b2865a199ac06",
+      "version_id": "lqYtS7H6i1EYkBKrzpDzm7lU361FBJVg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e2/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012936-e2bf7b63b7bd3c44fdf281e8dd84789f14b1f61ad3675272256077dac84a69d2.bin",
+      "records": 1,
+      "sha256": "e2bf7b63b7bd3c44fdf281e8dd84789f14b1f61ad3675272256077dac84a69d2",
+      "version_id": "sHbvzkEGHsAh4yAniT3pEgT3tGScDtfh"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e3/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009296-e363a106d1bece7c6054a350ff4c8921873ffdaf2a5884edbcf993e0094e004f.bin",
+      "records": 2,
+      "sha256": "e363a106d1bece7c6054a350ff4c8921873ffdaf2a5884edbcf993e0094e004f",
+      "version_id": "rM2H.hPYBrP0pAI1WiZwcELM1ebkoOD0"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e5/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011200-e53ea9266375236486d73cb7e902ab7ea196400f21cc1fb5199bf3a6d6d62f5d.bin",
+      "records": 1,
+      "sha256": "e53ea9266375236486d73cb7e902ab7ea196400f21cc1fb5199bf3a6d6d62f5d",
+      "version_id": "ljLmekLhfmSmwWswmaGqGcLC7aBRK961"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e5/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012880-e5a43fa025cefb3e5a116139d3906865c4aed710e473f0474b897535d1203791.bin",
+      "records": 1,
+      "sha256": "e5a43fa025cefb3e5a116139d3906865c4aed710e473f0474b897535d1203791",
+      "version_id": "l5M4a36IHrneCZJT2Zzff8h0y.J4GJ_O"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e7/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002744-e74138899d4df7fec4156e78683bf65c1a18754a7c991972b5f94bf60e9eba03.bin",
+      "records": 1,
+      "sha256": "e74138899d4df7fec4156e78683bf65c1a18754a7c991972b5f94bf60e9eba03",
+      "version_id": "qk9AQ6cEZKS1K6LsvlmkF4Ve0U0dadeb"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e8/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013776-e85f83d329fe6e00abf9455c5b75ff68e0ff7e27251313f55b7023463f51562b.bin",
+      "records": 1,
+      "sha256": "e85f83d329fe6e00abf9455c5b75ff68e0ff7e27251313f55b7023463f51562b",
+      "version_id": "VKX6e7hXN8Q8tf_3WyTBug3zI5HE74CW"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e8/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000006496-e80b67f28e39b618a12435d874a4000dd6c4253202c7ae68deee31db4270430d.bin",
+      "records": 1,
+      "sha256": "e80b67f28e39b618a12435d874a4000dd6c4253202c7ae68deee31db4270430d",
+      "version_id": "GhlF4Maw6qLwQq93g60HttOnaIXoY2zm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=e9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009856-e92812ea8edae302d7f7dfe3c27f59a0c615ccafd58e9d03d412db86d9820aed.bin",
+      "records": 1,
+      "sha256": "e92812ea8edae302d7f7dfe3c27f59a0c615ccafd58e9d03d412db86d9820aed",
+      "version_id": "q16kKNeaqCXCTE1lDAsJ0ZsEVo7qpbQU"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ea/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005320-ea5842c126335b1c3f81f7ca229a79669505d2f917d807e8b95ac0f8ff56b193.bin",
+      "records": 1,
+      "sha256": "ea5842c126335b1c3f81f7ca229a79669505d2f917d807e8b95ac0f8ff56b193",
+      "version_id": "wEObzieRqwTmg6_zh4f0yrBP0j8fvLj."
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=eb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002352-eb76601b5226efef21c11aa7a570c9f50cf2034e3d108a30c9f86509023dc6bc.bin",
+      "records": 1,
+      "sha256": "eb76601b5226efef21c11aa7a570c9f50cf2034e3d108a30c9f86509023dc6bc",
+      "version_id": "mCm2Fuxka5Vy7u27ubNl_K_yXHHb_VPW"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=eb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002576-eb28f7822a142483fc1433c9b054348e86e0d64747c48e3856c6c2c9ed098388.bin",
+      "records": 1,
+      "sha256": "eb28f7822a142483fc1433c9b054348e86e0d64747c48e3856c6c2c9ed098388",
+      "version_id": "NYEpJRFC_VjGOeK1pBvAqLO_.W2CC5VZ"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=eb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003752-ebcdd187d703c3dfbce3285495ea4925fd3d9d097511985969458889be7e0d2b.bin",
+      "records": 1,
+      "sha256": "ebcdd187d703c3dfbce3285495ea4925fd3d9d097511985969458889be7e0d2b",
+      "version_id": "yiDEjNL6B0rWQaQwAwyixKRQl7VCLiZa"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=eb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013160-eb8ef50615ff4909e3d7569df0c0b72edd1b4f85e4786604c2c014109e20f975.bin",
+      "records": 1,
+      "sha256": "eb8ef50615ff4909e3d7569df0c0b72edd1b4f85e4786604c2c014109e20f975",
+      "version_id": "_9_5IyHxYSMwdYwN7GYPfr9hyAv3MM66"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=eb/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000504-eba7c80bd9f87f6fc38d34c64968c35ead407f534f94503e0ea4121a3ea26415.bin",
+      "records": 1,
+      "sha256": "eba7c80bd9f87f6fc38d34c64968c35ead407f534f94503e0ea4121a3ea26415",
+      "version_id": "5WlBUMMcv9hJlkIiCftZ4q0OaIhUpbTL"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ec/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009184-ec348cb8af5e26d07ea52c0bfd02973841cfccb28d93a8e386277ff3da97c934.bin",
+      "records": 1,
+      "sha256": "ec348cb8af5e26d07ea52c0bfd02973841cfccb28d93a8e386277ff3da97c934",
+      "version_id": "G4AsHzNJNsD6ENdVMPxNcUAbWzUSAcTY"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ed/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000002968-eda37fd709882a3414ab6d96e64f81d6ec486e201bacc4bc660fa938dc963719.bin",
+      "records": 1,
+      "sha256": "eda37fd709882a3414ab6d96e64f81d6ec486e201bacc4bc660fa938dc963719",
+      "version_id": "iW8RsEfLcYWNWeOrNGuiLsHRJrvQ2e2w"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ed/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000009744-ed89fca0a0596ab8f718d539a8b5e1a73fa596a05dc5e0ee217f54aac71d620a.bin",
+      "records": 1,
+      "sha256": "ed89fca0a0596ab8f718d539a8b5e1a73fa596a05dc5e0ee217f54aac71d620a",
+      "version_id": "pXaBwEq7mQBqX4Hnh6qoDXmjIczdtxA6"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ed/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010192-ed1d2f0c05aaec172790ca2b7f6aed1c95f0aded952d9da72fac938e7d87dc01.bin",
+      "records": 1,
+      "sha256": "ed1d2f0c05aaec172790ca2b7f6aed1c95f0aded952d9da72fac938e7d87dc01",
+      "version_id": "aSOeoEX73PDbfVJw3Twkn0D3IMiacwb9"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ef/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010248-efe92e2f3c7a800a65affe181e99981f2a3591d04ee48b0b5062722a07f5d128.bin",
+      "records": 1,
+      "sha256": "efe92e2f3c7a800a65affe181e99981f2a3591d04ee48b0b5062722a07f5d128",
+      "version_id": "h_oJgj4R4eQ_1LiiLGDMyLvO60mG6kGH"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007840-f17fa6b0085368f4cc2ecafbf939c9ee102c819b7209ea4c8e0abb174050bf3f.bin",
+      "records": 1,
+      "sha256": "f17fa6b0085368f4cc2ecafbf939c9ee102c819b7209ea4c8e0abb174050bf3f",
+      "version_id": "BADDewzrHTh2Do1OzAc1sN9SNMnqisA2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f1/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013048-f1420b9c9ea8a3a0408e04cff9290a7fa6d19dd0567254b001334f2390c5d285.bin",
+      "records": 1,
+      "sha256": "f1420b9c9ea8a3a0408e04cff9290a7fa6d19dd0567254b001334f2390c5d285",
+      "version_id": "kklCs6dfg8oKpcWHvPMiPH7hOhiS.ClD"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f1/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004424-f1f7084f76f8120af44531e0d281f5b44255a254a2fac9d494160f3ccb390d62.bin",
+      "records": 1,
+      "sha256": "f1f7084f76f8120af44531e0d281f5b44255a254a2fac9d494160f3ccb390d62",
+      "version_id": "Rh45IRbiMVX3Pfx3pfXlCUuufHUSulhw"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f2/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000007336-f21700ad894b286f3c219f9b363f7873f9f71cba59d291bc502b62ced7fe65c7.bin",
+      "records": 1,
+      "sha256": "f21700ad894b286f3c219f9b363f7873f9f71cba59d291bc502b62ced7fe65c7",
+      "version_id": "KhlPvnLtXnhT0yskVr8R8CCPOFL47Do4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f2/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003080-f29930388fe434086b77585ce2d33bc62850bc22d19bed8834b222071d61c236.bin",
+      "records": 1,
+      "sha256": "f29930388fe434086b77585ce2d33bc62850bc22d19bed8834b222071d61c236",
+      "version_id": "P9mfA09NYpeh3NTmZZ9vT16NA5OH2r9Q"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f2/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004312-f2ef5d6bbebc309da3c62db89e0504c1936f463adac8470840d8b3f19ef279b8.bin",
+      "records": 2,
+      "sha256": "f2ef5d6bbebc309da3c62db89e0504c1936f463adac8470840d8b3f19ef279b8",
+      "version_id": "fZaEDim_nZKnkBFiPzp54IV7RU48L7Cg"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f2/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000010808-f22f0c4d15a200f1184c2eb676ef6e39db3aab7dd66fab3812623bb96d1b8a0b.bin",
+      "records": 1,
+      "sha256": "f22f0c4d15a200f1184c2eb676ef6e39db3aab7dd66fab3812623bb96d1b8a0b",
+      "version_id": "8PRPF2OhvD_f_2HAluRC8gTPb9rW0MRW"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f4/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000010304-f465c6f5d57a53608361fd95443423112b1b4097530dafaac29b1cba85c684f1.bin",
+      "records": 2,
+      "sha256": "f465c6f5d57a53608361fd95443423112b1b4097530dafaac29b1cba85c684f1",
+      "version_id": "MXLx5Wd1TyU4yb1TrfD91yGOuhNH0AdO"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f6/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005600-f617de5bcc6c33fb8beffe426012ba0debfbe9cbbc6a4a0683f0ced723f69827.bin",
+      "records": 1,
+      "sha256": "f617de5bcc6c33fb8beffe426012ba0debfbe9cbbc6a4a0683f0ced723f69827",
+      "version_id": "FEt5ukexAQbQozCsgkaF4b6z_l83zLF5"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f6/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000009464-f6e0ba7a77ff652d0c0db5ded12213267d8fa3031d26e66a09fdc27c5ea17f02.bin",
+      "records": 1,
+      "sha256": "f6e0ba7a77ff652d0c0db5ded12213267d8fa3031d26e66a09fdc27c5ea17f02",
+      "version_id": "5kY3K9B0YXVbMu3rphDwRg8r9vL4fP7K"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000003024-f7bf1c5e40adfc83d2b678778d9d5b2af27aae6f7208227d61d453b8635a239e.bin",
+      "records": 1,
+      "sha256": "f7bf1c5e40adfc83d2b678778d9d5b2af27aae6f7208227d61d453b8635a239e",
+      "version_id": "zbw3rh3evehmOqG7JYelUHxxQT8eWjNm"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004256-f7a93350ed0d8e68d93e859668e6d42a6b0d30b4cbfc2d7b9c50eedbb752ed31.bin",
+      "records": 1,
+      "sha256": "f7a93350ed0d8e68d93e859668e6d42a6b0d30b4cbfc2d7b9c50eedbb752ed31",
+      "version_id": "t3Z6XzdAnw9c0B329EZ3hlMtttIerzV_"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000005096-f75f0056c4669af753cd23d9c87434deaadd06f7935d37efd67ea676b524fe5d.bin",
+      "records": 1,
+      "sha256": "f75f0056c4669af753cd23d9c87434deaadd06f7935d37efd67ea676b524fe5d",
+      "version_id": "8SADY.DLnZpeCaGIQ1JOgqoFY4h5Jw_2"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f7/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000008624-f749edff1b045e773472faa7110ba40ac76a6fba830ba69c84fd55bbaec36968.bin",
+      "records": 1,
+      "sha256": "f749edff1b045e773472faa7110ba40ac76a6fba830ba69c84fd55bbaec36968",
+      "version_id": "HH4ESr2g.Rvg26wEhX.SIAj7J3lRs9Rk"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f7/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003136-f7f3bfd78027b912d4a703f55791d8431cf83727217842c3c1ea56430b54ad23.bin",
+      "records": 1,
+      "sha256": "f7f3bfd78027b912d4a703f55791d8431cf83727217842c3c1ea56430b54ad23",
+      "version_id": "4DDwZ8m9MNHIw3.lDO2YDA5oXQ4vac1z"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=f9/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000011704-f98ceb5e8b96cacbccf6025d920d9cd1fdf1020122efce3643b5d8ef722123e8.bin",
+      "records": 1,
+      "sha256": "f98ceb5e8b96cacbccf6025d920d9cd1fdf1020122efce3643b5d8ef722123e8",
+      "version_id": "yO.OfdVMFCLAc_VPffiNeAt8uquleuRv"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fb/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000012152-fbcb2e154479fd9f9f4ccab7539493d97d088ba2bfc500c0405ebe760073ef57.bin",
+      "records": 2,
+      "sha256": "fbcb2e154479fd9f9f4ccab7539493d97d088ba2bfc500c0405ebe760073ef57",
+      "version_id": "7JBDmNCS6PzlntvSEInhohPwrDyyFAoj"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fb/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008512-fb596b93484860687a2a12b22bbb3bbf77540558f8fececdad05ff54f6f6bdad.bin",
+      "records": 1,
+      "sha256": "fb596b93484860687a2a12b22bbb3bbf77540558f8fececdad05ff54f6f6bdad",
+      "version_id": "DaXyiThxZ8BoZ.vZs3plgEdww1BLSOd4"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fc/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000004872-fc09e4b1c817dba4c1f5c2d2075fb8926e7b8a4897171baba5318e6357b44032.bin",
+      "records": 1,
+      "sha256": "fc09e4b1c817dba4c1f5c2d2075fb8926e7b8a4897171baba5318e6357b44032",
+      "version_id": "m6UDbl3OZv2RPFGw.L51OZj0vsUyvjVW"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fd/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000000840-fd5978112da1cd26285719251fecf60499df19ff198f98a50afb7eaefb586c54.bin",
+      "records": 2,
+      "sha256": "fd5978112da1cd26285719251fecf60499df19ff198f98a50afb7eaefb586c54",
+      "version_id": "vlV0DCIeL5Ev2k_43uvZMqCxOhvzF55C"
+    },
+    {
+      "bytes": 112,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fd/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000003584-fd6118648649186c05e4f676ca8c2e310f5d9a1703bf9df0aa1da08249ec4dc9.bin",
+      "records": 2,
+      "sha256": "fd6118648649186c05e4f676ca8c2e310f5d9a1703bf9df0aa1da08249ec4dc9",
+      "version_id": "OLSDLyEZWupHoCdaM1jim85VDuVP7kxd"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=fe/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000004984-fec1b62f7f83fd77b7917acf3623d4ef19fae353020fe761100e893a3be02ba5.bin",
+      "records": 1,
+      "sha256": "fec1b62f7f83fd77b7917acf3623d4ef19fae353020fe761100e893a3be02ba5",
+      "version_id": "yKaVn7eu1pxSYIUXo0GTQg9NMYaQkpLV"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ff/runs/f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5/00000000000000013328-ffac1aff81f4e47e127bf724bc638369d36f093491522592ffcf3edb16a608ec.bin",
+      "records": 1,
+      "sha256": "ffac1aff81f4e47e127bf724bc638369d36f093491522592ffcf3edb16a608ec",
+      "version_id": "_jwjTCVM4f9u82hi6mILvr97xpRA5hiA"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ff/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000002912-ff141abdb5d545383bf99f595e3ce5947e72d0fa9f33e9c3609101bcff88d085.bin",
+      "records": 1,
+      "sha256": "ff141abdb5d545383bf99f595e3ce5947e72d0fa9f33e9c3609101bcff88d085",
+      "version_id": "DEEoFBcUGahAhgw_sEdG77mOgEIdi.lB"
+    },
+    {
+      "bytes": 56,
+      "key": "public-gateway/ecc-challenges-v1/v2/raw/4f59c5763dec32ca6faccf6ad4ecc285122cd5367ab9a48c8b1f444df27e8b5a/shard=ff/runs/f7510113-560a-48d5-b64a-95ae1a743fa7/00000000000000008288-ffc1c71464c68d998e64a84e1a528e0a640a46b7848107800b77c3b6816dbbdc.bin",
+      "records": 1,
+      "sha256": "ffc1c71464c68d998e64a84e1a528e0a640a46b7848107800b77c3b6816dbbdc",
+      "version_id": "QbNH4n87Kj4kPcrpDZJdR1DCRMAEbhuI"
+    }
+  ],
+  "ok": true,
+  "point_set_sha256": "61a02d16a2dace2cdc32ffa05c9c15eff18f6789a5808c13813ed1895806f1a5",
+  "record_counts": {
+    "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5": 264,
+    "f7510113-560a-48d5-b64a-95ae1a743fa7": 194
+  },
+  "run_ids": [
+    "f0ee15ff-6e23-4c80-ad7e-ab20e6028bd5",
+    "f7510113-560a-48d5-b64a-95ae1a743fa7"
+  ],
+  "source_receipt_sha256": "152d6a63097a157c561cd512c5b02dfb3b16490304c3ad52a5853ab112a50a3f",
+  "unique_points": 458
+}
