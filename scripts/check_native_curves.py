@@ -130,12 +130,15 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--cpu", type=Path, required=True)
     p.add_argument("--cuda", type=Path)
+    p.add_argument("--metal", type=Path)
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
     args.out.mkdir(parents=True, exist_ok=False)
     engines = [("cpu", args.cpu.resolve())]
     if args.cuda:
         engines.append(("cuda", args.cuda.resolve()))
+    if args.metal:
+        engines.append(("metal", args.metal.resolve()))
     instances = all_instances()
     assert len(instances) == 24
     report = []
@@ -210,6 +213,7 @@ def main():
             "all_24_campaigns": campaign_number == 24,
             "campaigns_completed": campaign_number,
             "cuda_checked": args.cuda is not None,
+            "metal_checked": args.metal is not None,
             "rows": report,
         }
         # Preserve completed campaign receipts if a later campaign fails.
@@ -219,6 +223,7 @@ def main():
         "campaigns_checked": len(instances),
         "cases": len(report),
         "cuda_checked": args.cuda is not None,
+        "metal_checked": args.metal is not None,
         "receipt": str(args.out / "receipt.json"),
     }))
 

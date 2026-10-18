@@ -180,7 +180,7 @@ def probe_engine(engine: Path) -> dict:
 
 
 def detect_backend() -> str:
-    """Metal on a Mac whose engine has it, CUDA when nvidia-smi sees a GPU, else CPU."""
+    """Choose an available GPU backend supported by the installed engine."""
     if sys.platform == "darwin":
         report = probe_engine(engine_for_backend("metal"))
         if "metal" in report.get("backends", ()) and report.get("metal_devices"):
@@ -189,7 +189,11 @@ def detect_backend() -> str:
     try:
         probe = subprocess.run(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
                                capture_output=True, timeout=15, check=False)
-        return "cuda" if probe.returncode == 0 and probe.stdout.strip() else "cpu"
+        if probe.returncode == 0 and probe.stdout.strip():
+            report = probe_engine(engine_for_backend("cuda"))
+            if "cuda" in report.get("backends", ()):
+                return "cuda"
+        return "cpu"
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return "cpu"
 
@@ -217,7 +221,7 @@ def main(root: Path, key: str, campaign: str) -> int:
     backend = os.environ.get("ECC_BACKEND", "auto")
     if backend == "auto":
         backend = detect_backend()
-    if "ECC_GPU" in os.environ:
+    if backend == "cuda" and "ECC_GPU" in os.environ:
         # This subprocess environment is read by CUDA before device discovery.
         selected = os.environ["ECC_GPU"]
         if "CUDA_VISIBLE_DEVICES" in os.environ:

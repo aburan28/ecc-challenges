@@ -4,8 +4,8 @@
 <section class="hero">
   <div>
     <div class="kicker">Certicom ECC Challenge</div>
-    <h1>Run a GPU worker on the open Certicom elliptic-curve challenges.</h1>
-    <p class="lead">In 1997 Certicom published 24 elliptic-curve discrete logarithm problems, from 79 to 359 bits. Its 2009 update lists ten as solved. This project runs a public Pollard rho search on {% if multicurve_enabled %}all of them{% else %}ECC2K-130, the open challenge with the lowest estimated cost in that update{% endif %}. You run one container on an NVIDIA GPU, local or rented, and it joins the search.</p>
+    <h1>{% if multicurve_enabled %}Run a worker on the open Certicom elliptic-curve challenges.{% else %}Run a GPU worker on the open Certicom elliptic-curve challenges.{% endif %}</h1>
+    <p class="lead">In 1997 Certicom published 24 elliptic-curve discrete logarithm problems, from 79 to 359 bits. Its 2009 update lists ten as solved. This project runs a public Pollard rho search on {% if multicurve_enabled %}all of them{% else %}ECC2K-130, the open challenge with the lowest estimated cost in that update{% endif %}. {% if multicurve_enabled %}Run a Linux container or a native Windows or macOS worker to join the search.{% else %}Run one Linux container on an NVIDIA GPU, local or rented, to join the search.{% endif %}</p>
     <div class="actions">
       <a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
       <a class="button ghost" href="/status">Live status</a>
@@ -26,10 +26,10 @@
 </dl>
 
 <section class="section" id="how">
-  <div class="section-head"><h2>How to take part</h2><p class="muted">About ten minutes if Docker and the NVIDIA Container Toolkit are already installed.</p></div>
+  <div class="section-head"><h2>How to take part</h2><p class="muted">{% if multicurve_enabled %}Choose the setup for your machine.{% else %}About ten minutes if Docker and the NVIDIA Container Toolkit are already installed.{% endif %}</p></div>
   <ol class="steps">
     <li><h3>Get a key</h3><p>Sign in with GitHub and create an API key. You can revoke it at any time.</p></li>
-    <li><h3>Start the worker</h3><p>One <code>docker run</code> command, shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.</p></li>
+    <li><h3>Start the worker</h3><p>{% if multicurve_enabled %}Use the dashboard's Docker command or the native Windows and macOS steps in the worker guide.{% else %}Use the <code>docker run</code> command shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.{% endif %}</p></li>
     <li><h3>Points come back</h3><p>The worker uploads distinguished points. The server checks them, stores them and compares them with every other worker's points.</p></li>
   </ol>
 </section>
@@ -85,7 +85,7 @@
   <ul class="links">
     <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing guide</a><br><span class="note">Local setup, tests and what a good pull request looks like.</span></li>
     <li><a href="https://github.com/aburan28/ecc-challenges/tree/main/problems">Open problems</a><br><span class="note">Known gaps before the search can scale up.</span></li>
-    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a><br><span class="note">Docker, Kubernetes, systemd, Podman, Slurm or Modal; GPU or CPU.</span></li>
+    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a><br><span class="note">Linux containers, native Windows, native macOS Metal, Kubernetes, systemd, Podman, Slurm or Modal.</span></li>
     <li><a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a><br><span class="note">Bugs, questions and suspected bad results.</span></li>
   </ul>
 </section>
