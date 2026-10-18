@@ -3,11 +3,39 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import math
 from threading import Lock
 from time import monotonic
 
 from .catalog import CHALLENGES
-from .protocol import CAMPAIGN, RECORD_BYTES
+from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
+
+# Points per hour is averaged over this window: workers upload in batches of
+# up to 32,768 points, so a one-hour window is mostly empty on slow cards.
+RATE_WINDOW_HOURS = 24
+
+
+def progress(points_by_dp: dict[int, int], rate_by_dp: dict[int, int], expected: str | None) -> dict:
+    """Expected group operations behind the archived points, against Certicom's
+    expected total. Each distinguished point stands for 2^dp_bits walk steps
+    on average; it is an estimate of work, not a count of verified steps."""
+    work = float(sum(points << bits for bits, points in points_by_dp.items()))
+    ops_per_hour = float(sum(points << bits for bits, points in rate_by_dp.items())) / RATE_WINDOW_HOURS
+    total = float(expected) if expected else None
+    fraction = work / total if total else None
+    return {
+        "dp_bits": sorted(points_by_dp) or None,
+        "estimated_work_operations": work,
+        "estimated_work_log2": round(math.log2(work), 2) if work else None,
+        "expected_operations_log2": round(math.log2(total), 2) if total else None,
+        "expected_work_percent": 100 * fraction if fraction is not None else None,
+        # Rho with expected cost E = sqrt(pi N / 2): P(collision by W) = 1 - exp(-pi W^2 / 4E^2).
+        "estimated_completion_probability_percent":
+            100 * -math.expm1(-math.pi / 4 * fraction ** 2) if fraction is not None else None,
+        "points_per_hour": round(sum(rate_by_dp.values()) / RATE_WINDOW_HOURS, 1),
+        "operations_per_second_log2": round(math.log2(ops_per_hour / 3600), 2) if ops_per_hour else None,
+        "hours_to_expected_work": (max(total - work, 0.0) / ops_per_hour) if total and ops_per_hour else None,
+    }
 
 
 class StatusReader:
@@ -38,7 +66,24 @@ class StatusReader:
                            COALESCE(sum(pending_bytes), 0) AS pending_bytes
                     FROM ecc_public.pressure_shards
                 """).fetchone()
+                legacy_rate = conn.execute("""
+                    SELECT COALESCE(sum(records), 0) AS points
+                    FROM ecc_public.batches
+                    WHERE created_at >= now() - make_interval(hours => %s)
+                      AND audit_state NOT IN ('failed','quarantined')
+                """, (RATE_WINDOW_HOURS,)).fetchone()
+                # Points from the original private ECC2K-130 run, imported into
+                # the collision table; they are the same DP32 walk.
+                # Checked first so a gateway deployed before its grant still serves status.
+                historical = {"points": 0}
+                if conn.execute("""
+                    SELECT has_table_privilege('ecc_public.historical_import_parts', 'SELECT') AS ok
+                """).fetchone()["ok"]:
+                    historical = conn.execute("""
+                        SELECT COALESCE(sum(inserted), 0) AS points FROM ecc_public.historical_import_parts
+                    """).fetchone()
                 generic = {}
+                work = {}
                 if self.multicurve_enabled:
                     rows = conn.execute("""
                         SELECT n.campaign_id,count(r.id) AS total,
@@ -64,6 +109,22 @@ class StatusReader:
                     """).fetchall()
                     for row in totals:
                         generic.setdefault(row["campaign_id"], {}).update(row)
+                    # Runs stay pinned to the DP setting they registered under,
+                    # so work is summed per namespace with that namespace's weight.
+                    for row in conn.execute("""
+                        SELECT n.campaign_id, (n.manifest->'walk'->>'dp_bits')::int AS dp_bits,
+                          coalesce(sum(s.admitted_records),0) AS points,
+                          (SELECT coalesce(sum(b.records),0) FROM ecc_public.dp_batches b
+                           WHERE b.namespace_id=n.id AND b.state IN ('admitted','verified','indexed')
+                             AND b.created_at >= now() - make_interval(hours => %s)) AS recent
+                        FROM ecc_public.dp_namespaces n
+                        LEFT JOIN ecc_public.dp_namespace_stats s ON s.namespace_id=n.id
+                        GROUP BY n.id
+                    """, (RATE_WINDOW_HOURS,)).fetchall():
+                        totals_by_dp, rate_by_dp = work.setdefault(row["campaign_id"], ({}, {}))
+                        bits = int(row["dp_bits"])
+                        totals_by_dp[bits] = totals_by_dp.get(bits, 0) + int(row["points"])
+                        rate_by_dp[bits] = rate_by_dp.get(bits, 0) + int(row["recent"])
                     # The pending predicate matches dp_batches_run_pending; only
                     # the bounded outstanding pool participates in this scan.
                     pending = conn.execute("""
@@ -80,7 +141,17 @@ class StatusReader:
                 legacy = challenge.id == CAMPAIGN
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
-                return {**challenge.public(self.multicurve_enabled),
+                points_by_dp, rate_by_dp = (dict(d) for d in work.get(challenge.id, ({}, {})))
+                historical_points = int(historical["points"]) if legacy else 0
+                if legacy:
+                    live = int(runs["bytes"]) // RECORD_BYTES
+                    points_by_dp[DP_WEIGHT] = points_by_dp.get(DP_WEIGHT, 0) + live + historical_points
+                    rate_by_dp[DP_WEIGHT] = rate_by_dp.get(DP_WEIGHT, 0) + int(legacy_rate["points"])
+                estimate = progress(points_by_dp, rate_by_dp, challenge.estimated_operations_2009) if enabled else {
+                    "expected_operations_log2": round(math.log2(float(challenge.estimated_operations_2009)), 2)
+                    if challenge.estimated_operations_2009 else None}
+                return {**challenge.public(self.multicurve_enabled), **estimate,
+                    "historical_points": historical_points if legacy else None,
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
                     "total_runs": ((int(runs["total"]) if legacy else 0)
@@ -92,19 +163,23 @@ class StatusReader:
                     "pending_bytes": ((int(pressure["pending_bytes"]) if legacy else 0)
                                       + int(current.get("pending_bytes", 0))) if enabled else None,
                     "generic_verified_points": int(current.get("verified", 0)) if self.multicurve_enabled else None,
-                    "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None,
-                    "estimated_completion_probability_percent": None}
+                    "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None}
             snapshot = {
                 "as_of": datetime.now(timezone.utc).isoformat(),
                 "compute_ready": 24 if self.multicurve_enabled else 1,
                 "campaigns": [campaign_row(challenge) for challenge in CHALLENGES],
+                "rate_window_hours": RATE_WINDOW_HOURS,
                 "progress_note": (
-                    "Accepted points are archived uploads, not verified curve operations. "
-                    "A completion percentage needs independently verified work and a "
-                    "campaign-specific collision model; these are not yet available."
+                    "Work is estimated as archived points times 2^dp_bits, the mean walk length "
+                    "between distinguished points; it is not a count of verified curve operations. "
+                    "expected_work_percent compares it with Certicom's 2009 expected operation count. "
+                    "Rho is a random search: estimated_completion_probability_percent is the chance "
+                    "that a collision would have appeared by now, 1 - exp(-pi/4 * (work/expected)^2)."
                 ),
             }
             snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
+            snapshot["total_historical_points"] = sum(row["historical_points"] or 0 for row in snapshot["campaigns"])
+            snapshot["total_points_per_hour"] = round(sum(row.get("points_per_hour") or 0 for row in snapshot["campaigns"]), 1)
             snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
             self._cached, self._cached_at = snapshot, monotonic()
             return snapshot

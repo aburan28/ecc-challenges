@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Status · ECC Challenges{% endblock %}
-{% block description %}Live counts for the public ECC Challenges search: archived points, active runs and queue depth for each Certicom challenge.{% endblock %}
+{% block description %}Live progress of the public ECC Challenges search: estimated work against each Certicom challenge, points per hour, active runs and queue depth.{% endblock %}
 {% block content %}
 <div class="kicker">Status</div>
 <h1>Live status</h1>
@@ -10,16 +10,42 @@
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
 <dl class="stats" aria-label="Totals">
   <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of 24 challenges</small></dd></div>
-  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>stored durably</small></dd></div>
+  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>{% if snapshot and snapshot.total_historical_points %}plus {{ "{:,}".format(snapshot.total_historical_points) }} imported{% else %}stored durably{% endif %}</small></dd></div>
+  <div class="stat"><dt>Points per hour</dt><dd>{% if snapshot %}{{ "{:,.0f}".format(snapshot.total_points_per_hour) }}{% else %}—{% endif %}<small>{{ snapshot.rate_window_hours if snapshot else 24 }} h average</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
-  <div class="stat"><dt>Batches queued</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="pending_batches")) }}{% else %}—{% endif %}<small>waiting for checks</small></dd></div>
 </dl>
 
+{% set racing = open_rows|rejectattr("solved_in_2009")|list %}
+{% if racing %}
 <section class="section">
-  <div class="section-head"><h2>By challenge</h2><p class="muted">Estimated operations are Certicom's 2009 figures, for scale only.</p></div>
+  <div class="section-head"><h2>Progress</h2><p class="muted">Estimated work done, as a share of the operations Certicom expected each challenge to need.</p></div>
+  <div class="progress-grid">
+  {% for row in racing|sort(attribute="estimated_work_operations", reverse=true) %}
+    <article class="panel progress-card" aria-label="{{ row.name }} progress">
+      <div class="top">
+        <h3 style="margin:0"><span class="name mono">{{ row.name }}</span></h3>
+        <span class="pct">{{ row.expected_work_percent|percent }}</span>
+      </div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [row.expected_work_percent or 0, 100]|min }}" aria-label="Share of expected work"><span style="width:{{ [row.expected_work_percent or 0, 100]|min }}%"></span></div>
+      <dl>
+        <div><dt>Estimated work</dt><dd>{{ row.estimated_work_log2|pow2 }} of {{ row.expected_operations_log2|pow2 }}<small>group operations</small></dd></div>
+        <div><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(row.points_per_hour) }}<small>{{ snapshot.rate_window_hours }} h average</small></dd></div>
+        <div><dt>Speed</dt><dd>{{ row.operations_per_second_log2|pow2 }}<small>operations per second</small></dd></div>
+        <div><dt>Collision chance so far</dt><dd>{{ row.estimated_completion_probability_percent|percent }}<small>if the walk is random</small></dd></div>
+        <div><dt>Expected work in</dt><dd>{% if row.hours_to_expected_work == 0 %}reached{% else %}{{ row.hours_to_expected_work|duration }}{% endif %}<small>at the current rate</small></dd></div>
+        <div><dt>Points</dt><dd>{{ "{:,}".format(row.received_points + (row.historical_points or 0)) }}<small>DP{{ row.dp_bits|join("/") if row.dp_bits else "—" }}{% if row.historical_points %}, {{ "{:,}".format(row.historical_points) }} imported{% endif %}</small></dd></div>
+      </dl>
+    </article>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
   {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
   <div class="table-wrap"><table>
-    <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Est. operations</th><th>Status</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Verified</th>{% endif %}<th class="num">Queued</th></tr></thead>
+    <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Verified</th>{% endif %}<th class="num">Queued</th></tr></thead>
     <tbody>
     {% for challenge in challenges %}
       {% set row = snapshot.campaigns[loop.index0] if snapshot else challenge.public() %}
@@ -27,8 +53,10 @@
       <tr{% if is_open and not row.solved_in_2009 %} class="open"{% endif %}>
         <td><span class="name">{{ row.name }}</span></td>
         <td class="num">{{ row.field_bits }}</td>
-        <td class="num mono">{{ row.estimated_operations_2009 or "—" }}</td>
+        <td class="num mono" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ row.expected_operations_log2|pow2 }}</td>
         <td>{% if row.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+        <td>{% if is_open and not row.solved_in_2009 %}<span class="bar mini" aria-hidden="true"><span style="width:{{ [row.expected_work_percent or 0, 100]|min }}%"></span></span><span class="mono">{{ row.expected_work_percent|percent }}</span>{% else %}—{% endif %}</td>
+        <td class="num">{{ "{:,.0f}".format(row.points_per_hour) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.recent_runs_24h) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.received_points) if is_open else "—" }}</td>
@@ -45,7 +73,8 @@
   <div>
     <h2>Reading these numbers</h2>
     <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
-    <p class="muted">There is no percent-complete figure. Rho is a random search: a collision can arrive at any time, and point counts alone don't say how much verified work was done. A completion estimate will appear once a challenge has an independently checked work count and a published collision model.</p>
+    <p class="muted">Each distinguished point stands for 2<sup>d</sup> walk steps on average, where d is the challenge's DP bit count, so estimated work is points × 2<sup>d</sup>. The percentage compares that with Certicom's expected operation count. It is an estimate from point counts, not a count of verified steps.</p>
+    <p class="muted">Rho is a random search, so 100% is not a finish line: a collision can arrive earlier or later. "Collision chance so far" is the probability that one would have appeared by now, 1 − e<sup>−π/4·x²</sup> for work fraction x. Points per hour is averaged over the last {{ snapshot.rate_window_hours if snapshot else 24 }} hours because workers upload in large batches.</p>
     <p class="muted">Counts cover this gateway only. The earlier private ECC2K-130 run's 338,034,791 distinct DP32 points were imported on 17 October 2026, and every new public point is matched against them.</p>
   </div>
   <div class="panel">

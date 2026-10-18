@@ -88,6 +88,8 @@ def bootstrap(args) -> None:
                         TO ecc_site_web
                     """)
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.pressure_shards TO ecc_site_web")
+                    # Status page: imported historical points count toward ECC2K-130 work.
+                    cursor.execute("GRANT SELECT ON ecc_public.historical_import_parts TO ecc_site_web")
                     cursor.execute("""
                         GRANT SELECT,INSERT,UPDATE ON ecc_public.dp_namespaces,
                           ecc_public.dp_runs,ecc_public.dp_batches TO ecc_site_web
