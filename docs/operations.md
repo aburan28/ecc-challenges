@@ -66,7 +66,17 @@ object refused, 189,871,706 DP34 records dropped as `above_dp32_weight`.
 384,765,103 records loaded in two admin-task runs, 338,034,791 distinct points
 inserted, 0 historical conflicts. Backmatch: 0 matches, as no public ECC2K-130
 points had been indexed yet. The original fleet was still writing, so later
-objects need another export, load and backmatch.
+objects need another export, load and backmatch. Export to the same
+`historical-import/20261017/` prefix: it skips sources that already have a
+sidecar there, while a new prefix exports everything again.
+
+The status page reads the import's totals through
+`ecc_public.historical_import_totals` (`sql/007_historical_totals.sql`), which
+the database bootstrap creates and grants to `ecc_site_web`. Run the bootstrap
+admin task once after merging that migration. Until it runs, the page shows
+gateway-only counts and logs `historical import totals unavailable`; order
+against the web deploy doesn't matter. Each later load raises the figure within
+a minute, with no deploy.
 
 Size the database before loading: every historical point is one
 `distinguished_points` row of about 90 bytes with its primary key index.

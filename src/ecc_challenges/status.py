@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import logging
 import math
 from threading import Lock
 from time import monotonic
+
+from psycopg import errors
 
 from .catalog import CHALLENGES
 from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
@@ -36,6 +39,23 @@ def progress(points_by_dp: dict[int, int], rate_by_dp: dict[int, int], expected:
         "operations_per_second_log2": round(math.log2(ops_per_hour / 3600), 2) if ops_per_hour else None,
         "hours_to_expected_work": (max(total - work, 0.0) / ops_per_hour) if total and ops_per_hour else None,
     }
+
+LOG = logging.getLogger(__name__)
+
+
+def _historical_totals(conn):
+    """Imported ECC2K-130 points, or None when this database can't say yet.
+
+    Runs in a savepoint so a missing view (migration 007 not applied) or grant
+    (bootstrap not rerun) leaves the rest of the snapshot intact.
+    """
+    try:
+        with conn.transaction():
+            return conn.execute(
+                "SELECT points,last_loaded_at FROM ecc_public.historical_import_totals").fetchone()
+    except (errors.UndefinedTable, errors.InsufficientPrivilege) as exc:
+        LOG.warning("historical import totals unavailable: %s", type(exc).__name__)
+        return None
 
 
 class StatusReader:
@@ -72,16 +92,7 @@ class StatusReader:
                     WHERE created_at >= now() - make_interval(hours => %s)
                       AND audit_state NOT IN ('failed','quarantined')
                 """, (RATE_WINDOW_HOURS,)).fetchone()
-                # Points from the original private ECC2K-130 run, imported into
-                # the collision table; they are the same DP32 walk.
-                # Checked first so a gateway deployed before its grant still serves status.
-                historical = {"points": 0}
-                if conn.execute("""
-                    SELECT has_table_privilege('ecc_public.historical_import_parts', 'SELECT') AS ok
-                """).fetchone()["ok"]:
-                    historical = conn.execute("""
-                        SELECT COALESCE(sum(inserted), 0) AS points FROM ecc_public.historical_import_parts
-                    """).fetchone()
+                historical = _historical_totals(conn)
                 generic = {}
                 work = {}
                 if self.multicurve_enabled:
@@ -142,7 +153,8 @@ class StatusReader:
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
                 points_by_dp, rate_by_dp = (dict(d) for d in work.get(challenge.id, ({}, {})))
-                historical_points = int(historical["points"]) if legacy else 0
+                # Imported from the earlier private run (same DP32 walk); not in received_points.
+                historical_points = int(historical["points"]) if legacy and historical else 0
                 if legacy:
                     live = int(runs["bytes"]) // RECORD_BYTES
                     points_by_dp[DP_WEIGHT] = points_by_dp.get(DP_WEIGHT, 0) + live + historical_points
@@ -151,7 +163,7 @@ class StatusReader:
                     "expected_operations_log2": round(math.log2(float(challenge.estimated_operations_2009)), 2)
                     if challenge.estimated_operations_2009 else None}
                 return {**challenge.public(self.multicurve_enabled), **estimate,
-                    "historical_points": historical_points if legacy else None,
+                    "historical_points": historical_points if legacy and historical else None,
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
                     "total_runs": ((int(runs["total"]) if legacy else 0)
@@ -178,8 +190,11 @@ class StatusReader:
                 ),
             }
             snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
-            snapshot["total_historical_points"] = sum(row["historical_points"] or 0 for row in snapshot["campaigns"])
             snapshot["total_points_per_hour"] = round(sum(row.get("points_per_hour") or 0 for row in snapshot["campaigns"]), 1)
             snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
+            # total_archived_points stays this gateway's uploads only; the import is reported beside it.
+            snapshot["total_historical_points"] = int(historical["points"]) if historical else None
+            snapshot["historical_imported_at"] = (historical["last_loaded_at"].isoformat()
+                                                  if historical and historical["last_loaded_at"] else None)
             self._cached, self._cached_at = snapshot, monotonic()
             return snapshot

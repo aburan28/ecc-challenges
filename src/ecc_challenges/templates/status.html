@@ -4,13 +4,14 @@
 {% block content %}
 <div class="kicker">Status</div>
 <h1>Live status</h1>
-<p class="lead">Counts from this gateway for each challenge. Figures refresh about once a minute.{% if snapshot %} Last read {{ snapshot.as_of[:16].replace("T", " ") }} UTC.{% endif %}</p>
+{% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
+<p class="lead">Counts for each challenge{% if imported %}, including the points imported from the earlier ECC2K-130 run{% endif %}. Figures refresh about once a minute.{% if snapshot %} Last read {{ snapshot.as_of[:16].replace("T", " ") }} UTC.{% endif %}</p>
 
 {% set v2 = snapshot and snapshot.compute_ready > 1 %}
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
 <dl class="stats" aria-label="Totals">
   <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of 24 challenges</small></dd></div>
-  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points) }}{% else %}—{% endif %}<small>{% if snapshot and snapshot.total_historical_points %}plus {{ "{:,}".format(snapshot.total_historical_points) }} imported{% else %}stored durably{% endif %}</small></dd></div>
+  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}{{ "{:,}".format(imported) }} imported · {{ "{:,}".format(snapshot.total_archived_points) }} uploaded here{% else %}stored durably{% endif %}</small></dd></div>
   <div class="stat"><dt>Points per hour</dt><dd>{% if snapshot %}{{ "{:,.0f}".format(snapshot.total_points_per_hour) }}{% else %}—{% endif %}<small>{{ snapshot.rate_window_hours if snapshot else 24 }} h average</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
@@ -59,14 +60,14 @@
         <td class="num">{{ "{:,.0f}".format(row.points_per_hour) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.recent_runs_24h) if is_open else "—" }}</td>
-        <td class="num">{{ "{:,}".format(row.received_points) if is_open else "—" }}</td>
+        <td class="num">{{ "{:,}".format(row.received_points + (row.historical_points or 0)) if is_open else "—" }}</td>
         {% if v2 %}<td class="num">{{ "{:,}".format(row.generic_verified_points) if row.generic_verified_points is not none else "—" }}</td>{% endif %}
         <td class="num">{{ "{:,}".format(row.pending_batches) if is_open else "—" }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table></div>
-  <p class="table-note">"Solved by 2009" is Certicom's snapshot from that year, not a claim about today. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
+  <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}"Solved by 2009" is Certicom's snapshot from that year, not a claim about today. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
 </section>
 
 <section class="section two">
@@ -75,7 +76,11 @@
     <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
     <p class="muted">Each distinguished point stands for 2<sup>d</sup> walk steps on average, where d is the challenge's DP bit count, so estimated work is points × 2<sup>d</sup>. The percentage compares that with Certicom's expected operation count. It is an estimate from point counts, not a count of verified steps.</p>
     <p class="muted">Rho is a random search, so 100% is not a finish line: a collision can arrive earlier or later. "Collision chance so far" is the probability that one would have appeared by now, 1 − e<sup>−π/4·x²</sup> for work fraction x. Points per hour is averaged over the last {{ snapshot.rate_window_hours if snapshot else 24 }} hours because workers upload in large batches.</p>
+    {% if imported %}
+    <p class="muted">Point totals include {{ "{:,}".format(imported) }} distinct DP32 points from the earlier private ECC2K-130 run{% if snapshot.historical_imported_at %}, last loaded {{ snapshot.historical_imported_at[:10] }}{% endif %}. Every new public point is matched against them. Runs and queue depth count this gateway only.</p>
+    {% else %}
     <p class="muted">Counts cover this gateway only. The earlier private ECC2K-130 run's 338,034,791 distinct DP32 points were imported on 17 October 2026, and every new public point is matched against them.</p>
+    {% endif %}
   </div>
   <div class="panel">
     <h3>Add a worker</h3>
