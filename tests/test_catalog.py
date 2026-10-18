@@ -115,3 +115,38 @@ def test_provider_environment_key_is_removed_before_cuda_launch(monkeypatch, tmp
     monkeypatch.setenv("ECC_API_KEY_FILE", str(tmp_path / "missing"))
     assert read_api_key() == key
     assert "ECC_API_KEY" not in os.environ
+
+
+def test_one_line_installers_are_served_as_text():
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        unix = client.get("/install.sh")
+        assert unix.status_code == 200 and unix.headers["content-type"].startswith("text/plain")
+        assert unix.text.startswith("#!/bin/sh") and "deploy/native/install.sh" in unix.text
+        windows = client.get("/install.ps1")
+        assert windows.status_code == 200 and "deploy\\native\\install.ps1" in windows.text
+        assert client.get("/install.bat").status_code == 404
+
+
+def test_dashboard_shows_setup_for_each_system():
+    from starlette.requests import Request
+    from ecc_challenges.app import TEMPLATES, client_os
+
+    def request(agent):
+        return Request({"type": "http", "method": "GET", "path": "/dashboard", "query_string": b"",
+                        "headers": [(b"user-agent", agent.encode())], "session": {"github_id": 1},
+                        "scheme": "https", "server": ("ecc-challenges.com", 443)})
+
+    windows = request("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+    assert client_os(windows) == "windows"
+    assert client_os(request("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5)")) == "macos"
+    assert client_os(request("Mozilla/5.0 (X11; Linux x86_64)")) == "linux"
+    for enabled in (False, True):
+        page = TEMPLATES.get_template("dashboard.html").render(
+            request=windows, login="me", keys=[], csrf="x", issued=None, challenges=CHALLENGES,
+            worker_image="example.invalid/image@sha256:" + "a" * 64, multicurve_enabled=enabled,
+            selected_campaign="eccp-131", client_os="windows")
+        assert 'id="os-windows" checked' in page and 'id="os-linux" checked' not in page
+        assert "curl -fsSL https://ecc-challenges.com/install.sh |" in page
+        assert "irm https://ecc-challenges.com/install.ps1 | iex" in page
+        assert ("Not accepting work yet" in page) is not enabled
+        assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
