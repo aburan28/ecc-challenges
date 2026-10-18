@@ -111,10 +111,15 @@ def test_metal_kernel_respects_address_spaces(tmp_path):
     if clang is None:
         pytest.skip("clang is unavailable")
     probe_source = tmp_path / "probe.clcpp"
-    probe_source.write_text("void f(__constant int& x);\n")
+    # Some clang builds cannot copy a struct in this mode at all (even
+    # returning a local), which says nothing about the Metal compiler.
+    probe_source.write_text(
+        "struct S { unsigned w[2]; };\n"
+        "S copy(S s) { S r = s; return r; }\n"
+        "S load(const __constant S& c) { S r{}; r.w[0] = c.w[0]; return copy(r); }\n")
     if subprocess.run([clang, "-x", "clcpp", "-cl-std=clc++2021", "-fsyntax-only",
                        str(probe_source)], capture_output=True).returncode:
-        pytest.skip("clang lacks C++ for OpenCL 2021")
+        pytest.skip("this clang's C++ for OpenCL 2021 cannot copy structs")
     # OpenCL has no Metal attributes or kernels taking references, so the
     # kernel body is checked as an ordinary function with the same signature.
     kernel = re.sub(r"\[\[[^\]]*\]\]", "", kernel_source())
