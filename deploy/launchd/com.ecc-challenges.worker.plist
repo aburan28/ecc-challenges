@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- One ECC Challenges worker as a macOS launchd agent. deploy/native/install.sh
+     fills in @PREFIX@ and @HOME@. For a second worker, copy this file with a new
+     Label and its own ECC_STATE_DIR; never share a state directory. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ecc-challenges.worker</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>@PREFIX@/bin/ecc-worker</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>ECC_CAMPAIGN</key>
+    <string>eccp-131</string>
+    <key>ECC_STATE_DIR</key>
+    <string>@HOME@/ecc-data/eccp-131</string>
+    <key>ECC_API_KEY_FILE</key>
+    <string>@HOME@/.config/ecc-challenges/api-key</string>
+    <key>ECC_BACKEND</key>
+    <string>auto</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <!-- Restart after a crash, not after a clean stop. -->
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <!-- launchctl stop sends SIGTERM; the worker finishes its round, uploads
+       and saves, so allow it the same two minutes as the other recipes. -->
+  <key>ExitTimeOut</key>
+  <integer>150</integer>
+  <key>StandardOutPath</key>
+  <string>@HOME@/Library/Logs/ecc-worker.log</string>
+  <key>StandardErrorPath</key>
+  <string>@HOME@/Library/Logs/ecc-worker.log</string>
+</dict>
+</plist>

@@ -3,12 +3,13 @@
 A public, distributed Pollard rho search on the
 [Certicom ECC challenges](https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf).
 Sign in at **[ecc-challenges.com](https://ecc-challenges.com)**, create an API
-key, and run one Docker container on an NVIDIA GPU. Your worker sends back
+key, and run one Docker container on an NVIDIA GPU, or the native worker on a
+Mac (Metal) or a Windows PC. Your worker sends back
 distinguished points; the server checks them and looks for a collision.
 
 - **Run a worker:** [Running a worker](docs/running-a-worker.md) covers Docker,
-  Compose, Kubernetes, systemd, Podman, Slurm/Apptainer and Modal, on GPU or
-  CPU (amd64 and arm64).
+  Compose, Kubernetes, systemd, Podman, Slurm/Apptainer, Modal, macOS and
+  Windows, on GPU (CUDA, Metal) or CPU (x86-64 and arm64).
 - **Work on the code:** read [CONTRIBUTING.md](CONTRIBUTING.md) and the
   [open problems](problems/README.md). The [local stack](docs/local-stack.md)
   runs the whole platform on one machine.
@@ -21,7 +22,8 @@ distinguished points; the server checks them and looks for a collision.
 Certicom ECC challenges. Contributors sign in with GitHub, generate a revocable
 API key, and run a pinned Linux container on a workstation or cloud provider.
 The generic v2 worker supports prime and binary fields through 359 bits, with
-CPU and NVIDIA CUDA backends. Existing ECC2K-130 v1 state keeps its original
+CPU, NVIDIA CUDA and Apple Metal backends that share one arithmetic core
+(`worker/generic/ec_core.h`), on Linux, macOS and Windows. Existing ECC2K-130 v1 state keeps its original
 Frobenius walk and 32-byte record format.
 
 Release status: the all-curve v2 path is implemented and disabled by default

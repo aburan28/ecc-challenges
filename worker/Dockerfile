@@ -1,7 +1,7 @@
 FROM nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6 AS generic-build
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends g++ \
   && rm -rf /var/lib/apt/lists/*
-COPY worker/generic/engine.cu /build/engine.cu
+COPY worker/generic/engine.cu worker/generic/ec_core.h /build/
 RUN nvcc -std=c++17 -O2 -gencode arch=compute_75,code=sm_75 \
       -gencode arch=compute_80,code=sm_80 \
       -gencode arch=compute_86,code=sm_86 -gencode arch=compute_89,code=sm_89 \
