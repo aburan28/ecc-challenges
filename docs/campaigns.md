@@ -12,8 +12,9 @@ does not assert that a challenge remains unsolved today.
 The public [status page](https://ecc-challenges.com/status) and
 `GET /v1/status` are served by this application. The database query reads the
 bounded run table and 16 pressure shards, and is cached for 60 seconds per web
-task. ECC2K-130 counts cover this isolated public gateway only. Historical
-points in the earlier account are outside these totals until an audited import.
+task. ECC2K-130 counts cover this isolated public gateway only. The earlier
+account's points are outside these totals, but since the 2026-10-17 import
+(338,034,791 distinct DP32 points) every new public point is matched against them.
 
 An uploaded point count is not a count of independently verified operations.
 The status response therefore leaves
