@@ -115,3 +115,16 @@ Public enrollment is enabled through a parameter-only ECS rollout, with the
 private canary allowlist cleared. See `public-enablement.json` and the final
 public gateway snapshot for observed rollout status. No ongoing validation
 workers are left running.
+
+## Challenge-page layout and GHCR rollout
+
+The published parameter table wraps long canonical values and labels each
+point's x and y coordinates on separate lines. All 24 live HTML pages were
+rendered at widths of 320, 390, 768, 1080 and 1440 pixels: 120 cases, with no
+horizontal table scroll or overflowing cells. Every displayed parameter value
+matched the pinned registry render. See [the layout receipt](parameter-layout.json).
+
+The web-only rollout also switches the dashboard's pinned CPU and GPU images
+to the public GHCR packages. [The rollout receipt](ghcr-layout-rollout.json)
+records the deployed web digest, stable services and preservation of every
+other live stack parameter.

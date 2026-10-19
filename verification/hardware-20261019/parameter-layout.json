@@ -1,0 +1,21 @@
+{
+  "format": "all24-live-parameter-layout-v1",
+  "ok": true,
+  "checked_at_unix": 1792431424.2913127,
+  "source_commit": "85fc0105b094e8c9edb3bb3c9878a48ee80f2f42",
+  "live_html": true,
+  "pages": 24,
+  "viewport_widths": [
+    320,
+    390,
+    768,
+    1080,
+    1440
+  ],
+  "cases": 120,
+  "horizontal_scroll_cases": 0,
+  "overflowing_cells": 0,
+  "canonical_values_fully_displayed": true,
+  "worker_image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e",
+  "cpu_worker_image": "ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8"
+}
