@@ -1,0 +1,10 @@
+✓ Initialized. View run at 
+https://modal.com/apps/a-buran28/main/ap-hqu6S5iurH8uMP4DDHR12H
+✓ Created objects.
+Traceback (most recent call last):
+  File "<string>", line 92, in <module>
+  File "<string>", line 34, in prepare_state
+RuntimeError: Modal volume mount must be a real directory
+Runner failed with exit code: 1
+Stopping app - uncaught exception raised locally: RuntimeError('remote_volume_probe_failed').
+{"ok": false, "error_type": "RuntimeError", "phases": 1}

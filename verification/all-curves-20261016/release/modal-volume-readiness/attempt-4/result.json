@@ -1,0 +1,52 @@
+{
+  "boot_sha256": "eeb9fe2dc9d6286ed30c5ba7a1635db20ea793dfc3eb6a29ac2aa214c6750279",
+  "contributor_key_sent": false,
+  "cpu_only": true,
+  "format": "modal-launcher-volume-readiness-v1",
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "modal_app_id": "ap-w2DMTxhcnpclm5xDz2TONh",
+  "ok": true,
+  "phases": [
+    {
+      "exit_code": 0,
+      "persisted_checkpoint_sha256": "bbf5bbfdd015a19c5e9c1c025d136a463791f7889abd13c492bb582c5d306d44",
+      "probe": {
+        "counter": 1,
+        "file_gid": 10001,
+        "file_mode": "0o600",
+        "file_uid": 10001,
+        "gid": 10001,
+        "legacy_file_remains": false,
+        "mount_entry_is_symlink": true,
+        "sha256": "bbf5bbfdd015a19c5e9c1c025d136a463791f7889abd13c492bb582c5d306d44",
+        "state_directory": "/__modal/volumes/vo-KKWxcbst7uUYRLW1CsT8ZF/ecc-state",
+        "uid": 10001
+      },
+      "sandbox_id": "sb-FqPZYsH3IEPDcTKe8rITpT",
+      "stderr": "",
+      "stdout": "{\"counter\": 1, \"uid\": 10001, \"gid\": 10001, \"file_uid\": 10001, \"file_gid\": 10001, \"file_mode\": \"0o600\", \"state_directory\": \"/__modal/volumes/vo-KKWxcbst7uUYRLW1CsT8ZF/ecc-state\", \"mount_entry_is_symlink\": true, \"legacy_file_remains\": false, \"sha256\": \"bbf5bbfdd015a19c5e9c1c025d136a463791f7889abd13c492bb582c5d306d44\"}\n"
+    },
+    {
+      "exit_code": 0,
+      "persisted_checkpoint_sha256": "ca9e2da6722f8026c6fbb0dc60cbd6e71f887a71b2b359d7d396d555275b4c85",
+      "probe": {
+        "counter": 2,
+        "file_gid": 10001,
+        "file_mode": "0o600",
+        "file_uid": 10001,
+        "gid": 10001,
+        "legacy_file_remains": false,
+        "mount_entry_is_symlink": true,
+        "sha256": "ca9e2da6722f8026c6fbb0dc60cbd6e71f887a71b2b359d7d396d555275b4c85",
+        "state_directory": "/__modal/volumes/vo-KKWxcbst7uUYRLW1CsT8ZF/ecc-state",
+        "uid": 10001
+      },
+      "sandbox_id": "sb-lKlvfBYohuoN4wJ1F1PWvv",
+      "stderr": "",
+      "stdout": "{\"counter\": 2, \"uid\": 10001, \"gid\": 10001, \"file_uid\": 10001, \"file_gid\": 10001, \"file_mode\": \"0o600\", \"state_directory\": \"/__modal/volumes/vo-KKWxcbst7uUYRLW1CsT8ZF/ecc-state\", \"mount_entry_is_symlink\": true, \"legacy_file_remains\": false, \"sha256\": \"ca9e2da6722f8026c6fbb0dc60cbd6e71f887a71b2b359d7d396d555275b4c85\"}\n"
+    }
+  ],
+  "script_sha256": "23f64201cc8fa559f6d6bbedce5231255f4c7dbdbc6f6f3a374aa12a7debbc94",
+  "state_setup_sha256": "f5e1220815a88725b129c761a48b49476f9e428d16a3b566269ff4e697a53763",
+  "volume_name": "ecc-volume-bootstrap-aa4b208ce034"
+}

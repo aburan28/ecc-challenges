@@ -15,6 +15,7 @@ import json
 from urllib.request import urlopen, Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError
 from urllib.parse import urlencode
+from modal_state import STATE_SETUP
 
 
 APP = "ecc-challenges-public-workers"
@@ -37,22 +38,14 @@ def authenticated_config(key: str, campaign: str) -> dict:
             or not re.fullmatch(r"[0-9a-f]{64}", value.get("namespace_id", ""))):
         raise ValueError("gateway returned an invalid namespace")
     return value
-BOOT = """
+BOOT = STATE_SETUP + """
 import os
 from pathlib import Path
 import sys
 import tempfile
 key = os.environ.pop('ECC_API_KEY')
-data = Path(os.environ['ECC_STATE_DIR'])
-data.mkdir(parents=True, exist_ok=True)
-# Modal ignores Docker USER. Each named worker has its own dedicated volume.
-# Preserve checkpoints while transferring their ownership before dropping root.
+# Modal ignores Docker USER. The owned child directory is prepared above.
 if os.getuid() == 0:
-    for path in data.rglob('*'):
-        if path.is_symlink():
-            raise RuntimeError('worker state volume must not contain symlinks')
-        os.chown(path, 10001, 10001, follow_symlinks=False)
-    os.chown(data, 10001, 10001, follow_symlinks=False)
     os.setgroups([])
     os.setgid(10001)
     os.setuid(10001)
@@ -86,7 +79,7 @@ def main() -> None:
     parser.add_argument("--protocol", type=int, choices=(1,2), default=2)
     parser.add_argument("--backend", choices=("auto","cpu","cuda"), default="auto")
     parser.add_argument("--gpu", default="L4", help="Modal GPU type, or none for CPU")
-    parser.add_argument("--image", help="override with an immutable public ECR worker digest")
+    parser.add_argument("--image", help="override with an immutable approved public worker digest")
     args = parser.parse_args()
     if not 1 <= args.workers <= 8:
         parser.error("--workers must be 1 to 8 (the gateway caps active runs per account)")
@@ -134,7 +127,7 @@ def main() -> None:
                 "python3", "-c", BOOT,
                 name=name, app=app, image=image,
                 secrets=[secret],
-                env={"ECC_API_URL": "https://ecc-challenges.com", "ECC_STATE_DIR": "/data",
+                env={"ECC_API_URL": "https://ecc-challenges.com", "ECC_VOLUME_MOUNT": "/data",
                      "ECC_CAMPAIGN":args.campaign,"ECC_PROTOCOL":str(args.protocol),"ECC_BACKEND":args.backend},
                 volumes={"/data": volume},
                 gpu=None if args.gpu=="none" else args.gpu, timeout=args.hours * 3600,

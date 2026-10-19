@@ -1,0 +1,22 @@
+{
+  "boot_sha256": "fc61b062acf0a180139f64ebc151b7d921bc7849174ee1899e09f8251ecec534",
+  "contributor_key_sent": false,
+  "cpu_only": true,
+  "error": "remote_volume_probe_failed",
+  "error_type": "RuntimeError",
+  "format": "modal-launcher-volume-readiness-v1",
+  "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee",
+  "modal_app_id": "ap-hqu6S5iurH8uMP4DDHR12H",
+  "ok": false,
+  "phases": [
+    {
+      "exit_code": 1,
+      "sandbox_id": "sb-aoMYrhWkOu4LgCd8hZVb1h",
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 92, in <module>\n  File \"<string>\", line 34, in prepare_state\nRuntimeError: Modal volume mount must be a real directory\n",
+      "stdout": ""
+    }
+  ],
+  "script_sha256": "b9265f533febc65d1e22550632374ca78fd8bd355b56d3f76c16edd76b1fc24e",
+  "state_setup_sha256": "f5c531000f833eda376e78c1558473289b98cca9de407cbcdd2c79b40507d4d1",
+  "volume_name": "ecc-volume-bootstrap-1f476b5d15d0"
+}
