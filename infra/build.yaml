@@ -46,7 +46,9 @@ Resources:
                 Action: [ecr-public:BatchCheckLayerAvailability, ecr-public:InitiateLayerUpload,
                          ecr-public:UploadLayerPart, ecr-public:CompleteLayerUpload,
                          ecr-public:PutImage, ecr-public:DescribeImages]
-                Resource: !Sub 'arn:aws:ecr-public::${AWS::AccountId}:repository/ecc-challenges-worker'
+                Resource:
+                  - !Sub 'arn:aws:ecr-public::${AWS::AccountId}:repository/ecc-challenges-worker'
+                  - !Sub 'arn:aws:ecr-public::${AWS::AccountId}:repository/ecc-challenges-worker-cpu'
               - Effect: Allow
                 Action: s3:PutObject
                 Resource: !Sub 'arn:aws:s3:::${Bucket}/release-builds/*'

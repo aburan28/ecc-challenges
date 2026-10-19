@@ -104,6 +104,11 @@ backend and host:
 | Linux AMD or Intel GPU | CPU image uses the host CPU; no ROCm, OpenCL or SYCL backend is implemented |
 | FPGA instance | CPU image can use its host CPU; FPGA acceleration is not implemented |
 
+The all-curve CUDA image requires a CUDA 13-capable host driver (Linux R580 or
+newer). Its CUDA 13.0 engine includes native code for the supported generations;
+it uses [CUDA minor-version compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
+The NVIDIA driver requirement check remains enabled.
+
 An FPGA backend needs a board-specific kernel or bitstream and host runtime.
 Mounting an FPGA into a container does not provide the curve arithmetic.
 Docker images here target Linux; native Windows and macOS workers use the same
