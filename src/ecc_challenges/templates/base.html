@@ -114,6 +114,19 @@
     .links{list-style:none;padding:0;margin:0;display:grid;gap:10px}
     .links a{font-weight:600}
 
+    /* setup tabs: radio buttons, no script (the CSP allows none) */
+    .os-tabs{display:flex;flex-wrap:wrap;gap:6px}
+    .os-tabs>input{position:absolute;opacity:0;pointer-events:none}
+    .os-tabs>label{margin:0;padding:8px 14px;border:1px solid var(--line);border-radius:6px;font:600 .9rem var(--sans);color:var(--muted);cursor:pointer}
+    .os-tabs>label:hover{color:var(--ink);border-color:var(--ink)}
+    .os-tabs>input:checked+label{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+    .os-tabs>input:focus-visible+label{outline:2px solid var(--accent);outline-offset:2px}
+    .os-panel{display:none;flex-basis:100%;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:24px;min-width:0}
+    .os-panel>:last-child{margin-bottom:0}
+    .os-panel h3:not(:first-child){margin-top:28px}
+    #os-linux:checked~.linux,#os-macos:checked~.macos,#os-windows:checked~.windows,#os-other:checked~.other{display:block}
+    .pending{border-left:3px solid var(--accent);padding:8px 0 8px 12px}
+
     /* tables */
     .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
     table{width:100%;border-collapse:collapse;font-size:.93rem}
@@ -177,6 +190,7 @@
       nav{gap:16px}
       .site-header nav a.wide{display:none}
       th,td{padding:9px 10px}
+      .os-panel{padding:16px}
     }
   </style>
 </head>

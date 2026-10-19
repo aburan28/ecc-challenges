@@ -24,6 +24,28 @@ that matches what you have:
 > image and other curves get HTTP 503. Everything below works unchanged once it
 > is on.
 
+## Quickest start
+
+On a Mac or a Linux machine without Docker, one command downloads the source,
+builds the native worker into `~/.local/ecc-challenges`, asks for your API key
+and offers to start it:
+
+```sh
+curl -fsSL https://ecc-challenges.com/install.sh | sh
+```
+
+On Windows, in PowerShell (it installs to `%LOCALAPPDATA%\ecc-challenges`):
+
+```powershell
+irm https://ecc-challenges.com/install.ps1 | iex
+```
+
+Both take `ECC_CAMPAIGN` (default `eccp-131`) from the environment, for
+example `curl -fsSL https://ecc-challenges.com/install.sh | ECC_CAMPAIGN=ecc2-131 sh`,
+and print the command to start the worker again. They wrap the
+`deploy/native` installers described below; the scripts themselves are
+`src/ecc_challenges/install/`. Run the same command to update.
+
 ## Before you start
 
 1. Sign in at [ecc-challenges.com](https://ecc-challenges.com) and create an
