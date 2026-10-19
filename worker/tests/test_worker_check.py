@@ -12,6 +12,10 @@ ROOT = Path(__file__).resolve().parents[2]
 def check_environment(engine, tmp_path, backend):
     env = dict(os.environ)
     env.pop("ECC_API_KEY", None)
+    # The subprocess cannot inherit conftest's in-process sys.path additions.
+    # Native platform jobs intentionally install only pytest, not the service.
+    env["PYTHONPATH"] = os.pathsep.join(filter(None, (
+        str(ROOT / "src"), env.get("PYTHONPATH"))))
     env.update(ECC_GENERIC_ENGINE=str(engine), ECC_BACKEND=backend,
                ECC_API_KEY_FILE=str(tmp_path / "missing-key"),
                ECC_API_URL="https://127.0.0.1:9",
