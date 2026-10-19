@@ -1,0 +1,21 @@
+# Requires a cluster RuntimeClass named kata. Pin the CPU image digest
+# before applying; see docs/sandbox-runtimes.md.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [../cpu]
+images:
+  - name: ghcr.io/aburan28/ecc-challenges-worker-cpu
+    newName: ghcr.io/aburan28/ecc-challenges-worker-cpu
+    # Replace this zero digest with the reviewed CPU image digest.
+    digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+patches:
+  - target: {kind: StatefulSet, name: ecc-worker-cpu}
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: ecc-worker-cpu
+      spec:
+        template:
+          spec:
+            runtimeClassName: kata
