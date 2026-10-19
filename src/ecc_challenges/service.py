@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import math
+from datetime import timezone
 from uuid import UUID
 
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECORD_BYTES, check_records, check_checkpoint
@@ -35,10 +36,28 @@ class Service:
 
     def account_keys(self, account_id: int) -> list[dict]:
         with self.db.connection() as conn:
-            return conn.execute("""
-                SELECT id,label,created_at,revoked_at,last_used_at FROM ecc_public.api_keys
-                WHERE account_id=%s ORDER BY created_at DESC
-            """, (account_id,)).fetchall()
+            keys = conn.execute("""
+                WITH run_activity AS (
+                    SELECT key_id,last_seen_at,total_bytes / 32 AS points_received
+                    FROM ecc_public.runs WHERE account_id=%s
+                    UNION ALL
+                    SELECT key_id,last_seen_at,total_records AS points_received
+                    FROM ecc_public.dp_runs WHERE account_id=%s
+                ), key_activity AS (
+                    SELECT key_id,max(last_seen_at) AS last_ping_at,
+                           sum(points_received) AS points_received
+                    FROM run_activity GROUP BY key_id
+                )
+                SELECT k.id,k.label,k.created_at,k.revoked_at,k.last_used_at,
+                       a.last_ping_at,coalesce(a.points_received,0) AS points_received
+                FROM ecc_public.api_keys k LEFT JOIN key_activity a ON a.key_id=k.id
+                WHERE k.account_id=%s ORDER BY k.created_at DESC,k.id
+            """, (account_id, account_id, account_id)).fetchall()
+        for key in keys:
+            for field in ("created_at", "last_ping_at", "last_used_at"):
+                if key[field] is not None:
+                    key[field] = key[field].astimezone(timezone.utc)
+        return keys
 
     def create_key(self, account_id: int, label: str) -> str:
         label = label.strip()

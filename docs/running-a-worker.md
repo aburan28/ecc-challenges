@@ -346,6 +346,21 @@ server:
 | Linux arm64 native | CI `Worker platforms`: as Windows, plus CMake and `install.sh` builds |
 | Metal kernel source | Type-checked on every CI host with clang's C++ for OpenCL, which enforces address spaces as Metal does; compiled with `xcrun metal` where the Metal toolchain is installed |
 
+## API key activity
+
+The private dashboard shows activity for each API key across all campaigns and
+worker protocols. **Last ping** is the most recent worker registration, accepted
+point upload, or checkpoint recorded by the gateway. It is not a periodic
+heartbeat or proof that a GPU is currently computing. **Last used** is the last
+authenticated API request that passed the key's rate limit, even if the later
+operation was rejected. Both timestamps use UTC.
+
+**Points received** sums the committed record counters for the key's runs.
+Re-sending a batch does not increase the count. The count includes records
+awaiting verification, can include repeated endpoints in different batches, and
+does not include unuploaded local points or unattributed historical imports.
+Revoked keys retain their history; unused keys show “Never” and zero points.
+
 ## ECC2K-130 legacy sigma thresholds
 
 To start a sigma DP34 run that can match the old DP30/DP32 archive, use the
