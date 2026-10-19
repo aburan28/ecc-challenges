@@ -14,7 +14,7 @@ from .catalog import CHALLENGES
 from .multicurve.codec import expected_steps_log2
 from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
-from .work import SIGMA_DP_LOG2, Walk, progress, sigma_expected_log2
+from .work import SIGMA_DP_LOG2, Walk, progress, sigma_dp_log2, sigma_expected_log2
 
 # Points per hour is averaged over this window: workers upload in batches of
 # up to 32,768 points, so a one-hour window is mostly empty on slow cards.
@@ -66,12 +66,21 @@ class StatusReader:
                            COALESCE(sum(pending_bytes), 0) AS pending_bytes
                     FROM ecc_public.pressure_shards
                 """).fetchone()
-                legacy_rate = conn.execute("""
-                    SELECT COALESCE(sum(records), 0) AS points
-                    FROM ecc_public.batches
-                    WHERE created_at >= now() - make_interval(hours => %s)
-                      AND audit_state NOT IN ('failed','quarantined')
-                """, (RATE_WINDOW_HOURS,)).fetchone()
+                # to_jsonb keeps this read compatible with databases predating
+                # migration 008, whose legacy runs all used DP32.
+                sigma_work = conn.execute("""
+                    SELECT coalesce((to_jsonb(r)->>'dp_weight')::int,32) AS dp_weight,
+                           sum(r.total_bytes) AS bytes,
+                           sum(coalesce(recent.points,0)) AS recent
+                    FROM ecc_public.runs r
+                    LEFT JOIN (
+                        SELECT run_id, sum(records) AS points FROM ecc_public.batches
+                        WHERE created_at >= now() - make_interval(hours => %s)
+                          AND audit_state NOT IN ('failed','quarantined')
+                        GROUP BY run_id
+                    ) recent ON recent.run_id=r.run_id
+                    GROUP BY 1
+                """, (RATE_WINDOW_HOURS,)).fetchall()
                 historical = _historical_totals(conn)
                 generic = {}
                 work = {}
@@ -136,23 +145,22 @@ class StatusReader:
                          for bits, points, recent in work.get(challenge.id, ())]
                 # Imported from the earlier private run (same DP32 walk); not in received_points.
                 historical_points = int(historical["points"]) if legacy and historical else 0
-                sigma = None
+                sigma = []
                 if legacy:
-                    # DP32 on the sigma walk is a Hamming-weight bound: 2^28.41 steps a point.
-                    sigma = Walk(DP_WEIGHT, int(runs["bytes"]) // RECORD_BYTES, int(legacy_rate["points"]),
-                                 SIGMA_DP_LOG2, sigma_expected_log2(order))
-                # Measured against the walk this campaign's default worker runs, not
-                # Certicom's figure: the v2 walk has no automorphism quotient yet.
-                expected = sigma.expected_log2 if sigma else generic_walk
-                # The top-level estimate is this gateway's public runs alone; the
-                # imported run is reported beside it, never folded in silently.
-                estimate = progress(walks + ([sigma] if sigma else []), expected, RATE_WINDOW_HOURS) if enabled else {
+                    for group in sigma_work:
+                        weight = int(group["dp_weight"])
+                        sigma.append(Walk(weight, int(group["bytes"]) // RECORD_BYTES,
+                                          int(group["recent"]), sigma_dp_log2(weight),
+                                          sigma_expected_log2(order), "sigma"))
+                # Each campaign is measured against the walk its worker runs.
+                expected = sigma_expected_log2(order) if legacy else generic_walk
+                estimate = progress(walks + sigma, expected, RATE_WINDOW_HOURS) if enabled else {
                     "expected_operations_log2": round(expected, 2)}
                 combined = None
                 if historical_points:
-                    imported = Walk(sigma.dp_bits, sigma.points + historical_points, sigma.recent,
-                                    sigma.dp_log2, sigma.expected_log2)
-                    combined = progress(walks + [imported], expected, RATE_WINDOW_HOURS)
+                    imported = Walk(DP_WEIGHT, historical_points, 0, SIGMA_DP_LOG2,
+                                    sigma_expected_log2(order), "sigma")
+                    combined = progress(walks + sigma + [imported], expected, RATE_WINDOW_HOURS)
                 return {**challenge.public(self.multicurve_enabled), **estimate,
                     "including_historical": combined,
                     "historical_points": historical_points if legacy and historical else None,
@@ -175,8 +183,9 @@ class StatusReader:
                 "rate_window_hours": RATE_WINDOW_HOURS,
                 "progress_note": (
                     "Work is estimated as archived points times the mean walk length between "
-                    "distinguished points: 2^28.41 on the ECC2K-130 sigma walk, whose DP32 is a "
-                    "normal-basis Hamming weight of at most 32, and 2^dp_bits on a v2 walk. It is "
+                    "distinguished points, using each run's stored threshold: 2^28.41 at DP32 "
+                    "on the ECC2K-130 sigma walk. DP32 is a "
+                    "normal-basis Hamming weight of at most 32. A v2 walk uses 2^dp_bits. This is "
                     "not a count of verified curve operations. expected_operations_log2 is the "
                     "expected work of the campaign's default walk, sqrt(pi*n/(4*131)) for the sigma "
                     "walk and sqrt(pi*n/2) for the v2 walk; estimated_operations_2009_log2 is "

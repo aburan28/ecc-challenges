@@ -28,6 +28,8 @@ class FakeConnection:
             if isinstance(self.historical, Exception):
                 raise self.historical
             return SimpleNamespace(fetchone=lambda: self.historical)
+        if "AS dp_weight" in statement:
+            return SimpleNamespace(fetchall=lambda: [{"dp_weight": 32, "bytes": 320, "recent": 48}])
         if "ecc_public.runs" in statement:
             return SimpleNamespace(fetchone=lambda: {"total": 3, "recent": 2, "bytes": 320})
         if "ecc_public.pressure_shards" in statement:
@@ -401,3 +403,45 @@ def test_dashboard_shows_setup_for_each_system():
         assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
         assert ("CPU, with Docker (x86-64 or ARM64)" in page) is enabled
         assert ("ecc-challenges-worker-cpu@sha256:" in page) is enabled
+
+
+def test_sigma_thresholds_share_work_before_collision_probability():
+    from ecc_challenges.work import Walk, progress, sigma_dp_log2
+    walks = [Walk(weight, 1000, 24, sigma_dp_log2(weight), 60.81, "sigma")
+             for weight in (30, 32, 34)]
+    estimate = progress(walks, 60.81, 24)
+    steps = sum(1000 * 2 ** -sigma_dp_log2(w) for w in (30, 32, 34))
+    share = steps / 2 ** 60.81
+    assert math.isclose(estimate["expected_work_percent"], 100 * share)
+    assert math.isclose(estimate["estimated_completion_probability_percent"],
+                        -100 * math.expm1(-math.pi / 4 * share ** 2))
+    assert estimate["dp_bits"] == [30, 32, 34]
+    assert sigma_dp_log2(30) < sigma_dp_log2(32) < sigma_dp_log2(34)
+    assert estimate["points_per_hour"] == 3
+
+
+def test_status_uses_each_sigma_runs_stored_threshold(database, aws_resources, settings):
+    import uuid
+    from ecc_challenges.service import Service
+    from ecc_challenges.work import sigma_dp_log2
+    service = Service(database, aws_resources[0], settings)
+    service.upsert_account(99, "threshold-test")
+    key = service.authenticate(service.create_key(99, "rig"))
+    with database.connection() as conn:
+        conn.execute("ALTER TABLE ecc_public.runs ADD COLUMN IF NOT EXISTS dp_weight smallint NOT NULL DEFAULT 32")
+    for weight, points in ((30, 10), (32, 20), (34, 30)):
+        run_id = service.register(key, str(uuid.uuid4()))["run_id"]
+        with database.connection() as conn:
+            conn.execute("UPDATE ecc_public.runs SET dp_weight=%s,total_bytes=%s WHERE run_id=%s",
+                         (weight, points * 32, run_id))
+            conn.execute("""INSERT INTO ecc_public.batches
+                (run_id,byte_offset,byte_length,records,sha256,object_key)
+                VALUES (%s,0,%s,%s,%s,%s)""",
+                (run_id, points * 32, points, "a" * 64, f"threshold/{weight}"))
+    row = StatusReader(database).read()["campaigns"][6]
+    expected = sum(points * 2 ** -sigma_dp_log2(weight)
+                   for weight, points in ((30, 10), (32, 20), (34, 30)))
+    assert row["received_points"] == 60
+    assert row["dp_bits"] == [30, 32, 34]
+    assert math.isclose(row["estimated_work_operations"], expected)
+    assert row["points_per_hour"] == 2.5

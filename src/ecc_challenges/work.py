@@ -14,6 +14,7 @@ one curve never report each other's collisions, so their (k/E)**2 terms add.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 from math import comb, expm1, log2, pi, sqrt
 
 from .protocol import DP_WEIGHT
@@ -22,7 +23,14 @@ SIGMA_DEGREE = 131
 # The ECC2K-130 sigma walk keeps x in the 131-bit normal basis, where every
 # subgroup point's x has even Hamming weight, and stops at weight <= DP_WEIGHT.
 # "DP32" there is a weight bound, not 32 zero bits: one step in 2^28.41.
-SIGMA_DP_LOG2 = log2(sum(comb(SIGMA_DEGREE, w) for w in range(0, DP_WEIGHT + 1, 2))) - (SIGMA_DEGREE - 1)
+@cache
+def sigma_dp_log2(weight: int) -> float:
+    if weight not in (30, 32, 34):
+        raise ValueError("unsupported sigma DP threshold")
+    return log2(sum(comb(SIGMA_DEGREE, w) for w in range(0, weight + 1, 2))) - (SIGMA_DEGREE - 1)
+
+
+SIGMA_DP_LOG2 = sigma_dp_log2(DP_WEIGHT)
 
 
 def sigma_expected_log2(order: int) -> float:
@@ -38,6 +46,7 @@ class Walk:
     recent: int             # points stored within the rate window
     dp_log2: float          # log2 of the chance that a step is distinguished
     expected_log2: float    # log2 of the walk's expected steps to a collision
+    collision_group: str | None = None
 
 
 def progress(walks: list[Walk], expected_log2: float, window_hours: int) -> dict:
@@ -46,6 +55,16 @@ def progress(walks: list[Walk], expected_log2: float, window_hours: int) -> dict
     # Work and pace as shares of each walk's own expectation.
     shares = [s / 2.0 ** w.expected_log2 for s, w in zip(steps, walks)]
     paces = [w.recent * 2.0 ** (-w.dp_log2 - w.expected_log2) / window_hours for w in walks]
+    # Different reporting thresholds can share the same underlying walk.
+    # Add their work before applying the birthday model; independent walks
+    # retain separate terms.
+    grouped = {}
+    for index, (walk, share, pace) in enumerate(zip(walks, shares, paces)):
+        key = walk.collision_group if walk.collision_group is not None else index
+        previous = grouped.get(key, (0.0, 0.0))
+        grouped[key] = (previous[0] + share, previous[1] + pace)
+    shares = [value[0] for value in grouped.values()]
+    paces = [value[1] for value in grouped.values()]
     work, share = sum(steps), sum(x * x for x in shares)
     per_hour = sum(w.recent * 2.0 ** -w.dp_log2 for w in walks) / window_hours
     hours = None
