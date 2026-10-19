@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
 import uuid
+from pathlib import Path
 
 
 ENGINE = r"""
@@ -63,9 +65,15 @@ def main() -> int:
     parser.add_argument("--image", required=True, help="Pinned Linux worker image at @sha256:digest")
     parser.add_argument("--all-curves", action="store_true",
                         help="also run the image's offline --check for all 24 curves")
+    parser.add_argument("--receipt", type=Path,
+                        help="new host JSON receipt path (required with --all-curves)")
     args = parser.parse_args()
     if not re.fullmatch(r".+@sha256:[0-9a-f]{64}", args.image):
         parser.error("--image must use a full sha256 digest")
+    if args.all_curves and args.receipt is None:
+        parser.error("--all-curves requires --receipt to retain the detailed check")
+    if args.receipt is not None and args.receipt.exists():
+        parser.error("--receipt must name a new file")
     try:
         runtimes = json.loads(checked("docker", "info", "--format", "{{json .Runtimes}}"))
         if args.runtime not in (runtimes or {}):
@@ -94,21 +102,42 @@ def main() -> int:
                 result = checked(
                     *common, "--user", "10001:10001", "--cap-drop", "ALL",
                     "--security-opt", "no-new-privileges",
-                    "--env", "ECC_BACKEND=cpu", args.image,
+                    "--env", "ECC_BACKEND=cpu",
+                    "--env", "ECC_CHECK_OUT=/data/full-check", args.image,
                     "/opt/ecc2k130/client.py", "--check")
                 full_check = json.loads(result.splitlines()[-1])
                 if (full_check.get("campaigns_checked") != 24
                         or full_check.get("checks", 0) < 168
                         or "cpu" not in full_check.get("backends_checked", ())):
                     raise RuntimeError("all-curve image check returned incomplete coverage")
-            print(json.dumps({
+                retained = checked(
+                    *common, "--user", "10001:10001", "--cap-drop", "ALL",
+                    "--security-opt", "no-new-privileges", args.image, "-c",
+                    "from pathlib import Path; print(Path('/data/full-check/receipt.json').read_text())")
+                full_receipt = json.loads(retained)
+                if (full_receipt.get("campaigns_completed") != 24
+                        or full_receipt.get("checks", 0) < 168
+                        or len(full_receipt.get("rows", ())) != 72
+                        or full_receipt.get("backends_checked") != full_check["backends_checked"]):
+                    raise RuntimeError("detailed all-curve receipt is incomplete")
+            summary = {
                 "runtime": args.runtime, "image": args.image,
                 "engine": json.loads(engine.splitlines()[-1]),
                 "first": json.loads(first.splitlines()[-1]),
                 "second": json.loads(second.splitlines()[-1]),
                 "all_curves": full_check,
                 "offline_only": True,
-            }, sort_keys=True))
+            }
+            if args.receipt is not None:
+                evidence = {**summary, "detailed_all_curves": full_receipt if args.all_curves else None}
+                fd = os.open(args.receipt, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                with os.fdopen(fd, "w") as output:
+                    json.dump(evidence, output, sort_keys=True, indent=2)
+                    output.write("\n")
+                    output.flush()
+                    os.fsync(output.fileno())
+                summary["receipt"] = str(args.receipt)
+            print(json.dumps(summary, sort_keys=True))
         finally:
             checked("docker", "volume", "rm", volume)
     except (OSError, RuntimeError, ValueError, KeyError, IndexError) as exc:

@@ -15,6 +15,7 @@ the exact CPU or combined worker image digest you intend to run:
 python3 scripts/check_sandbox_runtime.py \
   --runtime runsc \
   --all-curves \
+  --receipt runsc-worker-check.json \
   --image 'ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:YOUR_DIGEST'
 # On a host with a Docker Kata runtime, replace runsc with its registered name.
 ```
@@ -27,9 +28,11 @@ entry point to complete at least 168 checks across all 24 campaigns. Use an
 image release that contains that entry point; omit the flag only when checking
 an older image's runtime mechanics. Both containers use the same disposable
 named volume. The check uses no
-API key or network access and removes its volume when done. Retain the printed
-JSON, image digest, Docker/runtime versions, host architecture, and exit code
-as the evidence for a runtime-specific result. A pass establishes only CPU
+API key or network access and removes its volume when done. The required
+`--receipt` path keeps the detailed 24-curve control receipt outside that
+volume as a new mode-0600 file. Retain it with the Docker/runtime versions,
+host architecture, and exit code as the evidence for a runtime-specific
+result. A pass establishes only CPU
 arithmetic and local persistence in that configured runtime.
 
 ## Kubernetes CPU examples
