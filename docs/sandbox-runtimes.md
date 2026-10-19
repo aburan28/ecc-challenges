@@ -8,6 +8,22 @@ worker; protocol 2 remains gated while `multicurve_enabled` is false.
 
 ## Offline CPU smoke
 
+The `Sandbox worker runtimes` workflow runs the gVisor smoke on an Ubuntu
+GitHub runner whenever this check or its overlays change. That pull-request
+job uses the published image digest from `docs/running-a-worker.md` and checks
+runtime mechanics; it does not imply 24-curve coverage for a newer image.
+After publishing an image with `/opt/ecc2k130/client.py --check`, dispatch the
+workflow on the default branch with that exact image digest and
+`all_curves=true`. Keep the resulting version log and detailed receipt.
+
+To run the Kata job, enroll a dedicated Linux x64 runner with the `kata-kvm`
+label, `/dev/kvm`, Docker 26 or newer, and the `kata` Docker runtime registered
+with the Kata runtime-rs QEMU configuration. Then dispatch the workflow with
+`validate_kata=true` and the same image digest. The job fails at preflight if
+KVM is unavailable. The [Kata installation guide](https://github.com/kata-containers/kata-containers/blob/main/docs/installation.md)
+documents the Docker registration and virtualization requirements. No such
+runner is currently enrolled, so a queued Kata job is not a validation result.
+
 Use a Linux host with Docker and a configured `runsc` or Kata runtime. Supply
 the exact CPU or combined worker image digest you intend to run:
 

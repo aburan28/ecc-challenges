@@ -1,0 +1,116 @@
+name: Sandbox worker runtimes
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/sandbox-runtime-validation.yml
+      - scripts/check_sandbox_runtime.py
+      - docs/sandbox-runtimes.md
+      - deploy/kubernetes/gvisor-cpu/**
+      - deploy/kubernetes/kata-cpu/**
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Published worker image with a full sha256 digest
+        required: true
+        type: string
+      all_curves:
+        description: Require the image's offline 24-curve check and retain its receipt
+        required: true
+        default: true
+        type: boolean
+      validate_kata:
+        description: Also use an enrolled Linux x64 runner labelled kata-kvm
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  # The pull-request check covers runtime mechanics against the published image.
+  # Dispatch with a newer digest and all_curves=true for full-curve evidence.
+  WORKER_IMAGE: ${{ inputs.image || 'ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee' }}
+
+jobs:
+  gvisor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gVisor from its signed Debian repository
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ca-certificates curl gnupg
+          curl -fsSL https://gvisor.dev/archive.key | sudo gpg --dearmor -o /usr/share/keyrings/gvisor-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/gvisor-archive-keyring.gpg] https://storage.googleapis.com/gvisor/releases release main" | sudo tee /etc/apt/sources.list.d/gvisor.list >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends runsc
+      - name: Record host and runtime versions
+        run: |
+          set -euo pipefail
+          {
+            uname -a
+            docker version
+            runsc --version
+            docker info --format '{{json .Runtimes}}'
+          } | tee "$RUNNER_TEMP/gvisor-host.txt"
+      - name: Run offline worker smoke under gVisor
+        env:
+          ALL_CURVES: ${{ github.event_name == 'workflow_dispatch' && inputs.all_curves }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ "$ALL_CURVES" == true ]]; then args+=(--all-curves); fi
+          python3 scripts/check_sandbox_runtime.py \
+            --runtime runsc --image "$WORKER_IMAGE" \
+            --receipt "$RUNNER_TEMP/gvisor-worker.json" "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gvisor-worker-runtime
+          path: |
+            ${{ runner.temp }}/gvisor-host.txt
+            ${{ runner.temp }}/gvisor-worker.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  kata:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.validate_kata }}
+    runs-on: [self-hosted, Linux, X64, kata-kvm]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check virtualization and record host versions
+        run: |
+          set -euo pipefail
+          test -c /dev/kvm
+          test -r /dev/kvm
+          {
+            uname -a
+            ls -l /dev/kvm
+            docker version
+            docker info --format '{{json .Runtimes}}'
+            /opt/kata/runtime-rs/bin/containerd-shim-kata-v2 --version
+          } | tee "$RUNNER_TEMP/kata-host.txt"
+      - name: Run offline worker smoke under Kata
+        env:
+          ALL_CURVES: ${{ inputs.all_curves }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ "$ALL_CURVES" == true ]]; then args+=(--all-curves); fi
+          python3 scripts/check_sandbox_runtime.py \
+            --runtime kata --image "$WORKER_IMAGE" \
+            --receipt "$RUNNER_TEMP/kata-worker.json" "${args[@]}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kata-worker-runtime
+          path: |
+            ${{ runner.temp }}/kata-host.txt
+            ${{ runner.temp }}/kata-worker.json
+          if-no-files-found: warn
+          retention-days: 30
