@@ -1,5 +1,9 @@
 # Binary rho `xtime` arithmetic control, 2026-10-16
 
+The adaptation to the later shared CPU/CUDA/Metal header and its new CPU
+control receipt are in [main-adaptation](main-adaptation/README.md). The source
+hashes below refer to the original standalone engine snapshots.
+
 ## Scope and source
 
 This change replaces the ECCJOB03 binary-field `xtime` helper's two

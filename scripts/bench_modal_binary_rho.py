@@ -1,13 +1,14 @@
 """Matched, bounded L4 ECCJOB03 invocation benchmark for nine binary curves.
 
 Usage:
-  ECC_BASELINE_SOURCE=/path/to/parent/engine.cu \
+  ECC_BASELINE_HEADER=/path/to/baseline-ec_core.h \
   ECC_NATIVE_CONTROLS=/path/to/native-controls \
   ECC_BENCH_OUT=/path/to/new/output modal run scripts/bench_modal_binary_rho.py
 
-The source snapshots are compiled together in one image. The remote function
-returns raw inputs/outputs and a write-once receipt. Timings include process
-startup, validation, transfers, kernel execution, and output serialization.
+The two arms compile the same current engine source with different pinned
+arithmetic headers in one image. The remote function returns raw inputs/outputs
+and a write-once receipt. Timings include process startup, validation, transfers,
+kernel execution, and output serialization.
 """
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ import modal
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = Path(os.environ["ECC_BASELINE_SOURCE"]).resolve()
+BASELINE_HEADER = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
 CONTROLS = Path(os.environ["ECC_NATIVE_CONTROLS"]).resolve()
 OUT = Path(os.environ["ECC_BENCH_OUT"]).resolve()
 CURVES = ("ecc2k-130", "ecc2-131", "ecc2k-163", "ecc2-163", "ecc2-191",
@@ -25,16 +26,18 @@ CURVES = ("ecc2k-130", "ecc2-131", "ecc2k-163", "ecc2-163", "ecc2-191",
 
 app = modal.App("ecc-challenges-binary-rho-throughput")
 image = (modal.Image.from_registry("nvidia/cuda:13.0.2-devel-ubuntu24.04", add_python="3.12")
-         .add_local_file(BASELINE, "/src/baseline.cu", copy=True)
-         .add_local_file(ROOT / "worker/generic/engine.cu", "/src/candidate.cu", copy=True))
+         .add_local_file(ROOT / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
+         .add_local_file(BASELINE_HEADER, "/src/baseline/ec_core.h", copy=True)
+         .add_local_file(ROOT / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
+         .add_local_file(ROOT / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True))
 for curve in CURVES:
     for filename in ("job.bin", "in.bin"):
         image = image.add_local_file(
             CONTROLS / curve / "mixed-dp40-cpu" / filename,
             f"/controls/{curve}/mixed-dp40-cpu/{filename}", copy=True)
 image = image.run_commands(
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline.cu -o /src/baseline",
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate.cu -o /src/candidate",
+             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /src/baseline",
+             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /src/candidate",
              "/src/baseline --self-test", "/src/candidate --self-test")
 
 
@@ -59,7 +62,8 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
         ["nvidia-smi", "--query-gpu=name,uuid,driver_version,clocks.sm,clocks.mem,temperature.gpu,power.draw",
          "--format=csv,noheader"], capture_output=True, text=True,
         check=True, timeout=30).stdout.strip()
-    sources = {arm: sha(Path(f"/src/{arm}.cu").read_bytes())
+    sources = {arm: {name: sha(Path(f"/src/{arm}/{name}").read_bytes())
+                     for name in ("engine.cu", "ec_core.h")}
                for arm in ("baseline", "candidate")}
     binaries = {arm: sha(Path(f"/src/{arm}").read_bytes())
                 for arm in ("baseline", "candidate")}
