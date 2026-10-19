@@ -48,7 +48,7 @@ def test_key_activity_across_protocols_is_private_and_idempotent(platform):
     with legacy.db.connection() as conn:
         conn.execute("UPDATE ecc_public.runs SET last_seen_at=%s WHERE key_id=%s", (ping - timedelta(hours=1), key["id"]))
         conn.execute("UPDATE ecc_public.dp_runs SET last_seen_at=%s WHERE key_id=%s", (ping, key["id"]))
-        conn.execute("UPDATE ecc_public.api_keys SET last_used_at=%s WHERE id=%s", (used, key["id"]))
+        conn.execute("UPDATE ecc_public.api_keys SET last_used_at=%s,last_ping_at=%s WHERE id=%s", (used, ping, key["id"]))
     rows = {row["label"]: row for row in legacy.account_keys(owner)}
     assert set(rows) == {"correctness", "second worker", "never used"}
     mixed = rows["correctness"]
@@ -75,6 +75,63 @@ def session_cookie(account_id, settings):
         {"github_id": account_id, "login": "test", "csrf": "test-csrf"}).encode())).decode()
 
 
+def test_heartbeat_without_points_and_offline_expiry(database, aws_resources, settings):
+    storage, *_ = aws_resources
+    service = Service(database, storage, settings)
+    service.upsert_account(1234, "test")
+    secret = service.create_key(1234, "idle worker")
+    def activity():
+        return service.account_keys(1234)[0]
+    assert not activity()["worker_active"]
+    app = create_app(settings, db=database, storage=storage)
+    with TestClient(app, base_url=settings.public_origin) as client:
+        assert client.post("/v1/heartbeat").status_code == 401
+        headers = {"Authorization": "Bearer " + secret}
+        assert client.post("/v1/heartbeat", headers=headers, content=b"unexpected").status_code == 413
+        assert activity()["last_ping_at"] is None
+        response = client.post("/v1/heartbeat", headers=headers)
+        assert response.status_code == 204 and response.content == b""
+        assert response.headers["cache-control"] == "no-store"
+        first = activity()
+        assert first["worker_active"] and first["last_ping_at"] is not None
+        assert first["points_received"] == 0 and first["last_used_at"] is None
+        client.cookies.set("ecc_session", session_cookie(1234, settings))
+        assert '>Active</span>' in client.get("/dashboard").text
+        # Fresh point/checkpoint activity alone must never imply a live worker.
+        key = service.authenticate(secret)
+        service.register(key, str(uuid4()))
+        with database.connection() as conn:
+            conn.execute("UPDATE ecc_public.api_keys SET last_ping_at=now()-interval '181 seconds'")
+        assert not activity()["worker_active"]
+        assert '>Offline</span>' in client.get("/dashboard").text
+        used = activity()["last_used_at"]
+        # Another worker using the same key makes it active again; no disconnect write.
+        assert client.post("/v1/heartbeat", headers=headers).status_code == 204
+        assert activity()["worker_active"] and activity()["last_used_at"] == used
+        with database.connection() as conn:
+            conn.execute("UPDATE ecc_public.api_keys SET tokens=-1000,token_updated_at=now()")
+        last_ping = activity()["last_ping_at"]
+        assert client.post("/v1/heartbeat", headers=headers).status_code == 429
+        assert activity()["last_ping_at"] == last_ping
+        service.revoke_key(1234, key["id"])
+        assert client.post("/v1/heartbeat", headers=headers).status_code == 401
+        assert not activity()["worker_active"] and activity()["last_ping_at"] == last_ping
+
+
+def test_suspended_account_cannot_ping(database, aws_resources, settings):
+    storage, *_ = aws_resources
+    service = Service(database, storage, settings)
+    service.upsert_account(1234, "test")
+    secret = service.create_key(1234, "suspended worker")
+    service.authenticate(secret, heartbeat=True)
+    with database.connection() as conn:
+        conn.execute("UPDATE ecc_public.accounts SET suspended_at=now() WHERE github_id=1234")
+    assert not service.account_keys(1234)[0]["worker_active"]
+    app = create_app(settings, db=database, storage=storage)
+    with TestClient(app, base_url=settings.public_origin) as client:
+        assert client.post("/v1/heartbeat", headers={"Authorization": "Bearer " + secret}).status_code == 401
+
+
 def test_private_dashboard_renders_activity_and_new_key_empty_state(database, aws_resources, settings):
     storage, *_ = aws_resources
     service = Service(database, storage, settings)
@@ -85,8 +142,8 @@ def test_private_dashboard_renders_activity_and_new_key_empty_state(database, aw
     with database.connection() as conn:
         conn.execute("UPDATE ecc_public.runs SET total_bytes=%s,last_seen_at=%s WHERE run_id=%s",
                      (12345 * 32, datetime(2026, 10, 19, 13, 14, 15, tzinfo=timezone.utc), run))
-        conn.execute("UPDATE ecc_public.api_keys SET created_at=now()-interval '2 minutes',last_used_at=%s WHERE id=%s",
-                     (datetime(2026, 10, 19, 13, 20, 21, tzinfo=timezone.utc), key["id"]))
+        conn.execute("UPDATE ecc_public.api_keys SET created_at=now()-interval '2 minutes',last_used_at=%s,last_ping_at=%s WHERE id=%s",
+                     (datetime(2026, 10, 19, 13, 20, 21, tzinfo=timezone.utc), datetime(2026, 10, 19, 13, 14, 15, tzinfo=timezone.utc), key["id"]))
     service.upsert_account(5678, "other")
     service.create_key(5678, "hidden foreign key")
     app = create_app(settings, db=database, storage=storage)

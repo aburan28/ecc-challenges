@@ -38,19 +38,21 @@ class Service:
         with self.db.connection() as conn:
             keys = conn.execute("""
                 WITH run_activity AS (
-                    SELECT key_id,last_seen_at,total_bytes / 32 AS points_received
+                    SELECT key_id,total_bytes / 32 AS points_received
                     FROM ecc_public.runs WHERE account_id=%s
                     UNION ALL
-                    SELECT key_id,last_seen_at,total_records AS points_received
+                    SELECT key_id,total_records AS points_received
                     FROM ecc_public.dp_runs WHERE account_id=%s
                 ), key_activity AS (
-                    SELECT key_id,max(last_seen_at) AS last_ping_at,
-                           sum(points_received) AS points_received
+                    SELECT key_id,sum(points_received) AS points_received
                     FROM run_activity GROUP BY key_id
                 )
                 SELECT k.id,k.label,k.created_at,k.revoked_at,k.last_used_at,
-                       a.last_ping_at,coalesce(a.points_received,0) AS points_received
+                       k.last_ping_at,coalesce(a.points_received,0) AS points_received,
+                       (k.revoked_at IS NULL AND owner.suspended_at IS NULL AND
+                        coalesce(k.last_ping_at > now()-interval '3 minutes',false)) AS worker_active
                 FROM ecc_public.api_keys k LEFT JOIN key_activity a ON a.key_id=k.id
+                JOIN ecc_public.accounts owner ON owner.github_id=k.account_id
                 WHERE k.account_id=%s ORDER BY k.created_at DESC,k.id
             """, (account_id, account_id, account_id)).fetchall()
         for key in keys:
@@ -104,7 +106,7 @@ class Service:
                 WHERE key_id=%s
             """, (key_id,))
 
-    def authenticate(self, bearer: str, cost: int = 1) -> dict:
+    def authenticate(self, bearer: str, cost: int = 1, *, heartbeat: bool = False) -> dict:
         parsed = parse_and_digest(self.settings.key_pepper, bearer)
         if not parsed:
             raise Rejected(401, "invalid API key")
@@ -121,11 +123,13 @@ class Service:
             limited = conn.execute("""
                 UPDATE ecc_public.api_keys
                 SET tokens=least(240, tokens + greatest(0,extract(epoch from now()-token_updated_at))*4)-%s,
-                    token_updated_at=now(), last_used_at=now()
+                    token_updated_at=now(),
+                    last_used_at=CASE WHEN %s THEN last_used_at ELSE greatest(last_used_at,now()) END,
+                    last_ping_at=CASE WHEN %s THEN greatest(last_ping_at,now()) ELSE last_ping_at END
                 WHERE id=%s AND least(240, tokens + greatest(0,extract(epoch from now()-token_updated_at))*4)>=%s
                   AND revoked_at IS NULL
                 RETURNING id
-            """, (cost, key_id, cost)).fetchone()
+            """, (cost, heartbeat, heartbeat, key_id, cost)).fetchone()
             if not limited:
                 raise Rejected(429, "API key rate limit exceeded", 15)
             return {"id": key_id, "account_id": row["account_id"]}

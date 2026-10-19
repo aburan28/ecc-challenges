@@ -19,6 +19,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from protocol import CAMPAIGN, DP_WEIGHT, DP_WEIGHTS, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
+from generic.heartbeat import Heartbeat
 
 
 def log(message: str) -> None:
@@ -266,66 +267,67 @@ def main() -> int:
     interval = max(10, int(os.environ.get("ECC_UPLOAD_SECONDS", "60")))
     spool_limit = max(64 * 1024 * 1024, int(os.environ.get("ECC_SPOOL_MAX_BYTES", str(512 * 1024 * 1024))))
     failed_sync = False
-    try:
-        while not stop:
-            pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
-            if pending >= spool_limit:
-                log(f"run {api.run_id}: upload backlog reached {pending} bytes; GPU paused")
-                while pending >= spool_limit // 2 and not stop:
-                    try:
-                        upload_dps(api, root, state)
-                        upload_checkpoint(api, root, state)
-                        failed_sync = False
-                    except Exception as exc:
-                        failed_sync = True
-                        log(f"run {api.run_id}: backlog retained ({type(exc).__name__}: {exc})")
-                    pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
-                    if pending >= spool_limit // 2:
-                        time.sleep(30)
-                continue
-            log(f"run {api.run_id}: starting sigma GPU walk")
-            proc = subprocess.Popen(command)
-            next_upload = time.monotonic()
-            while proc.poll() is None and not stop:
-                if time.monotonic() >= next_upload:
-                    try:
-                        upload_dps(api, root, state)
-                        upload_checkpoint(api, root, state)
-                        failed_sync = False
-                    except Exception as exc:
-                        failed_sync = True
-                        log(f"run {api.run_id}: upload pending ({type(exc).__name__}: {exc})")
-                    next_upload = time.monotonic() + interval
+    with Heartbeat(api.url, key):
+        try:
+            while not stop:
                 pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
                 if pending >= spool_limit:
+                    log(f"run {api.run_id}: upload backlog reached {pending} bytes; GPU paused")
+                    while pending >= spool_limit // 2 and not stop:
+                        try:
+                            upload_dps(api, root, state)
+                            upload_checkpoint(api, root, state)
+                            failed_sync = False
+                        except Exception as exc:
+                            failed_sync = True
+                            log(f"run {api.run_id}: backlog retained ({type(exc).__name__}: {exc})")
+                        pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
+                        if pending >= spool_limit // 2:
+                            time.sleep(30)
+                    continue
+                log(f"run {api.run_id}: starting sigma GPU walk")
+                proc = subprocess.Popen(command)
+                next_upload = time.monotonic()
+                while proc.poll() is None and not stop:
+                    if time.monotonic() >= next_upload:
+                        try:
+                            upload_dps(api, root, state)
+                            upload_checkpoint(api, root, state)
+                            failed_sync = False
+                        except Exception as exc:
+                            failed_sync = True
+                            log(f"run {api.run_id}: upload pending ({type(exc).__name__}: {exc})")
+                        next_upload = time.monotonic() + interval
+                    pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
+                    if pending >= spool_limit:
+                        proc.send_signal(signal.SIGTERM)
+                        proc.wait(timeout=600)
+                        break
+                    time.sleep(1)
+                if proc.poll() is None:
                     proc.send_signal(signal.SIGTERM)
                     proc.wait(timeout=600)
+                if proc.returncode:
+                    raise RuntimeError(f"GPU client exited {proc.returncode}")
+                if stop:
                     break
-                time.sleep(1)
-            if proc.poll() is None:
+                # A stopped GPU is restarted only from its checkpoint and same run ID.
+                if not (root / "state.ck").is_file():
+                    raise RuntimeError("GPU stopped without a checkpoint")
+            for attempt in range(3):
+                try:
+                    upload_dps(api, root, state)
+                    upload_checkpoint(api, root, state, force=True)
+                    failed_sync = False
+                    break
+                except Exception as exc:
+                    failed_sync = True
+                    log(f"run {api.run_id}: final upload attempt {attempt + 1} failed ({type(exc).__name__}: {exc})")
+                    time.sleep(2)
+        finally:
+            if proc is not None and proc.poll() is None:
                 proc.send_signal(signal.SIGTERM)
                 proc.wait(timeout=600)
-            if proc.returncode:
-                raise RuntimeError(f"GPU client exited {proc.returncode}")
-            if stop:
-                break
-            # A stopped GPU is restarted only from its checkpoint and same run ID.
-            if not (root / "state.ck").is_file():
-                raise RuntimeError("GPU stopped without a checkpoint")
-        for attempt in range(3):
-            try:
-                upload_dps(api, root, state)
-                upload_checkpoint(api, root, state, force=True)
-                failed_sync = False
-                break
-            except Exception as exc:
-                failed_sync = True
-                log(f"run {api.run_id}: final upload attempt {attempt + 1} failed ({type(exc).__name__}: {exc})")
-                time.sleep(2)
-    finally:
-        if proc is not None and proc.poll() is None:
-            proc.send_signal(signal.SIGTERM)
-            proc.wait(timeout=600)
     log(f"run {api.run_id}: client exit={proc.returncode if proc else 0} upload_pending={failed_sync}")
     return 1 if failed_sync else 0
 

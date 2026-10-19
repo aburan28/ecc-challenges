@@ -356,6 +356,13 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                 "recommended_dp_weight": RECOMMENDED_DP_WEIGHT, "record_bytes": RECORD_BYTES,
                 "max_batch_bytes": MAX_BATCH_BYTES}
 
+    @app.post("/v1/heartbeat")
+    async def heartbeat(request: Request):
+        # Shared by both worker protocols; a ping never counts as point activity.
+        await limited_body(request, 0)
+        await run_in_threadpool(service.authenticate, bearer_value(request), heartbeat=True)
+        return Response(status_code=204, headers={"Cache-Control": "no-store"})
+
     @app.post("/v1/register")
     async def register(request: Request):
         if await limited_body(request, 0):

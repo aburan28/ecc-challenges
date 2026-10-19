@@ -18,6 +18,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from ecc_challenges.multicurve.codec import MAX_BATCH_BYTES, MAX_TRAIL_STEPS, canonical, namespace
 from .runtime import BACKENDS, NativeState, pack_state, run_round, unpack_states
+from .heartbeat import Heartbeat
 
 try:
     import fcntl
@@ -285,7 +286,7 @@ def main(root: Path, key: str, campaign: str) -> int:
         signal.signal(signal.SIGBREAK, terminate)
     engine = engine_for_backend(backend)
     retry = 1
-    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary:
+    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, Heartbeat(api.origin, key):
         while not stop:
             try:
                 flush(api, ns, state, path)

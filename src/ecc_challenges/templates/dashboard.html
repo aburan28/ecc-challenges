@@ -26,20 +26,21 @@ mkdir -p ~/.config/ecc-challenges
       <div class="row"><input id="label" name="label" type="text" maxlength="80" required placeholder="e.g. home RTX 4090" style="flex:1 1 200px"><button class="button" type="submit">Create key</button></div>
     </form>
     <div class="table-wrap"><table aria-label="Your API keys and worker activity" aria-describedby="key-activity-note">
-      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th title="Latest worker registration, point upload, or checkpoint">Last ping</th><th title="Latest authenticated API request">Last used</th><th class="num">Points received</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th>Worker</th><th title="Latest one-minute worker heartbeat">Last ping</th><th title="Latest authenticated API request, excluding heartbeats">Last used</th><th class="num">Points received</th><th></th></tr></thead>
       <tbody>
       {% for key in keys %}
         <tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
+          <td>{% if key.worker_active %}<span class="tag open">Active</span>{% else %}<span class="tag">Offline</span>{% endif %}</td>
           <td>{% if key.last_ping_at %}<time datetime="{{ key.last_ping_at.isoformat() }}">{{ key.last_ping_at.strftime('%Y-%m-%d') }}<br><span class="note">{{ key.last_ping_at.strftime('%H:%M:%S') }} UTC</span></time>{% else %}<span class="muted">Never</span>{% endif %}</td>
           <td>{% if key.last_used_at %}<time datetime="{{ key.last_used_at.isoformat() }}">{{ key.last_used_at.strftime('%Y-%m-%d') }}<br><span class="note">{{ key.last_used_at.strftime('%H:%M:%S') }} UTC</span></time>{% else %}<span class="muted">Never</span>{% endif %}</td>
           <td class="num">{{ "{:,}".format(key.points_received) }}</td>
           <td class="num">{% if key.revoked_at %}<span class="tag">Revoked</span>{% else %}<form class="inline" method="post" action="/keys/{{ key.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger" type="submit">Revoke</button></form>{% endif %}</td></tr>
       {% else %}
-        <tr><td colspan="7" class="muted">No keys yet.</td></tr>
+        <tr><td colspan="8" class="muted">No keys yet.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
-    <p class="table-note" id="key-activity-note">Times are UTC. Last ping is the latest recorded worker registration, point upload, or checkpoint; last used includes other authenticated API requests. Points received counts uploaded records across all runs using a key, including records awaiting verification. Retried uploads count once; points still on a worker appear after upload.</p>
+    <p class="table-note" id="key-activity-note">Active means at least one worker pinged in the past three minutes. Workers ping every minute, even without points; older workers need an update and restart. Status is current when this page loads. <a href="/dashboard?campaign={{ selected_campaign }}&amp;dp_weight={{ selected_dp_weight }}">Refresh status</a>. Times are UTC. Last ping records heartbeats; last used records other authenticated API requests. Points received counts uploaded records across all runs using a key, including records awaiting verification. Retried uploads count once; points still on a worker appear after upload.</p>
 </section>
 
 <section class="section">

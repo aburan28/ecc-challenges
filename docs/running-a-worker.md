@@ -349,11 +349,28 @@ server:
 ## API key activity
 
 The private dashboard shows activity for each API key across all campaigns and
-worker protocols. **Last ping** is the most recent worker registration, accepted
-point upload, or checkpoint recorded by the gateway. It is not a periodic
-heartbeat or proof that a GPU is currently computing. **Last used** is the last
-authenticated API request that passed the key's rate limit, even if the later
-operation was rejected. Both timestamps use UTC.
+worker protocols. Workers send an authenticated `POST /v1/heartbeat` immediately
+when their work loop starts and every 60 seconds thereafter, independently of
+point discovery, long compute rounds, checkpoints, and upload retries. Requests
+have a 10-second timeout; failures are retried on the next interval and do not
+interrupt the search. Closing a run or running `--check` does not send heartbeats.
+
+**Active** means a worker using that key pinged within the past three minutes;
+otherwise it shows **Offline**. Multiple workers can share a key: stopping one
+does not mark the others offline. Revoked keys and suspended accounts are always
+offline. This reports worker connectivity, not proof that a GPU is computing.
+Status is calculated when the page loads; use **Refresh status** to update it.
+
+**Last ping** is the last accepted heartbeat, using the server's clock.
+**Last used** is the last other authenticated API request that passed the key's
+rate limit, even if the later operation was rejected. Both timestamps use UTC.
+Heartbeats do not change run cursors, point counts, checkpoints, or last used.
+
+Existing workers need an update and restart before they send heartbeats. For
+Docker, stop the worker gracefully and recreate it with the dashboard's current
+image, preserving the same state volume, protocol and threshold. For native
+installs, stop the worker and rerun the installer, then resume the same state
+directory. No heartbeat history is inferred from earlier point uploads.
 
 **Points received** sums the committed record counters for the key's runs.
 Re-sending a batch does not increase the count. The count includes records
