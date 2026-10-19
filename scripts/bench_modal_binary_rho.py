@@ -36,9 +36,9 @@ for curve in CURVES:
             CONTROLS / curve / "mixed-dp40-cpu" / filename,
             f"/controls/{curve}/mixed-dp40-cpu/{filename}", copy=True)
 image = image.run_commands(
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /src/baseline",
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /src/candidate",
-             "/src/baseline --self-test", "/src/candidate --self-test")
+             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /opt/ecc-baseline",
+             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /opt/ecc-candidate",
+             "/opt/ecc-baseline --self-test", "/opt/ecc-candidate --self-test")
 
 
 @app.function(image=image, gpu="L4", timeout=900)
@@ -65,7 +65,7 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
     sources = {arm: {name: sha(Path(f"/src/{arm}/{name}").read_bytes())
                      for name in ("engine.cu", "ec_core.h")}
                for arm in ("baseline", "candidate")}
-    binaries = {arm: sha(Path(f"/src/{arm}").read_bytes())
+    binaries = {arm: sha(Path(f"/opt/ecc-{arm}").read_bytes())
                 for arm in ("baseline", "candidate")}
     receipt = {"format": "eccjob03-binary-l4-matched-v1", "device": device,
                "system": platform.uname()._asdict(), "source_sha256": sources,
@@ -115,7 +115,7 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                     trial = case / f"{repeat:02d}-{position}-{arm}"
                     trial.mkdir()
                     out, dp = trial / "out.bin", trial / "dp.bin"
-                    command = [f"/src/{arm}", "--backend", "cuda",
+                    command = [f"/opt/ecc-{arm}", "--backend", "cuda",
                                str(case / "job.bin"), str(case / "in.bin"),
                                str(out), str(dp)]
                     start = time.perf_counter_ns()
