@@ -37,9 +37,12 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
 
 
-def pow2(log2: float | None) -> Markup | str:
-    """A base-2 exponent such as 60.85 as 2<sup>60.9</sup>."""
-    return "—" if log2 is None else Markup("2<sup>{:.1f}</sup>").format(log2)
+def pow2(log2: float | None, places: int = 1, title: str | None = None) -> Markup | str:
+    """A base-2 exponent such as 60.85 as 2<sup>60.9</sup>, with an optional tooltip."""
+    if log2 is None:
+        return "—"
+    value = Markup("2<sup>{:.{}f}</sup>").format(log2, places)
+    return Markup('<span title="{}">{}</span>').format(title, value) if title else value
 
 
 def duration(hours: float | None) -> str:
@@ -278,6 +281,17 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                           {"snapshot": snapshot, "challenges": CHALLENGES,
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
+
+    @app.get("/pollard-rho", response_class=HTMLResponse)
+    async def rho_page(request: Request):
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed for the rho page")
+            snapshot = None
+        return TEMPLATES.TemplateResponse(request, "rho.html",
+                                          {"snapshot": snapshot, "catalog_source": SOURCE_URL},
+                                          headers={"Cache-Control": "private, max-age=300"})
 
     @app.get("/challenges/{campaign_id}", response_class=HTMLResponse)
     async def challenge_page(request: Request, campaign_id: str):
