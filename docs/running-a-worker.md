@@ -18,11 +18,9 @@ that matches what you have:
 | No hardware, a cloud GPU account | [Modal](modal-workers.md), RunPod, any container host | |
 
 > **Which curves are open right now?** The live site lists them at
-> [`/v1/campaigns`](https://ecc-challenges.com/v1/campaigns). Until the
-> all-curves release is switched on (`multicurve_enabled: true` there), only
-> ECC2K-130 on the GPU image with `ECC_PROTOCOL=1` is accepted, and the CPU
-> image and other curves get HTTP 503. Everything below works unchanged once it
-> is on.
+> [`/v1/campaigns`](https://ecc-challenges.com/v1/campaigns). The 19 October 2026
+> release enables protocol 2 for all 24 curves. Existing ECC2K-130 protocol 1
+> workers can keep resuming their bound checkpoints.
 
 ## Quickest start
 
@@ -63,8 +61,8 @@ and print the command to start the worker again. They wrap the
      ID and checkpoint there and locks it. Don't share it between workers, and
      don't wipe it while the run is active, or the work since the last upload
      is lost.
-   - **At most 8 active runs per API key.** Ask for more keys (up to three per
-     account) if you need more workers.
+   - **At most 8 active runs per account.** Additional keys share this limit.
+     Closing a run releases an active slot; the lifetime run limit still applies.
    - **Stop with SIGTERM and give it up to two minutes.** The worker finishes the
      current round, uploads what it has and saves. Every recipe here is set up
      that way.
@@ -75,8 +73,8 @@ and print the command to start the worker again. They wrap the
 
 | Image | For | Architectures |
 | --- | --- | --- |
-| `ghcr.io/aburan28/ecc-challenges-worker@sha256:…` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
-| `ghcr.io/aburan28/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
+| `public.ecr.aws/o1a3z1g6/ecc-challenges-worker` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
+| `public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
 
 The combined image built from this source includes both the CUDA engine and a
 parallel CPU engine, so its pinned digest works on an amd64 machine with or
@@ -143,7 +141,7 @@ The dashboard shows the exact GPU command, with your image digest. On an amd64
 CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
-ECC_WORKER_IMAGE='ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee'
+ECC_WORKER_IMAGE='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e'
 mkdir -p "$PWD/ecc-data-eccp-131"
 docker run -d --restart unless-stopped --name ecc-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
@@ -154,9 +152,10 @@ docker run -d --restart unless-stopped --name ecc-eccp-131 \
 docker logs -f ecc-eccp-131
 ```
 
-Replace the example digest with the current one shown on your dashboard. The
-published digest above supports all 24 curves on CPU; the OpenMP CPU build in
-this source is included in the next image built from it.
+The published digest above supports all 24 curves on CPU and CUDA and includes
+the OpenMP CPU engine. For the smaller CPU-only image, including ARM64, use
+`public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8`.
+The dashboard shows the current pinned images.
 
 ## Docker Compose
 
@@ -300,7 +299,7 @@ Most HPC clusters run Apptainer (formerly Singularity) instead of Docker.
 `deploy/hpc/ecc-worker.sbatch` runs one worker per Slurm array task:
 
 ```sh
-apptainer pull ecc-worker.sif docker://ghcr.io/aburan28/ecc-challenges-worker@sha256:<digest>
+apptainer pull ecc-worker.sif docker://public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:<digest>
 ECC_CAMPAIGN=eccp-131 sbatch --array=0-3 deploy/hpc/ecc-worker.sbatch
 ```
 

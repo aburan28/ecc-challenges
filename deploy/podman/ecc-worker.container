@@ -12,7 +12,7 @@
 Description=ECC Challenges worker
 
 [Container]
-Image=ghcr.io/aburan28/ecc-challenges-worker-cpu:latest
+Image=public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8
 Environment=ECC_CAMPAIGN=eccp-131 ECC_BACKEND=cpu ECC_PROTOCOL=2
 # Delivered as an environment secret: no file or mount point needed, and the
 # worker removes it from its environment before starting the engine.

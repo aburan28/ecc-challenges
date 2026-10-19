@@ -2,7 +2,7 @@
 # Slurm job running the worker under Apptainer (or Singularity).
 #
 # One-time setup on a login node:
-#   apptainer pull ecc-worker.sif docker://ghcr.io/aburan28/ecc-challenges-worker@sha256:<digest>
+#   apptainer pull ecc-worker.sif docker://public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:<digest>
 #   install -m 0600 /dev/stdin ~/.config/ecc-challenges/api-key
 # Then:  sbatch --array=0-3 deploy/hpc/ecc-worker.sbatch
 #

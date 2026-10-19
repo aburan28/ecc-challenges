@@ -44,3 +44,63 @@ sandboxed invocation stopped responding in the HTTP test client; the successful
 run used the approved executor networking. Both workflow YAML files parsed and
 `git diff --check` passed. Native ARM64 Docker checks are configured in CI;
 they are separate from these amd64 local receipts. No FPGA backend was added.
+
+## Published release
+
+Both images are public in ECR Public. Their immutable digests and anonymously
+verified manifests are recorded in [published-images.json](published-images.json).
+The `latest` aliases also select these digests. CPU supports Linux amd64 and
+arm64; the combined CPU/CUDA image supports Linux amd64.
+
+| Additional execution | Curves | Checks | Result |
+| --- | ---: | ---: | --- |
+| Native ARM64 final CPU image on AWS CodeBuild | 24 | 168 | Passed |
+| Published combined image on RunPod RTX 4090, CPU and CUDA | 24 | 336 | Passed |
+
+[Native ARM64 evidence](cpu-arm64/image.json) binds the public child manifest to
+its source and native `aarch64` build. Its compressed inputs and receipt are
+retained alongside it. The hosted GitHub native ARM job also passed before its
+superseded publication run was cancelled.
+
+The first final-image GPU allocation failed before container startup because
+its inherited base required CUDA 13.3. The release corrects the startup metadata
+to CUDA 13.0 for the statically linked all-curve engine and its native SASS,
+using NVIDIA's CUDA 13.x minor-version compatibility. The driver check remains
+enabled. The corrected exact published image then passed on RunPod driver
+580.65.06 as UID 10001. [The receipt](runpod-published/receipt.json), bootstrap,
+all generated controls and device information are retained. Every validation
+pod was terminated; [the inventory check](runpod-cleanup.json) confirms this.
+Existing contributor pods were preserved.
+
+## Live contribution checks
+
+[The live matrix](live-cpu/summary.json) passed on all 24 curves using the exact
+published CPU image, four containers at a time. Each used the current production
+namespace, registered a real run, advanced native walk states, independently
+checked four checkpoint witnesses with `R=aG+bQ` and the run/trail-derived `b`,
+resumed the same checkpoint, drained any emitted records, and closed the run.
+The first/restart checkpoints, server statuses and closure are retained per
+curve. ECC2-79 emitted two production-predicate records and ECCp-79 emitted one;
+all three reached the live index. The other short checks emitted no records;
+their sparse production DP predicates were preserved. No production-point or
+throughput result is claimed for those curves.
+
+The initial matrix overlapped the private allowlist rolling update and failed
+on mixed old/new admission settings. It is retained in
+`rolling-canary-attempt.tgz`. Three runs were created by that attempt; all were
+closed after the update, as recorded in `rolling-attempt-closures.json`. The
+successful matrix waited for the deployment to stabilize first.
+
+The final source suite passed **145 tests, with 26 platform/toolchain skips**
+against a disposable local PostgreSQL instance; [the output](tests.txt) is
+retained. Added integration checks exercised retryable v2 backlog 503 recovery
+and an injected SQS send outage followed by repair and idempotent indexing.
+These fault checks used local PostgreSQL and mocked AWS, not production fault
+injection. This release does not establish a larger fleet's capacity, every
+curve's collection rate, or billed cloud cost. Existing admission bounds and
+autoscaling remain in force. FPGA acceleration is deferred.
+
+Public enrollment is enabled through a parameter-only ECS rollout, with the
+private canary allowlist cleared. See `public-enablement.json` and the final
+public gateway snapshot for observed rollout status. No ongoing validation
+workers are left running.
