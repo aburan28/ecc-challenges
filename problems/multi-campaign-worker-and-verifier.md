@@ -174,8 +174,8 @@ This record remains open under the current release boundary above. The Linux
 build, final-image finite GPU controls and all 24 CPU upload/index canaries have
 since completed. Sustained arrival/drain measurements and a declared launch
 fleet rate remain outstanding. Full algebraic verification does not attest
-claimed trail lengths; advertised completion percentages stay unavailable
-pending work verification and an explicit model.
+claimed trail lengths; the site's completion figures are point-count estimates
+under an explicit model, and verified work counts remain outstanding.
 
 Local image builds failed because Docker Desktop could not start. The system
 volume also reached 100% utilization. Completed failed test artifacts were moved

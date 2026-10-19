@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_work.html" as work %}
 {% block title %}Status · ECC Challenges{% endblock %}
 {% block description %}Live counts for the public ECC Challenges search: archived points, active runs and queue depth for each Certicom challenge.{% endblock %}
 {% block content %}
@@ -16,6 +17,33 @@
   <div class="stat"><dt>Batches queued</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="pending_batches")) }}{% else %}—{% endif %}<small>waiting for checks</small></dd></div>
 </dl>
 
+{% set racing = open_rows|rejectattr("solved_in_2009")|list %}
+{% if racing %}
+<section class="section">
+  <div class="section-head"><h2>Progress</h2><p class="muted">Estimated work done, as a share of what each challenge's walk is expected to need. <a href="/pollard-rho#estimate">How this is estimated</a>.</p></div>
+  <div class="progress-grid">
+  {% for row in racing|sort(attribute="estimated_work_operations", reverse=true) %}
+    {% set both = row.including_historical %}
+    <article class="panel progress-card" aria-label="{{ row.name }} progress">
+      <div class="top"><h3 style="margin:0"><span class="name mono">{{ row.name }}</span></h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
+      {% for label, est, points in ([("Public runs on this gateway", row, row.received_points)] + ([("Including the imported private run", both, row.received_points + row.historical_points)] if both else [])) %}
+      <div class="progress-line">
+        <div class="top"><span>{{ label }}<small>{{ est.estimated_work_log2|pow2 }} operations · {{ "{:,}".format(points) }} points</small></span><span class="pct">{{ est.expected_work_percent|percent }}</span></div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [est.expected_work_percent or 0, 100]|min }}" aria-label="{{ label }}: share of expected work"><span style="width:{{ [est.expected_work_percent or 0, 100]|min }}%"></span></div>
+      </div>
+      {% endfor %}
+      <dl>
+        <div><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(row.points_per_hour) }}<small>{{ snapshot.rate_window_hours }} h average, DP{{ row.dp_bits|join("/") if row.dp_bits else "—" }}</small></dd></div>
+        <div><dt>Speed</dt><dd>{{ row.operations_per_second_log2|pow2 }}<small>operations per second</small></dd></div>
+        <div><dt>Collision chance so far</dt><dd>{{ (both or row).estimated_completion_probability_percent|percent }}<small>{% if both %}public runs alone {{ row.estimated_completion_probability_percent|percent }}{% else %}if the walk is random{% endif %}</small></dd></div>
+        <div><dt>Expected work in</dt><dd>{% if (both or row).hours_to_expected_work == 0 %}reached{% else %}{{ (both or row).hours_to_expected_work|duration }}{% endif %}<small>at the current rate{% if both %}, with imported points{% endif %}</small></dd></div>
+      </dl>
+    </article>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Estimated operations are Certicom's 2009 figures, for scale only.</p></div>
   {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
@@ -28,7 +56,7 @@
       <tr{% if is_open and not row.solved_in_2009 %} class="open"{% endif %}>
         <td><a class="name" href="/challenges/{{ row.id }}">{{ row.name }}</a></td>
         <td class="num">{{ row.field_bits }}</td>
-        <td class="num mono">{{ row.estimated_operations_2009 or "—" }}</td>
+        <td class="num">{{ work.expected(challenge) }}</td>
         <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/challenges/{{ row.id }}">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.recent_runs_24h) if is_open else "—" }}</td>
@@ -46,7 +74,8 @@
   <div>
     <h2>Reading these numbers</h2>
     <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
-    <p class="muted">There is no percent-complete figure. Rho is a random search: a collision can arrive at any time, and point counts alone don't say how much verified work was done. A completion estimate will appear once a challenge has an independently checked work count and a published collision model.</p>
+    <p class="muted">Each distinguished point stands for the average number of walk steps between them, so estimated work is points times that length: 2<sup>28.4</sup> at DP32 on the ECC2K-130 walk, where DP32 means the x-coordinate has Hamming weight 32 or less. DP30 and DP34 runs use their own stored thresholds. The all-curve walk uses 2<sup>d</sup> with d DP bits. The percentage compares that with the expected work of the walk being run, which is Certicom's figure for ECC2K-130 and somewhat more for the all-curve walk, since it does not yet use the negation or Frobenius maps. ECC2K-130 shows two figures: the public runs on this gateway alone, and the same plus the points imported from the earlier private run, which walk the same function and count toward the same collision. It is an estimate from point counts, not a count of verified steps.</p>
+    <p class="muted">Rho is a random search, so 100% is not a finish line: a collision can arrive earlier or later. "Collision chance so far" is the probability that one would have appeared by now, 1 − e<sup>−π/4·x²</sup> for work fraction x (<a href="/pollard-rho#estimate">details</a>). Points per hour is averaged over the last {{ snapshot.rate_window_hours if snapshot else 24 }} hours because workers upload in large batches.</p>
     {% if imported %}
     <p class="muted">Point totals include {{ "{:,}".format(imported) }} distinct historical points from the earlier private ECC2K-130 run{% if snapshot.historical_imported_at %}, last loaded {{ snapshot.historical_imported_at[:10] }}{% endif %}. Compatible DP30, DP32 and DP34 uploads are matched against them. Runs and queue depth count this gateway only.</p>
     {% else %}
