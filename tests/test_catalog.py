@@ -53,7 +53,8 @@ def application(db=None):
                                github_client_secret="test-secret",
                                session_secret="s" * 48,
                                public_origin="https://ecc-challenges.com",
-                               public_worker_image="example.invalid/image@sha256:" + "a" * 64)
+                               public_worker_image="example.invalid/image@sha256:" + "a" * 64,
+                               public_cpu_worker_image="ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:" + "b" * 64)
     return create_app(settings, db=db or FakeDB(), storage=object())
 
 
@@ -76,6 +77,7 @@ def test_catalog_site_status_and_fail_closed_registration():
         catalog = client.get("/v1/campaigns")
         assert catalog.status_code == 200
         assert len(catalog.json()["campaigns"]) == 24
+        assert catalog.json()["cpu_worker_image"].endswith("b" * 64)
         assert client.get("/v1/config?campaign=ecc2k-130").json()["campaign"] == "ecc2k-130"
         assert client.get("/v1/config?campaign=eccp-131").status_code == 409
         assert client.get("/v1/config?campaign=not-a-challenge").status_code == 404
@@ -112,6 +114,26 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert b"2<sup>60.8</sup>" in page.content and page.content.count(b'role="progressbar"') == 2
         assert b"Public runs on this gateway" in page.content and b"72.6% with import" in page.content
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
+
+
+def test_challenge_pages_and_catalog_links_cover_all_24_instances():
+    from ecc_challenges.multicurve.instances import get_instance
+
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        for page_path in ("/", "/status"):
+            page = client.get(page_path)
+            assert page.status_code == 200
+            for challenge in CHALLENGES:
+                assert f'href="/challenges/{challenge.id}"'.encode() in page.content
+
+        for challenge in CHALLENGES:
+            response = client.get(f"/challenges/{challenge.id}")
+            assert response.status_code == 200
+            assert challenge.public()["name"] in response.text
+            assert get_instance(challenge.id).instance_sha256 in response.text
+            assert "/status#challenges" in response.text
+
+        assert client.get("/challenges/not-a-challenge").status_code == 404
 
 
 def test_html_errors_robots_and_share_metadata():
@@ -311,9 +333,12 @@ def test_dashboard_shows_setup_for_each_system():
         page = TEMPLATES.get_template("dashboard.html").render(
             request=windows, login="me", keys=[], csrf="x", issued=None, challenges=CHALLENGES,
             worker_image="example.invalid/image@sha256:" + "a" * 64, multicurve_enabled=enabled,
+            cpu_worker_image="ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:" + "b" * 64,
             selected_campaign="eccp-131", client_os="windows", activity=None, names={})
         assert 'id="os-windows" checked' in page and 'id="os-linux" checked' not in page
         assert "curl -fsSL https://ecc-challenges.com/install.sh |" in page
         assert "irm https://ecc-challenges.com/install.ps1 | iex" in page
         assert ("Not accepting work yet" in page) is not enabled
         assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
+        assert ("CPU, with Docker (x86-64 or ARM64)" in page) is enabled
+        assert ("ecc-challenges-worker-cpu@sha256:" in page) is enabled

@@ -137,6 +137,21 @@ docker run --gpus all --restart unless-stopped \
         <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
         {% if multicurve_enabled %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
       </ul>
+      {% if multicurve_enabled and cpu_worker_image %}
+      <h3>CPU, with Docker (x86-64 or ARM64)</h3>
+      <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key as shown in step 1 first.</p>
+<pre>CAMPAIGN={{ selected_campaign }}
+mkdir -p "$PWD/ecc-cpu-$CAMPAIGN"
+
+docker run --restart unless-stopped \
+  --user "$(id -u):$(id -g)" \
+  -e ECC_BACKEND=cpu -e ECC_PROTOCOL=2 \
+  -e ECC_CAMPAIGN="$CAMPAIGN" \
+  -e ECC_API_URL=https://ecc-challenges.com \
+  -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
+  -v "$PWD/ecc-cpu-$CAMPAIGN:/data" \
+  {{ cpu_worker_image }}</pre>
+      {% endif %}
       <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
       <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
       <pre>curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>

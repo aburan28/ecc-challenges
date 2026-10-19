@@ -55,12 +55,14 @@ def current_alert_email(cfn) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--profile", required=True, help="AWS CLI profile for the destination account")
+    parser.add_argument("--profile", help="optional AWS profile; otherwise use the configured identity")
     parser.add_argument("--account-id", required=True, help="expected 12-digit destination AWS account ID")
     parser.add_argument("--region", default="us-west-2")
     parser.add_argument("--certificate-arn", required=True)
     parser.add_argument("--public-worker-image", required=True,
                         help="new-account ECR Public image pinned by digest")
+    parser.add_argument("--public-cpu-worker-image", default="",
+                        help="public multi-architecture CPU image pinned by digest")
     parser.add_argument("--vpc-id", required=True, help="destination account VPC for the ALB and ECS tasks")
     parser.add_argument("--db-host", required=True, help="PostgreSQL hostname reachable from the destination VPC")
     parser.add_argument("--db-name", default="rho_dp")
@@ -91,6 +93,11 @@ def main() -> None:
     if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
                         args.public_worker_image):
         parser.error("--public-worker-image must be a pinned public worker image")
+    if args.public_cpu_worker_image and not re.fullmatch(
+        r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
+        args.public_cpu_worker_image,
+    ):
+        parser.error("--public-cpu-worker-image must be a pinned public CPU worker image")
     if any(n < 0 for n in (args.web_tasks, args.audit_tasks, args.index_tasks,
                           args.reconcile_tasks, args.resolve_tasks)):
         parser.error("task counts must be nonnegative")
@@ -159,6 +166,7 @@ def main() -> None:
         "WebImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-web", args.tag),
         "AuditImageUri": image_uri(ecr, args.account_id, args.region, "ecc-challenges-audit", args.tag),
         "PublicWorkerImage": args.public_worker_image,
+        "PublicCpuWorkerImage": args.public_cpu_worker_image,
         "GithubSecretArn": github["ARN"],
         "WebPasswordArn": foundation["WebPasswordArn"],
         "WorkerPasswordArn": foundation["WorkerPasswordArn"],
