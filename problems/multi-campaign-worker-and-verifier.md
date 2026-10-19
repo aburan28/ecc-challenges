@@ -4,6 +4,32 @@ Status: open. Scope: admitting distinguished points for the 23 published
 Certicom exercises and challenges other than ECC2K-130 through the
 `ecc-challenges.com` public gateway.
 
+## Binary arithmetic throughput obstruction, 2026-10-19
+
+The nine binary campaigns have integrated worker code and finite correctness
+controls, but the fastest shared arithmetic for sustained Pollard rho work is
+not established. A bounded-word, branchless `binary_xtime` candidate was
+correct on the pinned controls yet slower than the current full-width
+implementation on a matched NVIDIA L4 panel. All 18 long-panel candidate
+invocations took longer relative to their bracketing baselines; the pooled
+candidate/baseline full-process median was 1.208. The ten comparisons whose
+baseline bracket drift stayed within 1.05 had ratios 1.122–1.360. The candidate
+was removed from the release diff. See the [insight report and raw receipts](../verification/all-curves-20261016/xtime-20261016/main-adaptation/l4-insight-20261019.md).
+
+This observation establishes a regression for that candidate on those L4
+workloads. It does not identify the cause or prove the present arithmetic
+optimal. Kernel instruction and register costs, sustained useful-step rate,
+collection/verification costs, and other hardware remain unmeasured. A
+specific next test is to retain the same nine pinned job/input pairs, capture
+kernel-only time and compiler register/instruction output for both headers,
+then measure a proposed replacement in baseline–candidate–baseline order on
+the same GPU. Require exact output, distinguished-point and step equality;
+retain failed runs and raw measurements. A candidate that is faster under
+stable brackets would justify independent replication and full pipeline
+accounting. A slower or inconsistent candidate returns to codegen diagnosis.
+Only a verified complete pipeline comparison can establish a campaign-level
+improvement; until then this performance requirement remains open.
+
 ## Current release boundary, 2026-10-16
 
 All 24 published instances now have implemented CPU/CUDA workers and the v2
