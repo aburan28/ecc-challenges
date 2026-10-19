@@ -96,7 +96,8 @@ def test_html_errors_robots_and_share_metadata():
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         home = client.get("/")
         assert b'property="og:title"' in home.content
-        assert b"github.com/aburan28/ecc-challenges" in home.content
+        assert b'href="/docs"' in home.content
+        assert b'href="https://github.com/' not in home.content
         missing = client.get("/no-such-page")
         assert missing.status_code == 404
         assert missing.headers["content-type"].startswith("text/html")

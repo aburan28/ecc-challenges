@@ -162,6 +162,20 @@
     .row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
     form.inline{display:inline}
 
+    /* documentation */
+    .document{max-width:78ch;overflow-wrap:anywhere}
+    .document h2{margin-top:1.6em;padding-top:.6em;border-top:1px solid var(--line)}
+    .document h3{margin-top:1.5em}
+    .document li{margin-bottom:.35em}
+    .document blockquote{margin:1.5em 0;padding:10px 18px;border-left:3px solid var(--accent);background:var(--accent-soft)}
+    .document blockquote>:last-child{margin-bottom:0}
+    .document th,.document td{white-space:normal;vertical-align:top}
+    .document table{min-width:560px}
+    .document .table-wrap{margin-bottom:1.5em}
+    .document-contents{max-width:78ch;margin-bottom:24px;color:var(--muted)}
+    .document-contents summary{cursor:pointer}
+    .document-contents ul{margin-top:12px}
+
     /* footer */
     .site-footer{border-top:1px solid var(--line);padding:32px 0 44px;color:var(--muted);font-size:.88rem}
     .site-footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -198,7 +212,7 @@
     <nav aria-label="Main">
       <a class="wide" href="/#how">How it works</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
-      <a class="wide" href="https://github.com/aburan28/ecc-challenges">GitHub</a>
+      <a class="wide" href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
     </nav>
   </div></header>
@@ -206,9 +220,9 @@
   <footer class="site-footer"><div class="wrap">
     <span>ECC Challenges is open source. Results count only after independent verification.</span>
     <nav aria-label="Footer">
-      <a href="https://github.com/aburan28/ecc-challenges">Source</a>
-      <a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing</a>
-      <a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a>
+      <a href="/docs">Documentation</a>
+      <a href="/docs/contributing">Contributing</a>
+      <a href="/help">Help</a>
       <a href="/v1/status">Status JSON</a>
     </nav>
   </div>
