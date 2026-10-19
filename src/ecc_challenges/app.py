@@ -299,6 +299,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": None,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
              "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
                  if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
@@ -315,6 +316,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
              "client_os": client_os(request)},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
@@ -331,6 +333,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def campaigns():
         return {"source_url": SOURCE_URL, "source_date": SOURCE_DATE,
                 "worker_image": settings.public_worker_image,
+                "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
                 "multicurve_enabled": multicurve_enabled,
                 "campaigns": [challenge.public(multicurve_enabled) for challenge in CHALLENGES]}
 

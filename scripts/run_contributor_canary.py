@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import time
 import boto3
 from ecc_challenges.multicurve.instances import all_instances
@@ -11,7 +12,7 @@ from ecc_challenges.multicurve.instances import all_instances
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--profile',required=True)
+    p.add_argument('--profile',help='optional AWS profile; otherwise use the configured identity')
     p.add_argument('--account-id',required=True)
     p.add_argument('--image',required=True)
     p.add_argument('--key-secret-arn',required=True)
@@ -23,7 +24,7 @@ def main():
     s=boto3.Session(profile_name=args.profile,region_name='us-west-2')
     assert s.client('sts').get_caller_identity()['Account']==args.account_id
     assert args.key_secret_arn.startswith('arn:aws:secretsmanager:us-west-2:'+args.account_id+':secret:ecc-challenges/contributor-canary-')
-    assert args.image.startswith('public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:')
+    assert re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/aburan28)/ecc-challenges-worker(?:-cpu)?@sha256:[0-9a-f]{64}',args.image)
     digest=args.image.rsplit('@sha256:',1)[1]
     assert len(digest)==64 and all(c in '0123456789abcdef' for c in digest)
     boot=Path(__file__).with_name('contributor_canary_boot.py').read_text()
