@@ -2,10 +2,23 @@
 -- Existing runs used DP32. Unknown historical thresholds stay unknown;
 -- their resolver must reach the stored endpoint rather than assume DP32.
 BEGIN;
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '30s';
 ALTER TABLE ecc_public.runs ADD COLUMN IF NOT EXISTS dp_weight smallint NOT NULL DEFAULT 32
   CHECK (dp_weight IN (30,32,34));
-ALTER TABLE public.distinguished_points ADD COLUMN IF NOT EXISTS source_dp_weight smallint
-  CHECK (source_dp_weight IN (30,32,34));
+ALTER TABLE public.distinguished_points ADD COLUMN IF NOT EXISTS source_dp_weight smallint;
+-- Existing historical rows have NULL (unknown) thresholds. Enforce the rule
+-- for new writes without scanning hundreds of millions of rows under the
+-- migration's exclusive table lock.
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                 WHERE conrelid='public.distinguished_points'::regclass
+                   AND conname='distinguished_points_source_dp_weight_check') THEN
+    ALTER TABLE public.distinguished_points
+      ADD CONSTRAINT distinguished_points_source_dp_weight_check
+      CHECK (source_dp_weight IN (30,32,34)) NOT VALID;
+  END IF;
+END $$;
 ALTER TABLE ecc_public.historical_import_parts ADD COLUMN IF NOT EXISTS source_dp_weight smallint
   CHECK (source_dp_weight IN (30,32,34));
 ALTER TABLE ecc_public.historical_import_parts ADD COLUMN IF NOT EXISTS walk_id text NOT NULL

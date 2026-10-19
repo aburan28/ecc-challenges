@@ -265,7 +265,7 @@ def export(s3, bucket: str, sink, *, write: bool = True, limit: int | None = Non
 
 def export_database(conn, sink, *, source_id: str, walk_id: str,
                     source_dp_weight: int | None = None, part_records: int = 250_000,
-                    write: bool = True, log=print) -> dict:
+                    source_worker_id: str | None = None, write: bool = True, log=print) -> dict:
     """Stream a consistent read-only RDS snapshot into the existing import format.
 
     Only the operator connects to the source. Original thresholds can be
@@ -278,6 +278,8 @@ def export_database(conn, sink, *, source_id: str, walk_id: str,
         raise ValueError("unsupported source sigma threshold")
     if not 1 <= part_records <= 1_000_000 or (write and sink is None):
         raise ValueError("invalid database export sink or part size")
+    if source_worker_id is not None and not source_worker_id:
+        raise ValueError("source worker identifier cannot be empty")
     summary = {"scanned": 0, "records": 0, "parts": 0, "skipped_done": 0, "rejected_records": {}}
     done = sink.done_ids() if write else set()
     body = bytearray()
@@ -291,7 +293,8 @@ def export_database(conn, sink, *, source_id: str, walk_id: str,
                 return
             raw = bytes(body)
             digest = hashlib.sha256(raw).hexdigest()
-            key = f"rds/{source_id}/{CAMPAIGN}/{digest}.bin"
+            partition = hashlib.sha256(source_worker_id.encode()).hexdigest() if source_worker_id else "all"
+            key = f"rds/{source_id}/{CAMPAIGN}/{partition}/{digest}.bin"
             summary["parts"] += 1
             if hashlib.sha256(key.encode()).hexdigest() in done:
                 summary["skipped_done"] += 1
@@ -301,13 +304,18 @@ def export_database(conn, sink, *, source_id: str, walk_id: str,
                     "part_sha256": digest, "records": len(raw) // RECORD_BYTES,
                     "source_key": key, "source_database": source_id,
                     "source_sha256": digest, "source_bytes": len(raw),
-                    "worker_id": f"rds-{source_id}-{digest}", "rejected": {}})
+                    "worker_id": source_worker_id or f"rds-{source_id}-{digest}", "rejected": {}})
             log(f"database export: {summary['scanned']} scanned, {summary['records']} retained")
             body.clear()
         with conn.cursor(name="historical_export") as cursor:
             cursor.itersize = 10_000
-            cursor.execute("SELECT point_key,walk_seed FROM public.distinguished_points "
-                           "WHERE campaign_id=%s ORDER BY point_key", (CAMPAIGN,))
+            if source_worker_id is None:
+                cursor.execute("SELECT point_key,walk_seed FROM public.distinguished_points "
+                               "WHERE campaign_id=%s ORDER BY point_key", (CAMPAIGN,))
+            else:
+                cursor.execute("SELECT point_key,walk_seed FROM public.distinguished_points "
+                               "WHERE campaign_id=%s AND worker_id=%s ORDER BY point_key",
+                               (CAMPAIGN, source_worker_id))
             for row in cursor:
                 summary["scanned"] += 1
                 point, seed = bytes(row["point_key"]), bytes(row["walk_seed"] or b"")

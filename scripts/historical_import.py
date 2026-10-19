@@ -92,6 +92,7 @@ def main() -> int:
     rd = sub.add_parser("export-database", help="read-only SOURCE_DSN snapshot of old sigma points")
     rd.add_argument("--source-dsn-env", default="SOURCE_DSN")
     rd.add_argument("--source-id", required=True, help="stable source database identifier, e.g. rho-dp")
+    rd.add_argument("--source-worker-id", help="export an exact source-file group missing from the import ledger")
     rd.add_argument("--source-walk-id", required=True, help="must explicitly identify the legacy sigma walk")
     rd.add_argument("--source-dp-weight", type=int, choices=(30, 32, 34))
     rd.add_argument("--parts")
@@ -145,7 +146,8 @@ def main() -> int:
         with connect(args.source_dsn_env, read_only=True) as conn:
             summary = historical.export_database(conn, sink, source_id=args.source_id,
                 walk_id=args.source_walk_id, source_dp_weight=args.source_dp_weight,
-                part_records=args.part_records, write=not args.dry_run, log=log)
+                source_worker_id=args.source_worker_id, part_records=args.part_records,
+                write=not args.dry_run, log=log)
     elif args.command == "load":
         parts_s3 = (session(args.parts_profile, args.parts_account, args.region).client("s3")
                     if args.parts.startswith("s3://") else None)

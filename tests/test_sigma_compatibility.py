@@ -81,6 +81,12 @@ def test_database_export_filters_and_keeps_unknown_threshold(database, postgres_
             export_database(conn, sink, source_id="rho-dp", walk_id="table-walk")
         # Source rows survived both read-only exports. Load into an empty target.
         assert conn.execute("SELECT count(*) AS n FROM public.distinguished_points").fetchone()["n"] == 3
+        assert export_database(conn, None, source_id="rho-dp", walk_id=WALK_ID,
+                               source_worker_id="absent", write=False, log=lambda _: None)["scanned"] == 0
+        filtered = DirectorySink(tmp_path / "worker")
+        assert export_database(conn, filtered, source_id="rho-dp", walk_id=WALK_ID,
+                               source_worker_id="old", log=lambda _: None)["records"] == 2
+        assert {p["worker_id"] for p in filtered.sidecars()} == {"old"}
         conn.execute("DELETE FROM public.distinguished_points")
         assert load(conn, sink, log=lambda _: None)["inserted"] == 2
         assert load(conn, sink, log=lambda _: None)["already_loaded"] == 2
