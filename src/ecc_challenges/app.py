@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 import secrets
@@ -15,12 +16,14 @@ from botocore.config import Config
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from .db import Database
 from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
+from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
 from .security import new_csrf
 from .service import Service, Rejected
@@ -32,6 +35,44 @@ from .pages import create_pages_router
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
+
+
+def pow2(log2: float | None) -> Markup | str:
+    """A base-2 exponent such as 60.85 as 2<sup>60.9</sup>."""
+    return "—" if log2 is None else Markup("2<sup>{:.1f}</sup>").format(log2)
+
+
+def duration(hours: float | None) -> str:
+    if hours is None:
+        return "—"
+    for size, unit in ((24 * 365.25, "years"), (24, "days"), (1, "hours")):
+        if hours >= size:
+            value = hours / size
+            return f"{value:,.0f} {unit}" if value >= 100 else f"{value:.1f} {unit}"
+    return f"{hours * 60:.0f} minutes"
+
+
+def percent(value: float | None) -> str:
+    if value is None:
+        return "—"
+    if value == 0 or value >= 10:
+        return f"{value:.1f}%" if value < 1000 else f"{value:,.0f}%"
+    return f"{value:.2f}%" if value >= 0.01 else "<0.01%"
+
+
+def ago(moment: datetime | None) -> str:
+    if moment is None:
+        return "never"
+    seconds = max(0, (datetime.now(timezone.utc) - moment).total_seconds())
+    if seconds < 60:
+        return "just now"
+    return duration(seconds / 3600).replace(".0 ", " ") + " ago"
+
+
+TEMPLATES.env.filters["pow2"] = pow2
+TEMPLATES.env.filters["ago"] = ago
+TEMPLATES.env.filters["percent"] = percent
+TEMPLATES.env.filters["duration"] = duration
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.
 ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
@@ -238,6 +279,28 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
 
+    @app.get("/challenges/{campaign_id}", response_class=HTMLResponse)
+    async def challenge_page(request: Request, campaign_id: str):
+        challenge = BY_ID.get(campaign_id.lower())
+        if challenge is None:
+            raise StarletteHTTPException(404, "Challenge not found")
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed for challenge page")
+            snapshot = None
+        row = (next((item for item in snapshot["campaigns"] if item["id"] == challenge.id), None)
+               if snapshot else None)
+        return TEMPLATES.TemplateResponse(request, "challenge.html", {
+            "challenge": challenge,
+            "challenges": CHALLENGES,
+            "status": row,
+            "parameters": get_instance(challenge.id).public(),
+            "catalog_source": SOURCE_URL,
+            "catalog_date": SOURCE_DATE,
+            "multicurve_enabled": multicurve_enabled,
+        }, headers={"Cache-Control": "private, no-store"})
+
     @app.get("/v1/status")
     async def status_json():
         try:
@@ -270,20 +333,31 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         request.session.clear()
         return RedirectResponse("/", status_code=303)
 
+    async def dashboard_page(request: Request, account_id: int, issued: str | None, campaign: str):
+        keys = await run_in_threadpool(service.account_keys, account_id)
+        try:
+            activity = await run_in_threadpool(service.account_runs, account_id,
+                                               include_generic=multicurve_enabled)
+        except Exception:
+            LOG.exception("dashboard run activity failed")
+            activity = None
+        return TEMPLATES.TemplateResponse(request, "dashboard.html",
+            {"login": request.session.get("login"), "keys": keys,
+             "csrf": request.session["csrf"], "issued": issued, "activity": activity,
+             "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
+             "multicurve_enabled": multicurve_enabled, "selected_campaign": campaign,
+             "client_os": client_os(request)},
+            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+
     @app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard(request: Request):
         account_id = require_session(request)
         if "csrf" not in request.session:
             request.session["csrf"] = new_csrf()
-        keys = await run_in_threadpool(service.account_keys, account_id)
-        return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": None,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
-             "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
-                 if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
-            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+        campaign = request.query_params.get("campaign", CAMPAIGN)
+        return await dashboard_page(request, account_id, None, campaign if campaign in BY_ID else CAMPAIGN)
 
     @app.post("/keys", response_class=HTMLResponse)
     async def create_key(request: Request):
@@ -291,14 +365,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         values = await form_values(request)
         require_csrf(request, values.get("csrf"))
         issued = await run_in_threadpool(service.create_key, account_id, values.get("label", ""))
-        keys = await run_in_threadpool(service.account_keys, account_id)
-        return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": issued,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
-             "client_os": client_os(request)},
-            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+        return await dashboard_page(request, account_id, issued, CAMPAIGN)
 
     @app.post("/keys/{key_id}/revoke")
     async def revoke_key(request: Request, key_id: str):
@@ -312,6 +379,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def campaigns():
         return {"source_url": SOURCE_URL, "source_date": SOURCE_DATE,
                 "worker_image": settings.public_worker_image,
+                "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
                 "multicurve_enabled": multicurve_enabled,
                 "campaigns": [challenge.public(multicurve_enabled) for challenge in CHALLENGES]}
 

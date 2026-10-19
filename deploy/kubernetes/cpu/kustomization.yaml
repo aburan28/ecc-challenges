@@ -11,7 +11,7 @@ labels:
 images:
   - name: worker-image
     newName: ghcr.io/aburan28/ecc-challenges-worker-cpu
-    newTag: latest   # pin a digest for long runs: digest: sha256:...
+    digest: sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8
 patches:
   - target: {kind: StatefulSet, name: ecc-worker}
     patch: |-

@@ -18,7 +18,64 @@ mkdir -p ~/.config/ecc-challenges
 </div>
 {% endif %}
 
-<section class="section" style="margin-top:36px">
+<section class="section" style="margin-top:36px" aria-labelledby="runners">
+  <div class="section-head"><h2 id="runners">Your runners</h2><p class="muted">Distinguished points your workers have submitted. <a href="/dashboard">Refresh</a></p></div>
+  {% if activity is none %}
+  <div class="panel alert"><p>Run activity is unavailable right now. Your keys and worker command below still work.</p></div>
+  {% else %}
+  <dl class="stats" aria-label="Your totals" style="margin-top:0">
+    <div class="stat"><dt>Active runs</dt><dd>{{ activity.active_runs }}<small>seen in the last 15 minutes</small></dd></div>
+    <div class="stat"><dt>Points submitted</dt><dd>{{ "{:,}".format(activity.points) }}<small>across {{ activity.total_runs }} run{{ "" if activity.total_runs == 1 else "s" }}</small></dd></div>
+    <div class="stat"><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(activity.points_per_hour) }}<small>24 h average</small></dd></div>
+    <div class="stat"><dt>Last hour</dt><dd>{{ "{:,}".format(activity.points_last_hour) }}<small>points received</small></dd></div>
+  </dl>
+  {% if activity.runs %}
+  {% if activity.total_runs > activity.runs|length %}<p class="table-note">Showing {{ activity.runs|length }} recent runs of {{ activity.total_runs }}. Totals include every run.</p>{% endif %}
+  <div class="table-wrap" style="margin-top:22px"><table>
+    <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>State</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Speed</th><th>Last upload</th><th>Last seen</th></tr></thead>
+    <tbody>
+    {% for run in activity.runs %}
+      <tr{% if run.state == "active" %} class="open"{% endif %}>
+        <td><code title="{{ run.id }}">{{ run.id[:8] }}</code></td>
+        <td><span class="name">{{ names.get(run.campaign, run.campaign) }}</span></td>
+        <td>{{ run.key_label }}</td>
+        <td><span class="tag{% if run.state == 'active' %} open{% elif run.state == 'idle' %} idle{% endif %}">{{ run.state|capitalize }}</span></td>
+        <td class="num">{{ "{:,}".format(run.points) }}</td>
+        <td class="num">{{ "{:,}".format(run.last_hour) }}</td>
+        <td class="num">{{ "{:,.1f}".format(run.points_per_hour) }}</td>
+        <td class="num" title="estimated group operations per second, from DP{{ run.dp_bits }} points over 24 h">{{ run.operations_per_second_log2|pow2 }}{% if run.operations_per_second_log2 is not none %}/s{% endif %}</td>
+        <td>{{ run.last_batch_at|ago }}</td>
+        <td>{{ run.last_seen_at|ago }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="panel" style="margin-top:22px"><p class="muted">No runs yet. Create a key and start a worker below; it appears here once it registers.</p></div>
+  {% endif %}
+
+  {% if activity.recent %}
+  <h3 style="margin-top:36px">Latest submissions</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Received</th><th>Run</th><th>Challenge</th><th class="num">Points</th><th>Check</th></tr></thead>
+    <tbody>
+    {% for batch in activity.recent %}
+      <tr>
+        <td title="{{ batch.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}">{{ batch.created_at|ago }}</td>
+        <td><code title="{{ batch.run_id }}">{{ batch.run_id[:8] }}</code></td>
+        <td><span class="name">{{ names.get(batch.campaign, batch.campaign) }}</span></td>
+        <td class="num">{{ "{:,}".format(batch.records) }}</td>
+        <td><span class="tag{% if batch.state in ('sampled', 'verified', 'indexed') %} open{% endif %}">{{ batch.state|replace("_", " ")|capitalize }}</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="table-note">Original-worker batches are checked by replaying a sample; "Not selected" means this batch was not in the sample. New-worker points are each checked against the curve.</p>
+  {% endif %}
+  {% endif %}
+</section>
+
+<section class="section">
   <div class="section-head"><h2>1. API keys</h2><p class="muted">Up to three active keys per account. Revoking a key stops uploads from every run that uses it.</p></div>
   <div class="two" style="gap:28px;align-items:start">
     <form class="panel" method="post" action="/keys">
@@ -80,6 +137,21 @@ docker run --gpus all --restart unless-stopped \
         <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
         {% if multicurve_enabled %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
       </ul>
+      {% if multicurve_enabled and cpu_worker_image %}
+      <h3>CPU, with Docker (x86-64 or ARM64)</h3>
+      <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key as shown in step 1 first.</p>
+<pre>CAMPAIGN={{ selected_campaign }}
+mkdir -p "$PWD/ecc-cpu-$CAMPAIGN"
+
+docker run --restart unless-stopped \
+  --user "$(id -u):$(id -g)" \
+  -e ECC_BACKEND=cpu -e ECC_PROTOCOL=2 \
+  -e ECC_CAMPAIGN="$CAMPAIGN" \
+  -e ECC_API_URL=https://ecc-challenges.com \
+  -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
+  -v "$PWD/ecc-cpu-$CAMPAIGN:/data" \
+  {{ cpu_worker_image }}</pre>
+      {% endif %}
       <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
       <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
       <pre>curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
@@ -131,6 +203,6 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
 
 <section class="section">
   <h2>3. Check it's working</h2>
-  <p class="muted">Within a few minutes your run should appear in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="/help">read the troubleshooting guide</a>.</p>
+  <p class="muted">Within a few minutes your run should appear under <a href="#runners">Your runners</a> above and in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="/help">read the troubleshooting guide</a>.</p>
 </section>
 {% endblock %}

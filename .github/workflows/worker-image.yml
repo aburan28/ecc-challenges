@@ -21,7 +21,7 @@ permissions:
 jobs:
   build:
     if: ${{ !inputs.source_image }}
-    runs-on: ${{ inputs.runner_label || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.runner_label || 'ubuntu-22.04' }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -37,7 +37,18 @@ jobs:
           tags: |
             type=match,pattern=worker-v(.*),group=1
             type=sha,format=long
+      - name: Build the combined image for offline validation
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: worker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: ecc-challenges-worker:check
+      - name: Check every curve using the packaged CPU backend
+        run: docker run --rm --network none -e ECC_BACKEND=cpu ecc-challenges-worker:check --check
       - uses: docker/build-push-action@v6
+        id: publish
         with:
           context: .
           file: worker/Dockerfile
@@ -47,10 +58,31 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+      - name: Verify anonymous access to the exact published image
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/anonymous-worker"
+          docker --config "$RUNNER_TEMP/anonymous-worker" manifest inspect \
+            "ghcr.io/aburan28/ecc-challenges-worker@$IMAGE_DIGEST" > /dev/null
+
+  validate-cpu:
+    if: ${{ !inputs.source_image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f worker/Dockerfile.cpu -t ecc-challenges-worker-cpu:check .
+      - name: Check every curve on this architecture without credentials or networking
+        run: docker run --rm --network none -e ECC_BACKEND=cpu ecc-challenges-worker-cpu:check --check
 
   build-cpu:
     if: ${{ !inputs.source_image }}
-    runs-on: ubuntu-24.04
+    needs: validate-cpu
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -69,6 +101,7 @@ jobs:
             type=sha,format=long
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/worker-v') }}
       - uses: docker/build-push-action@v6
+        id: publish
         with:
           context: .
           file: worker/Dockerfile.cpu
@@ -78,47 +111,80 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+      - name: Verify anonymous access and both CPU architectures
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/anonymous-cpu"
+          docker --config "$RUNNER_TEMP/anonymous-cpu" manifest inspect \
+            "ghcr.io/aburan28/ecc-challenges-worker-cpu@$IMAGE_DIGEST" > "$RUNNER_TEMP/cpu-manifest.json"
+          python3 - "$RUNNER_TEMP/cpu-manifest.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as stream:
+              manifest = json.load(stream)
+          platforms = {(m['platform']['os'], m['platform']['architecture']) for m in manifest['manifests']}
+          assert {('linux', 'amd64'), ('linux', 'arm64')} <= platforms, platforms
+          PY
 
   mirror:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_image && github.repository == 'aburan28/ecc-challenges' && github.actor == 'aburan28' }}
-    runs-on: ${{ inputs.runner_label || 'ubuntu-24.04' }}
+    runs-on: ${{ inputs.runner_label || 'ubuntu-22.04' }}
     timeout-minutes: 20
     permissions:
       contents: read
       packages: write
-      id-token: write
     env:
       SOURCE_IMAGE: ${{ inputs.source_image }}
     steps:
       - name: Validate the immutable source
         shell: bash
         run: |
-          [[ "$SOURCE_IMAGE" =~ ^public[.]ecr[.]aws/o1a3z1g6/ecc-challenges-worker@sha256:[0-9a-f]{64}$ ]]
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::104186811093:role/ecc-challenges-public-image-reader
-          role-session-name: ecc-challenges-image-mirror
-          aws-region: us-east-1
+          [[ "$SOURCE_IMAGE" =~ ^public[.]ecr[.]aws/o1a3z1g6/ecc-challenges-worker(-cpu)?@sha256:[0-9a-f]{64}$ ]]
       - name: Install the registry copier
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends skopeo
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends skopeo gh
       - name: Authenticate for public-image transfer
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          aws ecr-public get-login-password --region us-east-1 | skopeo login --username AWS --password-stdin public.ecr.aws
-          printf '%s' "$GHCR_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf '%s' "$GHCR_TOKEN" | skopeo login --authfile "$RUNNER_TEMP/registry-auth.json" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf 'REGISTRY_AUTH_FILE=%s/registry-auth.json\n' "$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: Copy the exact image and verify its public digest
         shell: bash
         run: |
           digest="${SOURCE_IMAGE##*@}"
-          target="ghcr.io/aburan28/ecc-challenges-worker:mirror-${digest#sha256:}"
-          skopeo copy --all --digestfile "$RUNNER_TEMP/copied.digest" "docker://$SOURCE_IMAGE" "docker://$target"
+          source_repository="${SOURCE_IMAGE%@*}"
+          package="${source_repository##*/}"
+          target="ghcr.io/aburan28/$package:mirror-${digest#sha256:}"
+          # Transfer the already-validated manifests and every architecture.
+          # The source is public; only the destination needs credentials.
+          skopeo copy --all --preserve-digests --src-no-creds --digestfile "$RUNNER_TEMP/copied.digest" "docker://$SOURCE_IMAGE" "docker://$target"
           [[ "$(cat "$RUNNER_TEMP/copied.digest")" == "$digest" ]]
-          printf '{"auths":{}}\n' > "$RUNNER_TEMP/anonymous.json"
-          if ! skopeo inspect --no-creds --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://$target" > "$RUNNER_TEMP/mirror-manifest.json"; then
-            echo 'The mirror was published but anonymous access failed. Check package visibility at https://github.com/users/aburan28/packages/container/ecc-challenges-worker/settings.'
-            exit 1
+          skopeo copy --all --preserve-digests "docker://$target" "docker://ghcr.io/aburan28/$package:latest"
+          if [[ "$package" == ecc-challenges-worker-cpu ]]; then
+            flavor=cpu
+          else
+            flavor=gpu
           fi
+          # Keep both flavors in the existing public package linked to this repo.
+          public_target="ghcr.io/aburan28/ecc-challenges-worker:$flavor"
+          skopeo copy --all --preserve-digests "docker://$target" "docker://$public_target"
+          printf '{"auths":{}}\n' > "$RUNNER_TEMP/anonymous.json"
+          skopeo inspect --no-creds --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://$public_target" > "$RUNNER_TEMP/mirror-manifest.json"
           printf '%s  %s\n' "${digest#sha256:}" "$RUNNER_TEMP/mirror-manifest.json" | sha256sum --check
-          printf 'Published public mirror: ghcr.io/aburan28/ecc-challenges-worker@%s\n' "$digest" >> "$GITHUB_STEP_SUMMARY"
+          if skopeo inspect --no-creds --authfile "$RUNNER_TEMP/anonymous.json" --raw "docker://$target" > "$RUNNER_TEMP/package-manifest.json"; then
+            printf '%s  %s\n' "${digest#sha256:}" "$RUNNER_TEMP/package-manifest.json" | sha256sum --check
+            printf 'Published public package: ghcr.io/aburan28/%s@%s\n' "$package" "$digest" >> "$GITHUB_STEP_SUMMARY"
+          else
+            printf 'The standalone package needs public visibility enabled; the public flavor is available at %s.\n' "$public_target" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          printf 'Published public flavor: %s (%s)\n' "$public_target" "$digest" >> "$GITHUB_STEP_SUMMARY"
+      - name: Confirm repository association
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          source_repository="${SOURCE_IMAGE%@*}"
+          package="${source_repository##*/}"
+          gh api "users/aburan28/packages/container/$package" \
+            --jq '{name, visibility, repository: .repository.full_name}'

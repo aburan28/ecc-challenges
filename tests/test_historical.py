@@ -213,7 +213,7 @@ def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, datab
     try:
         conn.execute("GRANT USAGE ON SCHEMA ecc_public TO status_probe")
         conn.execute("""
-            GRANT SELECT ON ecc_public.runs,ecc_public.pressure_shards,ecc_public.dp_namespaces,
+            GRANT SELECT ON ecc_public.runs,ecc_public.batches,ecc_public.pressure_shards,ecc_public.dp_namespaces,
               ecc_public.dp_runs,ecc_public.dp_namespace_stats,ecc_public.dp_batches TO status_probe
         """)
         probe = Database(probe_dsn, max_size=1)

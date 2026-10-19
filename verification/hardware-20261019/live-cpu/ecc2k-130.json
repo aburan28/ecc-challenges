@@ -1,0 +1,105 @@
+{
+  "backend": "cpu",
+  "campaign": "ecc2k-130",
+  "checkpoint_witnesses_checked": 4,
+  "closure": {
+    "closed_at": "2026-10-19T17:04:28.399149+00:00",
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb"
+  },
+  "elapsed_seconds": 4.9787056870000015,
+  "engine_binary_sha256": "b7349d8e184dd3653588f333632646bb8a8fda517ae8a7806fa0fe7303087b23",
+  "final_checkpoint": {
+    "cursor": 0,
+    "lanes": 2,
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "next_trail": 2,
+    "pending": "",
+    "protocol": 2,
+    "round_steps": 256,
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+    "states": "i20k5Zu1GhxKO1aDIrW4qQYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR7sjsTUttxGmbKAHRH2h6wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZmtT1cTFh2HZfVAjU84+RwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP2HL/4oiRSy5tjog4w3s/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaAAAAAAAAAEAAAAAAAAACOnc8AuorkalFYyZZ8AUkAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaom32tnUOAE1s28fAygfNAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoMGJ7QVPWl2uukF5H7GfCwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO2G678r0qumH4HqYE8OJWgEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAaAAAAAAAAAEAAAAAAAAA"
+  },
+  "final_indexed_status": {
+    "batches": {},
+    "campaign": "ecc2k-130",
+    "closed_at": null,
+    "cursor": 0,
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "pending_batch_id": null,
+    "record_bytes": 84,
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+    "total_bytes": 0,
+    "total_records": 0
+  },
+  "first_checkpoint": {
+    "cursor": 0,
+    "lanes": 2,
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "next_trail": 2,
+    "pending": "",
+    "protocol": 2,
+    "round_steps": 256,
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+    "states": "RQgXApCj2t7WiENEIH+dZgYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAw6oqF1UfbMydImtfDoGURwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACLZ/WyLvhg98Z6SLAgfXuwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP2HL/4oiRSy5tjog4w3s/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAEAAAAAAAAAIsHd9n8ZCZqBZPultnSyTwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdu0hTfjJ6DfrkQ9fpOIbtgEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFc4gHrH+bNZe952e99qYKAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO2G678r0qumH4HqYE8OJWgEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAMAAAAAAAAAEAAAAAAAAA"
+  },
+  "first_indexed_status": {
+    "batches": {},
+    "campaign": "ecc2k-130",
+    "closed_at": null,
+    "cursor": 0,
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "pending_batch_id": null,
+    "record_bytes": 84,
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+    "total_bytes": 0,
+    "total_records": 0
+  },
+  "format": "live-contributor-entrypoint-canary-v1",
+  "gid": 10001,
+  "lanes": 2,
+  "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+  "ok": true,
+  "phases": [
+    {
+      "exit_code": 0,
+      "forced_stop": false,
+      "phase": "first_run",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "exit_code": 0,
+      "forced_stop": false,
+      "phase": "restart_same_checkpoint",
+      "stderr_bytes": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_bytes": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "production_dp_bits": 34,
+  "production_records_indexed": 0,
+  "release_image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8",
+  "requires_production_dp": false,
+  "restart_checkpoint": {
+    "cursor": 0,
+    "lanes": 2,
+    "namespace_id": "5c6ced1c2c2015646d847cf06367e685c23b57b82075821196ecaef31840060c",
+    "next_trail": 2,
+    "pending": "",
+    "protocol": 2,
+    "round_steps": 256,
+    "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+    "states": "i20k5Zu1GhxKO1aDIrW4qQYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAR7sjsTUttxGmbKAHRH2h6wMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZmtT1cTFh2HZfVAjU84+RwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP2HL/4oiRSy5tjog4w3s/wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaAAAAAAAAAEAAAAAAAAACOnc8AuorkalFYyZZ8AUkAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaom32tnUOAE1s28fAygfNAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoMGJ7QVPWl2uukF5H7GfCwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAO2G678r0qumH4HqYE8OJWgEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAaAAAAAAAAAEAAAAAAAAA"
+  },
+  "restart_checkpoint_advanced": true,
+  "restart_cursor_monotonic": true,
+  "restart_same_run_id": true,
+  "round_steps": 256,
+  "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+  "uid": 10001,
+  "container_exit_code": 0
+}

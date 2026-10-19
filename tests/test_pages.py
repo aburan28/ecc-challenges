@@ -61,7 +61,9 @@ def test_all_site_documentation_links_and_fragments_resolve():
                            "server": ("ecc-challenges.com", 443)})
         pages["/dashboard"] = Links(TEMPLATES.get_template("dashboard.html").render(
             request=request, login="me", keys=[], csrf="x", issued=None, challenges=CHALLENGES,
-            worker_image="example.invalid/image@sha256:" + "a" * 64, multicurve_enabled=False,
+            worker_image="example.invalid/image@sha256:" + "a" * 64,
+            cpu_worker_image="example.invalid/cpu@sha256:" + "b" * 64,
+            activity=None, multicurve_enabled=False,
             selected_campaign="ecc2k-130", client_os="linux"))
         for source, page in pages.items():
             for href in page.hrefs:

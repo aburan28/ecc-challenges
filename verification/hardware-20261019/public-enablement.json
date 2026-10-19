@@ -1,0 +1,63 @@
+{
+  "format": "all24-public-enable-v1",
+  "source_gpu": "3951c945be9e9ad07ea121af3e21567236568a3c",
+  "enabled": true,
+  "private_canary_allowlist_cleared": true,
+  "resource_changes": [
+    {
+      "resource": "AuditService",
+      "type": "AWS::ECS::Service",
+      "replacement": "False"
+    },
+    {
+      "resource": "IndexService",
+      "type": "AWS::ECS::Service",
+      "replacement": "False"
+    },
+    {
+      "resource": "IndexTask",
+      "type": "AWS::ECS::TaskDefinition",
+      "replacement": "True"
+    },
+    {
+      "resource": "ReconcileService",
+      "type": "AWS::ECS::Service",
+      "replacement": "False"
+    },
+    {
+      "resource": "ReconcileTask",
+      "type": "AWS::ECS::TaskDefinition",
+      "replacement": "True"
+    },
+    {
+      "resource": "ResolveService",
+      "type": "AWS::ECS::Service",
+      "replacement": "False"
+    },
+    {
+      "resource": "ResolveTask",
+      "type": "AWS::ECS::TaskDefinition",
+      "replacement": "True"
+    },
+    {
+      "resource": "WebService",
+      "type": "AWS::ECS::Service",
+      "replacement": "False"
+    },
+    {
+      "resource": "WebTask",
+      "type": "AWS::ECS::TaskDefinition",
+      "replacement": "True"
+    },
+    {
+      "resource": "WorkerTask",
+      "type": "AWS::ECS::TaskDefinition",
+      "replacement": "True"
+    }
+  ],
+  "initiated_at_unix": 1792429752.4397345,
+  "observed_stack_status": "UPDATE_COMPLETE",
+  "observed_public_enabled": true,
+  "observed_private_allowlist_empty": true,
+  "confirmed_at_unix": 1792430074.7182252
+}

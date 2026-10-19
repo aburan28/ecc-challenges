@@ -1,0 +1,7 @@
+{
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:526537d089542bbd415f0e53dd21a260105267339c06e4974cbc66387c524c39",
+  "platform": "linux/arm64",
+  "source_commit": "61829bc75198ba81f49fbfc4785215256191b6b4",
+  "build_id": "ecc-challenges-release:bf68b1f3-95ec-48a6-b4dc-76345a1c9152",
+  "native_machine": "aarch64"
+}
