@@ -30,6 +30,7 @@ class Settings:
     solver_binary: str = "/opt/ecc/ecc2k130-cpu"
     max_account_runs_lifetime: int = 64
     public_worker_image: str = ""
+    public_cpu_worker_image: str = ""
     multicurve_enabled: bool = False
     point_index_table: str = ""
     point_index_mode: str = "dynamodb"
@@ -65,6 +66,7 @@ class Settings:
             solver_binary=get("SOLVER_BINARY", "/opt/ecc/ecc2k130-cpu"),
             max_account_runs_lifetime=int(get("MAX_ACCOUNT_RUNS_LIFETIME", "64")),
             public_worker_image=get("PUBLIC_WORKER_IMAGE", ""),
+            public_cpu_worker_image=get("PUBLIC_CPU_WORKER_IMAGE", ""),
             multicurve_enabled=get("MULTICURVE_ENABLED", "false").lower() == "true",
             point_index_table=get("POINT_INDEX_TABLE", ""),
             point_index_mode=get("POINT_INDEX_MODE", "dynamodb"),
@@ -92,6 +94,11 @@ class Settings:
             raise ValueError("PUBLIC_WORKER_IMAGE must be a pinned public worker digest")
         if result.max_account_runs_lifetime < 1:
             raise ValueError("MAX_ACCOUNT_RUNS_LIFETIME must be positive")
+        if result.public_cpu_worker_image and not re.fullmatch(
+            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
+            result.public_cpu_worker_image,
+        ):
+            raise ValueError("PUBLIC_CPU_WORKER_IMAGE must be a pinned public CPU worker digest")
         if any(not re.fullmatch(r"[0-9a-f]{24}", value) for value in result.multicurve_canary_keys):
             raise ValueError("MULTICURVE_CANARY_KEYS must contain key IDs, never bearer values")
         parsed = urlparse(result.public_origin)

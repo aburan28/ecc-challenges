@@ -7,6 +7,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import subprocess
@@ -17,12 +18,14 @@ import time
 
 sys.path.insert(0, '/opt/ecc2k130')
 from generic.client import API
+from generic.runtime import unpack_states
+from client import read_api_key
 
 os.umask(0o077)
 root=Path('/tmp/ecc-canary')
 root.mkdir(mode=0o700)
 state_path=root/'generic-state.json'
-key=os.environ.pop('ECC_API_KEY')
+key=read_api_key()
 key_path=root/'api-key'
 with key_path.open('x') as output:output.write(key+'\n')
 key_path.chmod(0o600)
@@ -30,11 +33,13 @@ api=API('https://ecc-challenges.com',key)
 campaign=os.environ.get('ECC_CANARY_CAMPAIGN','eccp-79')
 backend=os.environ.get('ECC_CANARY_BACKEND','cpu')
 lanes=int(os.environ.get('ECC_CANARY_LANES','4'))
+require_dp=os.environ.get('ECC_CANARY_REQUIRE_DP','true')=='true'
 started=time.monotonic()
-deadline=started+1100
+deadline=started+min(1100,int(os.environ.get('ECC_CANARY_SECONDS','1100')))
 receipt={'format':'live-contributor-entrypoint-canary-v1','campaign':campaign,'backend':backend,
          'lanes':lanes,'round_steps':256,'uid':os.getuid(),'gid':os.getgid(),
-         'release_image':os.environ['ECC_RELEASE_IMAGE'],'phases':[],'ok':False}
+         'release_image':os.environ['ECC_RELEASE_IMAGE'],'phases':[],'ok':False,
+         'requires_production_dp':require_dp,'checkpoint_witnesses_checked':0}
 child=None
 handle=None
 finished=threading.Event()
@@ -79,6 +84,8 @@ def stop():
     # Both streams are retained as hashes; credentials and arbitrary exceptions
     # cannot escape into the public receipt.
     receipt['phases'].append(result)
+    if forced or child.returncode!=0:
+        receipt['worker_error_tail']=re.sub(r'ecc1_[0-9a-f]{24}_[A-Za-z0-9_-]{43}','[redacted]',b.decode(errors='replace').replace(key,'[redacted]'))[-4096:]
     child=None;handle=None
     if forced or result['exit_code']!=0:raise RuntimeError(phase+'_entrypoint_exit')
 
@@ -91,7 +98,7 @@ def indexed(checkpoint,seconds):
             raise RuntimeError('status_binding')
         if last['batches'].get('failed',{}).get('batches',0):raise RuntimeError('pipeline_rejected_batch')
         count=last['batches'].get('indexed',{}).get('records',0)
-        if count==last['total_records']>0 and last['cursor']==checkpoint['cursor']==count*last['record_bytes'] and not last['pending_batch_id']:
+        if count==last['total_records'] and (count>0 or not require_dp) and last['cursor']==checkpoint['cursor']==count*last['record_bytes'] and not last['pending_batch_id']:
             return {k:last.get(k) for k in ('run_id','namespace_id','campaign','cursor','total_records','total_bytes','record_bytes','batches','pending_batch_id','closed_at')}
         time.sleep(5)
     receipt['last_status']={k:last.get(k) for k in ('run_id','cursor','total_records','batches')} if last else None
@@ -99,21 +106,32 @@ def indexed(checkpoint,seconds):
 
 try:
     config=api.request('GET','/v2/config?campaign='+campaign)
+    from ecc_challenges.multicurve.codec import namespace,canonical
+    ns=namespace(campaign)
+    if canonical(ns.public())!=canonical(config):raise RuntimeError('production_namespace_mismatch')
+    receipt['production_dp_bits']=ns.dp_bits
+    def verify_checkpoint(checkpoint):
+        for state in unpack_states(base64.b64decode(checkpoint['states'],validate=True)):
+            if ns.instance.mul2(state.a,state.b)!=state.point:raise RuntimeError('checkpoint_curve_witness_mismatch')
+            if ns.start(checkpoint['run_id'],state.trail_id).b!=state.b:raise RuntimeError('checkpoint_trail_binding_mismatch')
+            receipt['checkpoint_witnesses_checked']+=1
     receipt['namespace_id']=config['namespace_id']
     receipt['engine_binary_sha256']=hashlib.sha256(Path('/opt/ecc/generic-engine').read_bytes()).hexdigest()
     start('first_run')
-    until=started+600
+    until=min(started+600,deadline-45)
     while time.monotonic()<until:
         state=saved()
         if state:
             receipt['run_id']=state['run_id']
-            if state['cursor']>0:break
+            if state['cursor']>0 or (not require_dp and any(s.steps>0 for s in unpack_states(base64.b64decode(state['states'])))):break
         if child.poll() is not None:break
         time.sleep(1)
     stop()
     first=saved();receipt['first_checkpoint']=first
-    if not first or first['cursor']<=0:raise RuntimeError('no_production_dp_within_600_seconds')
+    if not first or (require_dp and first['cursor']<=0):raise RuntimeError('no_production_dp_within_deadline')
+    if not require_dp and not any(s.steps>0 for s in unpack_states(base64.b64decode(first['states']))):raise RuntimeError('no_native_walk_progress')
     if first['pending']:raise RuntimeError('pending_after_stop')
+    verify_checkpoint(first)
     receipt['first_indexed_status']=indexed(first,120)
     start('restart_same_checkpoint')
     until=time.monotonic()+30
@@ -128,7 +146,9 @@ try:
     stop()
     second=saved();receipt['restart_checkpoint']=second
     if not advanced or second['pending']:raise RuntimeError('restart_did_not_advance_and_flush')
+    verify_checkpoint(second)
     receipt['final_indexed_status']=indexed(second,90)
+    receipt['production_records_indexed']=receipt['final_indexed_status']['total_records']
     receipt.update(restart_same_run_id=True,restart_cursor_monotonic=True,restart_checkpoint_advanced=True,ok=True)
 except Exception as error:
     # API errors expose only HTTP status; other exception messages are omitted.

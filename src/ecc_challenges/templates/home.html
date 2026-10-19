@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_work.html" as work %}
 {% block title %}ECC Challenges · A distributed search on the Certicom curves{% endblock %}
 {% block content %}
 <section class="hero">
@@ -19,9 +20,11 @@
 
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
 {% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
+{% set k130_row = snapshot.campaigns|selectattr("id", "equalto", "ecc2k-130")|first if snapshot else none %}
+{% set flagship = (k130_row.including_historical or k130_row) if k130_row else none %}
 <dl class="stats" aria-label="Current figures">
-  <div class="stat"><dt>Challenges</dt><dd>24<small>published by Certicom</small></dd></div>
-  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>{% if multicurve_enabled %}prime and binary fields{% else %}ECC2K-130{% endif %}</small></dd></div>
+  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of Certicom's 24 challenges</small></dd></div>
+  <div class="stat"><dt>Work so far</dt><dd>{{ snapshot.total_estimated_work_log2_including_historical|pow2 if snapshot else "—" }}<small>{% if flagship and flagship.expected_work_percent is not none %}{{ flagship.expected_work_percent|percent }} of ECC2K-130's {{ flagship.expected_operations_log2|pow2 }}{% else %}estimated curve operations{% endif %}</small></dd></div>
   <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}incl. {{ "{:,}".format(imported) }} from the earlier run{% else %}distinguished points stored{% endif %}</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
@@ -41,7 +44,9 @@
     <h2>How the search works</h2>
     <p>Each challenge gives a curve, a base point G and a target point Q. The goal is the integer d with Q = dG. Pollard's rho method takes a pseudo-random walk on the curve where every point is a known combination aG + bQ. When two walks reach the same point, the two combinations give d.</p>
     <p>Keeping every step is impossible, so workers report only <em>distinguished points</em>, ones whose encoding starts with a fixed run of zero bits. Two walks that meet stay together until the next distinguished point, so the server only has to compare those.</p>
-    <p class="note">Expected work for ECC2K-130 is about 2 × 10<sup>18</sup> curve operations, per Certicom's 2009 estimate. That is a lot of GPU time spread across many people.</p>
+    {% set k130 = challenges|selectattr("id", "equalto", "ecc2k-130")|first %}
+    <p class="note">Expected work for ECC2K-130 is about {{ k130.estimated_operations_log2|pow2 }} curve operations ({{ k130.estimated_operations_2009 }}, Certicom's 2009 estimate).{% if flagship and flagship.estimated_work_log2 is not none %} The points stored so far, the earlier private run's included, stand for about {{ flagship.estimated_work_log2|pow2 }} of them.{% endif %} That is a lot of GPU time spread across many people.</p>
+    <p><a href="/pollard-rho">How rho works, and how the GPU kernels make each step cheap &rarr;</a></p>
   </div>
   <div class="panel">
     <h3>What gets checked</h3>
@@ -56,24 +61,26 @@
 </section>
 
 <section class="section" id="campaigns">
-  <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and estimates are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>.</p></div>
+  <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>. Work so far is estimated from stored points.</p></div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Est. operations</th><th>Status</th></tr></thead>
+    <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
     <tbody>
     {% for challenge in challenges %}
       {% set is_open = multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1" %}
+      {% set row = snapshot.campaigns[loop.index0] if snapshot else none %}
       <tr{% if is_open and not challenge.solved_in_2009 %} class="open"{% endif %}>
-        <td><span class="name">{{ challenge.public().name }}</span></td>
+        <td><a class="name" href="/challenges/{{ challenge.id }}">{{ challenge.public().name }}</a></td>
         <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
         <td class="num">{{ challenge.field_bits }}</td>
         <td>{{ level_labels[challenge.level] }}</td>
-        <td class="num mono">{{ challenge.estimated_operations_2009 or "—" }}</td>
-        <td>{% if challenge.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+        <td class="num">{{ work.expected(challenge) }}</td>
+        <td class="num">{{ work.done(row) }}</td>
+        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/challenges/{{ challenge.id }}">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table></div>
-  <p class="table-note">The solved column is Certicom's 2009 snapshot, not a claim about today. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
+  <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. The solved column is Certicom's 2009 snapshot, not a claim about today. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
 </section>
 
 <section class="section two" id="code">

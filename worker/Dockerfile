@@ -30,5 +30,10 @@ COPY src/ecc_challenges/multicurve/ /opt/ecc2k130/ecc_challenges/multicurve/
 COPY --from=generic-build /build/generic-engine /opt/ecc/generic-engine
 COPY --from=generic-build /build/generic-engine-cpu /opt/ecc/generic-engine-cpu
 ENV ECC_API_KEY_FILE=/run/secrets/ecc_api_key ECC_API_URL=https://ecc-challenges.com
+# The all-curve engine statically links CUDA 13.0 and includes native SASS for
+# each supported GPU generation. Use CUDA 13.x minor-version compatibility
+# (R580+), rather than inheriting the legacy base's CUDA 13.3-only startup gate.
+# Keep the driver check enabled; older CUDA 12-only hosts must still fail.
+ENV NVIDIA_REQUIRE_CUDA="cuda>=13.0"
 USER 10001:10001
 ENTRYPOINT ["python3", "/opt/ecc2k130/client.py"]

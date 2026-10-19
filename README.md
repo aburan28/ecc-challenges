@@ -3,7 +3,7 @@
 A public, distributed Pollard rho search on the
 [Certicom ECC challenges](https://www.certicom.com/content/dam/certicom/images/pdfs/challenge-2009.pdf).
 Sign in at **[ecc-challenges.com](https://ecc-challenges.com)**, create an API
-key, and run one Docker container on an NVIDIA GPU, or the native worker on a
+key, and run one Docker container on a CPU or NVIDIA GPU, or the native worker on a
 Mac (Metal) or a Windows PC. Your worker sends back
 distinguished points; the server checks them and looks for a collision.
 
@@ -26,17 +26,25 @@ CPU, NVIDIA CUDA and Apple Metal backends that share one arithmetic core
 (`worker/generic/ec_core.h`), on Linux, macOS and Windows. Existing ECC2K-130 v1 state keeps its original
 Frobenius walk and 32-byte record format.
 
-Release status: the all-curve v2 path is implemented and disabled by default
-pending the hosted GPU contribution, current-head CI and sustained fresh-point
-capacity release gates. All 24 real CPU contribution checks passed upload,
-indexing, checkpoint resume and closure. The selected public image passed 168
-checks on a Modal L4, including an anonymous GHCR pull. The bounded 32-batch
-account backpressure and consumer-restart control passed, as did a deployed
-collision control using Certicom's published ECCp-79 scalar.
-See [correctness receipts](verification/all-curves-20261016/README.md)
-and the [open release boundary](problems/multi-campaign-worker-and-verifier.md).
-The current public image digest is shown by the website. Do not infer that a
-catalog entry is enabled until its contribution state says so.
+Release status, 19 October 2026: all 24 curves are enabled on the public gateway.
+The final CPU image passed all-curve checks natively on amd64 and arm64; the
+final combined CPU/CUDA image passed 336 checks on a RunPod RTX 4090. Bounded live
+CPU checks passed registration, independently checked checkpoint witnesses,
+same-run restart and closure on every curve. Short runs emitted production
+points on ECC2-79 and ECCp-79; these checks do not establish larger-curve point
+rates or fleet capacity. All validation pods were terminated. See the
+[release receipts](verification/hardware-20261019/README.md) and
+[earlier correctness controls](verification/all-curves-20261016/README.md).
+
+Both public packages are linked to this repository:
+
+| Image | Hardware |
+| --- | --- |
+| `ghcr.io/aburan28/ecc-challenges-worker:latest` | Linux amd64 CPU or NVIDIA CUDA |
+| `ghcr.io/aburan28/ecc-challenges-worker-cpu:latest` | Linux amd64 and arm64 CPU |
+
+Each image supports all 24 curves. The dashboard provides immutable image
+digests and each challenge's worker command. FPGA acceleration is deferred.
 
 V2 uploads immutable checksum-bound batches directly to versioned S3, verifies
 every point relation, and conditionally indexes exact points in DynamoDB.
@@ -97,8 +105,9 @@ versioned raw bytes and admission receipt are durable. The audit worker then
 checks **every** record's DP predicate, curve equation and `R=aG+bQ` relation
 before any DynamoDB insertion. A collision rechecks its source receipts and
 coefficient witnesses, computes the candidate scalar and checks `dG=Q`.
-Verified coefficient relations do not attest reported trail lengths, so
-completion percentages remain unavailable pending a work-verification model.
+Verified coefficient relations do not attest reported trail lengths, so the
+site's work and completion figures are estimates from point counts
+([docs/campaigns.md](docs/campaigns.md)), not verified work.
 
 The following describes the separate legacy DP32 protocol:
 

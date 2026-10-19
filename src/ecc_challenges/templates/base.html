@@ -44,6 +44,7 @@
     p{margin:0 0 1em}
     code,.mono{font-family:var(--mono);font-size:.9em}
     .muted{color:var(--muted)}
+    .faint{color:var(--faint)}
     .lead{font-size:clamp(1.06rem,1.6vw,1.2rem);color:var(--muted);max-width:36em}
     .kicker{font:600 .74rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
     .skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;background:var(--surface);padding:8px 12px;z-index:9}
@@ -54,7 +55,7 @@
     .brand{display:inline-flex;align-items:center;gap:10px;color:var(--ink);text-decoration:none;font:600 1.02rem var(--sans);white-space:nowrap}
     .brand svg{width:26px;height:26px;flex:none}
     nav{display:flex;align-items:center;gap:24px}
-    nav a{color:var(--muted);text-decoration:none;font-size:.93rem}
+    nav a{color:var(--muted);text-decoration:none;font-size:.93rem;white-space:nowrap}
     nav a:hover,nav a[aria-current=page]{color:var(--ink)}
 
     /* buttons */
@@ -136,10 +137,86 @@
     td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     tr.open td{background:var(--accent-soft)}
     td .name{font:600 .92rem var(--mono)}
+    .work{display:inline-flex;align-items:center;gap:8px;justify-content:flex-end;white-space:nowrap}
+    .work .bar.mini{width:64px;margin:0;flex:none}
+    .work .pct{min-width:4.6em;text-align:right;font-size:.8rem;color:var(--muted)}
     .tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.76rem;font-weight:600;border:1px solid var(--line);color:var(--muted)}
     .tag.open{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     .tag.solved{color:var(--faint)}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
+    sup{font-size:.62em;line-height:0;vertical-align:.55em}
+    .tag.idle{color:var(--muted)}
+
+    /* progress */
+    .bar{height:10px;border-radius:999px;background:var(--sunk);border:1px solid var(--line);overflow:hidden}
+    .bar>span{display:block;height:100%;min-width:2px;background:var(--accent);border-radius:inherit}
+    .bar.mini{height:6px;width:84px;display:inline-block;vertical-align:middle;margin-right:8px}
+    .progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:20px}
+    .progress-card .top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:12px}
+    .progress-card .pct{font:500 2.2rem/1 var(--serif);font-variant-numeric:tabular-nums}
+    .progress-line{margin-top:14px}
+    .progress-line .top{margin-bottom:6px;align-items:end}
+    .progress-line small{display:block;font-size:.78rem;color:var(--faint)}
+    .progress-line .pct{font-size:1.7rem}
+    .progress-card dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px 20px;margin:18px 0 0}
+    .progress-card dt{font-size:.78rem;color:var(--muted)}
+    .progress-card dd{margin:2px 0 0;font:500 1.1rem/1.3 var(--serif);font-variant-numeric:tabular-nums}
+    .progress-card dd small{display:block;font:400 .76rem var(--sans);color:var(--faint)}
+    .parameter-table{table-layout:fixed}
+    .parameter-table th,.parameter-table td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+    .parameter-table th{width:164px}
+    .parameter-table code{display:block;white-space:normal;overflow-wrap:anywhere}
+    .parameter-table .field-basis{display:block;font-size:.8rem;color:var(--muted);margin-top:4px}
+    .parameter-table .coordinate{display:grid;grid-template-columns:1ch minmax(0,1fr);gap:10px}
+    .parameter-table .coordinate+.coordinate{margin-top:6px}
+    .parameter-table .coordinate-label{font:italic .85rem var(--mono);color:var(--muted)}
+    .parameter-table tr:last-child th{border-bottom:0}
+
+    /* long-form pages */
+    .doc-head{max-width:46em;margin-bottom:44px}
+    .doc{display:grid;grid-template-columns:184px minmax(0,1fr);gap:56px;align-items:start}
+    .toc{display:block;position:sticky;top:24px;font-size:.88rem}
+    .toc-title{font:600 .72rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:4px 0 12px}
+    .toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+    .toc a{display:block;padding:5px 0 5px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--muted);text-decoration:none}
+    .toc a:hover{color:var(--ink);border-left-color:var(--accent)}
+    .prose{max-width:44em;min-width:0}
+    .prose section{scroll-margin-top:20px}
+    .prose section+section{margin-top:60px;padding-top:44px;border-top:1px solid var(--line)}
+    .prose h3{margin-top:1.8em}
+    .prose p,.prose li{line-height:1.72}
+    .prose var{font-family:var(--serif);font-size:1.06em}
+    .formula{font:1.1rem/1.5 var(--serif);text-align:center;padding:14px 16px;margin:1.3em 0;background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow-x:auto}
+    .diagram{margin:1.6em 0;padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow-x:auto}
+    .diagram svg{display:block;width:100%;height:auto}
+    .diagram svg.wide{min-width:520px}
+    .diagram svg.narrow{max-width:440px;margin-inline:auto}
+    .diagram figcaption{font-size:.84rem;color:var(--faint);margin-top:10px}
+    .diagram .walk{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+    .diagram .walk.merged{stroke:var(--accent);stroke-width:2.8}
+    .diagram .walk.faint{stroke:var(--faint)}
+    .diagram .loop{fill:none;stroke:var(--ink);stroke-width:1.6}
+    .diagram .step,.diagram .steps circle{fill:var(--ink)}
+    .diagram .hit{fill:var(--accent)}
+    .diagram .dp{fill:var(--surface);stroke:var(--ink);stroke-width:1.6}
+    .diagram .dp.shared{fill:var(--accent);stroke:var(--accent)}
+    .diagram .arrowhead{fill:var(--ink)}
+    .diagram text{font:14px var(--sans);fill:var(--muted)}
+    .diagram text.accent{fill:var(--accent);font-weight:600}
+    .diagram text.mono{font:13px var(--mono)}
+    .diagram .cell{fill:var(--sunk);stroke:var(--line)}
+    .diagram .cell.on{fill:var(--accent-soft);stroke:var(--accent)}
+    .callout{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;border-radius:0 8px 8px 0;margin:1.5em 0}
+    .callout>:last-child{margin-bottom:0}
+    .techniques{display:grid;gap:14px;margin:1.4em 0}
+    .technique{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:18px 20px}
+    .technique h3{margin:0 0 6px;font-size:1.1rem}
+    .technique>:last-child{margin-bottom:0}
+    .technique .gain{float:right;margin:2px 0 6px 12px;font:600 .74rem/1 var(--sans);color:var(--ok);background:var(--ok-soft);border-radius:999px;padding:4px 9px}
+    .src{display:block;margin-top:8px;font:.78rem/1.5 var(--mono);color:var(--faint);overflow-wrap:anywhere}
+    .src a{color:var(--faint)}
+    .refs{padding-left:1.1em}.refs li{margin-bottom:.7em;color:var(--muted)}.refs cite{color:var(--ink)}
+    table.odds td,table.odds th{white-space:nowrap}
 
     /* forms */
     label{display:block;font-size:.88rem;font-weight:600;margin-bottom:6px}
@@ -158,6 +235,10 @@
     .powered img{display:block;width:144px;height:auto}
 
     @media (max-width:860px){
+      .doc{grid-template-columns:minmax(0,1fr);gap:8px}
+      .toc{position:static;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+      .toc ol{border-left:0;columns:2;column-gap:20px}
+      .toc a{padding:3px 0;border-left:0;margin:0}
       .hero,.two{grid-template-columns:1fr;gap:36px}
       .hero .figure{max-width:420px}
       .steps{grid-template-columns:1fr;gap:22px}
@@ -172,6 +253,8 @@
       nav{gap:16px}
       .site-header nav a.wide{display:none}
       th,td{padding:9px 10px}
+      .parameter-table th{width:112px;font-size:.7rem;letter-spacing:0}
+      .parameter-table td{font-size:.85rem}
       .os-panel{padding:16px}
     }
   </style>
@@ -182,7 +265,8 @@
   <header class="site-header"><div class="wrap">
     <a class="brand" href="/" aria-label="ECC Challenges home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" style="fill:var(--accent)"/><path d="M24 5c-3 4-7 6-9 9s-2 6 0 7 7 2 9 6" style="fill:none;stroke:var(--accent-ink);stroke-width:2.4;stroke-linecap:round"/><circle cx="9" cy="16" r="2.6" style="fill:var(--accent-ink)"/></svg>ECC Challenges</a>
     <nav aria-label="Main">
-      <a class="wide" href="/#how">How it works</a>
+      <a class="wide" href="/#how">Take part</a>
+      <a class="wide" href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
       <a class="wide" href="https://github.com/aburan28/ecc-challenges">GitHub</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
@@ -192,6 +276,7 @@
   <footer class="site-footer"><div class="wrap">
     <span>ECC Challenges is open source. Results count only after independent verification.</span>
     <nav aria-label="Footer">
+      <a href="/pollard-rho">Pollard rho and the kernels</a>
       <a href="https://github.com/aburan28/ecc-challenges">Source</a>
       <a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing</a>
       <a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a>

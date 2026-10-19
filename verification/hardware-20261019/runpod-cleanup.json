@@ -1,0 +1,11 @@
+{
+  "format": "runpod-validation-cleanup-v1",
+  "checked_pod_ids": [
+    "t0qkn5qb5zfhr4",
+    "cgc465zupmhc9y",
+    "y0pva3h1y1t3dj"
+  ],
+  "remaining_validation_pods": [],
+  "all_terminated": true,
+  "checked_at_unix": 1792430074.936271
+}
