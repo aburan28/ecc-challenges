@@ -1,0 +1,9 @@
+✓ Initialized. View run at 
+https://modal.com/apps/a-buran28/main/ap-UguwY3T7Mb1t8WzyAyoHi7
+✓ Created objects.
+{"before": {"gid": 0, "mode": "0o755", "uid": 0}, "child": {"gid": 10001, "mode": "0o700", "uid": 10001}, "exit_code": 0, "mount": {"gid": 0, "mode": "0o755", "uid": 0}, "mountinfo": [], "stderr": "", "stdout": "{\"counter\": 1, \"uid\": 10001, \"gid\": 10001, \"sha256\": \"bbf5bbfdd015a19c5e9c1c025d136a463791f7889abd13c492bb582c5d306d44\", \"file_uid\": 10001, \"file_gid\": 10001, \"file_mode\": \"0o600\"}\n"}
+{"before": {"gid": 0, "mode": "0o755", "uid": 0}, "child": {"gid": 10001, "mode": "0o700", "uid": 10001}, "exit_code": 0, "mount": {"gid": 0, "mode": "0o755", "uid": 0}, "mountinfo": [], "stderr": "", "stdout": "{\"counter\": 2, \"uid\": 10001, \"gid\": 10001, \"sha256\": \"ca9e2da6722f8026c6fbb0dc60cbd6e71f887a71b2b359d7d396d555275b4c85\", \"file_uid\": 10001, \"file_gid\": 10001, \"file_mode\": \"0o600\"}\n"}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/a-buran28/main/ap-UguwY3T7Mb1t8WzyAyoHi7
+{"ok": true, "error_type": null, "phases": 2}
