@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 import logging
 from pathlib import Path
 import secrets
@@ -34,27 +35,45 @@ TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
 
 
-def power_of_two(exponent: float | None, places: int = 1, title: str | None = None) -> Markup:
-    """2 raised to an operation count's log2, as the site writes work figures."""
-    if exponent is None:
-        return Markup("—")
-    if title is None:
-        title = "about " + f"{2.0 ** exponent:.1e}".replace("e+", " × 10^")
-    return Markup('<span class="pow" title="{}">2<sup>{:.{}f}</sup></span>').format(title, exponent, places)
+def pow2(log2: float | None, places: int = 1, title: str | None = None) -> Markup | str:
+    """A base-2 exponent such as 60.85 as 2<sup>60.9</sup>, with an optional tooltip."""
+    if log2 is None:
+        return "—"
+    value = Markup("2<sup>{:.{}f}</sup>").format(log2, places)
+    return Markup('<span title="{}">{}</span>').format(title, value) if title else value
 
 
-def short_percent(value: float | None) -> str:
+def duration(hours: float | None) -> str:
+    if hours is None:
+        return "—"
+    for size, unit in ((24 * 365.25, "years"), (24, "days"), (1, "hours")):
+        if hours >= size:
+            value = hours / size
+            return f"{value:,.0f} {unit}" if value >= 100 else f"{value:.1f} {unit}"
+    return f"{hours * 60:.0f} minutes"
+
+
+def percent(value: float | None) -> str:
     if value is None:
         return "—"
-    if value == 0:
-        return "0%"
-    if value < 0.01:
-        return "<0.01%"
-    return f"{value:.2f}%" if value < 10 else f"{value:.1f}%"
+    if value == 0 or value >= 10:
+        return f"{value:.1f}%" if value < 1000 else f"{value:,.0f}%"
+    return f"{value:.2f}%" if value >= 0.01 else "<0.01%"
 
 
-TEMPLATES.env.filters["pow2"] = power_of_two
-TEMPLATES.env.filters["percent"] = short_percent
+def ago(moment: datetime | None) -> str:
+    if moment is None:
+        return "never"
+    seconds = max(0, (datetime.now(timezone.utc) - moment).total_seconds())
+    if seconds < 60:
+        return "just now"
+    return duration(seconds / 3600).replace(".0 ", " ") + " ago"
+
+
+TEMPLATES.env.filters["pow2"] = pow2
+TEMPLATES.env.filters["ago"] = ago
+TEMPLATES.env.filters["percent"] = percent
+TEMPLATES.env.filters["duration"] = duration
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.
 ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
@@ -324,21 +343,31 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         request.session.clear()
         return RedirectResponse("/", status_code=303)
 
+    async def dashboard_page(request: Request, account_id: int, issued: str | None, campaign: str):
+        keys = await run_in_threadpool(service.account_keys, account_id)
+        try:
+            activity = await run_in_threadpool(service.account_runs, account_id,
+                                               include_generic=multicurve_enabled)
+        except Exception:
+            LOG.exception("dashboard run activity failed")
+            activity = None
+        return TEMPLATES.TemplateResponse(request, "dashboard.html",
+            {"login": request.session.get("login"), "keys": keys,
+             "csrf": request.session["csrf"], "issued": issued, "activity": activity,
+             "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
+             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
+             "multicurve_enabled": multicurve_enabled, "selected_campaign": campaign,
+             "client_os": client_os(request)},
+            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+
     @app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard(request: Request):
         account_id = require_session(request)
         if "csrf" not in request.session:
             request.session["csrf"] = new_csrf()
-        keys = await run_in_threadpool(service.account_keys, account_id)
-        return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": None,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
-             "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
-             "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
-                 if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
-            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+        campaign = request.query_params.get("campaign", CAMPAIGN)
+        return await dashboard_page(request, account_id, None, campaign if campaign in BY_ID else CAMPAIGN)
 
     @app.post("/keys", response_class=HTMLResponse)
     async def create_key(request: Request):
@@ -346,15 +375,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         values = await form_values(request)
         require_csrf(request, values.get("csrf"))
         issued = await run_in_threadpool(service.create_key, account_id, values.get("label", ""))
-        keys = await run_in_threadpool(service.account_keys, account_id)
-        return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"login": request.session.get("login"), "keys": keys,
-             "csrf": request.session["csrf"], "issued": issued,
-             "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
-             "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
-             "client_os": client_os(request)},
-            headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
+        return await dashboard_page(request, account_id, issued, CAMPAIGN)
 
     @app.post("/keys/{key_id}/revoke")
     async def revoke_key(request: Request, key_id: str):

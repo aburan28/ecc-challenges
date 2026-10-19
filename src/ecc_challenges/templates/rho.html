@@ -2,7 +2,8 @@
 {% block title %}Pollard rho and the GPU kernels · ECC Challenges{% endblock %}
 {% block description %}How the distributed Pollard rho search on the Certicom ECC challenges works, how work so far is estimated, and the low-level techniques that make each GPU step cheap.{% endblock %}
 {% block content %}
-{% set flagship = snapshot.campaigns|selectattr("id", "equalto", "ecc2k-130")|first if snapshot else none %}
+{% set k130_row = snapshot.campaigns|selectattr("id", "equalto", "ecc2k-130")|first if snapshot else none %}
+{% set flagship = (k130_row.including_historical or k130_row) if k130_row else none %}
 <header class="doc-head">
   <div class="kicker">How it works</div>
   <h1>Pollard rho, and making each step cheap</h1>
@@ -126,9 +127,9 @@
         </tbody>
       </table></div>
       <p class="table-note">For ECC2K-130's sigma walk, <var>E</var> = 2<sup>60.81</sup>. The expected work is close to the median, since half of all searches finish within 94% of it. It is not a deadline: about one search in ten needs 1.7 times as much.</p>
-      {% if flagship and flagship.work_operations_log2 is not none %}
+      {% if flagship and flagship.estimated_work_log2 is not none %}
       <div class="callout">
-        <p><strong>Today, for ECC2K-130.</strong> {{ "{:,}".format((flagship.received_points or 0) + (flagship.historical_points or 0)) }} stored points at 2<sup>28.41</sup> steps each come to about {{ flagship.work_operations_log2|pow2(2) }} steps, {{ flagship.expected_work_percent|percent }} of 2<sup>60.81</sup>. A collision would have turned up by now with probability {{ flagship.estimated_completion_probability_percent|percent }}. Live figures are on the <a href="/status">status page</a>.</p>
+        <p><strong>Today, for ECC2K-130.</strong> {{ "{:,}".format((k130_row.received_points or 0) + (k130_row.historical_points or 0)) }} stored points, the earlier private run's included, at 2<sup>28.41</sup> steps each come to about {{ flagship.estimated_work_log2|pow2(2) }} steps, {{ flagship.expected_work_percent|percent }} of 2<sup>60.81</sup>. A collision would have turned up by now with probability {{ flagship.estimated_completion_probability_percent|percent }}. Live figures are on the <a href="/status">status page</a>.</p>
       </div>
       {% endif %}
       <h3>What the estimate assumes</h3>

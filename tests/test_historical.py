@@ -199,8 +199,9 @@ def test_status_reports_imported_points_beside_gateway_uploads(database, conn):
     assert snapshot["total_historical_points"] == 338
     assert snapshot["total_archived_points"] == 0
     assert snapshot["historical_imported_at"].startswith("20")
-    # 338 DP32 points on the sigma walk, at 2^28.41 steps each.
-    assert row["work_operations_log2"] == round(log2(338) + 28.409072957536694, 2)
+    # 338 imported DP32 points on the sigma walk, at 2^28.41 steps each.
+    assert row["estimated_work_log2"] is None
+    assert row["including_historical"]["estimated_work_log2"] == round(log2(338) + 28.409072957536694, 2)
 
 
 def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
@@ -219,7 +220,8 @@ def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
     row = next(c for c in StatusReader(database, ttl_seconds=0, multicurve_enabled=True).read()["campaigns"]
                if c["id"] == "eccp-131")
     assert row["generic_verified_points"] == 8
-    assert row["work_operations_log2"] == round(log2(3 * 2**20 + 5 * 2**18), 2)
+    assert row["estimated_work_log2"] == round(log2(3 * 2**20 + 5 * 2**18), 2)
+    assert row["dp_bits"] == [18, 20]
     assert row["expected_operations_log2"] == 65.42
     assert 0 < row["estimated_completion_probability_percent"] < 1e-10
 
@@ -237,7 +239,7 @@ def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, datab
     try:
         conn.execute("GRANT USAGE ON SCHEMA ecc_public TO status_probe")
         conn.execute("""
-            GRANT SELECT ON ecc_public.runs,ecc_public.pressure_shards,ecc_public.dp_namespaces,
+            GRANT SELECT ON ecc_public.runs,ecc_public.batches,ecc_public.pressure_shards,ecc_public.dp_namespaces,
               ecc_public.dp_runs,ecc_public.dp_namespace_stats,ecc_public.dp_batches TO status_probe
         """)
         probe = Database(probe_dsn, max_size=1)

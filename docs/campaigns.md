@@ -24,26 +24,32 @@ gateway-only counts.
 An uploaded point count is not a count of independently verified operations,
 so work is reported as an estimate (`src/ecc_challenges/work.py`). Each stored
 point stands for the mean walk length between distinguished points: 2^28.41
-steps on the ECC2K-130 sigma walk (even normal-basis weight <= 32 out of 2^130
-even-weight x) and 2^d for a v2 namespace pinned to d DP bits. ECC2K-130 counts
-gateway uploads plus imported points; v2 counts verified records per pinned DP
-setting. Each row carries:
+steps on the ECC2K-130 sigma walk, where DP32 means normal-basis Hamming weight
+<= 32 among the 2^130 even-weight x (not 32 zero bits), and 2^d for a v2
+namespace pinned to d DP bits. Each walk on a curve (the sigma walk, and each
+pinned v2 namespace) is counted separately. Each open row carries:
 
 - `estimated_operations_2009_log2`: Certicom's estimate as a power of two.
-- `work_operations_log2`: estimated steps behind the stored points.
+- `estimated_work_operations` and `estimated_work_log2`: estimated steps behind
+  the stored points.
 - `expected_operations_log2`: expected steps for the campaign's default walk,
   sqrt(pi*n/(4*131)) for the sigma walk and sqrt(pi*n/2) for the v2 walk, which
-  has no automorphism quotient.
+  has no automorphism quotient yet.
 - `expected_work_percent` and `estimated_completion_probability_percent`: work as
   a share of that expectation, and 1 - exp(-(pi/4)*(k/E)^2), the chance rho would
-  have produced a collision by now. Independent walks on one curve add their
+  have produced a collision by now. Separate walks on one curve add their
   (k/E)^2 terms.
+- `points_per_hour`, `operations_per_second_log2` and `hours_to_expected_work`,
+  over a 24-hour window.
 
-The snapshot adds `total_work_operations_log2`. These assume honest walks and
-a random-looking walk, and they lag the steps still inside unfinished trails.
-A frozen work counter with independently checked checkpoints remains the way to
-turn them into verified figures. A Pollard rho search has no deterministic
-fraction complete; `/pollard-rho` explains the model on the site.
+These top-level figures count this gateway's public runs; ECC2K-130's
+`including_historical` repeats them with the imported points added to the
+sigma walk. The snapshot adds `total_estimated_work_log2` and
+`total_estimated_work_log2_including_historical`. The estimates assume honest
+walks and a random-looking walk, and lag the steps still inside unfinished
+trails. A frozen work counter with independently checked checkpoints remains
+the way to turn them into verified figures. A Pollard rho search has no
+deterministic fraction complete; `/pollard-rho` explains the model on the site.
 
 ## Contribution compatibility
 
