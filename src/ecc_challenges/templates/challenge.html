@@ -35,16 +35,16 @@
 
 <section class="section">
   <div class="section-head"><h2>Published parameters</h2><p class="muted">Exact canonical values loaded from the pinned challenge registry.</p></div>
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="parameter-table" aria-label="Published challenge parameters">
     <tbody>
-      <tr><th scope="row">Field</th><td>{{ parameters.modulus }}{% if parameters.field_kind == "binary" %} (polynomial basis){% else %} (prime modulus){% endif %}</td></tr>
+      <tr><th scope="row">Field</th><td><code>{{ parameters.modulus }}</code><span class="field-basis">{% if parameters.field_kind == "binary" %}Polynomial basis{% else %}Prime modulus{% endif %}</span></td></tr>
       <tr><th scope="row">Curve equation</th><td><code>{{ parameters.equation }}</code></td></tr>
       <tr><th scope="row">a</th><td><code>{{ parameters.a }}</code></td></tr>
       <tr><th scope="row">b</th><td><code>{{ parameters.b }}</code></td></tr>
       <tr><th scope="row">Subgroup order n</th><td><code>{{ parameters.n }}</code></td></tr>
       <tr><th scope="row">Cofactor h</th><td><code>{{ parameters.h }}</code></td></tr>
-      <tr><th scope="row">Generator G</th><td><code>({{ parameters.G[0] }}, {{ parameters.G[1] }})</code></td></tr>
-      <tr><th scope="row">Target Q</th><td><code>({{ parameters.Q[0] }}, {{ parameters.Q[1] }})</code></td></tr>
+      <tr><th scope="row">Generator G</th><td><div class="coordinate"><span class="coordinate-label">x</span><code>{{ parameters.G[0] }}</code></div><div class="coordinate"><span class="coordinate-label">y</span><code>{{ parameters.G[1] }}</code></div></td></tr>
+      <tr><th scope="row">Target Q</th><td><div class="coordinate"><span class="coordinate-label">x</span><code>{{ parameters.Q[0] }}</code></div><div class="coordinate"><span class="coordinate-label">y</span><code>{{ parameters.Q[1] }}</code></div></td></tr>
       <tr><th scope="row">Parameter SHA-256</th><td><code>{{ parameters.instance_sha256 }}</code></td></tr>
     </tbody>
   </table></div>

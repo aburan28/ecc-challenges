@@ -10,7 +10,7 @@ labels:
     includeSelectors: true
 images:
   - name: worker-image
-    newName: public.ecr.aws/o1a3z1g6/ecc-challenges-worker
+    newName: ghcr.io/aburan28/ecc-challenges-worker
     # The digest the website currently publishes; check /v1/campaigns.
     digest: sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e
 patches:

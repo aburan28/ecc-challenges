@@ -47,10 +47,21 @@ they are separate from these amd64 local receipts. No FPGA backend was added.
 
 ## Published release
 
-Both images are public in ECR Public. Their immutable digests and anonymously
-verified manifests are recorded in [published-images.json](published-images.json).
-The `latest` aliases also select these digests. CPU supports Linux amd64 and
-arm64; the combined CPU/CUDA image supports Linux amd64.
+Both images are public GitHub Container Registry packages linked to
+`aburan28/ecc-challenges`. The dashboard and deployment recipes use:
+
+- `ghcr.io/aburan28/ecc-challenges-worker:latest` for CPU/CUDA on Linux amd64.
+- `ghcr.io/aburan28/ecc-challenges-worker-cpu:latest` for CPU on Linux amd64 and arm64.
+
+The dashboard pins immutable digests. [The GHCR publication receipt](ghcr-publication.json)
+records anonymous manifest access, exact digest preservation from the validated
+images, both CPU architectures and the publishing workflow runs that confirmed
+public visibility and repository association. The `:gpu` and `:cpu` aliases in
+the combined package also select these respective releases. The temporary
+isolated publishing runners completed their single jobs and were removed.
+
+The original ECR Public copies remain available. Their immutable digests and
+anonymously verified manifests are recorded in [published-images.json](published-images.json).
 
 | Additional execution | Curves | Checks | Result |
 | --- | ---: | ---: | --- |

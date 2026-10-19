@@ -73,9 +73,10 @@ and print the command to start the worker again. They wrap the
 
 | Image | For | Architectures |
 | --- | --- | --- |
-| `public.ecr.aws/o1a3z1g6/ecc-challenges-worker` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
-| `public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
+| `ghcr.io/aburan28/ecc-challenges-worker` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
+| `ghcr.io/aburan28/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
 
+Both public packages are linked to the [ecc-challenges repository](https://github.com/aburan28/ecc-challenges/packages).
 The combined image built from this source includes both the CUDA engine and a
 parallel CPU engine, so its pinned digest works on an amd64 machine with or
 without a GPU. The
@@ -141,7 +142,7 @@ The dashboard shows the exact GPU command, with your image digest. On an amd64
 CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
-ECC_WORKER_IMAGE='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e'
+ECC_WORKER_IMAGE='ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e'
 mkdir -p "$PWD/ecc-data-eccp-131"
 docker run -d --restart unless-stopped --name ecc-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
@@ -154,7 +155,7 @@ docker logs -f ecc-eccp-131
 
 The published digest above supports all 24 curves on CPU and CUDA and includes
 the OpenMP CPU engine. For the smaller CPU-only image, including ARM64, use
-`public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8`.
+`ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8`.
 The dashboard shows the current pinned images.
 
 ## Docker Compose
@@ -299,7 +300,7 @@ Most HPC clusters run Apptainer (formerly Singularity) instead of Docker.
 `deploy/hpc/ecc-worker.sbatch` runs one worker per Slurm array task:
 
 ```sh
-apptainer pull ecc-worker.sif docker://public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:<digest>
+apptainer pull ecc-worker.sif docker://ghcr.io/aburan28/ecc-challenges-worker@sha256:<digest>
 ECC_CAMPAIGN=eccp-131 sbatch --array=0-3 deploy/hpc/ecc-worker.sbatch
 ```
 

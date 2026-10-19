@@ -140,6 +140,15 @@
     .tag.open{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     .tag.solved{color:var(--faint)}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
+    .parameter-table{table-layout:fixed}
+    .parameter-table th,.parameter-table td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+    .parameter-table th{width:164px}
+    .parameter-table code{display:block;white-space:normal;overflow-wrap:anywhere}
+    .parameter-table .field-basis{display:block;font-size:.8rem;color:var(--muted);margin-top:4px}
+    .parameter-table .coordinate{display:grid;grid-template-columns:1ch minmax(0,1fr);gap:10px}
+    .parameter-table .coordinate+.coordinate{margin-top:6px}
+    .parameter-table .coordinate-label{font:italic .85rem var(--mono);color:var(--muted)}
+    .parameter-table tr:last-child th{border-bottom:0}
 
     /* forms */
     label{display:block;font-size:.88rem;font-weight:600;margin-bottom:6px}
@@ -172,6 +181,8 @@
       nav{gap:16px}
       .site-header nav a.wide{display:none}
       th,td{padding:9px 10px}
+      .parameter-table th{width:112px;font-size:.7rem;letter-spacing:0}
+      .parameter-table td{font-size:.85rem}
       .os-panel{padding:16px}
     }
   </style>
