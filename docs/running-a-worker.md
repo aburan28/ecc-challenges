@@ -345,3 +345,28 @@ server:
 | Windows (x64, ARM64) | CI `Worker platforms`: `install.ps1` under Windows PowerShell 5.1, self-test, all-24-curve CPU walk against a Python reference, file lock and atomic checkpoint, installed wrapper start-up |
 | Linux arm64 native | CI `Worker platforms`: as Windows, plus CMake and `install.sh` builds |
 | Metal kernel source | Type-checked on every CI host with clang's C++ for OpenCL, which enforces address spaces as Metal does; compiled with `xcrun metal` where the Metal toolchain is installed |
+
+## ECC2K-130 legacy sigma thresholds
+
+To start a sigma DP34 run that can match the old DP30/DP32 archive, use the
+combined GPU image built with threshold compatibility and a **new, dedicated
+state directory**. Set:
+
+```sh
+ECC_PROTOCOL=1
+ECC_CAMPAIGN=ecc2k-130
+ECC_DP_WEIGHT=34
+```
+
+Pass these as environment variables to the worker alongside your existing API
+key and state-volume configuration. This sigma implementation requires an
+NVIDIA GPU. The gateway advertises supported weights in `/v1/config`.
+`ECC_DP_WEIGHT` accepts 30, 32 or 34; a new sigma run defaults to 32. The chosen
+weight becomes part of the run and checkpoint binding and cannot be changed
+when resuming. Existing sigma checkpoints continue as DP32.
+
+These are Hamming-weight thresholds: DP34 emits more frequently than DP32.
+Protocol 2's `dp_bits=34` belongs to a different walk and does not query the
+legacy archive. The operator's bounded continuation jobs described in
+[operations](operations.md#reusing-legacy-dp30dp32-records-with-sigma-dp34-runs)
+can extend sigma DP34 trails to the old, rarer endpoints.

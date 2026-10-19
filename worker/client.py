@@ -18,7 +18,7 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from protocol import CAMPAIGN, DP_WEIGHT, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
+from protocol import CAMPAIGN, DP_WEIGHT, DP_WEIGHTS, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
 
 
 def log(message: str) -> None:
@@ -64,6 +64,7 @@ class API:
         self.campaign = campaign
         self.run_id = None
         self.registration_id = None
+        self.dp_weight = DP_WEIGHT
 
     def request(self, method: str, path: str, data: bytes | None = None):
         headers = {"User-Agent": "ecc2k130-public-client/1",
@@ -71,6 +72,8 @@ class API:
         headers["Authorization"] = "Bearer " + self.api_key
         if path == "/v1/register":
             headers["X-Registration-Id"] = self.registration_id
+            headers["X-DP-Weight"] = str(self.dp_weight)
+            headers["X-Walk-Id"] = WALK_ID
         if data is not None and path != "/v1/register":
             headers["Content-Type"] = "application/octet-stream"
         req = Request(self.url + path, data=data, headers=headers, method=method)
@@ -92,12 +95,20 @@ class API:
 def ensure_identity(api: API, root: Path) -> dict:
     state_path = root / "state.json"
     config = api.request("GET", f"/v1/config?campaign={api.campaign}")
-    if (config.get("campaign"), config.get("walk_id"), config.get("dp_weight"),
-            config.get("record_bytes")) != (CAMPAIGN, WALK_ID, DP_WEIGHT, 32):
+    if (config.get("campaign"), config.get("walk_id"),
+            config.get("record_bytes")) != (CAMPAIGN, WALK_ID, 32):
         raise RuntimeError("gateway campaign or record format is incompatible")
     if state_path.is_file():
         state = json.loads(state_path.read_text())
+        api.dp_weight = state.get("dp_weight", DP_WEIGHT)
+        if type(api.dp_weight) is not int or api.dp_weight not in DP_WEIGHTS:
+            raise RuntimeError("saved run has an unsupported sigma DP weight")
+        if int(os.environ.get("ECC_DP_WEIGHT", str(api.dp_weight))) != api.dp_weight:
+            raise RuntimeError("existing run has a different reporting threshold; use a separate state directory")
     else:
+        api.dp_weight = int(os.environ.get("ECC_DP_WEIGHT", str(DP_WEIGHT)))
+        if api.dp_weight not in DP_WEIGHTS or api.dp_weight not in config.get("supported_dp_weights", [config.get("dp_weight")]):
+            raise RuntimeError("gateway does not support the requested sigma reporting threshold")
         if any((root / name).exists() for name in ("dps.bin", "state.ck")):
             raise RuntimeError("walk data exists without its run identity; preserve it for recovery")
         nonce_path = root / "registration.json"
@@ -108,10 +119,11 @@ def ensure_identity(api: API, root: Path) -> dict:
             atomic_json(nonce_path, {"registration_id": nonce})
         api.registration_id = nonce
         result = api.request("POST", "/v1/register", b"")
-        if (result.get("campaign"), result.get("walk_id")) != (api.campaign, WALK_ID):
+        if (result.get("campaign"), result.get("walk_id"), result.get("dp_weight", DP_WEIGHT)) != (api.campaign, WALK_ID, api.dp_weight):
             raise RuntimeError("gateway assigned an incompatible run; registration identity preserved")
         state = {"protocol": "ecc-challenges-v1", "campaign": api.campaign,
                  "run_id": result["run_id"],
+                 "dp_weight": api.dp_weight,
                  "remote_cursor": 0, "uploaded_local": 0}
         atomic_json(state_path, state)
     if state.get("protocol") != "ecc-challenges-v1":
@@ -124,12 +136,14 @@ def ensure_identity(api: API, root: Path) -> dict:
         raise RuntimeError("gateway returned a different run identity")
     if remote.get("campaign", CAMPAIGN) != api.campaign:
         raise RuntimeError("gateway run belongs to another campaign")
+    if remote.get("dp_weight", DP_WEIGHT) != api.dp_weight or remote.get("walk_id", WALK_ID) != WALK_ID:
+        raise RuntimeError("gateway run has a different sigma walk or reporting threshold")
     dp_path = root / "dps.bin"
     ck_path = root / "state.ck"
     if not dp_path.is_file():
         if remote["checkpoint_at"] is not None:
             data = api.request("GET", f"/v1/runs/{api.run_id}/checkpoint")
-            check_checkpoint(data, api.run_id)
+            check_checkpoint(data, api.run_id, api.dp_weight)
             temporary = ck_path.with_suffix(".download")
             temporary.write_bytes(data)
             os.replace(temporary, ck_path)
@@ -149,7 +163,7 @@ def ensure_identity(api: API, root: Path) -> dict:
             atomic_json(state_path, state)
         if not ck_path.is_file() and remote["checkpoint_at"] is not None:
             data = api.request("GET", f"/v1/runs/{api.run_id}/checkpoint")
-            check_checkpoint(data, api.run_id)
+            check_checkpoint(data, api.run_id, api.dp_weight)
             temporary = ck_path.with_suffix(".download")
             temporary.write_bytes(data)
             os.replace(temporary, ck_path)
@@ -190,7 +204,7 @@ def upload_checkpoint(api: API, root: Path, state: dict, *, force: bool = False)
     data = path.read_bytes()
     if len(data) != size:
         raise RuntimeError("checkpoint changed while being read")
-    check_checkpoint(data, api.run_id)
+    check_checkpoint(data, api.run_id, api.dp_weight)
     digest = hashlib.sha256(data).hexdigest()
     if digest == state.get("checkpoint_sha256"):
         return
@@ -229,7 +243,7 @@ def main() -> int:
         raise RuntimeError("CUDA client host known-answer check failed")
     command = [client, "walk", "--run-id", str(api.run_id),
                "--dp-file", str(root / "dps.bin"), "--checkpoint", str(root / "state.ck"),
-               "--dp-weight", "32", "--max-iters", "4294967296",
+               "--dp-weight", str(api.dp_weight), "--max-iters", "4294967296",
                "--checkpoint-every", "60", "--device", os.environ.get("ECC_GPU", "0")]
     stop = False
     proc = None

@@ -42,12 +42,11 @@ from ecc_challenges.storage import Storage  # noqa: E402
 
 
 def session(profile: str | None, account: str | None, region: str):
-    if not profile:
-        return boto3.Session(region_name=region)
     s = boto3.Session(profile_name=profile, region_name=region)
-    actual = s.client("sts").get_caller_identity()["Account"]
-    if account and actual != account:
-        raise SystemExit(f"profile {profile} is account {actual}, expected {account}")
+    if account:
+        actual = s.client("sts").get_caller_identity()["Account"]
+        if actual != account:
+            raise SystemExit(f"AWS identity is account {actual}, expected {account}")
     return s
 
 
@@ -87,6 +86,19 @@ def main() -> int:
     ex.add_argument("--parts-account")
     ex.add_argument("--limit", type=int)
     ex.add_argument("--dry-run", action="store_true")
+    ex.add_argument("--source-dp-weight", type=int, choices=(30, 32, 34),
+                    help="original stopping threshold, only when established from source configuration")
+
+    rd = sub.add_parser("export-database", help="read-only SOURCE_DSN snapshot of old sigma points")
+    rd.add_argument("--source-dsn-env", default="SOURCE_DSN")
+    rd.add_argument("--source-id", required=True, help="stable source database identifier, e.g. rho-dp")
+    rd.add_argument("--source-walk-id", required=True, help="must explicitly identify the legacy sigma walk")
+    rd.add_argument("--source-dp-weight", type=int, choices=(30, 32, 34))
+    rd.add_argument("--parts")
+    rd.add_argument("--parts-profile")
+    rd.add_argument("--parts-account")
+    rd.add_argument("--part-records", type=int, default=250_000)
+    rd.add_argument("--dry-run", action="store_true")
 
     ld = sub.add_parser("load")
     ld.add_argument("--parts", required=True)
@@ -123,7 +135,17 @@ def main() -> int:
                     if args.parts and args.parts.startswith("s3://") else None)
         sink = historical.open_sink(args.parts, parts_s3) if args.parts else None
         summary = historical.export(source, args.source_bucket, sink, write=not args.dry_run,
-                                    limit=args.limit, log=log)
+                                    limit=args.limit, source_dp_weight=args.source_dp_weight, log=log)
+    elif args.command == "export-database":
+        if not args.dry_run and not args.parts:
+            parser.error("export-database needs --parts unless --dry-run")
+        parts_s3 = (session(args.parts_profile, args.parts_account, args.region).client("s3")
+                    if args.parts and args.parts.startswith("s3://") else None)
+        sink = historical.open_sink(args.parts, parts_s3) if args.parts else None
+        with connect(args.source_dsn_env, read_only=True) as conn:
+            summary = historical.export_database(conn, sink, source_id=args.source_id,
+                walk_id=args.source_walk_id, source_dp_weight=args.source_dp_weight,
+                part_records=args.part_records, write=not args.dry_run, log=log)
     elif args.command == "load":
         parts_s3 = (session(args.parts_profile, args.parts_account, args.region).client("s3")
                     if args.parts.startswith("s3://") else None)

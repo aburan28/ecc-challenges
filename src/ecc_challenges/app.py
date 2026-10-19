@@ -345,7 +345,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         if challenge.contribution != "ecc2k130_gpu_v1":
             raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         return {"campaign": CAMPAIGN, "walk_id": WALK_ID,
-                "dp_weight": DP_WEIGHT, "record_bytes": RECORD_BYTES,
+                "dp_weight": DP_WEIGHT, "supported_dp_weights": [30, 32, 34], "record_bytes": RECORD_BYTES,
                 "max_batch_bytes": MAX_BATCH_BYTES}
 
     @app.post("/v1/register")
@@ -355,7 +355,13 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         if request.headers.get("x-campaign-id", CAMPAIGN) != CAMPAIGN:
             raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         key = await run_in_threadpool(service.authenticate, bearer_value(request))
-        result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""))
+        try:
+            dp_weight = int(request.headers.get("x-dp-weight", str(DP_WEIGHT)))
+        except ValueError:
+            raise Rejected(400, "invalid reporting threshold") from None
+        if request.headers.get("x-walk-id", WALK_ID) != WALK_ID:
+            raise Rejected(409, "this endpoint accepts only the legacy sigma walk")
+        result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""), dp_weight)
         return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
 
     @app.get("/v1/runs/{run_id}")

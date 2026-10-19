@@ -6,10 +6,13 @@ RUN cd /src/cryptanalysis && sha256sum -c SHA256SUMS
 COPY vendor/crypto/ /src/crypto/
 RUN cd /src/crypto && sha256sum -c SHA256SUMS
 COPY verifier/replay.cpp /src/replay.cpp
+COPY verifier/sigma_compatibility.cpp verifier/sigma_compatibility.h /src/
 RUN cd /src/cryptanalysis/ecc2k130 && make test \
   && cc -O2 -std=c11 -c ../fpga/model/ecc2k130.c -o /src/model.o \
   && g++ -O3 -std=c++17 -DECC_WALK_TABLE=0 -DECC_BATCH=16 -DECC_THREADS=256 -DECC_MINBLOCKS=2 \
        -I/src/cryptanalysis/ecc2k130/src /src/replay.cpp /src/model.o -o /src/replay
+RUN g++ -O3 -std=c++17 -DECC_WALK_TABLE=0 -DECC_WITNESS=0 \
+       -I/src/crypto/ecc2k130/include /src/sigma_compatibility.cpp -o /src/sigma-compatibility
 RUN cd /src/crypto/ecc2k130 && make cpu MARCH=x86-64 && ./ecc2k130-cpu --test
 
 FROM python:3.12-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
@@ -21,6 +24,7 @@ COPY infra/rds-ca.pem /app/rds-ca.pem
 RUN pip install --no-cache-dir --require-hashes -r requirements.lock \
   && useradd --uid 10001 --create-home --shell /usr/sbin/nologin ecc
 COPY --from=verifier-build /src/replay /opt/ecc/replay
+COPY --from=verifier-build /src/sigma-compatibility /opt/ecc/sigma-compatibility
 COPY --from=verifier-build /src/crypto/ecc2k130/ecc2k130-cpu /opt/ecc/ecc2k130-cpu
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libgomp1 \
   && rm -rf /var/lib/apt/lists/*

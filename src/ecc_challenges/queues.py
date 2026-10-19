@@ -11,15 +11,15 @@ import subprocess
 import tempfile
 import time
 
-from .protocol import CAMPAIGN, check_records
+from .protocol import CAMPAIGN, DP_WEIGHT, check_records
 
 
 def _seed_bytes(seed: int) -> bytes:
     return seed.to_bytes(max(1, (seed.bit_length() + 7) // 8), "big")
 
 
-def batch_records(body: bytes, run_id: int):
-    check_records(body, run_id)
+def batch_records(body: bytes, run_id: int, dp_weight: int = DP_WEIGHT):
+    check_records(body, run_id, dp_weight)
     for i in range(len(body) // 32):
         row = body[32 * i:32 * (i + 1)]
         seed = int.from_bytes(row[:8], "little")
@@ -80,7 +80,7 @@ class QueueWorker:
     def audit_one(self, batch_id: int, timeout_seconds: int = 3600) -> str:
         with self.db.connection() as conn:
             row = conn.execute("""
-                SELECT b.*,r.trusted_at,r.suspended_at FROM ecc_public.batches b
+                SELECT b.*,r.trusted_at,r.suspended_at,r.dp_weight FROM ecc_public.batches b
                 JOIN ecc_public.runs r ON r.run_id=b.run_id WHERE b.id=%s
             """, (batch_id,)).fetchone()
         if row is None or row["audit_state"] != "pending":
@@ -90,7 +90,7 @@ class QueueWorker:
             self._fail_batch(batch_id, row["run_id"], "archive_digest_mismatch")
             return "failed"
         try:
-            check_records(body, row["run_id"])
+            check_records(body, row["run_id"], row["dp_weight"])
         except ValueError:
             self._fail_batch(batch_id, row["run_id"], "structure_mismatch")
             return "failed"
@@ -121,7 +121,7 @@ class QueueWorker:
             record = body[index * 32:(index + 1) * 32]
             started = time.monotonic()
             try:
-                result = subprocess.run([self.settings.replay_binary], input=record,
+                result = subprocess.run([self.settings.replay_binary, "--dp-weight", str(row["dp_weight"])], input=record,
                                         capture_output=True, timeout=timeout_seconds, check=False)
                 outcome = "pass" if result.returncode == 0 else "mismatch" if result.returncode == 2 else "error"
             except subprocess.TimeoutExpired:
@@ -177,7 +177,7 @@ class QueueWorker:
     def index_one(self, batch_id: int) -> str:
         with self.db.connection() as conn:
             row = conn.execute("""
-                SELECT b.*,r.trusted_at,r.suspended_at FROM ecc_public.batches b
+                SELECT b.*,r.trusted_at,r.suspended_at,r.dp_weight FROM ecc_public.batches b
                 JOIN ecc_public.runs r ON r.run_id=b.run_id WHERE b.id=%s
             """, (batch_id,)).fetchone()
         if row is None or row["indexed_at"] is not None:
@@ -189,7 +189,7 @@ class QueueWorker:
         body = self.storage.get(row["object_key"])
         if len(body) != row["byte_length"] or hashlib.sha256(body).hexdigest() != row["sha256"]:
             raise RuntimeError("sealed object changed or is missing")
-        records = list(batch_records(body, row["run_id"]))
+        records = list(batch_records(body, row["run_id"], row["dp_weight"]))
         with self.db.connection() as conn:
             run_state = conn.execute("""
                 SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE
@@ -281,8 +281,8 @@ class QueueWorker:
             return "not_ready"
 
         with self.db.connection() as conn:
-            current = conn.execute("SELECT * FROM ecc_public.batches WHERE id=%s", (row["batch_id"],)).fetchone()
-            prior = (conn.execute("SELECT * FROM ecc_public.batches WHERE id=%s", (row["prior_batch"],)).fetchone()
+            current = conn.execute("SELECT b.*,r.dp_weight FROM ecc_public.batches b JOIN ecc_public.runs r ON r.run_id=b.run_id WHERE b.id=%s", (row["batch_id"],)).fetchone()
+            prior = (conn.execute("SELECT b.*,r.dp_weight FROM ecc_public.batches b JOIN ecc_public.runs r ON r.run_id=b.run_id WHERE b.id=%s", (row["prior_batch"],)).fetchone()
                      if row["prior_batch"] else None)
         receipt = {"lead_id": lead_id, "campaign": CAMPAIGN, "point_key": bytes(row["point_key"]).hex(),
                    "current_seed": str(row["seed"]), "prior_source": row["prior_source"],
@@ -296,6 +296,8 @@ class QueueWorker:
                                             if os.path.isfile(self.settings.solver_binary) else None)}
         state = "unverified"
         try:
+            current_weight = current["dp_weight"]
+            prior_weight = prior["dp_weight"] if prior else None
             current_body = self.storage.get(current["object_key"])
             if hashlib.sha256(current_body).hexdigest() != current["sha256"]:
                 raise RuntimeError("current sealed object digest mismatch")
@@ -319,11 +321,24 @@ class QueueWorker:
                 prior_seed = int.from_bytes(seed_bytes, "big")
                 prior_record = prior_seed.to_bytes(8, "little") + bytes(row["point_key"])
                 receipt["prior_seed"] = str(prior_seed)
-            if not self.verifier_sha or not receipt["solver_binary_sha256"]:
+                with self.db.connection() as conn:
+                    historical = conn.execute("""
+                        SELECT source_dp_weight FROM public.distinguished_points
+                        WHERE campaign_id=%s AND point_key=%s AND walk_seed=%s
+                    """, (CAMPAIGN, row["point_key"], seed_bytes)).fetchone()
+                if historical is None:
+                    raise RuntimeError("historical witness is no longer present")
+                prior_weight = historical["source_dp_weight"]
+            receipt["current_dp_weight"] = current_weight
+            receipt["prior_dp_weight"] = prior_weight
+            if not self.verifier_sha or (current_weight == prior_weight == 32 and
+                                         not receipt["solver_binary_sha256"]):
                 raise RuntimeError("pinned replay or scalar solver binary is unavailable")
             replay_results = []
             for label, record in (("current", current_record), ("prior", prior_record)):
-                proc = subprocess.run([self.settings.replay_binary], input=record,
+                weight = current_weight if label == "current" else prior_weight
+                replay_args = (["--dp-weight", str(weight)] if weight is not None else ["--until-endpoint"])
+                proc = subprocess.run([self.settings.replay_binary, *replay_args], input=record,
                                       capture_output=True, timeout=timeout_seconds, check=False)
                 replay_results.append({"label": label, "record_sha256": hashlib.sha256(record).hexdigest(),
                                        "returncode": proc.returncode,
@@ -339,7 +354,12 @@ class QueueWorker:
                 if proc.returncode != 0:
                     raise RuntimeError(f"{label} replay process exited {proc.returncode}")
             receipt["replays"] = replay_results
-            if state != "rejected":
+            if state != "rejected" and (current_weight != 32 or prior_weight != 32):
+                result = self.solve_compatibility(current_record, prior_record, current_weight,
+                                                  prior_weight, timeout_seconds)
+                receipt["compatibility_solver"] = result
+                state = "verified" if result["verified"] else "unverified"
+            elif state != "rejected":
                 with tempfile.TemporaryDirectory(prefix="ecc-collision-") as directory:
                     pair = Path(directory) / "pair.bin"
                     pair.write_bytes(current_record + prior_record)
@@ -394,6 +414,39 @@ class QueueWorker:
             """, (state, result_key, lead_id))
         return state
 
+    def solve_compatibility(self, current: bytes, prior: bytes, current_weight: int,
+                            prior_weight: int | None, timeout_seconds: float) -> dict:
+        """Both seeds reach the named orbit, with separate stopping rules."""
+        binary = Path(self.settings.compatibility_binary)
+        digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+        command = [str(binary), "solve", str(current_weight),
+                   str(prior_weight) if prior_weight is not None else "unknown"]
+        deadline = time.monotonic() + timeout_seconds
+        proc = subprocess.run(command, input=current + prior, capture_output=True,
+                              timeout=timeout_seconds, check=False)
+        result = {"verified": False, "binary_sha256": digest, "argv": command,
+                  "returncode": proc.returncode, "stdout": proc.stdout.decode(errors="replace"),
+                  "stderr": proc.stderr.decode(errors="replace")}
+        if proc.returncode != 0:
+            return result
+        answer = json.loads(proc.stdout)
+        scalar = answer.get("scalar")
+        if answer.get("verified") is not True or not isinstance(scalar, str) or not scalar.isdecimal():
+            return result
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise subprocess.TimeoutExpired(command, timeout_seconds)
+        independent = subprocess.run([self.settings.replay_binary, "--verify-scalar"],
+                                     input=(scalar + "\n").encode(), capture_output=True,
+                                     timeout=min(120, remaining), check=False)
+        result["scalar"] = scalar
+        result["independent_scalar"] = {"binary_sha256": self.verifier_sha,
+                                        "returncode": independent.returncode,
+                                        "stdout": independent.stdout.decode(errors="replace")}
+        result["verified"] = (independent.returncode == 0 and
+                               json.loads(independent.stdout).get("scalar_match") is True)
+        return result
+
     def poll(self, kind: str) -> None:
         queue_url = {"audit": self.settings.audit_queue_url,
                      "index": self.settings.index_queue_url,
@@ -435,7 +488,11 @@ def main() -> None:
     from .settings import Settings
     from .storage import Storage
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("audit", "index", "resolve", "reconcile", "merge"))
+    parser.add_argument("mode", choices=("audit", "index", "resolve", "reconcile", "merge", "bridge"))
+    parser.add_argument("--limit", type=int, default=1)
+    parser.add_argument("--target-weight", type=int, choices=(30, 32), default=32)
+    parser.add_argument("--max-extra-steps", type=int, default=2**24)
+    parser.add_argument("--timeout-seconds", type=int, default=900)
     args = parser.parse_args()
     settings = Settings.from_env(web=False)
     db = Database(settings.database_url, max_size=2, statement_timeout_ms=600000)
@@ -465,7 +522,14 @@ def main() -> None:
         from .multicurve.pointindex import Merger
         merger = Merger(worker.multicurve, worker.multicurve.point_index)
     try:
-        if args.mode == "merge":
+        if args.mode == "bridge":
+            from .continuations import Continuations
+            jobs = Continuations(worker)
+            jobs.enqueue(args.limit, args.target_weight)
+            for _ in range(args.limit):
+                print(json.dumps(jobs.run_one(max_extra_steps=args.max_extra_steps,
+                    timeout_seconds=args.timeout_seconds, target_weight=args.target_weight)), flush=True)
+        elif args.mode == "merge":
             if merger is None:
                 raise SystemExit("merge needs POINT_INDEX_MODE=compact and multicurve enabled")
             for result in merger.merge_all():
