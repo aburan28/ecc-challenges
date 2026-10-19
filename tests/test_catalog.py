@@ -118,7 +118,10 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert b"Live status" in page.content
         assert b"2.0e18" in page.content
         assert b"2<sup>60.8</sup>" in page.content and page.content.count(b'role="progressbar"') == 2
-        assert b"Public runs on this gateway" in page.content and b"5.96% with import" in page.content
+        card = page.text.split('aria-label="ECC2K-130 progress"', 1)[1].split("</article>", 1)[0]
+        assert card.index("Including imported points") < card.index("5.96%") < card.index("Public uploads only")
+        assert '<span class="mono">5.96%</span>' in page.text
+        assert '&lt;0.01% public uploads only' in page.text
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
