@@ -4,13 +4,21 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import logging
+import math
 from threading import Lock
 from time import monotonic
 
 from psycopg import errors
 
 from .catalog import CHALLENGES
-from .protocol import CAMPAIGN, RECORD_BYTES
+from .multicurve.codec import expected_steps_log2
+from .multicurve.instances import get_instance
+from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
+from .work import SIGMA_DP_LOG2, Walk, progress, sigma_dp_log2, sigma_expected_log2
+
+# Points per hour is averaged over this window: workers upload in batches of
+# up to 32,768 points, so a one-hour window is mostly empty on slow cards.
+RATE_WINDOW_HOURS = 24
 
 LOG = logging.getLogger(__name__)
 
@@ -58,8 +66,24 @@ class StatusReader:
                            COALESCE(sum(pending_bytes), 0) AS pending_bytes
                     FROM ecc_public.pressure_shards
                 """).fetchone()
+                # to_jsonb keeps this read compatible with databases predating
+                # migration 008, whose legacy runs all used DP32.
+                sigma_work = conn.execute("""
+                    SELECT coalesce((to_jsonb(r)->>'dp_weight')::int,32) AS dp_weight,
+                           sum(r.total_bytes) AS bytes,
+                           sum(coalesce(recent.points,0)) AS recent
+                    FROM ecc_public.runs r
+                    LEFT JOIN (
+                        SELECT run_id, sum(records) AS points FROM ecc_public.batches
+                        WHERE created_at >= now() - make_interval(hours => %s)
+                          AND audit_state NOT IN ('failed','quarantined')
+                        GROUP BY run_id
+                    ) recent ON recent.run_id=r.run_id
+                    GROUP BY 1
+                """, (RATE_WINDOW_HOURS,)).fetchall()
                 historical = _historical_totals(conn)
                 generic = {}
+                work = {}
                 if self.multicurve_enabled:
                     rows = conn.execute("""
                         SELECT n.campaign_id,count(r.id) AS total,
@@ -85,6 +109,20 @@ class StatusReader:
                     """).fetchall()
                     for row in totals:
                         generic.setdefault(row["campaign_id"], {}).update(row)
+                    # Runs stay pinned to the DP setting they registered under,
+                    # so each namespace counts as its own walk with its own weight.
+                    for row in conn.execute("""
+                        SELECT n.campaign_id, (n.manifest->'walk'->>'dp_bits')::int AS dp_bits,
+                          coalesce(sum(s.admitted_records),0) AS points,
+                          (SELECT coalesce(sum(b.records),0) FROM ecc_public.dp_batches b
+                           WHERE b.namespace_id=n.id AND b.state IN ('admitted','verified','indexed')
+                             AND b.created_at >= now() - make_interval(hours => %s)) AS recent
+                        FROM ecc_public.dp_namespaces n
+                        LEFT JOIN ecc_public.dp_namespace_stats s ON s.namespace_id=n.id
+                        GROUP BY n.id
+                    """, (RATE_WINDOW_HOURS,)).fetchall():
+                        work.setdefault(row["campaign_id"], []).append(
+                            (int(row["dp_bits"]), int(row["points"]), int(row["recent"])))
                     # The pending predicate matches dp_batches_run_pending; only
                     # the bounded outstanding pool participates in this scan.
                     pending = conn.execute("""
@@ -101,7 +139,31 @@ class StatusReader:
                 legacy = challenge.id == CAMPAIGN
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
-                return {**challenge.public(self.multicurve_enabled),
+                order = get_instance(challenge.id).n
+                generic_walk = expected_steps_log2(order)
+                walks = [Walk(bits, points, recent, -bits, generic_walk)
+                         for bits, points, recent in work.get(challenge.id, ())]
+                # Imported from the earlier private run (same DP32 walk); not in received_points.
+                historical_points = int(historical["points"]) if legacy and historical else 0
+                sigma = []
+                if legacy:
+                    for group in sigma_work:
+                        weight = int(group["dp_weight"])
+                        sigma.append(Walk(weight, int(group["bytes"]) // RECORD_BYTES,
+                                          int(group["recent"]), sigma_dp_log2(weight),
+                                          sigma_expected_log2(order), "sigma"))
+                # Each campaign is measured against the walk its worker runs.
+                expected = sigma_expected_log2(order) if legacy else generic_walk
+                estimate = progress(walks + sigma, expected, RATE_WINDOW_HOURS) if enabled else {
+                    "expected_operations_log2": round(expected, 2)}
+                combined = None
+                if historical_points:
+                    imported = Walk(DP_WEIGHT, historical_points, 0, SIGMA_DP_LOG2,
+                                    sigma_expected_log2(order), "sigma")
+                    combined = progress(walks + sigma + [imported], expected, RATE_WINDOW_HOURS)
+                return {**challenge.public(self.multicurve_enabled), **estimate,
+                    "including_historical": combined,
+                    "historical_points": historical_points if legacy and historical else None,
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
                     "total_runs": ((int(runs["total"]) if legacy else 0)
@@ -113,21 +175,34 @@ class StatusReader:
                     "pending_bytes": ((int(pressure["pending_bytes"]) if legacy else 0)
                                       + int(current.get("pending_bytes", 0))) if enabled else None,
                     "generic_verified_points": int(current.get("verified", 0)) if self.multicurve_enabled else None,
-                    "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None,
-                    # Imported from the earlier private run; not in received_points.
-                    "historical_points": int(historical["points"]) if legacy and historical else None,
-                    "estimated_completion_probability_percent": None}
+                    "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None}
             snapshot = {
                 "as_of": datetime.now(timezone.utc).isoformat(),
                 "compute_ready": 24 if self.multicurve_enabled else 1,
                 "campaigns": [campaign_row(challenge) for challenge in CHALLENGES],
+                "rate_window_hours": RATE_WINDOW_HOURS,
                 "progress_note": (
-                    "Accepted points are archived uploads, not verified curve operations. "
-                    "A completion percentage needs independently verified work and a "
-                    "campaign-specific collision model; these are not yet available."
+                    "Work is estimated as archived points times the mean walk length between "
+                    "distinguished points, using each run's stored threshold: 2^28.41 at DP32 "
+                    "on the ECC2K-130 sigma walk. DP32 is a "
+                    "normal-basis Hamming weight of at most 32. A v2 walk uses 2^dp_bits. This is "
+                    "not a count of verified curve operations. expected_operations_log2 is the "
+                    "expected work of the campaign's default walk, sqrt(pi*n/(4*131)) for the sigma "
+                    "walk and sqrt(pi*n/2) for the v2 walk; estimated_operations_2009_log2 is "
+                    "Certicom's figure. expected_work_percent compares work with the former. "
+                    "Top-level figures count this gateway's public runs only; including_historical "
+                    "repeats them with the points imported from the earlier private ECC2K-130 run. "
+                    "Rho is a random search: estimated_completion_probability_percent is the chance "
+                    "that a collision would have appeared by now, 1 - exp(-pi/4 * (work/expected)^2)."
                 ),
             }
             snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
+            snapshot["total_points_per_hour"] = round(sum(row.get("points_per_hour") or 0 for row in snapshot["campaigns"]), 1)
+            for key, rows in (("total_estimated_work_log2", snapshot["campaigns"]),
+                              ("total_estimated_work_log2_including_historical",
+                               [row["including_historical"] or row for row in snapshot["campaigns"]])):
+                total = sum(row.get("estimated_work_operations") or 0 for row in rows)
+                snapshot[key] = round(math.log2(total), 2) if total else None
             snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
             # total_archived_points stays this gateway's uploads only; the import is reported beside it.
             snapshot["total_historical_points"] = int(historical["points"]) if historical else None

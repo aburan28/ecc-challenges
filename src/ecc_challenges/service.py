@@ -40,6 +40,88 @@ class Service:
                 WHERE account_id=%s ORDER BY created_at DESC
             """, (account_id,)).fetchall()
 
+    def account_runs(self, account_id: int, *, include_generic: bool = False, limit: int = 50) -> dict:
+        """This account's runs with their recent submission rate, and its latest
+        distinguished-point batches across both protocols."""
+        with self.db.connection() as conn:
+            runs = conn.execute("""
+                SELECT r.run_id::text AS id,%s AS campaign,%s AS dp_bits,k.label AS key_label,
+                  r.created_at,r.last_seen_at,r.suspended_at,NULL::timestamptz AS closed_at,
+                  r.total_bytes/%s AS points,b.last_hour,b.last_day,b.last_batch_at,
+                  count(*) OVER () AS all_runs,
+                  count(*) FILTER (WHERE r.suspended_at IS NULL
+                    AND r.last_seen_at>=now()-interval '15 minutes') OVER () AS all_active,
+                  coalesce(sum(r.total_bytes/%s) OVER (),0) AS all_points,
+                  coalesce(sum(b.last_hour) OVER (),0) AS all_last_hour,
+                  coalesce(sum(b.last_day) OVER (),0) AS all_last_day
+                FROM ecc_public.runs r JOIN ecc_public.api_keys k ON k.id=r.key_id
+                CROSS JOIN LATERAL (
+                  SELECT coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '1 hour'),0) AS last_hour,
+                    coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '24 hours'),0) AS last_day,
+                    max(created_at) AS last_batch_at
+                  FROM ecc_public.batches WHERE run_id=r.run_id) b
+                WHERE r.account_id=%s ORDER BY r.last_seen_at DESC LIMIT %s
+            """, (CAMPAIGN, DP_WEIGHT, RECORD_BYTES, RECORD_BYTES, account_id, limit)).fetchall()
+            groups = [runs]
+            recent = conn.execute("""
+                SELECT b.created_at,b.run_id::text AS run_id,%s AS campaign,b.records,b.audit_state AS state
+                FROM ecc_public.batches b JOIN ecc_public.runs r ON r.run_id=b.run_id
+                WHERE r.account_id=%s ORDER BY b.created_at DESC LIMIT 20
+            """, (CAMPAIGN, account_id)).fetchall()
+            if include_generic:
+                generic_runs = conn.execute("""
+                    SELECT r.id::text AS id,n.campaign_id AS campaign,
+                      (n.manifest->'walk'->>'dp_bits')::int AS dp_bits,k.label AS key_label,
+                      r.created_at,r.last_seen_at,r.suspended_at,r.closed_at,
+                      r.total_records AS points,b.last_hour,b.last_day,b.last_batch_at,
+                      count(*) OVER () AS all_runs,
+                      count(*) FILTER (WHERE r.suspended_at IS NULL AND r.closed_at IS NULL
+                        AND r.last_seen_at>=now()-interval '15 minutes') OVER () AS all_active,
+                      coalesce(sum(r.total_records) OVER (),0) AS all_points,
+                      coalesce(sum(b.last_hour) OVER (),0) AS all_last_hour,
+                      coalesce(sum(b.last_day) OVER (),0) AS all_last_day
+                    FROM ecc_public.dp_runs r
+                    JOIN ecc_public.dp_namespaces n ON n.id=r.namespace_id
+                    JOIN ecc_public.api_keys k ON k.id=r.key_id
+                    CROSS JOIN LATERAL (
+                      SELECT coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '1 hour'),0) AS last_hour,
+                        coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '24 hours'),0) AS last_day,
+                        max(created_at) AS last_batch_at
+                      FROM ecc_public.dp_batches
+                      WHERE run_id=r.id AND state NOT IN ('reserved','expired','failed')) b
+                    WHERE r.account_id=%s ORDER BY r.last_seen_at DESC LIMIT %s
+                """, (account_id, limit)).fetchall()
+                groups.append(generic_runs)
+                runs = runs + generic_runs
+                recent += conn.execute("""
+                    SELECT b.created_at,b.run_id::text AS run_id,n.campaign_id AS campaign,b.records,b.state
+                    FROM ecc_public.dp_batches b
+                    JOIN ecc_public.dp_runs r ON r.id=b.run_id
+                    JOIN ecc_public.dp_namespaces n ON n.id=b.namespace_id
+                    WHERE r.account_id=%s AND b.state NOT IN ('reserved','expired')
+                    ORDER BY b.created_at DESC LIMIT 20
+                """, (account_id,)).fetchall()
+            now = conn.execute("SELECT now() AS now").fetchone()["now"]
+        for run in runs:
+            age = (now - run["last_seen_at"]).total_seconds()
+            run["state"] = ("suspended" if run["suspended_at"] else "closed" if run["closed_at"]
+                            else "active" if age < 900 else "idle" if age < 86400 else "stopped")
+            run["points_per_hour"] = round(run["last_day"] / 24, 1)
+            ops = run["last_day"] * 2 ** run["dp_bits"] / 86400
+            run["operations_per_second_log2"] = round(math.log2(ops), 2) if ops else None
+        order = {"active": 0, "idle": 1, "stopped": 2, "closed": 3, "suspended": 4}
+        runs.sort(key=lambda run: (order[run["state"]], -run["last_seen_at"].timestamp()))
+        recent.sort(key=lambda batch: batch["created_at"], reverse=True)
+        # Window aggregates cover every account run before either display limit.
+        totals = {key: sum(int(group[0][key]) for group in groups if group)
+                  for key in ("all_runs", "all_active", "all_points", "all_last_day", "all_last_hour")}
+        return {"runs": runs[:limit], "recent": recent[:20],
+                "total_runs": totals["all_runs"],
+                "active_runs": totals["all_active"],
+                "points": totals["all_points"],
+                "points_per_hour": round(totals["all_last_day"] / 24, 1),
+                "points_last_hour": totals["all_last_hour"]}
+
     def create_key(self, account_id: int, label: str) -> str:
         label = label.strip()
         if not 1 <= len(label) <= 80:
