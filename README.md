@@ -105,8 +105,9 @@ versioned raw bytes and admission receipt are durable. The audit worker then
 checks **every** record's DP predicate, curve equation and `R=aG+bQ` relation
 before any DynamoDB insertion. A collision rechecks its source receipts and
 coefficient witnesses, computes the candidate scalar and checks `dG=Q`.
-Verified coefficient relations do not attest reported trail lengths, so
-completion percentages remain unavailable pending a work-verification model.
+Verified coefficient relations do not attest reported trail lengths, so the
+site's work and completion figures are estimates from point counts
+([docs/campaigns.md](docs/campaigns.md)), not verified work.
 
 The following describes the separate legacy DP32 protocol:
 

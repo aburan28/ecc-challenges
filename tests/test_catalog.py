@@ -13,6 +13,7 @@ from psycopg import errors
 from ecc_challenges.app import create_app
 from ecc_challenges.catalog import BY_ID, CHALLENGES
 from ecc_challenges.status import StatusReader
+from ecc_challenges.work import SIGMA_DP_LOG2
 
 
 class FakeConnection:
@@ -27,6 +28,8 @@ class FakeConnection:
             if isinstance(self.historical, Exception):
                 raise self.historical
             return SimpleNamespace(fetchone=lambda: self.historical)
+        if "AS dp_weight" in statement:
+            return SimpleNamespace(fetchall=lambda: [{"dp_weight": 32, "bytes": 320, "recent": 48}])
         if "ecc_public.runs" in statement:
             return SimpleNamespace(fetchone=lambda: {"total": 3, "recent": 2, "bytes": 320})
         if "ecc_public.pressure_shards" in statement:
@@ -92,19 +95,22 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert ecc2k130["historical_points"] == 338_034_791
         assert ecc2k130["points_per_hour"] == 2.0
         # Public runs alone; the imported run is reported separately, never folded in.
-        assert ecc2k130["estimated_work_operations"] == 10 * 2**32
-        assert ecc2k130["estimated_work_log2"] == 35.32
-        assert ecc2k130["expected_operations_log2"] == 60.79
+        # DP32 on the sigma walk is Hamming weight <= 32: one step in 2^28.41, not 2^32.
+        assert ecc2k130["estimated_work_operations"] == 10 * 2.0 ** -SIGMA_DP_LOG2
+        assert ecc2k130["estimated_work_log2"] == 31.73
+        assert ecc2k130["expected_operations_log2"] == 60.81
         assert 0 < ecc2k130["expected_work_percent"] < 1e-5
         combined = ecc2k130["including_historical"]
-        assert combined["estimated_work_operations"] == (10 + 338_034_791) * 2**32
-        assert combined["estimated_work_log2"] == 60.33
-        assert abs(combined["expected_work_percent"] - 72.59) < 0.01
-        assert abs(combined["estimated_completion_probability_percent"] - 33.89) < 0.01
+        assert combined["estimated_work_operations"] == (10 + 338_034_791) * 2.0 ** -SIGMA_DP_LOG2
+        assert combined["estimated_work_log2"] == 56.74
+        assert abs(combined["expected_work_percent"] - 5.96) < 0.01
+        assert abs(combined["estimated_completion_probability_percent"] - 0.28) < 0.01
         assert combined["points_per_hour"] == ecc2k130["points_per_hour"]
         assert combined["hours_to_expected_work"] < ecc2k130["hours_to_expected_work"]
         assert ecc2k130["hours_to_expected_work"] > 0
-        assert status["campaigns"][19]["expected_operations_log2"] == 64.92
+        # Unopened rows still say what their walk would need, beside Certicom's figure.
+        assert status["campaigns"][19]["expected_operations_log2"] == 65.42
+        assert status["campaigns"][19]["estimated_operations_2009_log2"] == 64.92
         assert "expected_work_percent" not in status["campaigns"][19]
         assert status["campaigns"][19]["received_points"] is None
         page = client.get("/status")
@@ -112,7 +118,7 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert b"Live status" in page.content
         assert b"2.0e18" in page.content
         assert b"2<sup>60.8</sup>" in page.content and page.content.count(b'role="progressbar"') == 2
-        assert b"Public runs on this gateway" in page.content and b"72.6% with import" in page.content
+        assert b"Public runs on this gateway" in page.content and b"5.96% with import" in page.content
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
@@ -152,18 +158,73 @@ def test_html_errors_robots_and_share_metadata():
         assert robots.status_code == 200 and "Disallow: /dashboard" in robots.text
 
 
+def test_work_is_estimated_from_stored_points_as_powers_of_two():
+    from math import comb, log2
+
+    from ecc_challenges.multicurve.instances import get_instance
+    from ecc_challenges.work import Walk, progress, sigma_expected_log2
+
+    # Even-weight 131-bit normal-basis x with weight <= 32: 2^-28.41 of them.
+    assert abs(SIGMA_DP_LOG2 - (log2(sum(comb(131, w) for w in range(0, 33, 2))) - 130)) < 1e-12
+    assert round(SIGMA_DP_LOG2, 2) == -28.41
+    # The sigma walk's expectation matches Certicom's 2.0e18 to within rounding.
+    assert abs(sigma_expected_log2(get_instance("ecc2k-130").n) - BY_ID["ecc2k-130"].estimated_operations_log2) < 0.02
+    # Exactly the expected work gives rho a 1 - exp(-pi/4) chance.
+    at_expected = progress([Walk(30, 2**30, 0, -30.0, 60.0)], 60.0, 24)
+    assert at_expected["estimated_work_log2"] == 60.0 and at_expected["expected_work_percent"] == 100
+    assert round(at_expected["estimated_completion_probability_percent"], 1) == 54.4
+    # Two independent walks on one curve: work adds, and so do their squared shares.
+    both = progress([Walk(30, 2**29, 0, -30.0, 60.0), Walk(34, 2**25, 0, -34.0, 60.0)], 60.0, 24)
+    assert both["estimated_work_log2"] == 60.0 and round(both["expected_work_percent"], 2) == 70.71
+    assert both["dp_bits"] == [30, 34]
+    # Each walk reaches the shared expectation together: 1/sqrt(2) of its own at the same pace.
+    paced = progress([Walk(30, 2**29, 2**10, -30.0, 60.0), Walk(30, 2**29, 2**10, -30.0, 60.0)], 60.0, 1)
+    assert abs(paced["hours_to_expected_work"] - (2**60 / 2**0.5 - 2**59) / 2**40) < 1
+
+    with TestClient(application()) as client:
+        status = client.get("/v1/status").json()
+        row = status["campaigns"][6]["including_historical"]
+        # 10 uploaded + 338,034,791 imported DP32 points.
+        assert row["estimated_work_log2"] == 56.74 and row["expected_operations_log2"] == 60.81
+        assert round(row["expected_work_percent"], 1) == 6.0
+        assert round(row["estimated_completion_probability_percent"], 2) == 0.28
+        assert status["total_estimated_work_log2"] == 31.73
+        assert status["total_estimated_work_log2_including_historical"] == 56.74
+        for path in ("/", "/status", "/challenges/ecc2k-130"):
+            assert "2<sup>56.7</sup>" in client.get(path).text
+        assert "0.28%" in client.get("/challenges/ecc2k-130").text
+
+
+def test_pollard_rho_page_explains_the_walk_estimate_and_kernels():
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        page = client.get("/pollard-rho")
+        assert page.status_code == 200 and page.headers["cache-control"] == "private, max-age=300"
+        for anchor in ("problem", "rho", "parallel", "automorphisms", "walk", "estimate", "kernels", "checks"):
+            assert f'id="{anchor}"' in page.text and f'href="#{anchor}"' in page.text
+        assert "clmad.lo.u64" in page.text and "Itoh–Tsujii" in page.text
+        # The live figure for ECC2K-130 comes from the same snapshot as /status.
+        assert "338,034,801 stored points" in page.text and "2<sup>56.74</sup>" in page.text
+        assert 'href="/pollard-rho"' in client.get("/").text
+    with TestClient(application(FakeDB(historical=errors.InsufficientPrivilege("denied")))) as client:
+        assert client.get("/pollard-rho").status_code == 200
+
+
 def test_progress_estimate_and_collision_probability():
-    from ecc_challenges.status import progress
+    from ecc_challenges.work import Walk, progress
     expected = 2.0e18
-    half = progress({32: int(expected / 2**33)}, {32: 24 * 1000}, "2.0e18")
+    # A walk whose points need 32 zero bits: 2^32 steps a point.
+    def walk(points, recent):
+        return [Walk(32, points, recent, -32.0, math.log2(expected))]
+    half = progress(walk(int(expected / 2**33), 24 * 1000), math.log2(expected), 24)
     assert abs(half["expected_work_percent"] - 50) < 0.01
     # 1 - exp(-pi/16) for half the expected work.
     assert abs(half["estimated_completion_probability_percent"] - 17.83) < 0.01
     assert half["points_per_hour"] == 1000
     assert abs(half["operations_per_second_log2"] - math.log2(1000 * 2**32 / 3600)) < 0.01
-    assert progress({}, {}, "2.0e18")["estimated_work_log2"] is None
-    assert progress({32: int(expected / 2**31)}, {}, "2.0e18")["hours_to_expected_work"] is None
-    assert progress({32: int(expected / 2**31)}, {32: 1}, "2.0e18")["hours_to_expected_work"] == 0
+    assert abs(half["hours_to_expected_work"] - expected / 2 / (1000 * 2**32)) < 1
+    assert progress([], math.log2(expected), 24)["estimated_work_log2"] is None
+    assert progress(walk(int(expected / 2**31), 0), math.log2(expected), 24)["hours_to_expected_work"] is None
+    assert progress(walk(int(expected / 2**31), 1), math.log2(expected), 24)["hours_to_expected_work"] == 0
 
 
 def test_display_filters():
@@ -210,8 +271,8 @@ def test_account_runs_and_status_against_postgres(database, aws_resources, setti
     ecc2k130 = snapshot["campaigns"][6]
     assert ecc2k130["historical_points"] == 90
     assert ecc2k130["points_per_hour"] == round(5 / 24, 1)
-    assert ecc2k130["estimated_work_operations"] == 5 * 2**32
-    assert ecc2k130["including_historical"]["estimated_work_operations"] == (5 + 90) * 2**32
+    assert ecc2k130["estimated_work_operations"] == 5 * 2.0 ** -SIGMA_DP_LOG2
+    assert ecc2k130["including_historical"]["estimated_work_operations"] == (5 + 90) * 2.0 ** -SIGMA_DP_LOG2
 
 
 def test_status_reader_caches_database_snapshot():
@@ -342,3 +403,45 @@ def test_dashboard_shows_setup_for_each_system():
         assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
         assert ("CPU, with Docker (x86-64 or ARM64)" in page) is enabled
         assert ("ecc-challenges-worker-cpu@sha256:" in page) is enabled
+
+
+def test_sigma_thresholds_share_work_before_collision_probability():
+    from ecc_challenges.work import Walk, progress, sigma_dp_log2
+    walks = [Walk(weight, 1000, 24, sigma_dp_log2(weight), 60.81, "sigma")
+             for weight in (30, 32, 34)]
+    estimate = progress(walks, 60.81, 24)
+    steps = sum(1000 * 2 ** -sigma_dp_log2(w) for w in (30, 32, 34))
+    share = steps / 2 ** 60.81
+    assert math.isclose(estimate["expected_work_percent"], 100 * share)
+    assert math.isclose(estimate["estimated_completion_probability_percent"],
+                        -100 * math.expm1(-math.pi / 4 * share ** 2))
+    assert estimate["dp_bits"] == [30, 32, 34]
+    assert sigma_dp_log2(30) < sigma_dp_log2(32) < sigma_dp_log2(34)
+    assert estimate["points_per_hour"] == 3
+
+
+def test_status_uses_each_sigma_runs_stored_threshold(database, aws_resources, settings):
+    import uuid
+    from ecc_challenges.service import Service
+    from ecc_challenges.work import sigma_dp_log2
+    service = Service(database, aws_resources[0], settings)
+    service.upsert_account(99, "threshold-test")
+    key = service.authenticate(service.create_key(99, "rig"))
+    with database.connection() as conn:
+        conn.execute("ALTER TABLE ecc_public.runs ADD COLUMN IF NOT EXISTS dp_weight smallint NOT NULL DEFAULT 32")
+    for weight, points in ((30, 10), (32, 20), (34, 30)):
+        run_id = service.register(key, str(uuid.uuid4()))["run_id"]
+        with database.connection() as conn:
+            conn.execute("UPDATE ecc_public.runs SET dp_weight=%s,total_bytes=%s WHERE run_id=%s",
+                         (weight, points * 32, run_id))
+            conn.execute("""INSERT INTO ecc_public.batches
+                (run_id,byte_offset,byte_length,records,sha256,object_key)
+                VALUES (%s,0,%s,%s,%s,%s)""",
+                (run_id, points * 32, points, "a" * 64, f"threshold/{weight}"))
+    row = StatusReader(database).read()["campaigns"][6]
+    expected = sum(points * 2 ** -sigma_dp_log2(weight)
+                   for weight, points in ((30, 10), (32, 20), (34, 30)))
+    assert row["received_points"] == 60
+    assert row["dp_bits"] == [30, 32, 34]
+    assert math.isclose(row["estimated_work_operations"], expected)
+    assert row["points_per_hour"] == 2.5
