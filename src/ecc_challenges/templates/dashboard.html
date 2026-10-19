@@ -14,6 +14,7 @@
   <pre><span class="c"># paste the key when prompted, then press Ctrl-D</span>
 mkdir -p ~/.config/ecc-challenges
 (umask 077; cat > ~/.config/ecc-challenges/api-key)</pre>
+  <p class="note">The one-line installers in step 2 ask for the key and save it for you.</p>
 </div>
 {% endif %}
 
@@ -40,13 +41,27 @@ mkdir -p ~/.config/ecc-challenges
 </section>
 
 <section class="section">
-  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">{% if multicurve_enabled %}Use Docker or a native Windows or macOS worker.{% else %}The current public campaign needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>.{% endif %}</p></div>
+  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">Pick your system. Each worker keeps its progress in its own directory and resumes from it after a restart.</p></div>
   {% if multicurve_enabled %}
   <form method="get" action="/dashboard" style="margin-bottom:18px">
     <label for="campaign">Challenge</label>
-    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for challenge in challenges %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</select><button class="button ghost" type="submit">Update command</button></div>
+    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for challenge in challenges %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
   </form>
+  {% set sh_env = "ECC_CAMPAIGN=" ~ selected_campaign ~ " " %}
+  {% set ps_env = "$env:ECC_CAMPAIGN = '" ~ selected_campaign ~ "'; " %}
+  {% else %}
+  {% set sh_env = "" %}{% set ps_env = "" %}
   {% endif %}
+  {% set native_off %}{% if not multicurve_enabled %}<p class="note pending"><strong>Not accepting work yet.</strong> Native workers run the all-curves release, which is not switched on (<a href="/v1/campaigns">/v1/campaigns</a>). You can install now; until it is on, only the NVIDIA Docker worker is accepted.</p>{% endif %}{% endset %}
+
+  <div class="os-tabs">
+    {% for id, name in [("linux", "Linux"), ("macos", "macOS"), ("windows", "Windows"), ("other", "Servers &amp; cloud")] %}
+    <input type="radio" name="os" id="os-{{ id }}"{% if id == client_os %} checked{% endif %}><label for="os-{{ id }}">{{ name|safe }}</label>
+    {% endfor %}
+
+    <div class="os-panel linux">
+      <h3>NVIDIA GPU, with Docker</h3>
+      <p class="muted">Needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>. Save your key as shown in step 1 first.</p>
 <pre><span class="c"># one directory per GPU; keep it between restarts</span>
 GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
@@ -61,13 +76,57 @@ docker run --gpus all --restart unless-stopped \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-$CAMPAIGN-$GPU_ID:/data" \
   {{ worker_image }}</pre>
-  <ul class="plain note">
-    <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
-    {% if multicurve_enabled %}<li>On an amd64 CPU host, use this same image without <code>--gpus all</code> or <code>-e ECC_GPU</code>; it selects the CPU backend. New builds use <code>OMP_NUM_THREADS</code> to limit CPU threads.</li>{% endif %}
-    {% if multicurve_enabled %}<li>On Windows, run the native CPU worker or build its optional CUDA engine. On macOS, run the native Metal worker. Both use the same persistent checkpoint format; follow the <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">native setup steps</a>.</li>{% endif %}
-    <li>Kubernetes, systemd, Podman, Slurm, Modal or no Docker at all: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>. On RunPod or similar, use the same image, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
-    <li>If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</li>
-  </ul>
+      <ul class="plain note">
+        <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
+        {% if multicurve_enabled %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
+      </ul>
+      <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
+      <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
+      <pre>curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
+      {{ native_off }}
+    </div>
+
+    <div class="os-panel macos">
+      <p class="muted">Apple silicon or Intel. The worker uses the Mac's GPU through Metal. In Terminal:</p>
+<pre><span class="c"># once, if you don't have the developer tools yet</span>
+xcode-select --install
+
+curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
+      <ul class="plain note">
+        <li>Needs Python 3.10 or newer from <a href="https://www.python.org/downloads/macos/">python.org</a> or <code>brew install python</code>; the one that ships with macOS can be too old.</li>
+        <li>The installer asks for your key, saves it to <code>~/.config/ecc-challenges/api-key</code> and offers to start the worker. Stop it with Ctrl-C; run the printed command to start it again.</li>
+        <li>To keep it running in the background, load the launchd agent the installer writes: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#macos">macOS setup</a>.</li>
+      </ul>
+      {{ native_off }}
+    </div>
+
+    <div class="os-panel windows">
+      <h3>Native worker</h3>
+      <p class="muted">Windows 10 or 11, x64 or ARM64. Runs on the CPU, or on an NVIDIA GPU if the CUDA toolkit is installed. In PowerShell:</p>
+<pre><span class="c"># once: Python, CMake and the C++ build tools</span>
+winget install -e --id Python.Python.3.12
+winget install -e --id Kitware.CMake
+winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+
+<span class="c"># then, in a new PowerShell window</span>
+{{ ps_env }}irm https://ecc-challenges.com/install.ps1 | iex</pre>
+      <p class="note">The installer asks for your key, saves it where only you can read it and offers to start the worker. Stop it with Ctrl-C.</p>
+      {{ native_off }}
+      <h3>NVIDIA GPU, with Docker Desktop</h3>
+      <p class="muted">Install <a href="https://docs.docker.com/desktop/features/gpu/">Docker Desktop with the WSL 2 backend</a> and a current NVIDIA driver. Then open an Ubuntu (WSL) terminal, save your key as shown in step 1 and run the Docker command from the Linux tab.</p>
+    </div>
+
+    <div class="os-panel other">
+      <p class="muted">The same worker, packaged for longer-running setups. Each recipe is in <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>.</p>
+      <ul class="plain">
+        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#docker-compose">Docker Compose</a>: several workers on one machine.</li>
+        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#native-install-and-systemd">systemd</a>: a Linux server, started at boot, no containers.</li>
+        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#kubernetes">Kubernetes</a>, <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#podman">Podman</a>, <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#apptainer-and-slurm">Slurm</a>.</li>
+        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/modal-workers.md">Modal</a>, RunPod or any GPU cloud: use the Docker image above, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note" style="margin-top:18px">If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</p>
 </section>
 
 <section class="section">

@@ -33,6 +33,8 @@ TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Lev
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.
 ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
+# One-line installers for the native worker: curl ... | sh and irm ... | iex.
+INSTALLERS = {p.name: p.read_text() for p in (Path(__file__).parent / "install").glob("install.*")}
 ROBOTS = "User-agent: *\nDisallow: /dashboard\nDisallow: /keys\nDisallow: /auth/\nDisallow: /v1/\nDisallow: /v2/\n"
 LOG = logging.getLogger(__name__)
 
@@ -73,6 +75,16 @@ def bearer_value(request: Request) -> str:
     if not value.startswith("Bearer ") or len(value) > 160:
         raise Rejected(401, "API key required")
     return value[7:]
+
+
+def client_os(request: Request) -> str:
+    """Which setup tab the dashboard opens first, from the browser's platform."""
+    agent = request.headers.get("user-agent", "")
+    if "Windows" in agent:
+        return "windows"
+    if "Macintosh" in agent or "Mac OS X" in agent:
+        return "macos"
+    return "linux"
 
 
 def require_session(request: Request) -> int:
@@ -191,6 +203,12 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return Response(ASSETS[name], media_type="image/png",
                         headers={"Cache-Control": "public, max-age=86400"})
 
+    @app.get("/install.sh", response_class=PlainTextResponse)
+    @app.get("/install.ps1", response_class=PlainTextResponse)
+    async def installer(request: Request):
+        return PlainTextResponse(INSTALLERS[request.url.path.lstrip("/")],
+                                 headers={"Cache-Control": "public, max-age=300"})
+
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
         try:
@@ -258,7 +276,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": None,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "multicurve_enabled": multicurve_enabled,
+             "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
              "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
                  if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
@@ -274,7 +292,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
-             "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN},
+             "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
+             "client_os": client_os(request)},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys/{key_id}/revoke")
