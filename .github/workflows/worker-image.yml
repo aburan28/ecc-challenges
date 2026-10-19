@@ -135,6 +135,7 @@ jobs:
       packages: write
     env:
       SOURCE_IMAGE: ${{ inputs.source_image }}
+      REGISTRY_AUTH_FILE: ${{ runner.temp }}/registry-auth.json
     steps:
       - name: Validate the immutable source
         shell: bash
@@ -147,7 +148,7 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
-          printf '%s' "$GHCR_TOKEN" | skopeo login --username "$GITHUB_ACTOR" --password-stdin ghcr.io
+          printf '%s' "$GHCR_TOKEN" | skopeo login --authfile "$REGISTRY_AUTH_FILE" --username "$GITHUB_ACTOR" --password-stdin ghcr.io
       - name: Copy the exact image and verify its public digest
         shell: bash
         run: |
