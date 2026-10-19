@@ -61,6 +61,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runtime", required=True, help="Docker runtime name, e.g. runsc or kata")
     parser.add_argument("--image", required=True, help="Pinned Linux worker image at @sha256:digest")
+    parser.add_argument("--all-curves", action="store_true",
+                        help="also run the image's offline --check for all 24 curves")
     args = parser.parse_args()
     if not re.fullmatch(r".+@sha256:[0-9a-f]{64}", args.image):
         parser.error("--image must use a full sha256 digest")
@@ -87,11 +89,24 @@ def main() -> int:
             engine = checked(*worker, ENGINE)
             first = checked(*worker, CHECKPOINT, "write")
             second = checked(*worker, CHECKPOINT, "resume")
+            full_check = None
+            if args.all_curves:
+                result = checked(
+                    *common, "--user", "10001:10001", "--cap-drop", "ALL",
+                    "--security-opt", "no-new-privileges",
+                    "--env", "ECC_BACKEND=cpu", args.image,
+                    "/opt/ecc2k130/client.py", "--check")
+                full_check = json.loads(result.splitlines()[-1])
+                if (full_check.get("campaigns_checked") != 24
+                        or full_check.get("checks", 0) < 168
+                        or "cpu" not in full_check.get("backends_checked", ())):
+                    raise RuntimeError("all-curve image check returned incomplete coverage")
             print(json.dumps({
                 "runtime": args.runtime, "image": args.image,
                 "engine": json.loads(engine.splitlines()[-1]),
                 "first": json.loads(first.splitlines()[-1]),
                 "second": json.loads(second.splitlines()[-1]),
+                "all_curves": full_check,
                 "offline_only": True,
             }, sort_keys=True))
         finally:

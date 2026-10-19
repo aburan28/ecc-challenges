@@ -14,6 +14,7 @@ the exact CPU or combined worker image digest you intend to run:
 ```sh
 python3 scripts/check_sandbox_runtime.py \
   --runtime runsc \
+  --all-curves \
   --image 'ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:YOUR_DIGEST'
 # On a host with a Docker Kata runtime, replace runsc with its registered name.
 ```
@@ -21,7 +22,11 @@ python3 scripts/check_sandbox_runtime.py \
 The check requires a full SHA-256 image digest and verifies that the requested
 runtime is registered. It runs the engine self-test and CPU probe, then writes
 and resumes a mode-0600 checkpoint from two separate containers using UID
-10001. Both containers use the same disposable named volume. The check uses no
+10001. With `--all-curves`, it also requires the image's offline `--check`
+entry point to complete at least 168 checks across all 24 campaigns. Use an
+image release that contains that entry point; omit the flag only when checking
+an older image's runtime mechanics. Both containers use the same disposable
+named volume. The check uses no
 API key or network access and removes its volume when done. Retain the printed
 JSON, image digest, Docker/runtime versions, host architecture, and exit code
 as the evidence for a runtime-specific result. A pass establishes only CPU
