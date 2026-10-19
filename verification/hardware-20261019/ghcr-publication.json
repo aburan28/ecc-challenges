@@ -1,0 +1,74 @@
+{
+  "format": "all24-ghcr-publication-v1",
+  "checked_at_unix": 1792431164.8179996,
+  "images": [
+    {
+      "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e",
+      "repository": "aburan28/ecc-challenges",
+      "visibility": "public",
+      "association_verified_by_workflow": true,
+      "publishing_run": "https://github.com/aburan28/ecc-challenges/actions/runs/39294541048",
+      "platforms": [
+        {
+          "os": "linux",
+          "architecture": "amd64"
+        }
+      ],
+      "checks": [
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e"
+        },
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker:latest",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e"
+        },
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker:gpu",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e"
+        }
+      ],
+      "identical_to_validated_ecr_manifest": true
+    },
+    {
+      "image": "ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8",
+      "repository": "aburan28/ecc-challenges",
+      "visibility": "public",
+      "association_verified_by_workflow": true,
+      "publishing_run": "https://github.com/aburan28/ecc-challenges/actions/runs/39294544189",
+      "platforms": [
+        {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      ],
+      "checks": [
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8"
+        },
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker-cpu:latest",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8"
+        },
+        {
+          "image": "ghcr.io/aburan28/ecc-challenges-worker:cpu",
+          "anonymous_access": true,
+          "manifest_digest": "sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8"
+        }
+      ],
+      "identical_to_validated_ecr_manifest": true
+    }
+  ],
+  "temporary_runners_removed": true,
+  "validation_pods_terminated": true
+}

@@ -16,7 +16,7 @@
   <div class="stat"><dt>Batches queued</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="pending_batches")) }}{% else %}—{% endif %}<small>waiting for checks</small></dd></div>
 </dl>
 
-<section class="section">
+<section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Estimated operations are Certicom's 2009 figures, for scale only.</p></div>
   {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
   <div class="table-wrap"><table>
@@ -26,10 +26,10 @@
       {% set row = snapshot.campaigns[loop.index0] if snapshot else challenge.public() %}
       {% set is_open = row.received_points is defined and row.received_points is not none %}
       <tr{% if is_open and not row.solved_in_2009 %} class="open"{% endif %}>
-        <td><span class="name">{{ row.name }}</span></td>
+        <td><a class="name" href="/challenges/{{ row.id }}">{{ row.name }}</a></td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num mono">{{ row.estimated_operations_2009 or "—" }}</td>
-        <td>{% if row.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/challenges/{{ row.id }}">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.recent_runs_24h) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.received_points + (row.historical_points or 0)) if is_open else "—" }}</td>

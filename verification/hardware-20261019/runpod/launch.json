@@ -1,0 +1,63 @@
+{
+  "provider": "runpod",
+  "valid": true,
+  "image": "nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6",
+  "source_sha256": "3d613900d352156ba3344f13a5a6af1272589f210c21a402b3c8b5a607cf68be",
+  "source_files": {
+    "worker/client.py": "c7b547ba28e3ebcb5ca257e0d805bcf9b1ec70dc1383334be5a7c5617b0572fe",
+    "worker/protocol.py": "086ab1a49764980937397ce72867da18bc760d454a567dcf0bc9ebc912642811",
+    "src/ecc_challenges/__init__.py": "8462b73e2963396d5c34174890277bf4282895854edd99aceb8b3940472a22dd",
+    "worker/generic/__init__.py": "f4b204f2f9d062e9d4170c460bdb8679222d2f36208013585ef1e61df8bbf7e7",
+    "worker/generic/client.py": "1cdd7eb624eeb7d48dde0b3a3aa14a5308ffd88391a9edcb8f4600ac8f1194fb",
+    "worker/generic/ec_core.h": "90b2d04da9c626e2d0a0f6e63f3f50929a93b28caf522211bfdae43b414eff80",
+    "worker/generic/engine.cu": "9c0bd0ecad68e02426d829d176e53416d2a1dacdbf73cd6e0ed7db3a1ea7cb52",
+    "worker/generic/runtime.py": "a46a00a1d2c16554d9bb4e8324341acef493095a325628cd8a2396a78313c2b0",
+    "worker/generic/check.py": "cf3583070281e368fad9b17032df4287e2e91f877e2ece787074350c60e01b24",
+    "src/ecc_challenges/multicurve/__init__.py": "d8453f0f3e6b9346d1aa584d2cb0f0a745e677b1069a4e84fda7391ef5b982cd",
+    "src/ecc_challenges/multicurve/api.py": "6ce8e071486b1365717a1fee829f41fb80a5c18c866961caef6be8851791e031",
+    "src/ecc_challenges/multicurve/archive_tool.py": "96033a1651e9b606de4363e265c744704a6c07a5fe796ae3231bf72b5a41cfdd",
+    "src/ecc_challenges/multicurve/curves.py": "b9c0661a70a8a0dfd680f8e214019871d7a78b9ae50a9e5fb86c26c22bbb3a2b",
+    "src/ecc_challenges/multicurve/extract_parameters.py": "175621d217edfdbd20508736f312b831a363b0e9f978337099194a150c1c1a61",
+    "src/ecc_challenges/multicurve/index.py": "35181fd670a7bbc3bcd1dbfdf7caf5703d5e1e53de0f6bed3cb57294790b186b",
+    "src/ecc_challenges/multicurve/instances.json": "72fb96daecdc4f474c70aa083d50d25c38e95f9eefee44fd6994e48735b3d5af",
+    "src/ecc_challenges/multicurve/instances.py": "e54136c2c237532e5c5157210d85a579b2ac99a034c020cf535b5bcab3eb40f9",
+    "src/ecc_challenges/multicurve/rebuild.py": "a8f8060ac3cbc58e9c174a4660d58268c9c1f3d15086bd90d00dc23b8eeec6a1",
+    "src/ecc_challenges/multicurve/segments.py": "c9fe7b9ffa42aff33aa421fab809cada07da1c9b9b02dc67cf501e1e22fd000a",
+    "src/ecc_challenges/multicurve/archive.py": "5cd4a6c81695fd88be74d5ec86b1cd52d8f974ee9551fd7092b5b648999a911e",
+    "src/ecc_challenges/multicurve/codec.py": "137e838e0ea1db44cd763a9860c7d03f8c6d25deb53e07c1836037cf32f179d9",
+    "src/ecc_challenges/multicurve/pipeline.py": "ba766008ab09d85bdf8bb2a0e38c63ae02cfc5233a6c797e97f86140bb877c9e",
+    "src/ecc_challenges/multicurve/pointindex.py": "930b9ddfde4e75c9e5613a0e44c216459d950393fef56bf3dfc71258d65d2c80",
+    "src/ecc_challenges/multicurve/service.py": "ec2c64f4f68203ad5b36a0496cabd8325af0118d45f2432f9bae5fd696464e88"
+  },
+  "started_at": "2026-10-19T16:15:58.125248+00:00",
+  "pod_id": "t0qkn5qb5zfhr4",
+  "allocation_attempts": [
+    {
+      "gpu": "NVIDIA RTX 4000 Ada Generation",
+      "error": "There are no longer any instances available with the requested specifications. Please refresh and try again."
+    }
+  ],
+  "scope": "current source CPU and CUDA correctness; no enrollment, uploads or throughput measurement",
+  "gpu_type": "NVIDIA GeForce RTX 4090",
+  "rate_per_hour": 0.89,
+  "automatic_termination_at": "2026-10-19T16:45:58.470101+00:00",
+  "exit_code": "0",
+  "results_sha256": "51ff657ffe88038b604ce50e48e06c8ed8d3145fa1511fda0e1cb4d102bcabdb",
+  "finished_at": "2026-10-19T16:20:23.387316+00:00",
+  "controller_interrupted": true,
+  "summary": {
+    "campaigns_checked": 24,
+    "cases": 72,
+    "checks": 336,
+    "backends_checked": [
+      "cpu",
+      "cuda"
+    ],
+    "cuda_checked": true,
+    "metal_checked": false,
+    "receipt": "/workspace/result/controls/receipt.json"
+  },
+  "device": "NVIDIA GeForce RTX 4090, GPU-f768d7e5-c8b4-5d01-0727-43612ea9c32f, 595.91.07",
+  "termination_confirmed": true,
+  "terminated_at": "2026-10-19T16:20:23.924278+00:00"
+}

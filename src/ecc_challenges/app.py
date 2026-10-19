@@ -21,6 +21,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .db import Database
 from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
+from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
 from .security import new_csrf
 from .service import Service, Rejected
@@ -234,6 +235,28 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
 
+    @app.get("/challenges/{campaign_id}", response_class=HTMLResponse)
+    async def challenge_page(request: Request, campaign_id: str):
+        challenge = BY_ID.get(campaign_id.lower())
+        if challenge is None:
+            raise StarletteHTTPException(404, "Challenge not found")
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed for challenge page")
+            snapshot = None
+        row = (next((item for item in snapshot["campaigns"] if item["id"] == challenge.id), None)
+               if snapshot else None)
+        return TEMPLATES.TemplateResponse(request, "challenge.html", {
+            "challenge": challenge,
+            "challenges": CHALLENGES,
+            "status": row,
+            "parameters": get_instance(challenge.id).public(),
+            "catalog_source": SOURCE_URL,
+            "catalog_date": SOURCE_DATE,
+            "multicurve_enabled": multicurve_enabled,
+        }, headers={"Cache-Control": "private, no-store"})
+
     @app.get("/v1/status")
     async def status_json():
         try:
@@ -276,6 +299,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": None,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
              "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
                  if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
@@ -292,6 +316,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued,
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
+             "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
              "client_os": client_os(request)},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
@@ -308,6 +333,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def campaigns():
         return {"source_url": SOURCE_URL, "source_date": SOURCE_DATE,
                 "worker_image": settings.public_worker_image,
+                "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
                 "multicurve_enabled": multicurve_enabled,
                 "campaigns": [challenge.public(multicurve_enabled) for challenge in CHALLENGES]}
 

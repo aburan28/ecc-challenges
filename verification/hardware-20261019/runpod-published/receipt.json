@@ -1,0 +1,24 @@
+{
+  "format": "runpod-exact-image-check-v1",
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e",
+  "ok": true,
+  "started_at": 1792428731.595733,
+  "operator_deadline_seconds": 900,
+  "pod_id": "y0pva3h1y1t3dj",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "rate_per_hour": 0.89,
+  "status": {
+    "exit_code": 0,
+    "uid": 10001
+  },
+  "checks": 336,
+  "campaigns_completed": 24,
+  "backends": [
+    "cpu",
+    "cuda"
+  ],
+  "results_sha256": "603b5d013de8ea630e9381c339b8aa4eb1501e0d8474b0e3baaccec85ac08857",
+  "device": "NVIDIA GeForce RTX 4090, GPU-99fe6876-459e-3168-3a98-34680627a258, 580.65.06",
+  "termination_confirmed": true,
+  "finished_at": 1792428863.5369203
+}

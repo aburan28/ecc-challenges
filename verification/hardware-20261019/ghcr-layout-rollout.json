@@ -1,0 +1,63 @@
+{
+  "format": "all24-ghcr-layout-rollout-v1",
+  "web_source_commit": "85fc010",
+  "updates": {
+    "WebImageUri": "104186811093.dkr.ecr.us-west-2.amazonaws.com/ecc-challenges-web@sha256:c17795a23465dfedf6d0ef4da6f1993e8546e2de7517a7bae62e9e54a912a53b",
+    "PublicWorkerImage": "ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e",
+    "PublicCpuWorkerImage": "ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8"
+  },
+  "all_other_parameters_preserved": true,
+  "all_24_enabled": true,
+  "changes": [
+    {
+      "resource": "WebService",
+      "action": "Modify",
+      "replacement": "False"
+    },
+    {
+      "resource": "WebTask",
+      "action": "Modify",
+      "replacement": "True"
+    }
+  ],
+  "initiated_at_unix": 1792431253.1587806,
+  "observed_stack_status": "UPDATE_COMPLETE",
+  "confirmed_at_unix": 1792431474.9643736,
+  "services": [
+    {
+      "service": "ecc-challenges-audit",
+      "desired": 2,
+      "running": 2,
+      "pending": 0,
+      "rollout": "COMPLETED"
+    },
+    {
+      "service": "ecc-challenges-index",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollout": "COMPLETED"
+    },
+    {
+      "service": "ecc-challenges-reconcile",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollout": "COMPLETED"
+    },
+    {
+      "service": "ecc-challenges-resolve",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollout": "COMPLETED"
+    },
+    {
+      "service": "ecc-challenges-web",
+      "desired": 2,
+      "running": 2,
+      "pending": 0,
+      "rollout": "COMPLETED"
+    }
+  ]
+}

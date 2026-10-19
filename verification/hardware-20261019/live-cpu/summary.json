@@ -1,0 +1,197 @@
+{
+  "ok": true,
+  "rows": [
+    {
+      "campaign": "ecc2-109",
+      "ok": true,
+      "run_id": "6eee08b3-b2f9-45ef-8c73-c685369a7d7b",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-131",
+      "ok": true,
+      "run_id": "65909705-b186-43b4-a930-276f00bbaea4",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-163",
+      "ok": true,
+      "run_id": "5bad6627-5891-44fa-bf78-79cb396ddd27",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-191",
+      "ok": true,
+      "run_id": "c4b67b68-f0d7-426c-99ef-d1ddbb5d628c",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-238",
+      "ok": true,
+      "run_id": "656ac16f-779c-44ce-9111-d9d4db38a33a",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-353",
+      "ok": true,
+      "run_id": "16ee6723-983c-43b8-8a39-bc9f8df44112",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-79",
+      "ok": true,
+      "run_id": "a520c53a-a506-4791-a5cc-7e3fb781e479",
+      "indexed_records": 2,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-89",
+      "ok": true,
+      "run_id": "53c7b6cc-8f48-4638-a0eb-bf1ea0ae9ef4",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2-97",
+      "ok": true,
+      "run_id": "43ad74ab-1a1f-411f-9c92-6e9dbd1d9890",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-108",
+      "ok": true,
+      "run_id": "ca03c649-c50c-4fa9-9ac8-6fa3b1b668a1",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-130",
+      "ok": true,
+      "run_id": "afce3eef-e417-4567-aafc-e4f0bd3c8cbb",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-163",
+      "ok": true,
+      "run_id": "e5f4be82-1d0e-4686-bbb5-721ba81ec72f",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-238",
+      "ok": true,
+      "run_id": "003588f5-a6ad-4756-ba7d-ccdc3f40aa92",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-358",
+      "ok": true,
+      "run_id": "a4ff786d-e0c5-4f46-b62e-122b4876ab9f",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "ecc2k-95",
+      "ok": true,
+      "run_id": "8128e55c-0dfe-4eda-93f8-9a32a87f097b",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-109",
+      "ok": true,
+      "run_id": "53722ed9-3ee2-44bd-b245-f78e1473ae46",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-131",
+      "ok": true,
+      "run_id": "392e8c92-fe86-4ae4-985b-0129d38b7788",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-163",
+      "ok": true,
+      "run_id": "027acf6c-7722-4731-862a-0282dc3ad62c",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-191",
+      "ok": true,
+      "run_id": "79e4d1b0-c2ec-4bd4-b055-901a82203824",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-239",
+      "ok": true,
+      "run_id": "d8e187ff-870d-4c2a-80be-c9c14ff9918d",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-359",
+      "ok": true,
+      "run_id": "b6b2d613-1d62-4d4b-a417-c9b253f9ef6b",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-79",
+      "ok": true,
+      "run_id": "c167f9e1-a94d-4530-8487-62111d0ad280",
+      "indexed_records": 1,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-89",
+      "ok": true,
+      "run_id": "4f88b560-825a-4eb6-a8fa-221761dc5b55",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    },
+    {
+      "campaign": "eccp-97",
+      "ok": true,
+      "run_id": "4dad0cb6-cad2-4441-b0ca-75892a44590d",
+      "indexed_records": 0,
+      "checkpoint_witnesses": 4,
+      "error": null
+    }
+  ]
+}
