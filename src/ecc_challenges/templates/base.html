@@ -92,7 +92,7 @@
 
     /* figures */
     .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
-    .stat{padding:18px 20px;border-left:1px solid var(--line)}
+    .stat{min-width:0;padding:18px 20px;border-left:1px solid var(--line)}
     .stat:first-child{border-left:0}
     .stat dt{font-size:.8rem;color:var(--muted)}
     .stat dd{margin:4px 0 0;font:500 1.75rem/1.2 var(--serif);font-variant-numeric:tabular-nums}
@@ -287,6 +287,10 @@
     }
     @media (max-width:360px){
       .site-header nav{gap:8px}
+      .site-header nav a:not(.button){display:none}
+      .stat{padding:14px 12px}
+      .stat dd{font-size:1.2rem;overflow-wrap:anywhere}
+      .stat:nth-child(2) dd{font-size:1.05rem}
     }
   </style>
 </head>
