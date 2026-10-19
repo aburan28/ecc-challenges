@@ -17,28 +17,34 @@ import os
 import modal
 
 
-ROOT = Path(__file__).resolve().parents[1]
-BASELINE_HEADER = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
-CONTROLS = Path(os.environ["ECC_NATIVE_CONTROLS"]).resolve()
-OUT = Path(os.environ["ECC_BENCH_OUT"]).resolve()
 CURVES = ("ecc2k-130", "ecc2-131", "ecc2k-163", "ecc2-163", "ecc2-191",
           "ecc2k-238", "ecc2-238", "ecc2k-358", "ecc2-353")
 
 app = modal.App("ecc-challenges-binary-rho-throughput")
-image = (modal.Image.from_registry("nvidia/cuda:13.0.2-devel-ubuntu24.04", add_python="3.12")
-         .add_local_file(ROOT / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
-         .add_local_file(BASELINE_HEADER, "/src/baseline/ec_core.h", copy=True)
-         .add_local_file(ROOT / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
-         .add_local_file(ROOT / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True))
-for curve in CURVES:
-    for filename in ("job.bin", "in.bin"):
-        image = image.add_local_file(
-            CONTROLS / curve / "mixed-dp40-cpu" / filename,
-            f"/controls/{curve}/mixed-dp40-cpu/{filename}", copy=True)
-image = image.run_commands(
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /opt/ecc-baseline",
-             "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /opt/ecc-candidate",
-             "/opt/ecc-baseline --self-test", "/opt/ecc-candidate --self-test")
+# Modal imports this module again inside the container. Only the client has
+# paths to the local source and frozen controls used to build the image.
+if modal.is_local():
+    root = Path(__file__).resolve().parents[1]
+    baseline_header = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
+    controls = Path(os.environ["ECC_NATIVE_CONTROLS"]).resolve()
+    out = Path(os.environ["ECC_BENCH_OUT"]).resolve()
+    image = (modal.Image.from_registry("nvidia/cuda:13.0.2-devel-ubuntu24.04", add_python="3.12")
+             .add_local_file(root / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
+             .add_local_file(baseline_header, "/src/baseline/ec_core.h", copy=True)
+             .add_local_file(root / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
+             .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True))
+    for curve in CURVES:
+        for filename in ("job.bin", "in.bin"):
+            image = image.add_local_file(
+                controls / curve / "mixed-dp40-cpu" / filename,
+                f"/controls/{curve}/mixed-dp40-cpu/{filename}", copy=True)
+    image = image.run_commands(
+        "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /opt/ecc-baseline",
+        "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /opt/ecc-candidate",
+        "/opt/ecc-baseline --self-test", "/opt/ecc-candidate --self-test")
+else:
+    # The deployed image above is already bound to the remote function.
+    image = modal.Image.debian_slim()
 
 
 @app.function(image=image, gpu="L4", timeout=900)
@@ -179,16 +185,16 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
 def main(lanes: int = 32, steps: int = 64, repeats: int = 2):
     import hashlib
     import json
-    if OUT.exists():
-        raise ValueError(f"output already exists: {OUT}")
+    if out.exists():
+        raise ValueError(f"output already exists: {out}")
     launcher_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     receipt, raw = measure.remote(lanes, steps, repeats, launcher_sha256)
-    OUT.mkdir(parents=True, exist_ok=False)
-    (OUT / "receipt.json").write_text(json.dumps(receipt, sort_keys=True, indent=2) + "\n")
-    (OUT / "raw.tar.gz").write_bytes(raw)
+    out.mkdir(parents=True, exist_ok=False)
+    (out / "receipt.json").write_text(json.dumps(receipt, sort_keys=True, indent=2) + "\n")
+    (out / "raw.tar.gz").write_bytes(raw)
     if receipt.get("failure"):
-        raise RuntimeError(f"benchmark failed; raw evidence retained in {OUT}: {receipt['failure']}")
-    print(json.dumps({"receipt": str(OUT / "receipt.json"),
-                      "raw": str(OUT / "raw.tar.gz"),
+        raise RuntimeError(f"benchmark failed; raw evidence retained in {out}: {receipt['failure']}")
+    print(json.dumps({"receipt": str(out / "receipt.json"),
+                      "raw": str(out / "raw.tar.gz"),
                       "rows": len(receipt["rows"]),
                       "comparisons": len(receipt["comparisons"])}))

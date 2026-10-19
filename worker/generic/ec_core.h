@@ -201,18 +201,8 @@ HD inline bool inverse_mod(ECC_IN(UInt384) a, ECC_IN(UInt384) m,
 }
 
 HD inline UInt384 binary_xtime(ECC_IN(UInt384) a, const ECC_JOB Job& job) {
-    UInt384 r{};
-    // Include the modulus's leading bit; the other words remain zero.
-    const int words = (int(job.field_bits) + 32) / 32;
-    const std::uint32_t top =
-        (a.w[(job.field_bits - 1) / 32] >> ((job.field_bits - 1) % 32)) & 1U;
-    const std::uint32_t fold = 0U - top;
-    std::uint32_t carry = 0;
-    for (int i = 0; i < words; ++i) {
-        const std::uint32_t word = a.w[i];
-        r.w[i] = ((word << 1) | carry) ^ (job.modulus.w[i] & fold);
-        carry = word >> 31;
-    }
+    UInt384 r = shift_left(a, 1);
+    if (bit(a, int(job.field_bits) - 1)) r = xor_value(r, load(job.modulus));
     return r;
 }
 HD inline UInt384 binary_multiply(UInt384 a, ECC_IN(UInt384) b,

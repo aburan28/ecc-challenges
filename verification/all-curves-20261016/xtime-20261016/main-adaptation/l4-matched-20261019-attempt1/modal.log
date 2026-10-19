@@ -1,0 +1,79 @@
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:16-07:00 ==========
+2026-10-19 15:04:16-07:00 == CUDA ==
+2026-10-19 15:04:16-07:00 ==========
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:16-07:00 CUDA Version 13.0.2
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:16-07:00 Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:16-07:00 This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+2026-10-19 15:04:16-07:00 By pulling and using the container, you accept the terms and conditions of this license:
+2026-10-19 15:04:16-07:00 https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:16-07:00 A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+2026-10-19 15:04:16-07:00 
+2026-10-19 15:04:17-07:00 Traceback (most recent call last):
+2026-10-19 15:04:17-07:00 Runner failed with exception: KeyError('ECC_BASELINE_HEADER')
+2026-10-19 15:04:17-07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 905, in handle_user_exception
+2026-10-19 15:04:17-07:00     yield
+2026-10-19 15:04:17-07:00   File "/pkg/modal/_container_entrypoint.py", line 419, in main
+2026-10-19 15:04:17-07:00     service = import_single_function_service(
+2026-10-19 15:04:17-07:00               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:04:17-07:00   File "/pkg/modal/_runtime/user_code_imports.py", line 246, in import_single_function_service
+2026-10-19 15:04:17-07:00     module = importlib.import_module(function_def.module_name)
+2026-10-19 15:04:17-07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:04:17-07:00   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+2026-10-19 15:04:17-07:00     return _bootstrap._gcd_import(name[level:], package, level)
+2026-10-19 15:04:17-07:00            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+2026-10-19 15:04:17-07:00   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+2026-10-19 15:04:17-07:00   File "/root/bench_modal_binary_rho.py", line 21, in <module>
+2026-10-19 15:04:17-07:00     BASELINE_HEADER = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
+2026-10-19 15:04:17-07:00                            ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:04:17-07:00   File "<frozen os>", line 685, in __getitem__
+2026-10-19 15:04:17-07:00 KeyError: 'ECC_BASELINE_HEADER'
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:12-07:00 ==========
+2026-10-19 15:05:12-07:00 == CUDA ==
+2026-10-19 15:05:12-07:00 ==========
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:12-07:00 CUDA Version 13.0.2
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:12-07:00 Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:12-07:00 This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+2026-10-19 15:05:12-07:00 By pulling and using the container, you accept the terms and conditions of this license:
+2026-10-19 15:05:12-07:00 https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:12-07:00 A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+2026-10-19 15:05:12-07:00 
+2026-10-19 15:05:14-07:00 Traceback (most recent call last):
+2026-10-19 15:05:14-07:00   File "/pkg/modal/_runtime/container_io_manager.py", line 905, in handle_user_exception
+2026-10-19 15:05:14-07:00     yield
+2026-10-19 15:05:14-07:00   File "/pkg/modal/_container_entrypoint.py", line 419, in main
+2026-10-19 15:05:14-07:00     service = import_single_function_service(
+2026-10-19 15:05:14-07:00               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:05:14-07:00   File "/pkg/modal/_runtime/user_code_imports.py", line 246, in import_single_function_service
+2026-10-19 15:05:14-07:00     module = importlib.import_module(function_def.module_name)
+2026-10-19 15:05:14-07:00              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:05:14-07:00   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+2026-10-19 15:05:14-07:00     return _bootstrap._gcd_import(name[level:], package, level)
+2026-10-19 15:05:14-07:00            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+2026-10-19 15:05:14-07:00   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+2026-10-19 15:05:14-07:00   File "/root/bench_modal_binary_rho.py", line 21, in <module>
+2026-10-19 15:05:14-07:00     BASELINE_HEADER = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
+2026-10-19 15:05:14-07:00                            ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+2026-10-19 15:05:14-07:00   File "<frozen os>", line 685, in __getitem__
+2026-10-19 15:05:14-07:00 KeyError: 'ECC_BASELINE_HEADER'
+2026-10-19 15:05:14-07:00 Runner failed with exception: KeyError('ECC_BASELINE_HEADER')
+2026-10-19 15:06:00-07:00 Stopping app - keyboard interrupt received. Use `modal run --detach` to prevent KeyboardInterrupts from killing apps.
