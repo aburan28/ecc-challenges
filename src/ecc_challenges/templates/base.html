@@ -148,6 +148,12 @@
     .challenge-status .name,.challenge-status .tag{color:var(--state)}
     .challenge-status .tag{border-color:currentColor;background:var(--state-soft)}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
+    .result-values{table-layout:fixed}
+    .result-values th{width:30%;white-space:normal;letter-spacing:0;text-transform:none;vertical-align:top}
+    .result-values td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+    .result-values code{user-select:all}
+    .result-values tr:last-child th{border-bottom:0}
+    .tag.result-solved{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
 
     /* forms */
     label{display:block;font-size:.88rem;font-weight:600;margin-bottom:6px}

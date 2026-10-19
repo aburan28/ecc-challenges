@@ -63,7 +63,7 @@
     {% for challenge in challenges %}
       {% set is_open = multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1" %}
       <tr{% if is_open and not challenge.solved_in_2009 %} class="open"{% endif %}>
-        <td><span class="name">{{ challenge.public().name }}</span></td>
+        <td>{% if challenge.solved_in_2009 %}<a class="name" href="/results/{{ challenge.id }}" aria-label="{{ challenge.public().name }} published result">{{ challenge.public().name }}</a>{% else %}<span class="name">{{ challenge.public().name }}</span>{% endif %}</td>
         <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
         <td class="num">{{ challenge.field_bits }}</td>
         <td>{{ level_labels[challenge.level] }}</td>

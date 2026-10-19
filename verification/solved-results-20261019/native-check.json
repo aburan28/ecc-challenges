@@ -1,0 +1,106 @@
+{
+  "check": "published scalar times generator equals challenge point",
+  "arithmetic": "worker/generic/ec_core.h (C++17 CPU)",
+  "results": [
+    {
+      "challenge": "ecc2-79",
+      "scalar": "0x3aa068a09f1ed21e2582",
+      "computed_q": [
+        "0x202a9f035014497325",
+        "0x5175a64859552f97c129"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "ecc2-89",
+      "scalar": "0x22a2a88267271f48147aa5",
+      "computed_q": [
+        "0x1be721f8e3b6dbee40dce98",
+        "0x4dd88a4bdad73e0b32ebb3"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "ecc2-97",
+      "scalar": "0xcf765639d6b81943fd89d60f",
+      "computed_q": [
+        "0xebcec4b5961c75df04eb6aae",
+        "0x13768154c2131b67b39a0339f"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "ecc2k-95",
+      "scalar": "0x7a4249ba547313af5d482092",
+      "computed_q": [
+        "0xe0bc08ac5818f303e2b05e90",
+        "0x134c028fc3393124d673e6f8e"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "ecc2-109",
+      "scalar": "0xf1e0add3449596419c359dbdb7e",
+      "computed_q": [
+        "0x2dc77273a0b4961a85c6b12027b",
+        "0x2da3fc33e705d4fd1cad73d9e61"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "ecc2k-108",
+      "scalar": "0x256f98379f7214306be5be678fd",
+      "computed_q": [
+        "0x1ff0ce5ec61893f2119c3077c59e",
+        "0x1f20e9b010ac691c9b87b438241d"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "eccp-79",
+      "scalar": "0x138756822dd5fb093766",
+      "computed_q": [
+        "0x679834cefb7215dc365",
+        "0x4084bc50388c4e6fdfab"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "eccp-89",
+      "scalar": "0x113c284d9bd7b58bca30c67",
+      "computed_q": [
+        "0xde1aa94ff94db64e763e2d",
+        "0x2a44c4c2d4ee27fa0a4ba9"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "eccp-97",
+      "scalar": "0x16c86aa7cacf69f1dd28b3e2f",
+      "computed_q": [
+        "0xdf7e84c42fef50c5316c508a",
+        "0xf259bc583729da0fe8b97336"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    },
+    {
+      "challenge": "eccp-109",
+      "scalar": "0xddd09fd44daccb22abbebc0917c",
+      "computed_q": [
+        "0x233857e4e8b5f0055126e7d7b7c",
+        "0x19c8c91063eb4276371d68b6b4d9"
+      ],
+      "kP_equals_Q": true,
+      "k_plus_one_rejected": true
+    }
+  ]
+}

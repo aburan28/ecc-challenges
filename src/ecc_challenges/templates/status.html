@@ -30,7 +30,7 @@
       {% set is_open = row.received_points is defined and row.received_points is not none %}
       {% set state = "solved" if row.solved_in_2009 else "open" if is_open else "not-started" %}
       <tr class="{{ state }}">
-        <td><span class="name">{{ row.name }}</span></td>
+        <td>{% if row.solved_in_2009 %}<a class="name" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">{{ row.name }}</a>{% else %}<span class="name">{{ row.name }}</span>{% endif %}</td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num mono">{{ row.estimated_operations_2009 or "—" }}</td>
         <td><span class="tag {{ state }}">{{ "Solved by 2009" if row.solved_in_2009 else "Open here" if is_open else "Not open yet" }}</span></td>
