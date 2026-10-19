@@ -245,6 +245,45 @@ def test_status_page_keeps_working_when_import_totals_are_unreadable():
         assert "Counts cover this gateway only." in page
 
 
+def test_status_page_keeps_catalog_when_database_is_unavailable():
+    class UnavailableDB(FakeDB):
+        @contextmanager
+        def connection(self):
+            raise RuntimeError("status database offline")
+            yield
+
+    with TestClient(application(UnavailableDB())) as client:
+        page = client.get("/status")
+        assert page.status_code == 200
+        assert "Live counts are unavailable" in page.text
+        assert "ECC2K-130" in page.text and "2.0e18" in page.text
+        assert 'role="progressbar"' not in page.text
+        assert client.get("/v1/status").status_code == 503
+
+
+def test_account_totals_include_runs_outside_display_limit(database, aws_resources, settings):
+    import uuid
+    from ecc_challenges.service import Service
+    from ecc_challenges.protocol import RECORD_BYTES
+    service = Service(database, aws_resources[0], settings)
+    service.upsert_account(17, "many-runs")
+    key = service.authenticate(service.create_key(17, "rig"))
+    for count in (1, 2, 3):
+        run_id = service.register(key, str(uuid.uuid4()))["run_id"]
+        with database.connection() as conn:
+            conn.execute("UPDATE ecc_public.runs SET total_bytes=%s WHERE run_id=%s",
+                         (count * RECORD_BYTES, run_id))
+            conn.execute("""
+                INSERT INTO ecc_public.batches(run_id,byte_offset,byte_length,records,sha256,object_key)
+                VALUES (%s,0,%s,%s,%s,%s)
+            """, (run_id, count * RECORD_BYTES, count, "c" * 64, f"total/{count}"))
+    activity = service.account_runs(17, limit=1)
+    assert len(activity["runs"]) == 1
+    assert activity["total_runs"] == activity["active_runs"] == 3
+    assert activity["points"] == activity["points_last_hour"] == 6
+    assert activity["points_per_hour"] == round(6 / 24, 1)
+
+
 def test_one_line_installers_are_served_as_text():
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         unix = client.get("/install.sh")
