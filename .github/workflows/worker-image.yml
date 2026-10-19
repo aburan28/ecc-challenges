@@ -37,7 +37,18 @@ jobs:
           tags: |
             type=match,pattern=worker-v(.*),group=1
             type=sha,format=long
+      - name: Build the combined image for offline validation
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: worker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: ecc-challenges-worker:check
+      - name: Check every curve using the packaged CPU backend
+        run: docker run --rm --network none -e ECC_BACKEND=cpu ecc-challenges-worker:check --check
       - uses: docker/build-push-action@v6
+        id: publish
         with:
           context: .
           file: worker/Dockerfile
@@ -47,9 +58,30 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+      - name: Verify anonymous access to the exact published image
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/anonymous-worker"
+          docker --config "$RUNNER_TEMP/anonymous-worker" manifest inspect \
+            "ghcr.io/aburan28/ecc-challenges-worker@$IMAGE_DIGEST" > /dev/null
+
+  validate-cpu:
+    if: ${{ !inputs.source_image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f worker/Dockerfile.cpu -t ecc-challenges-worker-cpu:check .
+      - name: Check every curve on this architecture without credentials or networking
+        run: docker run --rm --network none -e ECC_BACKEND=cpu ecc-challenges-worker-cpu:check --check
 
   build-cpu:
     if: ${{ !inputs.source_image }}
+    needs: validate-cpu
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -69,6 +101,7 @@ jobs:
             type=sha,format=long
             type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/worker-v') }}
       - uses: docker/build-push-action@v6
+        id: publish
         with:
           context: .
           file: worker/Dockerfile.cpu
@@ -78,6 +111,20 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
+      - name: Verify anonymous access and both CPU architectures
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/anonymous-cpu"
+          docker --config "$RUNNER_TEMP/anonymous-cpu" manifest inspect \
+            "ghcr.io/aburan28/ecc-challenges-worker-cpu@$IMAGE_DIGEST" > "$RUNNER_TEMP/cpu-manifest.json"
+          python3 - "$RUNNER_TEMP/cpu-manifest.json" <<'PY'
+          import json, sys
+          with open(sys.argv[1]) as stream:
+              manifest = json.load(stream)
+          platforms = {(m['platform']['os'], m['platform']['architecture']) for m in manifest['manifests']}
+          assert {('linux', 'amd64'), ('linux', 'arm64')} <= platforms, platforms
+          PY
 
   mirror:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_image && github.repository == 'aburan28/ecc-challenges' && github.actor == 'aburan28' }}

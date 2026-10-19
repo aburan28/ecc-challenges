@@ -63,12 +63,12 @@
     {% for challenge in challenges %}
       {% set is_open = multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1" %}
       <tr{% if is_open and not challenge.solved_in_2009 %} class="open"{% endif %}>
-        <td><span class="name">{{ challenge.public().name }}</span></td>
+        <td><a class="name" href="/challenges/{{ challenge.id }}">{{ challenge.public().name }}</a></td>
         <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
         <td class="num">{{ challenge.field_bits }}</td>
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num mono">{{ challenge.estimated_operations_2009 or "—" }}</td>
-        <td>{% if challenge.solved_in_2009 %}<span class="tag solved">Solved by 2009</span>{% elif is_open %}<span class="tag open">Open here</span>{% else %}<span class="tag">Not open yet</span>{% endif %}</td>
+        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/challenges/{{ challenge.id }}">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>

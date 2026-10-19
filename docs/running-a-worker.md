@@ -89,6 +89,49 @@ The CPU engine in new combined builds uses every core it is given. One worker
 per machine is the right shape for CPUs; set `OMP_NUM_THREADS` to limit new
 builds. For GPUs, run one worker per card.
 
+### Hardware coverage
+
+Every implemented backend handles all 24 pinned Certicom instances, including
+prime and binary fields through 359 bits. Hardware acceleration depends on the
+backend and host:
+
+| Host | Worker |
+| --- | --- |
+| Linux x86-64 CPU | Combined image or CPU-only image |
+| Linux arm64 CPU, including Graviton | CPU-only image |
+| Linux x86-64 NVIDIA GPU, Turing through Blackwell | Combined image with CUDA and a compatible host driver |
+| macOS GPU, Apple silicon or Intel Mac with Metal | Native worker; Docker's Linux VM does not expose Metal |
+| Linux AMD or Intel GPU | CPU image uses the host CPU; no ROCm, OpenCL or SYCL backend is implemented |
+| FPGA instance | CPU image can use its host CPU; FPGA acceleration is not implemented |
+
+An FPGA backend needs a board-specific kernel or bitstream and host runtime.
+Mounting an FPGA into a container does not provide the curve arithmetic.
+Docker images here target Linux; native Windows and macOS workers use the same
+arithmetic core. A supported backend does not enable a campaign at the gateway:
+check the live catalog before starting an uploading worker.
+
+### Check a new image on your hardware
+
+New builds include a finite offline check for all 24 curves. It needs no API key,
+does not register a run or alter a checkpoint, and checks actual lane states and
+distinguished points against the Python reference, including invalid-input
+rejections. Each backend runs 168 checks. A GPU check checks both CPU and the
+requested GPU backend; an unavailable requested backend fails.
+
+```sh
+# Use the image you built or a release that includes --check.
+docker run --rm --network none -e ECC_BACKEND=cpu "$ECC_WORKER_IMAGE" --check
+docker run --rm --network none --gpus all -e ECC_BACKEND=cuda "$ECC_WORKER_IMAGE" --check
+```
+
+Set `ECC_CHECK_OUT` to a new directory in a mounted writable volume to retain
+inputs, outputs and a receipt binding the results to each engine's SHA-256.
+Without it, temporary check artifacts are removed. These are bounded
+correctness checks, not throughput measurements or challenge solutions.
+CI checks both final images and runs the CPU image natively on amd64 and arm64.
+The publishing workflow requires the CPU checks and verifies that anonymous
+users can retrieve the published manifests.
+
 ## Docker
 
 The dashboard shows the exact GPU command, with your image digest. On an amd64

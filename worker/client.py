@@ -311,6 +311,11 @@ def main() -> int:
 
 if __name__ == "__main__":
     try:
+        if sys.argv[1:] == ["--check"]:
+            from generic.check import worker_main
+            raise SystemExit(worker_main())
+        if sys.argv[1:]:
+            raise ValueError("usage: client.py [--check]")
         raise SystemExit(main())
     except Exception as exc:
         print(f"public worker failed ({type(exc).__name__}: {exc})", file=sys.stderr)

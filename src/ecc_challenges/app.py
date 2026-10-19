@@ -21,6 +21,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .db import Database
 from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
+from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
 from .security import new_csrf
 from .service import Service, Rejected
@@ -233,6 +234,28 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                           {"snapshot": snapshot, "challenges": CHALLENGES,
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
+
+    @app.get("/challenges/{campaign_id}", response_class=HTMLResponse)
+    async def challenge_page(request: Request, campaign_id: str):
+        challenge = BY_ID.get(campaign_id.lower())
+        if challenge is None:
+            raise StarletteHTTPException(404, "Challenge not found")
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed for challenge page")
+            snapshot = None
+        row = (next((item for item in snapshot["campaigns"] if item["id"] == challenge.id), None)
+               if snapshot else None)
+        return TEMPLATES.TemplateResponse(request, "challenge.html", {
+            "challenge": challenge,
+            "challenges": CHALLENGES,
+            "status": row,
+            "parameters": get_instance(challenge.id).public(),
+            "catalog_source": SOURCE_URL,
+            "catalog_date": SOURCE_DATE,
+            "multicurve_enabled": multicurve_enabled,
+        }, headers={"Cache-Control": "private, no-store"})
 
     @app.get("/v1/status")
     async def status_json():

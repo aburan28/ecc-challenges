@@ -92,6 +92,26 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
+def test_challenge_pages_and_catalog_links_cover_all_24_instances():
+    from ecc_challenges.multicurve.instances import get_instance
+
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        for page_path in ("/", "/status"):
+            page = client.get(page_path)
+            assert page.status_code == 200
+            for challenge in CHALLENGES:
+                assert f'href="/challenges/{challenge.id}"'.encode() in page.content
+
+        for challenge in CHALLENGES:
+            response = client.get(f"/challenges/{challenge.id}")
+            assert response.status_code == 200
+            assert challenge.public()["name"] in response.text
+            assert get_instance(challenge.id).instance_sha256 in response.text
+            assert "/status#challenges" in response.text
+
+        assert client.get("/challenges/not-a-challenge").status_code == 404
+
+
 def test_html_errors_robots_and_share_metadata():
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         home = client.get("/")
