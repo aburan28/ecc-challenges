@@ -141,7 +141,7 @@ jobs:
         run: |
           [[ "$SOURCE_IMAGE" =~ ^public[.]ecr[.]aws/o1a3z1g6/ecc-challenges-worker(-cpu)?@sha256:[0-9a-f]{64}$ ]]
       - name: Install the registry copier
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends skopeo
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends skopeo gh
       - name: Authenticate for public-image transfer
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
