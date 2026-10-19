@@ -1,5 +1,9 @@
 name: Sandbox worker runtimes
 
+concurrency:
+  group: sandbox-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
@@ -29,9 +33,9 @@ permissions:
   contents: read
 
 env:
-  # The pull-request check covers runtime mechanics against the published image.
-  # Dispatch with a newer digest and all_curves=true for full-curve evidence.
-  WORKER_IMAGE: ${{ inputs.image || 'ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee' }}
+  # Snapshot of /v1/campaigns.worker_image when public multicurve enrollment
+  # was enabled. Dispatch with an explicit digest after a later image release.
+  WORKER_IMAGE: ${{ inputs.image || 'ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e' }}
 
 jobs:
   gvisor:
@@ -59,7 +63,7 @@ jobs:
           } | tee "$RUNNER_TEMP/gvisor-host.txt"
       - name: Run offline worker smoke under gVisor
         env:
-          ALL_CURVES: ${{ github.event_name == 'workflow_dispatch' && inputs.all_curves }}
+          ALL_CURVES: ${{ github.event_name == 'pull_request' || inputs.all_curves }}
         run: |
           set -euo pipefail
           args=()

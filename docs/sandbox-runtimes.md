@@ -9,12 +9,12 @@ worker; protocol 2 remains gated while `multicurve_enabled` is false.
 ## Offline CPU smoke
 
 The `Sandbox worker runtimes` workflow runs the gVisor smoke on an Ubuntu
-GitHub runner whenever this check or its overlays change. That pull-request
-job uses the published image digest from `docs/running-a-worker.md` and checks
-runtime mechanics; it does not imply 24-curve coverage for a newer image.
-After publishing an image with `/opt/ecc2k130/client.py --check`, dispatch the
-workflow on the default branch with that exact image digest and
-`all_curves=true`. Keep the resulting version log and detailed receipt.
+GitHub runner whenever this check or its overlays change. The pull-request
+job uses the pinned image advertised by the public campaign catalog when
+24-curve enrollment was enabled and requires the complete offline 24-curve
+check. After a later image release, dispatch the workflow on the default
+branch with the new exact digest and `all_curves=true`. Keep the resulting
+version log and detailed receipt.
 
 To run the Kata job, enroll a dedicated Linux x64 runner with the `kata-kvm`
 label, `/dev/kvm`, Docker 26 or newer, and the `kata` Docker runtime registered
