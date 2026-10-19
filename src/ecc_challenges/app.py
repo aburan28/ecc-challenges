@@ -15,6 +15,7 @@ from botocore.config import Config
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
+from markupsafe import Markup
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.sessions import SessionMiddleware
@@ -31,6 +32,29 @@ from .status import StatusReader
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
+
+
+def power_of_two(exponent: float | None, places: int = 1, title: str | None = None) -> Markup:
+    """2 raised to an operation count's log2, as the site writes work figures."""
+    if exponent is None:
+        return Markup("—")
+    if title is None:
+        title = "about " + f"{2.0 ** exponent:.1e}".replace("e+", " × 10^")
+    return Markup('<span class="pow" title="{}">2<sup>{:.{}f}</sup></span>').format(title, exponent, places)
+
+
+def short_percent(value: float | None) -> str:
+    if value is None:
+        return "—"
+    if value == 0:
+        return "0%"
+    if value < 0.01:
+        return "<0.01%"
+    return f"{value:.2f}%" if value < 10 else f"{value:.1f}%"
+
+
+TEMPLATES.env.filters["pow2"] = power_of_two
+TEMPLATES.env.filters["percent"] = short_percent
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.
 ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
@@ -234,6 +258,17 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                           {"snapshot": snapshot, "challenges": CHALLENGES,
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
+
+    @app.get("/pollard-rho", response_class=HTMLResponse)
+    async def rho_page(request: Request):
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+        except Exception:
+            LOG.exception("public status snapshot failed for the rho page")
+            snapshot = None
+        return TEMPLATES.TemplateResponse(request, "rho.html",
+                                          {"snapshot": snapshot, "catalog_source": SOURCE_URL},
+                                          headers={"Cache-Control": "private, max-age=300"})
 
     @app.get("/challenges/{campaign_id}", response_class=HTMLResponse)
     async def challenge_page(request: Request, campaign_id: str):

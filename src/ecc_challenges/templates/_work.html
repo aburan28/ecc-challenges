@@ -1,0 +1,10 @@
+{# Work figures: Certicom's estimate and the estimated operations done so far, both as 2^x. #}
+{% macro expected(challenge) -%}
+{{ challenge.estimated_operations_log2|pow2(1, "Certicom 2009: " ~ challenge.estimated_operations_2009) }}
+{%- endmacro %}
+{% macro done(row) -%}
+{% if row and row.work_operations_log2 is defined and row.work_operations_log2 is not none -%}
+<span class="work">{{ row.work_operations_log2|pow2 }}<span class="meter" role="img" aria-label="{{ row.expected_work_percent|percent }} of the expected work"><span style="width:{{ [row.expected_work_percent, 100]|min }}%"></span></span><span class="pct">{{ row.expected_work_percent|percent }}</span></span>
+{%- elif row and row.expected_work_percent is defined and row.expected_work_percent is not none -%}<span class="faint">none yet</span>
+{%- else -%}—{%- endif %}
+{%- endmacro %}

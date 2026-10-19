@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from math import log2
 import json
 import secrets
 import uuid
@@ -198,6 +199,29 @@ def test_status_reports_imported_points_beside_gateway_uploads(database, conn):
     assert snapshot["total_historical_points"] == 338
     assert snapshot["total_archived_points"] == 0
     assert snapshot["historical_imported_at"].startswith("20")
+    # 338 DP32 points on the sigma walk, at 2^28.41 steps each.
+    assert row["work_operations_log2"] == round(log2(338) + 28.409072957536694, 2)
+
+
+def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
+    from psycopg.types.json import Jsonb
+
+    from ecc_challenges.multicurve.codec import namespace
+    from ecc_challenges.status import StatusReader
+
+    # Two namespaces for one curve, pinned to different DP bits: 3*2^20 + 5*2^18 steps.
+    for dp_bits, verified in ((20, 3), (18, 5)):
+        ns = namespace("eccp-131", dp_bits)
+        conn.execute("INSERT INTO ecc_public.dp_namespaces(id,campaign_id,manifest,record_bytes) VALUES (%s,%s,%s,%s)",
+                     (ns.id, "eccp-131", Jsonb(ns.public()), ns.record_bytes))
+        conn.execute("""INSERT INTO ecc_public.dp_namespace_stats(namespace_id,shard,admitted_records,verified_records)
+                        VALUES (%s,0,%s,%s)""", (ns.id, verified, verified))
+    row = next(c for c in StatusReader(database, ttl_seconds=0, multicurve_enabled=True).read()["campaigns"]
+               if c["id"] == "eccp-131")
+    assert row["generic_verified_points"] == 8
+    assert row["work_operations_log2"] == round(log2(3 * 2**20 + 5 * 2**18), 2)
+    assert row["expected_operations_log2"] == 65.42
+    assert 0 < row["estimated_completion_probability_percent"] < 1e-10
 
 
 def test_status_survives_a_web_role_without_the_totals_grant(postgres_dsn, database, conn):

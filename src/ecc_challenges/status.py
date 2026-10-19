@@ -9,8 +9,13 @@ from time import monotonic
 
 from psycopg import errors
 
+from math import log2
+
 from .catalog import CHALLENGES
+from .multicurve.codec import expected_steps_log2
+from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, RECORD_BYTES
+from .work import SIGMA_DP_LOG2, estimate, sigma_expected_log2
 
 LOG = logging.getLogger(__name__)
 
@@ -97,10 +102,40 @@ class StatusReader:
                     """).fetchall()
                     for row in pending:
                         generic.setdefault(row["campaign_id"], {}).update(row)
+                    # A namespace keeps the DP bits it was pinned to, so work is
+                    # summed per setting rather than per campaign.
+                    spacing = conn.execute("""
+                        SELECT n.campaign_id,(n.manifest#>>'{walk,dp_bits}')::int AS dp_bits,
+                          coalesce(sum(s.verified_records),0) AS verified
+                        FROM ecc_public.dp_namespace_stats s
+                        JOIN ecc_public.dp_namespaces n ON n.id=s.namespace_id
+                        GROUP BY 1,2
+                    """).fetchall()
+                    for row in spacing:
+                        generic.setdefault(row["campaign_id"], {}).setdefault("work", []).append(
+                            (int(row["verified"]), -int(row["dp_bits"])))
+            def work(challenge, legacy_points):
+                """Estimated operations behind this curve's points, per walk."""
+                order = get_instance(challenge.id).n
+                walks = [(points, dp_log2, expected_steps_log2(order))
+                         for points, dp_log2 in generic.get(challenge.id, {}).get("work", ())]
+                if challenge.id == CAMPAIGN:
+                    walks.append((legacy_points, SIGMA_DP_LOG2, sigma_expected_log2(order)))
+                result = estimate(walks)
+                # Expected work for the walk this campaign's default worker runs.
+                expected = sigma_expected_log2(order) if challenge.id == CAMPAIGN else expected_steps_log2(order)
+                return {"work_operations_log2": result["operations_log2"],
+                        "expected_operations_log2": round(expected, 2),
+                        "expected_work_percent": result["expected_work_percent"],
+                        "estimated_completion_probability_percent":
+                            result["estimated_completion_probability_percent"]}
+
             def campaign_row(challenge):
                 legacy = challenge.id == CAMPAIGN
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
+                legacy_points = (int(runs["bytes"]) // RECORD_BYTES
+                                 + (int(historical["points"]) if historical else 0)) if legacy else 0
                 return {**challenge.public(self.multicurve_enabled),
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
@@ -116,19 +151,27 @@ class StatusReader:
                     "generic_unique_points": int(current.get("unique_points", 0)) if self.multicurve_enabled else None,
                     # Imported from the earlier private run; not in received_points.
                     "historical_points": int(historical["points"]) if legacy and historical else None,
-                    "estimated_completion_probability_percent": None}
+                    **(work(challenge, legacy_points) if enabled else
+                       dict.fromkeys(("work_operations_log2", "expected_operations_log2",
+                                      "expected_work_percent",
+                                      "estimated_completion_probability_percent")))}
             snapshot = {
                 "as_of": datetime.now(timezone.utc).isoformat(),
                 "compute_ready": 24 if self.multicurve_enabled else 1,
                 "campaigns": [campaign_row(challenge) for challenge in CHALLENGES],
                 "progress_note": (
-                    "Accepted points are archived uploads, not verified curve operations. "
-                    "A completion percentage needs independently verified work and a "
-                    "campaign-specific collision model; these are not yet available."
+                    "Operations are estimated, not measured: each stored distinguished point "
+                    "stands for the expected number of walk steps between distinguished points "
+                    "(2^28.41 on the ECC2K-130 sigma walk at Hamming weight 32, 2^d for a v2 "
+                    "namespace with d DP bits). Completion probability is the chance that rho "
+                    "would have produced a collision after that much work."
                 ),
             }
             snapshot["total_archived_points"] = sum(row["received_points"] or 0 for row in snapshot["campaigns"])
             snapshot["total_v2_verified_points"] = sum(row["generic_verified_points"] or 0 for row in snapshot["campaigns"])
+            total_work = sum(2.0 ** row["work_operations_log2"] for row in snapshot["campaigns"]
+                             if row["work_operations_log2"] is not None)
+            snapshot["total_work_operations_log2"] = round(log2(total_work), 2) if total_work else None
             # total_archived_points stays this gateway's uploads only; the import is reported beside it.
             snapshot["total_historical_points"] = int(historical["points"]) if historical else None
             snapshot["historical_imported_at"] = (historical["last_loaded_at"].isoformat()

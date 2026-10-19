@@ -85,12 +85,15 @@ def test_catalog_site_status_and_fail_closed_registration():
         status = client.get("/v1/status").json()
         assert status["campaigns"][6]["received_points"] == 10
         assert status["campaigns"][6]["pending_batches"] == 4
-        assert status["campaigns"][6]["estimated_completion_probability_percent"] is None
+        assert status["campaigns"][6]["estimated_completion_probability_percent"] > 0
         assert status["campaigns"][19]["received_points"] is None
+        assert status["campaigns"][19]["work_operations_log2"] is None
+        assert status["campaigns"][19]["estimated_completion_probability_percent"] is None
+        assert status["campaigns"][19]["estimated_operations_2009_log2"] == 64.92
         page = client.get("/status")
         assert page.status_code == 200
         assert b"Live status" in page.content
-        assert b"2.0e18" in page.content
+        assert b"2.0e18" in page.content and b"2<sup>60.8</sup>" in page.content
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
@@ -128,6 +131,52 @@ def test_html_errors_robots_and_share_metadata():
         assert signed_out.status_code == 401 and b"/auth/github" in signed_out.content
         robots = client.get("/robots.txt")
         assert robots.status_code == 200 and "Disallow: /dashboard" in robots.text
+
+
+def test_work_is_estimated_from_stored_points_as_powers_of_two():
+    from math import comb, log2
+
+    from ecc_challenges.multicurve.instances import get_instance
+    from ecc_challenges.work import SIGMA_DP_LOG2, estimate, sigma_expected_log2
+
+    # Even-weight 131-bit normal-basis x with weight <= 32: 2^-28.41 of them.
+    assert abs(SIGMA_DP_LOG2 - (log2(sum(comb(131, w) for w in range(0, 33, 2))) - 130)) < 1e-12
+    assert round(SIGMA_DP_LOG2, 2) == -28.41
+    # The sigma walk's expectation matches Certicom's 2.0e18 to within rounding.
+    assert abs(sigma_expected_log2(get_instance("ecc2k-130").n) - BY_ID["ecc2k-130"].estimated_operations_log2) < 0.02
+    # Exactly the expected work gives rho a 1 - exp(-pi/4) chance.
+    at_expected = estimate([(2**30, -30.0, 60.0)])
+    assert at_expected["operations_log2"] == 60.0 and at_expected["expected_work_percent"] == 100
+    assert round(at_expected["estimated_completion_probability_percent"], 1) == 54.4
+    # Two independent walks: work adds, and so do their squared shares.
+    both = estimate([(2**29, -30.0, 60.0), (2**29, -30.0, 60.0)])
+    assert both["operations_log2"] == 60.0 and round(both["expected_work_percent"], 2) == 70.71
+    assert estimate([])["operations_log2"] is None
+
+    with TestClient(application()) as client:
+        row = client.get("/v1/status").json()["campaigns"][6]
+        # 10 uploaded + 338,034,791 imported DP32 points.
+        assert row["work_operations_log2"] == 56.74 and row["expected_operations_log2"] == 60.81
+        assert round(row["expected_work_percent"], 1) == 6.0
+        assert round(row["estimated_completion_probability_percent"], 2) == 0.28
+        assert client.get("/v1/status").json()["total_work_operations_log2"] == 56.74
+        for path in ("/", "/status", "/challenges/ecc2k-130"):
+            assert "2<sup>56.7</sup>" in client.get(path).text
+        assert "0.28%" in client.get("/challenges/ecc2k-130").text
+
+
+def test_pollard_rho_page_explains_the_walk_estimate_and_kernels():
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        page = client.get("/pollard-rho")
+        assert page.status_code == 200 and page.headers["cache-control"] == "private, max-age=300"
+        for anchor in ("problem", "rho", "parallel", "automorphisms", "walk", "estimate", "kernels", "checks"):
+            assert f'id="{anchor}"' in page.text and f'href="#{anchor}"' in page.text
+        assert "clmad.lo.u64" in page.text and "Itoh–Tsujii" in page.text
+        # The live figure for ECC2K-130 comes from the same snapshot as /status.
+        assert "338,034,801 stored points" in page.text and "2<sup>56.74</sup>" in page.text
+        assert 'href="/pollard-rho"' in client.get("/").text
+    with TestClient(application(FakeDB(historical=errors.InsufficientPrivilege("denied")))) as client:
+        assert client.get("/pollard-rho").status_code == 200
 
 
 def test_status_reader_caches_database_snapshot():

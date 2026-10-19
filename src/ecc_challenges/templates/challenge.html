@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_work.html" as work %}
 {% set challenge_name = challenge.public().name %}
 {% set is_open = (status and status.received_points is not none) or (not status and (multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1")) %}
 {% block title %}{{ challenge_name }} · ECC Challenges{% endblock %}
@@ -11,14 +12,18 @@
 
 <dl class="stats" aria-label="Challenge summary">
   <div class="stat"><dt>Status</dt><dd>{% if challenge.solved_in_2009 %}Solved<small>Certicom's 2009 snapshot</small>{% elif is_open %}Open here<small>accepting worker points</small>{% else %}Not open yet<small>not accepting worker points</small>{% endif %}</dd></div>
-  <div class="stat"><dt>Field size</dt><dd>{{ challenge.field_bits }}<small>bits</small></dd></div>
-  <div class="stat"><dt>Estimated operations</dt><dd class="mono">{{ challenge.estimated_operations_2009 or "—" }}<small>Certicom 2009 estimate</small></dd></div>
+  <div class="stat"><dt>Expected operations</dt><dd>{{ work.expected(challenge) }}<small>Certicom 2009: {{ challenge.estimated_operations_2009 or "—" }}</small></dd></div>
+  <div class="stat"><dt>Work so far</dt><dd>{% if status and status.expected_work_percent is not none %}{{ status.work_operations_log2|pow2 if status.work_operations_log2 is not none else "0" }}<small>{{ status.expected_work_percent|percent }} of this walk's {{ status.expected_operations_log2|pow2 }}</small>{% else %}—<small>estimated operations</small>{% endif %}</dd></div>
+  <div class="stat"><dt>Collision odds</dt><dd>{% if status and status.estimated_completion_probability_percent is not none %}{{ status.estimated_completion_probability_percent|percent }}<small>chance rho would have hit one by now</small>{% else %}—<small>after the work so far</small>{% endif %}</dd></div>
   <div class="stat"><dt>Archived points</dt><dd>{% if status and is_open %}{{ "{:,}".format((status.received_points or 0) + (status.historical_points or 0)) }}{% else %}—{% endif %}<small>gateway total{% if status and status.generic_verified_points is not none %}; {{ "{:,}".format(status.generic_verified_points) }} verified{% endif %}</small></dd></div>
   <div class="stat"><dt>Runs</dt><dd>{% if status and is_open %}{{ "{:,}".format(status.total_runs or 0) }}{% else %}—{% endif %}<small>registered here</small></dd></div>
   <div class="stat"><dt>Active 24 h</dt><dd>{% if status and is_open %}{{ "{:,}".format(status.recent_runs_24h or 0) }}{% else %}—{% endif %}<small>recent runs</small></dd></div>
   <div class="stat"><dt>Queued</dt><dd>{% if status and is_open %}{{ "{:,}".format(status.pending_batches or 0) }}{% else %}—{% endif %}<small>batches awaiting checks</small></dd></div>
 </dl>
 
+{% if status and status.expected_operations_log2 is not none and challenge.estimated_operations_log2 and (status.expected_operations_log2 - challenge.estimated_operations_log2)|abs > 0.1 %}
+<p class="table-note">This project's walk for {{ challenge_name }} expects {{ status.expected_operations_log2|pow2(2) }} operations rather than Certicom's {{ challenge.estimated_operations_log2|pow2(2) }}, because it does not yet fold in the {% if challenge.id.startswith("ecc2k") %}negation and Frobenius maps{% else %}negation map{% endif %}. <a href="/pollard-rho#automorphisms">Why that matters</a>.</p>
+{% endif %}
 {% if not status %}<div class="panel alert" style="margin-top:24px"><p>Live status is unavailable right now. The published challenge parameters remain available below.</p></div>{% endif %}
 {% if not challenge.solved_in_2009 and not is_open %}
 <div class="panel" style="margin-top:24px">
