@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 from psycopg import errors
 
@@ -44,15 +45,16 @@ class FakeDB:
         yield conn
 
 
-def application(db=None):
+def application(db=None, multicurve_enabled=False):
     settings = SimpleNamespace(database_url="", region="us-west-2", bucket="unused",
-                               stream_id="test", github_client_id="test-id",
+                               stream_id="test", github_client_id="test-id", multicurve_enabled=multicurve_enabled,
                                github_client_secret="test-secret",
                                session_secret="s" * 48,
                                public_origin="https://ecc-challenges.com",
                                public_worker_image="example.invalid/image@sha256:" + "a" * 64,
                                public_cpu_worker_image="ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:" + "b" * 64)
-    return create_app(settings, db=db or FakeDB(), storage=object())
+    return create_app(settings, db=db or FakeDB(),
+                      storage=SimpleNamespace(s3=None, bucket="unused", stream_id="test"))
 
 
 def test_certicom_catalog_has_all_published_names_and_exact_campaign_boundary():
@@ -75,7 +77,11 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert catalog.status_code == 200
         assert len(catalog.json()["campaigns"]) == 24
         assert catalog.json()["cpu_worker_image"].endswith("b" * 64)
-        assert client.get("/v1/config?campaign=ecc2k-130").json()["campaign"] == "ecc2k-130"
+        config = client.get("/v1/config?campaign=ecc2k-130").json()
+        assert config["campaign"] == "ecc2k-130"
+        assert config["recommended_dp_weight"] == 34
+        assert config["supported_dp_weights"] == [30, 32, 34]
+        assert config["dp_weight"] == 32  # clients without threshold support
         assert client.get("/v1/config?campaign=eccp-131").status_code == 409
         assert client.get("/v1/config?campaign=not-a-challenge").status_code == 404
         refused = client.post("/v1/register", headers={"X-Campaign-Id": "eccp-131"})
@@ -218,3 +224,35 @@ def test_dashboard_shows_setup_for_each_system():
         assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
         assert ("CPU, with Docker (x86-64 or ARM64)" in page) is enabled
         assert ("ecc-challenges-worker-cpu@sha256:" in page) is enabled
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_dashboard_threshold_selector_generates_isolated_compatible_commands(monkeypatch, enabled):
+    import base64
+    import json
+    from itsdangerous import TimestampSigner
+    from ecc_challenges.service import Service
+
+    monkeypatch.setattr(Service, "account_keys", lambda *args: [])
+    app = application(multicurve_enabled=enabled)
+    session = TimestampSigner("s" * 48).sign(base64.b64encode(json.dumps(
+        {"github_id": 1, "login": "test", "csrf": "test"}).encode())).decode()
+    with TestClient(app, base_url="https://ecc-challenges.com") as client:
+        client.cookies.set("ecc_session", session)
+        for weight in (None, 30, 32, 34):
+            path = "/dashboard?campaign=ecc2k-130" + (f"&dp_weight={weight}" if weight else "")
+            page = client.get(path)
+            assert page.status_code == 200
+            assert f'<option value="{weight or 34}" selected>' in page.text
+            assert "DP34 — recommended" in page.text
+            assert f"DP_WEIGHT={weight or 34}\n" in page.text
+            assert "-e ECC_PROTOCOL=1" in page.text
+            assert '-e ECC_DP_WEIGHT="$DP_WEIGHT"' in page.text
+            assert 'ecc-data-$CAMPAIGN-dp$DP_WEIGHT-$GPU_ID:/data' in page.text
+        assert client.get("/dashboard?dp_weight=36").status_code == 400
+        if enabled:
+            other = client.get("/dashboard?campaign=eccp-131").text
+            assert 'id="dp-weight"' not in other
+            assert "ECC_DP_WEIGHT" not in other
+            assert "-e ECC_PROTOCOL=2" in other
+            assert 'ecc-data-$CAMPAIGN-$GPU_ID:/data' in other

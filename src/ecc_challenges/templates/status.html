@@ -48,9 +48,9 @@
     <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
     <p class="muted">There is no percent-complete figure. Rho is a random search: a collision can arrive at any time, and point counts alone don't say how much verified work was done. A completion estimate will appear once a challenge has an independently checked work count and a published collision model.</p>
     {% if imported %}
-    <p class="muted">Point totals include {{ "{:,}".format(imported) }} distinct DP32 points from the earlier private ECC2K-130 run{% if snapshot.historical_imported_at %}, last loaded {{ snapshot.historical_imported_at[:10] }}{% endif %}. Every new public point is matched against them. Runs and queue depth count this gateway only.</p>
+    <p class="muted">Point totals include {{ "{:,}".format(imported) }} distinct historical points from the earlier private ECC2K-130 run{% if snapshot.historical_imported_at %}, last loaded {{ snapshot.historical_imported_at[:10] }}{% endif %}. Compatible DP30, DP32 and DP34 uploads are matched against them. Runs and queue depth count this gateway only.</p>
     {% else %}
-    <p class="muted">Counts cover this gateway only. The earlier private ECC2K-130 run's 338,034,791 distinct DP32 points were imported on 17 October 2026, and every new public point is matched against them.</p>
+    <p class="muted">Counts cover this gateway only. Historical totals are unavailable right now. Compatible DP30, DP32 and DP34 uploads are matched against the imported ECC2K-130 points.</p>
     {% endif %}
   </div>
   <div class="panel">

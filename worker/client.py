@@ -106,17 +106,24 @@ def ensure_identity(api: API, root: Path) -> dict:
         if int(os.environ.get("ECC_DP_WEIGHT", str(api.dp_weight))) != api.dp_weight:
             raise RuntimeError("existing run has a different reporting threshold; use a separate state directory")
     else:
-        api.dp_weight = int(os.environ.get("ECC_DP_WEIGHT", str(DP_WEIGHT)))
-        if api.dp_weight not in DP_WEIGHTS or api.dp_weight not in config.get("supported_dp_weights", [config.get("dp_weight")]):
-            raise RuntimeError("gateway does not support the requested sigma reporting threshold")
         if any((root / name).exists() for name in ("dps.bin", "state.ck")):
             raise RuntimeError("walk data exists without its run identity; preserve it for recovery")
         nonce_path = root / "registration.json"
         if nonce_path.is_file():
-            nonce = json.loads(nonce_path.read_text())["registration_id"]
+            registration = json.loads(nonce_path.read_text())
+            nonce = registration["registration_id"]
+            # A retry must retain the original threshold even if the server's
+            # recommendation changes after accepting the first request.
+            chosen = registration.get("dp_weight", int(os.environ.get("ECC_DP_WEIGHT", str(DP_WEIGHT))))
+            if type(chosen) is not int or int(os.environ.get("ECC_DP_WEIGHT", str(chosen))) != chosen:
+                raise RuntimeError("pending registration has a different reporting threshold; preserve its state directory")
         else:
             nonce = str(uuid.uuid4())
-            atomic_json(nonce_path, {"registration_id": nonce})
+            chosen = int(os.environ.get("ECC_DP_WEIGHT", str(config.get("recommended_dp_weight", config.get("dp_weight", DP_WEIGHT)))))
+        api.dp_weight = chosen
+        if api.dp_weight not in DP_WEIGHTS or api.dp_weight not in config.get("supported_dp_weights", [config.get("dp_weight")]):
+            raise RuntimeError("gateway does not support the requested sigma reporting threshold")
+        atomic_json(nonce_path, {"registration_id": nonce, "dp_weight": api.dp_weight})
         api.registration_id = nonce
         result = api.request("POST", "/v1/register", b"")
         if (result.get("campaign"), result.get("walk_id"), result.get("dp_weight", DP_WEIGHT)) != (api.campaign, WALK_ID, api.dp_weight):

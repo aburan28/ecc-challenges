@@ -8,6 +8,8 @@ CAMPAIGN = "ecc2k-130"
 WALK_ID = "certicom-ecc2k130-frobenius-v1"
 DP_WEIGHT = 32
 DP_WEIGHTS = (30, 32, 34)
+# Keep the original wire/checkpoint default for clients without a threshold.
+RECOMMENDED_DP_WEIGHT = 34
 RECORD_BYTES = 32
 MAX_BATCH_BYTES = 1024 * 1024
 MAX_CHECKPOINT_BYTES = 128 * 1024 * 1024

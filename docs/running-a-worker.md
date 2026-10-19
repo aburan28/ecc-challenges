@@ -361,11 +361,18 @@ ECC_DP_WEIGHT=34
 Pass these as environment variables to the worker alongside your existing API
 key and state-volume configuration. This sigma implementation requires an
 NVIDIA GPU. The gateway advertises supported weights in `/v1/config`.
-`ECC_DP_WEIGHT` accepts 30, 32 or 34; a new sigma run defaults to 32. The chosen
+`ECC_DP_WEIGHT` accepts 30, 32 or 34. DP34 is recommended for new NVIDIA sigma
+workers and is preselected on the dashboard. New clients use the gateway's
+`recommended_dp_weight` (currently 34) unless `ECC_DP_WEIGHT` is set. The chosen
 weight becomes part of the run and checkpoint binding and cannot be changed
-when resuming. Existing sigma checkpoints continue as DP32.
+when resuming. Existing sigma checkpoints retain their original threshold;
+old checkpoints without threshold metadata remain DP32. Pending registrations
+also retain their threshold across retries. Use a separate state directory
+when starting a different threshold.
 
 These are Hamming-weight thresholds: DP34 emits more frequently than DP32.
+This recommendation is not a measured claim of the fastest time to a solution;
+GPU throughput, upload/index capacity and continuation costs also matter.
 Protocol 2's `dp_bits=34` belongs to a different walk and does not query the
 legacy archive. The operator's bounded continuation jobs described in
 [operations](operations.md#reusing-legacy-dp30dp32-records-with-sigma-dp34-runs)

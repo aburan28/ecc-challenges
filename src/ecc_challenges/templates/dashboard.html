@@ -53,6 +53,7 @@ mkdir -p ~/.config/ecc-challenges
   {% set sh_env = "" %}{% set ps_env = "" %}
   {% endif %}
   {% set native_off %}{% if not multicurve_enabled %}<p class="note pending"><strong>Not accepting work yet.</strong> Native workers run the all-curves release, which is not switched on (<a href="/v1/campaigns">/v1/campaigns</a>). You can install now; until it is on, only the NVIDIA Docker worker is accepted.</p>{% endif %}{% endset %}
+  {% set sigma_worker = selected_campaign == "ecc2k-130" or not multicurve_enabled %}
 
   <div class="os-tabs">
     {% for id, name in [("linux", "Linux"), ("macos", "macOS"), ("windows", "Windows"), ("other", "Servers &amp; cloud")] %}
@@ -62,23 +63,34 @@ mkdir -p ~/.config/ecc-challenges
     <div class="os-panel linux">
       <h3>NVIDIA GPU, with Docker</h3>
       <p class="muted">Needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>. Save your key as shown in step 1 first.</p>
+      {% if sigma_worker %}
+      <form method="get" action="/dashboard" style="margin-bottom:18px">
+        <input type="hidden" name="campaign" value="ecc2k-130">
+        <label for="dp-weight">Distinguished points</label>
+        <div class="row"><select id="dp-weight" name="dp_weight">{% for weight in sigma_dp_weights %}<option value="{{ weight }}"{% if weight == selected_dp_weight %} selected{% endif %}>DP{{ weight }}{% if weight == recommended_dp_weight %} — recommended{% endif %}</option>{% endfor %}</select><button class="button ghost" type="submit">Update command</button></div>
+      </form>
+      <p class="muted">DP34 is recommended for new NVIDIA workers and reports points more frequently. DP32 and DP30 are also accepted. All three can match compatible points from the earlier ECC2K-130 search.</p>
+      <p class="note">Use a separate directory for each threshold. Resume an existing run with its original command and directory. CPU and Mac workers below use a separate search and do not use this setting.</p>
+      {% endif %}
 <pre><span class="c"># one directory per GPU; keep it between restarts</span>
 GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
-mkdir -p "$PWD/ecc-data-$CAMPAIGN-$GPU_ID"
+{% if sigma_worker %}DP_WEIGHT={{ selected_dp_weight }}
+{% endif %}mkdir -p "$PWD/ecc-data-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID"
 
 docker run --gpus all --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_GPU="$GPU_ID" \
   -e ECC_CAMPAIGN="$CAMPAIGN" \
-  -e ECC_PROTOCOL={{ 2 if multicurve_enabled else 1 }} \
-  -e ECC_API_URL=https://ecc-challenges.com \
+  -e ECC_PROTOCOL={{ 1 if sigma_worker else 2 }} \
+{% if sigma_worker %}  -e ECC_DP_WEIGHT="$DP_WEIGHT" \
+{% endif %}  -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
-  -v "$PWD/ecc-data-$CAMPAIGN-$GPU_ID:/data" \
+  -v "$PWD/ecc-data-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID:/data" \
   {{ worker_image }}</pre>
       <ul class="plain note">
         <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
-        {% if multicurve_enabled %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
+        {% if multicurve_enabled and not sigma_worker %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
       </ul>
       {% if multicurve_enabled and cpu_worker_image %}
       <h3>CPU, with Docker (x86-64 or ARM64)</h3>

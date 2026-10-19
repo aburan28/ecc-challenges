@@ -22,7 +22,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from .db import Database
 from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
 from .multicurve.instances import get_instance
-from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
+from .protocol import (CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECOMMENDED_DP_WEIGHT,
+                       RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES)
 from .security import new_csrf
 from .service import Service, Rejected
 from .settings import Settings
@@ -290,8 +291,10 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return RedirectResponse("/", status_code=303)
 
     @app.get("/dashboard", response_class=HTMLResponse)
-    async def dashboard(request: Request):
+    async def dashboard(request: Request, dp_weight: int = RECOMMENDED_DP_WEIGHT):
         account_id = require_session(request)
+        if dp_weight not in DP_WEIGHTS:
+            raise Rejected(400, "unsupported sigma reporting threshold")
         if "csrf" not in request.session:
             request.session["csrf"] = new_csrf()
         keys = await run_in_threadpool(service.account_keys, account_id)
@@ -301,8 +304,10 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
              "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
+             "selected_dp_weight": dp_weight, "recommended_dp_weight": RECOMMENDED_DP_WEIGHT,
+             "sigma_dp_weights": sorted(DP_WEIGHTS, reverse=True),
              "selected_campaign": request.query_params.get("campaign", CAMPAIGN)
-                 if request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
+                 if multicurve_enabled and request.query_params.get("campaign", CAMPAIGN) in BY_ID else CAMPAIGN},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.post("/keys", response_class=HTMLResponse)
@@ -318,6 +323,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
              "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
              "multicurve_enabled": multicurve_enabled, "selected_campaign": CAMPAIGN,
+             "selected_dp_weight": RECOMMENDED_DP_WEIGHT, "recommended_dp_weight": RECOMMENDED_DP_WEIGHT,
+             "sigma_dp_weights": sorted(DP_WEIGHTS, reverse=True),
              "client_os": client_os(request)},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
@@ -345,7 +352,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         if challenge.contribution != "ecc2k130_gpu_v1":
             raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         return {"campaign": CAMPAIGN, "walk_id": WALK_ID,
-                "dp_weight": DP_WEIGHT, "supported_dp_weights": [30, 32, 34], "record_bytes": RECORD_BYTES,
+                "dp_weight": DP_WEIGHT, "supported_dp_weights": list(DP_WEIGHTS),
+                "recommended_dp_weight": RECOMMENDED_DP_WEIGHT, "record_bytes": RECORD_BYTES,
                 "max_batch_bytes": MAX_BATCH_BYTES}
 
     @app.post("/v1/register")

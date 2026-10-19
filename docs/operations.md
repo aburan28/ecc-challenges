@@ -316,7 +316,10 @@ container. The public release must work with an anonymous provider pull.
 ## Reusing legacy DP30/DP32 records with sigma DP34 runs
 
 Migration `008_sigma_compatibility.sql` binds each protocol-1 run to Hamming
-weight 30, 32 or 34. Existing runs remain DP32. Historical records retain their
+weight 30, 32 or 34. The dashboard recommends DP34 for new NVIDIA sigma workers;
+`/v1/config` advertises `recommended_dp_weight: 34`. The original `dp_weight: 32`
+and registration fallback remain for older clients, and existing runs retain
+their registered threshold. Historical records retain their
 seed and may retain an unknown original threshold: the weight of an endpoint
 alone cannot establish which stopping rule generated it. The resolver reaches
 the stored endpoint when that threshold is unknown, with a finite replay bound.

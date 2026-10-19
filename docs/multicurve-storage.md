@@ -25,7 +25,9 @@ Each record stores `trail_id:u64le | steps:u64le | x:BE | y:BE | a:BE | b:BE`,
 where `R=aG+bQ`. Widths are fixed per namespace, derived from field and subgroup
 sizes: 56–196 bytes for this registry. Scalars are binary, avoiding database
 numeric precision limits. Finite points whose SHA-256 of canonical x||y has trailing DP bits zero qualify; the first hash byte selects the walk partition.
-V1 retains its original DP32 Frobenius predicate.
+V1 uses the Frobenius Hamming-weight predicate with per-run limits 30, 32 or 34;
+new NVIDIA sigma runs are recommended to use 34. Its thresholds are distinct
+from V2's hash-bit predicate and never change an existing run.
 
 DP bits are set per curve (`dp_bits_for` in `multicurve/codec.py`). This walk
 has no automorphism quotient, so a solve takes about E = sqrt(pi*n/2) steps.
