@@ -319,6 +319,29 @@ void self_test() {
             require(is_one(binary_multiply(small(a), inv, binary)), "binary inverse");
         }
     }
+    // Match the full-width shift and polynomial fold at every word boundary.
+    for (int degree = 2; degree <= 359; ++degree) {
+        Job check{};
+        check.kind = 1;
+        check.field_bits = std::uint32_t(degree);
+        check.modulus = small(3);
+        check.modulus.w[degree / 32] |= 1U << (degree % 32);
+        for (int pattern = 0; pattern < 4; ++pattern) {
+            UInt384 value{};
+            for (int i = 0; i < (degree + 31) / 32; ++i)
+                value.w[i] = (pattern & 1) ? 0xffffffffU
+                    : std::uint32_t(0x9e3779b9U * std::uint32_t(i + degree + pattern));
+            value.w[(degree - 1) / 32] &=
+                0xffffffffU >> (31 - ((degree - 1) % 32));
+            if (pattern & 2)
+                value.w[(degree - 1) / 32] |= 1U << ((degree - 1) % 32);
+            UInt384 expected = shift_left(value, 1);
+            if (bit(value, degree - 1))
+                expected = xor_value(expected, check.modulus);
+            require(equal(binary_xtime(value, check), expected),
+                    "binary xtime reference mismatch");
+        }
+    }
     Job curve{}; curve.modulus = small(17); curve.field_bits = 5;
     curve.a = small(2); curve.b = small(2);
     const Point g{small(5), small(1), 0};

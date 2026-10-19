@@ -1,0 +1,92 @@
+✓ Initialized. View run at 
+https://modal.com/apps/a-buran28/main/ap-ZAGcBp9Woq3e2NqZvofrMd
+✓ Created objects.
+├── 🔨 Created mount 
+│   /Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/scripts/b
+│   ench_modal_binary_rho.py
+├── 🔨 Created mount 
+│   /Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/worker/ge
+│   neric/engine.cu
+├── 🔨 Created mount 
+│   /Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/verificat
+│   ion/all-curves-20261016/xtime-20261016/baseline-ec_core.h
+├── 🔨 Created mount 
+│   /Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/worker/ge
+│   neric/engine.cu
+├── 🔨 Created mount 
+│   /Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/worker/ge
+│   neric/ec_core.h
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-130/mixed-dp40-cp
+│   u/job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-130/mixed-dp40-cp
+│   u/in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-131/mixed-dp40-cpu
+│   /job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-131/mixed-dp40-cpu
+│   /in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-163/mixed-dp40-cp
+│   u/job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-163/mixed-dp40-cp
+│   u/in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-163/mixed-dp40-cpu
+│   /job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-163/mixed-dp40-cpu
+│   /in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-191/mixed-dp40-cpu
+│   /job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-191/mixed-dp40-cpu
+│   /in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-238/mixed-dp40-cp
+│   u/job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-238/mixed-dp40-cp
+│   u/in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-238/mixed-dp40-cpu
+│   /job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-238/mixed-dp40-cpu
+│   /in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-358/mixed-dp40-cp
+│   u/job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2k-358/mixed-dp40-cp
+│   u/in.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-353/mixed-dp40-cpu
+│   /job.bin
+├── 🔨 Created mount 
+│   /private/tmp/ecc_binary_xtime_main_controls_20261019/ecc2-353/mixed-dp40-cpu
+│   /in.bin
+└── 🔨 Created function measure.
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 13.0.2
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+{"receipt": "/Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/verification/all-curves-20261016/xtime-20261016/main-adaptation/l4-matched-20261019-attempt2/receipt.json", "raw": "/Volumes/SSD990-2/cryptanalysis/wt/codex-binary-rho-bench-20261016/verification/all-curves-20261016/xtime-20261016/main-adaptation/l4-matched-20261019-attempt2/raw.tar.gz", "rows": 54, "comparisons": 18}
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 
+https://modal.com/apps/a-buran28/main/ap-ZAGcBp9Woq3e2NqZvofrMd
