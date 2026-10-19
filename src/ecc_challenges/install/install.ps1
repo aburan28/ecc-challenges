@@ -6,7 +6,7 @@
 # to %USERPROFILE%\.config\ecc-challenges\api-key, readable only by you) and
 # offers to start a worker. Run it again to update. Settings, as environment
 # variables: ECC_CAMPAIGN (default eccp-131), ECC_STATE_DIR, ECC_REF (git ref,
-# default main), ECC_START=no. Needs Python 3.10+, CMake and the Visual Studio
+# default tested release), ECC_START=no. Needs Python 3.10+, CMake and the Visual Studio
 # 2022 C++ build tools; this script prints the winget commands if one is
 # missing. Source: deploy\native\install.ps1 at
 # https://github.com/aburan28/ecc-challenges
@@ -17,7 +17,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $repo = 'aburan28/ecc-challenges'
 $api = if ($env:ECC_API_URL) { $env:ECC_API_URL } else { 'https://ecc-challenges.com' }
-$ref = if ($env:ECC_REF) { $env:ECC_REF } else { 'main' }
+$ref = if ($env:ECC_REF) { $env:ECC_REF } else { '57429625caa4c2e885a3fb79dd5eff66fea0e55e' }
 $campaign = if ($env:ECC_CAMPAIGN) { $env:ECC_CAMPAIGN } else { 'eccp-131' }
 $state = if ($env:ECC_STATE_DIR) { $env:ECC_STATE_DIR } else { Join-Path $env:USERPROFILE "ecc-data\$campaign" }
 $prefix = Join-Path $env:LOCALAPPDATA 'ecc-challenges'
