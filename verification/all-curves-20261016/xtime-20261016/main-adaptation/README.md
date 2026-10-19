@@ -16,6 +16,10 @@ The focused portable-engine suite completed with 26 passed and 27 platform
 or toolchain skips (`PYTHONPATH=src python3 -m pytest -q
 worker/tests/test_portable_engine.py`).
 
+The local CMake macOS Metal-wrapper build succeeded with CUDA and OpenMP
+disabled. `ctest` passed both the engine self-test and probe. The probe
+reported no accessible Metal device, so this did not execute the shader.
+
 The native finite-control program completed all 24 pinned campaigns on each
 CPU arm: 72 positive cases and 96 malformed-input rejection cases per arm.
 Every positive case independently checked state and distinguished-point bytes
