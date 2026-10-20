@@ -1,0 +1,24 @@
+{
+  "format": "eccjob03-binary-l4-followup-plan-v1",
+  "parent_receipt": "l4-matched-20261019-attempt2/receipt.json",
+  "purpose": "Measure longer matched worker invocations after the 32-lane 64-step panel showed process-start overhead and baseline drift.",
+  "curves": ["ecc2k-130", "ecc2-131", "ecc2k-163", "ecc2-163", "ecc2-191", "ecc2k-238", "ecc2-238", "ecc2k-358", "ecc2-353"],
+  "frozen_inputs": "same mixed-dp40-cpu job.bin and in.bin files as attempt 2; launcher expands active states deterministically",
+  "baseline": "current engine.cu with archived baseline-ec_core.h",
+  "candidate": "same engine.cu with optimized worker/generic/ec_core.h",
+  "order_each_repeat": ["baseline", "candidate", "baseline"],
+  "lanes": 256,
+  "steps_per_round": 512,
+  "repeats": 2,
+  "expected_requested_steps_per_invocation": 131072,
+  "primary_measure": "candidate full-process elapsed_ns divided by the within-repeat median of bracketing baseline elapsed_ns, reported per curve",
+  "validity": "all outputs, distinguished points and actual steps must match exactly; every source and launcher hash and all raw files retained",
+  "noise_control": "report each baseline bracket max/min ratio; a bracket above 1.05 bars a speed claim for that repeat",
+  "limits": {"function_timeout_seconds": 900, "invocation_timeout_seconds": 120, "maximum_remote_invocations": 54},
+  "outcomes": {
+    "candidate_faster_with_stable_brackets": "retain as a bounded full-process throughput signal and seek independent replication before selecting an optimization",
+    "candidate_slower_with_stable_brackets": "investigate GPU code generation and consider removing or replacing the optimization",
+    "mixed_or_unstable": "record inconclusive timing and use profiler or controlled kernel-only measurement"
+  },
+  "claim_scope": "worker invocation throughput on this L4 workload only; no fleet, collection-cost or ECDLP cost conclusion"
+}

@@ -143,7 +143,7 @@
 
     <section id="kernels">
       <h2>Inside the kernels</h2>
-      <p>Across the whole search the GPU client performs the same step about 2<sup>61</sup> times, so the work is all in making that step short. Each step costs five field multiplications, one squaring, a Frobenius map, a Hamming weight, and a sixteenth of an inversion. The techniques below come from the client's source, vendored at a pinned commit in <a href="https://github.com/aburan28/ecc-challenges/tree/main/vendor/cryptanalysis/ecc2k130"><code>vendor/cryptanalysis/ecc2k130</code></a>, and the figures from its comments and benchmarks.</p>
+      <p>Across the whole search the GPU client performs the same step about 2<sup>61</sup> times, so the work is all in making that step short. Each step costs five field multiplications, one squaring, a Frobenius map, a Hamming weight, and a sixteenth of an inversion. The techniques below come from the client's source, vendored at a pinned commit in <code>vendor/cryptanalysis/ecc2k130</code>, and the figures from its comments and benchmarks.</p>
       <figure class="diagram">
         <svg class="wide" viewBox="0 0 640 190" role="img" aria-label="One launch per thread: a forward pass over 16 walks, one shared inversion, then a reverse pass over the same 16 walks.">
           <defs><marker id="arrow2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 8 4 0 8z"/></marker></defs>
@@ -232,7 +232,7 @@
 
       <h3>The all-curve engine</h3>
       <p>Every other challenge, and every CPU, macOS and Windows worker, uses a separate portable engine that puts correctness first. It walks a 32-way adding walk in affine coordinates with up to 359-bit fields in twelve 32-bit limbs, picks the jump and tests for a distinguished point from one SHA-256 of the point, and carries the coefficients <var>a</var> and <var>b</var> so every report can be checked on its own. Each step does a full point addition with its own inversion, using bit-serial modular multiplication and an extended Euclidean inverse. It builds for CUDA, for CPUs with OpenMP, and for Metal, where the shader is compiled at run time and each command buffer runs at most 16 steps to stay under the macOS GPU watchdog.</p>
-      <p>That leaves a lot on the table, and most of it is described above: batched inversion, Montgomery or Karatsuba multiplication, carry-less instructions for the binary curves, and the negation and Frobenius maps. Each is a self-contained place to <a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">contribute</a>.</p>
+      <p>That leaves a lot on the table, and most of it is described above: batched inversion, Montgomery or Karatsuba multiplication, carry-less instructions for the binary curves, and the negation and Frobenius maps. Each is a self-contained place to <a href="/docs/contributing">contribute</a>.</p>
     </section>
 
     <section id="checks">

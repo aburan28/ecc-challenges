@@ -52,7 +52,9 @@ def test_each_document_renders_without_a_database(slug):
 
 
 def test_all_site_documentation_links_and_fragments_resolve():
-    paths = ["/", "/status", "/docs", "/help", "/results/eccp-109"]
+    paths = ["/", "/status", "/docs", "/help", "/pollard-rho"]
+    paths += [f"/challenges/{challenge.id}" for challenge in CHALLENGES]
+    paths += [f"/results/{challenge.id}" for challenge in CHALLENGES if challenge.solved_in_2009]
     paths += [f"/docs/{slug}" for slug in DOCUMENTS]
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         pages = {path: Links(client.get(path).text) for path in paths}
