@@ -482,6 +482,11 @@ def test_dashboard_progress_uses_selected_challenge_and_preserves_private_activi
         assert page.status_code == 200 and page.headers["cache-control"] == "no-store"
         progress = page.text.split('aria-labelledby="challenge-progress"', 1)[1].split('</section>', 1)[0]
         assert 'href="/challenges/' + campaign + '"' in progress
+        assert 'Iterations per second' in progress
+        assert 'estimated from public uploads, 24 h average' in progress
+        from ecc_challenges.app import pow2
+        rate = '—' if mode == 'unavailable' else str(pow2(sigma['operations_per_second_log2']))
+        assert '<dt>Iterations per second</dt><dd>' + rate in progress
         if mode == "imported":
             assert '<span class="progress-primary">5.96%</span>' in progress
             assert '&lt;0.01% public uploads only' in progress
