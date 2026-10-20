@@ -12,7 +12,7 @@
 <p class="lead">{{ parameters.bits }}-bit {{ "binary field" if parameters.field_kind == "binary" else "prime field" }} discrete-log challenge, listed in Certicom's {{ catalog_date }} challenge document.</p>
 
 <dl class="stats" aria-label="Challenge summary">
-  <div class="stat"><dt>Status</dt><dd>{% if challenge.solved_in_2009 %}Solved<small>Certicom's 2009 snapshot</small>{% elif is_open %}Open here<small>accepting worker points</small>{% else %}Not open yet<small>not accepting worker points</small>{% endif %}</dd></div>
+  <div class="stat"><dt>Status</dt><dd>{% if challenge.solved_in_2009 %}Solved<small>{{ solved_dates[challenge.id] }}</small>{% elif is_open %}Open here<small>accepting worker points</small>{% else %}Not open yet<small>not accepting worker points</small>{% endif %}</dd></div>
   <div class="stat"><dt>Expected operations</dt><dd>{{ work.expected(challenge) }}<small>Certicom 2009: {{ challenge.estimated_operations_2009 or "—" }}</small></dd></div>
   <div class="stat progress-summary"><dt>Progress</dt><dd>{{ work.summary(status) }}</dd></div>
   <div class="stat"><dt>Collision odds</dt><dd>{% if est and est.estimated_completion_probability_percent is defined %}{{ est.estimated_completion_probability_percent|percent }}<small>chance rho would have hit one by now</small>{% else %}—<small>after the work so far</small>{% endif %}</dd></div>
@@ -55,14 +55,14 @@
       <tr><th scope="row">Parameter SHA-256</th><td><code>{{ parameters.instance_sha256 }}</code></td></tr>
     </tbody>
   </table></div>
-  <p class="table-note">Source: <a href="{{ catalog_source }}">Certicom's challenge document</a>. “Solved by 2009” records that document's snapshot, not a claim about current status.</p>
+  <p class="table-note">Source: <a href="{{ catalog_source }}">Certicom's challenge document</a>. Solve dates come from section 6.1 of that document.</p>
 </section>
 
 <section class="section">
   <div class="section-head"><h2>Other challenges</h2><p class="muted">Open a dedicated page for any entry in the catalog.</p></div>
   <ul class="links">
   {% for item in challenges %}
-    <li><a href="/challenges/{{ item.id }}"{% if item.id == challenge.id %} aria-current="page"{% endif %}>{{ item.public().name }}</a>{% if item.solved_in_2009 %} <span class="note">· solved by 2009</span>{% elif item.contribution == "ecc2k130_gpu_v1" or multicurve_enabled %} <span class="note">· open here</span>{% else %} <span class="note">· not open yet</span>{% endif %}</li>
+    <li><a href="/challenges/{{ item.id }}"{% if item.id == challenge.id %} aria-current="page"{% endif %}>{{ item.public().name }}</a>{% if item.solved_in_2009 %} <span class="note">· solved {{ solved_dates[item.id] }}</span>{% elif item.contribution == "ecc2k130_gpu_v1" or multicurve_enabled %} <span class="note">· open here</span>{% else %} <span class="note">· not open yet</span>{% endif %}</li>
   {% endfor %}
   </ul>
 </section>

@@ -75,12 +75,12 @@
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num">{{ work.expected(challenge) }}</td>
         <td class="num">{{ work.done(row) }}</td>
-        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="{{ challenge.public().name }} published result">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="{{ challenge.public().name }} published result">Solved {{ solved_dates[challenge.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table></div>
-  <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. The solved column is Certicom's 2009 snapshot, not a claim about today. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
+  <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. Solve dates are from section 6.1 of Certicom's 2009 report. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
 </section>
 
 <section class="section two" id="code">
