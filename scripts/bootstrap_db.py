@@ -112,11 +112,12 @@ def bootstrap(args) -> None:
                         TO ecc_site_worker
                     """)
                     cursor.execute("GRANT INSERT ON ecc_public.candidate_points,ecc_public.collision_leads TO ecc_site_worker")
+                    cursor.execute("GRANT SELECT,INSERT,UPDATE ON ecc_public.sigma_continuations TO ecc_site_worker")
                     cursor.execute("GRANT SELECT,INSERT ON ecc_public.audit_events,ecc_public.indexed_batches TO ecc_site_worker")
                     cursor.execute("GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA ecc_public TO ecc_site_web,ecc_site_worker")
                     cursor.execute("GRANT USAGE ON SCHEMA public TO ecc_site_worker")
                     cursor.execute("""
-                        GRANT SELECT (campaign_id,point_key,walk_seed,worker_id)
+                        GRANT SELECT (campaign_id,point_key,walk_seed,worker_id,source_dp_weight)
                         ON public.distinguished_points TO ecc_site_worker
                     """)
                     cursor.execute("ALTER ROLE ecc_site_web SET statement_timeout TO '30s'")

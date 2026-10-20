@@ -35,6 +35,7 @@
 <div class="panel" style="margin-top:24px">
   <h2>Join the search</h2>
   <p class="muted">Sign in to get the worker command and contribute distinguished points for this challenge.</p>
+  {% if challenge.id == "ecc2k-130" %}<p class="muted">For NVIDIA GPUs, DP34 is recommended for new workers. DP32 and DP30 are also accepted; choose your threshold on the worker dashboard. These workers can match compatible points from the earlier search.</p>{% endif %}
   <a class="button" href="{% if request.session.get('github_id') %}/dashboard?campaign={{ challenge.id }}{% else %}/auth/github{% endif %}">{% if request.session.get('github_id') %}Open worker dashboard{% else %}Sign in with GitHub{% endif %}</a>
 </div>
 {% endif %}

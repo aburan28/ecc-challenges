@@ -109,9 +109,11 @@ Verified coefficient relations do not attest reported trail lengths, so the
 site's work and completion figures are estimates from point counts
 ([docs/campaigns.md](docs/campaigns.md)), not verified work.
 
-The following describes the separate legacy DP32 protocol:
+The separate legacy ECC2K-130 sigma protocol accepts DP30, DP32 and DP34.
+The NVIDIA dashboard recommends DP34 for new runs; existing runs retain their
+threshold. See [threshold selection](docs/running-a-worker.md#ecc2k-130-legacy-sigma-thresholds).
 
-The API checks framing, run ID, canonical DP32 orbit-key shape, body size,
+The API checks framing, run ID, canonical orbit-key shape at the run's threshold, body size,
 cursor, key status, key rate and quota, and global pending capacity. It stores
 the exact bytes under a checksum-bound, write-once S3 key. A successful upload
 acknowledges archival and the committed cursor. It does **not** assert that

@@ -20,6 +20,7 @@
     :root{
       --bg:#f6f3ec;--surface:#fffdf8;--sunk:#efebe1;--ink:#1b1a17;--muted:#5f5a50;--faint:#8a8477;
       --line:#ddd6c8;--accent:#b4441f;--accent-ink:#fff;--accent-soft:#b4441f14;--ok:#2d6a4c;--ok-soft:#2d6a4c14;
+      --warn:#8a5700;--warn-soft:#d99a1614;--danger:#a52c2c;--danger-soft:#c43d3d0d;
       --code-bg:#1c1b18;--code-ink:#ece6d8;--code-dim:#9a9384;
       --serif:"Iowan Old Style","Charter","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
       --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -28,6 +29,7 @@
     @media (prefers-color-scheme:dark){:root{
       --bg:#131311;--surface:#1b1b18;--sunk:#0f0f0d;--ink:#ebe6da;--muted:#a59f92;--faint:#7b766b;
       --line:#2f2d28;--accent:#e57a50;--accent-ink:#1a0c05;--accent-soft:#e57a501c;--ok:#80c39b;--ok-soft:#80c39b1a;
+      --warn:#f0be58;--warn-soft:#f0be5814;--danger:#f28b82;--danger-soft:#f28b820d;
       --code-bg:#0c0c0b;--code-ink:#e6e0d2;--code-dim:#8a8476;
     }}
     *{box-sizing:border-box}
@@ -90,7 +92,7 @@
 
     /* figures */
     .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
-    .stat{padding:18px 20px;border-left:1px solid var(--line)}
+    .stat{min-width:0;padding:18px 20px;border-left:1px solid var(--line)}
     .stat:first-child{border-left:0}
     .stat dt{font-size:.8rem;color:var(--muted)}
     .stat dd{margin:4px 0 0;font:500 1.75rem/1.2 var(--serif);font-variant-numeric:tabular-nums}
@@ -144,7 +146,19 @@
     .tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.76rem;font-weight:600;border:1px solid var(--line);color:var(--muted)}
     .tag.open{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     .tag.solved{color:var(--faint)}
+    .challenge-status tr.open{--state:var(--warn);--state-soft:var(--warn-soft)}
+    .challenge-status tr.solved{--state:var(--ok);--state-soft:var(--ok-soft)}
+    .challenge-status tr.not-started{--state:var(--danger);--state-soft:var(--danger-soft)}
+    .challenge-status tr td{background:var(--state-soft)}
+    .challenge-status .name,.challenge-status .tag{color:var(--state)}
+    .challenge-status .tag{border-color:currentColor;background:var(--state-soft)}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
+    .result-values{table-layout:fixed}
+    .result-values th{width:30%;white-space:normal;letter-spacing:0;text-transform:none;vertical-align:top}
+    .result-values td{white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+    .result-values code{user-select:all}
+    .result-values tr:last-child th{border-bottom:0}
+    .tag.result-solved{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     sup{font-size:.62em;line-height:0;vertical-align:.55em}
     .tag.idle{color:var(--muted)}
 
@@ -228,6 +242,20 @@
     .row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
     form.inline{display:inline}
 
+    /* documentation */
+    .document{max-width:78ch;overflow-wrap:anywhere}
+    .document h2{margin-top:1.6em;padding-top:.6em;border-top:1px solid var(--line)}
+    .document h3{margin-top:1.5em}
+    .document li{margin-bottom:.35em}
+    .document blockquote{margin:1.5em 0;padding:10px 18px;border-left:3px solid var(--accent);background:var(--accent-soft)}
+    .document blockquote>:last-child{margin-bottom:0}
+    .document th,.document td{white-space:normal;vertical-align:top}
+    .document table{min-width:560px}
+    .document .table-wrap{margin-bottom:1.5em}
+    .document-contents{max-width:78ch;margin-bottom:24px;color:var(--muted)}
+    .document-contents summary{cursor:pointer}
+    .document-contents ul{margin-top:12px}
+
     /* footer */
     .site-footer{border-top:1px solid var(--line);padding:32px 0 44px;color:var(--muted);font-size:.88rem}
     .site-footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -260,6 +288,13 @@
       .parameter-table td{font-size:.85rem}
       .os-panel{padding:16px}
     }
+    @media (max-width:360px){
+      .site-header nav{gap:8px}
+      .site-header nav a:not(.button){display:none}
+      .stat{padding:14px 12px}
+      .stat dd{font-size:1.2rem;overflow-wrap:anywhere}
+      .stat:nth-child(2) dd{font-size:1.05rem}
+    }
   </style>
 </head>
 <body>
@@ -271,7 +306,7 @@
       <a class="wide" href="/#how">Take part</a>
       <a class="wide" href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
-      <a class="wide" href="https://github.com/aburan28/ecc-challenges">GitHub</a>
+      <a class="wide" href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
     </nav>
   </div></header>
@@ -280,9 +315,9 @@
     <span>ECC Challenges is open source. Results count only after independent verification.</span>
     <nav aria-label="Footer">
       <a href="/pollard-rho">Pollard rho and the kernels</a>
-      <a href="https://github.com/aburan28/ecc-challenges">Source</a>
-      <a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing</a>
-      <a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a>
+      <a href="/docs">Documentation</a>
+      <a href="/docs/contributing">Contributing</a>
+      <a href="/help">Help</a>
       <a href="/v1/status">Status JSON</a>
     </nav>
   </div>

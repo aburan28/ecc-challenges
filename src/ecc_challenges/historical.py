@@ -31,7 +31,7 @@ import json
 import re
 from typing import Iterator
 
-from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
+from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECORD_BYTES
 
 LEGACY_KEY_RE = re.compile(r"^dp/(slot-\d+)/(\d+)-(\d+)\.bin$")
 ORBIT_KEY_RE = re.compile(r"^dp/(slot-\d+)/([0-9a-f]{32})-(\d+)-([0-9a-f]{64})\.bin$")
@@ -211,8 +211,11 @@ def source_objects(s3, bucket: str) -> Iterator[dict]:
         yield from page.get("Contents", [])
 
 
-def export(s3, bucket: str, sink, *, write: bool = True, limit: int | None = None, log=print) -> dict:
+def export(s3, bucket: str, sink, *, write: bool = True, limit: int | None = None,
+           source_dp_weight: int | None = None, log=print) -> dict:
     """Copy and check the source corpus. With write=False nothing is written anywhere."""
+    if source_dp_weight is not None and source_dp_weight not in DP_WEIGHTS:
+        raise ValueError("unsupported source sigma threshold")
     done = sink.done_ids() if write else set()
     summary = {"objects": 0, "skipped_done": 0, "records": 0, "refused": {}, "rejected_records": {},
                "ignored_keys": 0}
@@ -253,11 +256,86 @@ def export(s3, bucket: str, sink, *, write: bool = True, limit: int | None = Non
                 "source_version": got.get("VersionId"), "source_etag": got.get("ETag"),
                 "source_sha256": hashlib.sha256(body).hexdigest(), "source_bytes": len(body),
                 "worker_id": worker_id(key), "rejected": checked.rejected,
+                "walk_id": WALK_ID, "source_dp_weight": source_dp_weight,
             })
     return summary
 
 
 # -- load ----------------------------------------------------------------------
+
+def export_database(conn, sink, *, source_id: str, walk_id: str,
+                    source_dp_weight: int | None = None, part_records: int = 250_000,
+                    source_worker_id: str | None = None, write: bool = True, log=print) -> dict:
+    """Stream a consistent read-only RDS snapshot into the existing import format.
+
+    Only the operator connects to the source. Original thresholds can be
+    unknown; endpoint Hamming weight does not reveal the stopping rule.
+    Content-addressed chunks and the destination point PK make reruns safe.
+    """
+    if walk_id != WALK_ID or not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", source_id):
+        raise ValueError("source must be an explicitly identified legacy sigma database")
+    if source_dp_weight is not None and (type(source_dp_weight) is not int or source_dp_weight not in DP_WEIGHTS):
+        raise ValueError("unsupported source sigma threshold")
+    if not 1 <= part_records <= 1_000_000 or (write and sink is None):
+        raise ValueError("invalid database export sink or part size")
+    if source_worker_id is not None and not source_worker_id:
+        raise ValueError("source worker identifier cannot be empty")
+    summary = {"scanned": 0, "records": 0, "parts": 0, "skipped_done": 0, "rejected_records": {}}
+    done = sink.done_ids() if write else set()
+    body = bytearray()
+    # Read-only transaction and named cursor keep the source unmodified and
+    # memory bounded even when the table holds hundreds of millions of rows.
+    with conn.transaction():
+        conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+        conn.execute("SET LOCAL statement_timeout = '6h'")
+        def flush():
+            if not body:
+                return
+            raw = bytes(body)
+            digest = hashlib.sha256(raw).hexdigest()
+            partition = hashlib.sha256(source_worker_id.encode()).hexdigest() if source_worker_id else "all"
+            key = f"rds/{source_id}/{CAMPAIGN}/{partition}/{digest}.bin"
+            summary["parts"] += 1
+            if hashlib.sha256(key.encode()).hexdigest() in done:
+                summary["skipped_done"] += 1
+            elif write:
+                sink.put(digest, raw, {"version": 1, "campaign_id": CAMPAIGN,
+                    "walk_id": walk_id, "source_dp_weight": source_dp_weight,
+                    "part_sha256": digest, "records": len(raw) // RECORD_BYTES,
+                    "source_key": key, "source_database": source_id,
+                    "source_sha256": digest, "source_bytes": len(raw),
+                    "worker_id": source_worker_id or f"rds-{source_id}-{digest}", "rejected": {}})
+            log(f"database export: {summary['scanned']} scanned, {summary['records']} retained")
+            body.clear()
+        with conn.cursor(name="historical_export") as cursor:
+            cursor.itersize = 10_000
+            if source_worker_id is None:
+                cursor.execute("SELECT point_key,walk_seed FROM public.distinguished_points "
+                               "WHERE campaign_id=%s ORDER BY point_key", (CAMPAIGN,))
+            else:
+                cursor.execute("SELECT point_key,walk_seed FROM public.distinguished_points "
+                               "WHERE campaign_id=%s AND worker_id=%s ORDER BY point_key",
+                               (CAMPAIGN, source_worker_id))
+            for row in cursor:
+                summary["scanned"] += 1
+                point, seed = bytes(row["point_key"]), bytes(row["walk_seed"] or b"")
+                problem = None
+                if len(point) != 24 or not 1 <= len(seed) <= 8:
+                    problem = "invalid_record_width"
+                else:
+                    record = int.from_bytes(seed, "big").to_bytes(8, "little") + point
+                    problem = record_problem(record)
+                    if source_dp_weight is not None and int.from_bytes(point, "little").bit_count() > source_dp_weight:
+                        problem = "source_threshold_mismatch"
+                if problem:
+                    summary["rejected_records"][problem] = summary["rejected_records"].get(problem, 0) + 1
+                    continue
+                body.extend(record)
+                summary["records"] += 1
+                if len(body) >= part_records * RECORD_BYTES:
+                    flush()
+        flush()
+    return summary
 
 def _rows(body: bytes, start: int, stop: int) -> Iterator[tuple[int, bytes, bytes]]:
     for i in range(start, min(stop, len(body) // RECORD_BYTES)):
@@ -265,15 +343,36 @@ def _rows(body: bytes, start: int, stop: int) -> Iterator[tuple[int, bytes, byte
         yield i, seed_bytes(int.from_bytes(row[:8], "little")), row[8:]
 
 
+def already_loaded(conn, sidecar: dict) -> bool:
+    previous = conn.execute("""
+        SELECT part_sha256,records,walk_id,source_dp_weight
+        FROM ecc_public.historical_import_parts WHERE source_key=%s
+    """, (sidecar["source_key"],)).fetchone()
+    if previous is None:
+        return False
+    if (previous["part_sha256"] != sidecar["part_sha256"] or previous["records"] != sidecar["records"]
+            or previous["walk_id"] != sidecar.get("walk_id", WALK_ID)
+            or previous["source_dp_weight"] != sidecar.get("source_dp_weight")):
+        raise RuntimeError("loaded source key has different content or walk binding")
+    return True
+
+
 def load_part(conn, sidecar: dict, body: bytes) -> dict:
     """Insert one source object's part in one transaction; an object already in the ledger is skipped."""
     digest = sidecar["part_sha256"]
     if hashlib.sha256(body).hexdigest() != digest or len(body) != sidecar["records"] * RECORD_BYTES:
         raise RuntimeError(f"part {digest} does not match its sidecar")
+    weight = sidecar.get("source_dp_weight")
+    if sidecar.get("walk_id", WALK_ID) != WALK_ID or (weight is not None and
+            (type(weight) is not int or weight not in DP_WEIGHTS)):
+        raise RuntimeError("historical part uses an incompatible walk or threshold")
+    for pos in range(0, len(body), RECORD_BYTES):
+        record = body[pos:pos + RECORD_BYTES]
+        if record_problem(record) or (weight is not None and int.from_bytes(record[8:], "little").bit_count() > weight):
+            raise RuntimeError("historical part contains a record outside its sigma binding")
     with conn.transaction():
         conn.execute("SET LOCAL statement_timeout = '15min'")
-        if conn.execute("SELECT 1 FROM ecc_public.historical_import_parts WHERE source_key=%s",
-                        (sidecar["source_key"],)).fetchone():
+        if already_loaded(conn, sidecar):
             return {"part": digest, "loaded": False}
         conn.execute("CREATE TEMP TABLE IF NOT EXISTS historical_incoming"
                      "(idx bigint, walk_seed bytea, point_key bytea) ON COMMIT DELETE ROWS")
@@ -288,11 +387,11 @@ def load_part(conn, sidecar: dict, body: bytes) -> dict:
             inserted += conn.execute("""
                 WITH first AS (SELECT DISTINCT ON(point_key) point_key,walk_seed
                                FROM historical_incoming ORDER BY point_key,idx),
-                ins AS (INSERT INTO public.distinguished_points(campaign_id,point_key,walk_seed,worker_id)
-                        SELECT %s,point_key,walk_seed,%s FROM first ORDER BY point_key
+                ins AS (INSERT INTO public.distinguished_points(campaign_id,point_key,walk_seed,worker_id,source_dp_weight)
+                        SELECT %s,point_key,walk_seed,%s,%s FROM first ORDER BY point_key
                         ON CONFLICT (campaign_id,point_key) DO NOTHING RETURNING 1)
                 SELECT count(*) AS n FROM ins
-            """, (CAMPAIGN, sidecar["worker_id"])).fetchone()["n"]
+            """, (CAMPAIGN, sidecar["worker_id"], weight)).fetchone()["n"]
             conflicts += conn.execute("""
                 WITH c AS (INSERT INTO ecc_public.historical_conflicts(point_key,walk_seed,stored_seed,source_key)
                            SELECT DISTINCT i.point_key,i.walk_seed,d.walk_seed,%s
@@ -304,10 +403,10 @@ def load_part(conn, sidecar: dict, body: bytes) -> dict:
             """, (sidecar["source_key"], CAMPAIGN)).fetchone()["n"]
         conn.execute("""
             INSERT INTO ecc_public.historical_import_parts
-              (part_sha256,source_key,source_version,records,inserted,conflicts)
-            VALUES (%s,%s,%s,%s,%s,%s)
+              (part_sha256,source_key,source_version,records,inserted,conflicts,source_dp_weight,walk_id)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """, (digest, sidecar["source_key"], sidecar.get("source_version"), sidecar["records"],
-              inserted, conflicts))
+              inserted, conflicts, weight, WALK_ID))
     return {"part": digest, "loaded": True, "records": sidecar["records"],
             "inserted": inserted, "conflicts": conflicts}
 
@@ -317,6 +416,11 @@ def load(conn, sink, log=print) -> dict:
     for sidecar in sink.sidecars():
         if sidecar.get("version") != 1 or sidecar.get("campaign_id") != CAMPAIGN:
             raise RuntimeError(f"unexpected sidecar {sidecar.get('part_sha256')}")
+        # Completed transactions need no re-download of hundreds of millions
+        # of archived records, but the source/content/threshold binding must agree.
+        if already_loaded(conn, sidecar):
+            summary["already_loaded"] += 1
+            continue
         result = load_part(conn, sidecar, sink.get(sidecar["part_sha256"]))
         if not result["loaded"]:
             summary["already_loaded"] += 1

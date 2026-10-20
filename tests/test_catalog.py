@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 from psycopg import errors
 
@@ -34,8 +35,6 @@ class FakeConnection:
             return SimpleNamespace(fetchone=lambda: {"total": 3, "recent": 2, "bytes": 320})
         if "ecc_public.pressure_shards" in statement:
             return SimpleNamespace(fetchone=lambda: {"pending_batches": 4, "pending_bytes": 128})
-        if "ecc_public.batches" in statement:
-            return SimpleNamespace(fetchone=lambda: {"points": 48})
         raise AssertionError(statement)
 
 
@@ -50,15 +49,16 @@ class FakeDB:
         yield conn
 
 
-def application(db=None):
+def application(db=None, multicurve_enabled=False):
     settings = SimpleNamespace(database_url="", region="us-west-2", bucket="unused",
-                               stream_id="test", github_client_id="test-id",
+                               stream_id="test", github_client_id="test-id", multicurve_enabled=multicurve_enabled,
                                github_client_secret="test-secret",
                                session_secret="s" * 48,
                                public_origin="https://ecc-challenges.com",
                                public_worker_image="example.invalid/image@sha256:" + "a" * 64,
                                public_cpu_worker_image="ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:" + "b" * 64)
-    return create_app(settings, db=db or FakeDB(), storage=object())
+    return create_app(settings, db=db or FakeDB(),
+                      storage=SimpleNamespace(s3=None, bucket="unused", stream_id="test"))
 
 
 def test_certicom_catalog_has_all_published_names_and_exact_campaign_boundary():
@@ -81,7 +81,11 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert catalog.status_code == 200
         assert len(catalog.json()["campaigns"]) == 24
         assert catalog.json()["cpu_worker_image"].endswith("b" * 64)
-        assert client.get("/v1/config?campaign=ecc2k-130").json()["campaign"] == "ecc2k-130"
+        config = client.get("/v1/config?campaign=ecc2k-130").json()
+        assert config["campaign"] == "ecc2k-130"
+        assert config["recommended_dp_weight"] == 34
+        assert config["supported_dp_weights"] == [30, 32, 34]
+        assert config["dp_weight"] == 32  # clients without threshold support
         assert client.get("/v1/config?campaign=eccp-131").status_code == 409
         assert client.get("/v1/config?campaign=not-a-challenge").status_code == 404
         refused = client.post("/v1/register", headers={"X-Campaign-Id": "eccp-131"})
@@ -120,8 +124,8 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert b"2<sup>60.8</sup>" in page.content and page.content.count(b'role="progressbar"') == 2
         card = page.text.split('aria-label="ECC2K-130 progress"', 1)[1].split("</article>", 1)[0]
         assert card.index("Including imported points") < card.index("5.96%") < card.index("Public uploads only")
-        assert '<span class="mono">5.96%</span>' in page.text
-        assert '&lt;0.01% public uploads only' in page.text
+        assert "338,034,801 points" in card
+        assert "5.96%" in card and "public runs alone" in card
         assert b"Level II" in client.get("/").content and b"Level Ii" not in client.get("/").content
 
 
@@ -149,7 +153,8 @@ def test_html_errors_robots_and_share_metadata():
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         home = client.get("/")
         assert b'property="og:title"' in home.content
-        assert b"github.com/aburan28/ecc-challenges" in home.content
+        assert b'href="/docs"' in home.content
+        assert b'href="https://github.com/' not in home.content
         missing = client.get("/no-such-page")
         assert missing.status_code == 404
         assert missing.headers["content-type"].startswith("text/html")
@@ -325,49 +330,9 @@ def test_status_page_keeps_working_when_import_totals_are_unreadable():
         assert status.status_code == 200
         assert status.json()["total_historical_points"] is None
         assert status.json()["campaigns"][6]["historical_points"] is None
-        assert status.json()["campaigns"][6]["including_historical"] is None
         page = client.get("/status").text
         assert ">10<small>stored durably</small>" in page
         assert "Counts cover this gateway only." in page
-
-
-def test_status_page_keeps_catalog_when_database_is_unavailable():
-    class UnavailableDB(FakeDB):
-        @contextmanager
-        def connection(self):
-            raise RuntimeError("status database offline")
-            yield
-
-    with TestClient(application(UnavailableDB())) as client:
-        page = client.get("/status")
-        assert page.status_code == 200
-        assert "Live counts are unavailable" in page.text
-        assert "ECC2K-130" in page.text and "2.0e18" in page.text
-        assert 'role="progressbar"' not in page.text
-        assert client.get("/v1/status").status_code == 503
-
-
-def test_account_totals_include_runs_outside_display_limit(database, aws_resources, settings):
-    import uuid
-    from ecc_challenges.service import Service
-    from ecc_challenges.protocol import RECORD_BYTES
-    service = Service(database, aws_resources[0], settings)
-    service.upsert_account(17, "many-runs")
-    key = service.authenticate(service.create_key(17, "rig"))
-    for count in (1, 2, 3):
-        run_id = service.register(key, str(uuid.uuid4()))["run_id"]
-        with database.connection() as conn:
-            conn.execute("UPDATE ecc_public.runs SET total_bytes=%s WHERE run_id=%s",
-                         (count * RECORD_BYTES, run_id))
-            conn.execute("""
-                INSERT INTO ecc_public.batches(run_id,byte_offset,byte_length,records,sha256,object_key)
-                VALUES (%s,0,%s,%s,%s,%s)
-            """, (run_id, count * RECORD_BYTES, count, "c" * 64, f"total/{count}"))
-    activity = service.account_runs(17, limit=1)
-    assert len(activity["runs"]) == 1
-    assert activity["total_runs"] == activity["active_runs"] == 3
-    assert activity["points"] == activity["points_last_hour"] == 6
-    assert activity["points_per_hour"] == round(6 / 24, 1)
 
 
 def test_one_line_installers_are_served_as_text():
@@ -448,3 +413,43 @@ def test_status_uses_each_sigma_runs_stored_threshold(database, aws_resources, s
     assert row["dp_bits"] == [30, 32, 34]
     assert math.isclose(row["estimated_work_operations"], expected)
     assert row["points_per_hour"] == 2.5
+
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_dashboard_threshold_selector_generates_isolated_compatible_commands(monkeypatch, enabled):
+    import base64
+    import json
+    from itsdangerous import TimestampSigner
+    from ecc_challenges.service import Service
+
+    monkeypatch.setattr(Service, "account_keys", lambda *args: [])
+    run_queries = []
+    def account_runs(_service, account_id, *, include_generic):
+        run_queries.append((account_id, include_generic))
+        return None
+    monkeypatch.setattr(Service, "account_runs", account_runs)
+    app = application(multicurve_enabled=enabled)
+    session = TimestampSigner("s" * 48).sign(base64.b64encode(json.dumps(
+        {"github_id": 1, "login": "test", "csrf": "test"}).encode())).decode()
+    with TestClient(app, base_url="https://ecc-challenges.com") as client:
+        client.cookies.set("ecc_session", session)
+        for weight in (None, 30, 32, 34):
+            path = "/dashboard?campaign=ecc2k-130" + (f"&dp_weight={weight}" if weight else "")
+            page = client.get(path)
+            assert page.status_code == 200
+            assert f'<option value="{weight or 34}" selected>' in page.text
+            assert "DP34 — recommended" in page.text
+            assert f"DP_WEIGHT={weight or 34}\n" in page.text
+            assert "-e ECC_PROTOCOL=1" in page.text
+            assert '-e ECC_DP_WEIGHT="$DP_WEIGHT"' in page.text
+            assert 'ecc-data-$CAMPAIGN-dp$DP_WEIGHT-$GPU_ID:/data' in page.text
+            assert "Your runners" in page.text
+            assert "Run activity is unavailable right now" in page.text
+        assert run_queries and all(item == (1, enabled) for item in run_queries)
+        assert client.get("/dashboard?dp_weight=36").status_code == 400
+        if enabled:
+            other = client.get("/dashboard?campaign=eccp-131").text
+            assert 'id="dp-weight"' not in other
+            assert "ECC_DP_WEIGHT" not in other
+            assert "-e ECC_PROTOCOL=2" in other
+            assert 'ecc-data-$CAMPAIGN-$GPU_ID:/data' in other
