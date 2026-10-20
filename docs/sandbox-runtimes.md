@@ -1,10 +1,11 @@
 # Kata Containers and gVisor worker checks
 
-The Linux worker image is an OCI container, but the project has no successful
-worker run under Kata Containers or gVisor yet. These recipes are opt-in
-validation paths. They do not change public campaign enrollment. Check the
+The Linux worker image passed the offline CPU smoke under both gVisor and
+Kata Containers with the pinned published digest. The detailed receipts and
+host facts are in [`verification/sandbox-runtime-20261019`](../verification/sandbox-runtime-20261019/README.md).
+These recipes do not change public campaign enrollment. Check the
 [live catalog](https://ecc-challenges.com/v1/campaigns) before starting a real
-worker; protocol 2 remains gated while `multicurve_enabled` is false.
+worker.
 
 ## Offline CPU smoke
 
@@ -16,13 +17,15 @@ check. After a later image release, dispatch the workflow on the default
 branch with the new exact digest and `all_curves=true`. Keep the resulting
 version log and detailed receipt.
 
-To run the Kata job, enroll a dedicated Linux x64 runner with the `kata-kvm`
+To rerun the Kata job in GitHub Actions, enroll a dedicated Linux x64 runner with the `kata-kvm`
 label, `/dev/kvm`, Docker 26 or newer, and the `kata` Docker runtime registered
 with the Kata runtime-rs QEMU configuration. Then dispatch the workflow with
 `validate_kata=true` and the same image digest. The job fails at preflight if
 KVM is unavailable. The [Kata installation guide](https://github.com/kata-containers/kata-containers/blob/main/docs/installation.md)
 documents the Docker registration and virtualization requirements. No such
-runner is currently enrolled, so a queued Kata job is not a validation result.
+runner is currently enrolled. The separate EC2 KVM smoke recorded in the
+verification directory does not establish that the GitHub Actions Kata job
+or a Kubernetes deployment works.
 
 Use a Linux host with Docker and a configured `runsc` or Kata runtime. Supply
 the exact CPU or combined worker image digest you intend to run:
