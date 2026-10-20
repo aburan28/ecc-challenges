@@ -31,6 +31,8 @@ from .service import Service, Rejected
 from .settings import Settings
 from .storage import Storage
 from .status import StatusReader
+from .results import create_results_router
+from .pages import create_pages_router
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
@@ -186,6 +188,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             await run_in_threadpool(database.close)
 
     app = FastAPI(title="ECC Challenges", docs_url=None, redoc_url=None, lifespan=lifespan)
+    app.include_router(create_results_router(TEMPLATES))
+    app.include_router(create_pages_router(TEMPLATES))
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret,
                        session_cookie="ecc_session", https_only=True, same_site="lax", max_age=86400)
     app.state.service = service

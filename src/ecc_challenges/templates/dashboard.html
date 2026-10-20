@@ -182,7 +182,7 @@ curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
       <ul class="plain note">
         <li>Needs Python 3.10 or newer from <a href="https://www.python.org/downloads/macos/">python.org</a> or <code>brew install python</code>; the one that ships with macOS can be too old.</li>
         <li>The installer asks for your key, saves it to <code>~/.config/ecc-challenges/api-key</code> and offers to start the worker. Stop it with Ctrl-C; run the printed command to start it again.</li>
-        <li>To keep it running in the background, load the launchd agent the installer writes: see <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#macos">macOS setup</a>.</li>
+        <li>To keep it running in the background, load the launchd agent the installer writes: see <a href="/docs/running-a-worker#macos">macOS setup</a>.</li>
       </ul>
       {{ native_off }}
     </div>
@@ -204,12 +204,12 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
     </div>
 
     <div class="os-panel other">
-      <p class="muted">The same worker, packaged for longer-running setups. Each recipe is in <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a>.</p>
+      <p class="muted">The same worker, packaged for longer-running setups. Each recipe is in <a href="/docs/running-a-worker">Running a worker</a>.</p>
       <ul class="plain">
-        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#docker-compose">Docker Compose</a>: several workers on one machine.</li>
-        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#native-install-and-systemd">systemd</a>: a Linux server, started at boot, no containers.</li>
-        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#kubernetes">Kubernetes</a>, <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#podman">Podman</a>, <a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md#apptainer-and-slurm">Slurm</a>.</li>
-        <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/modal-workers.md">Modal</a>, RunPod or any GPU cloud: use the Docker image above, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
+        <li><a href="/docs/running-a-worker#docker-compose">Docker Compose</a>: several workers on one machine.</li>
+        <li><a href="/docs/running-a-worker#native-install-and-systemd">systemd</a>: a Linux server, started at boot, no containers.</li>
+        <li><a href="/docs/running-a-worker#kubernetes">Kubernetes</a>, <a href="/docs/running-a-worker#podman">Podman</a>, <a href="/docs/running-a-worker#apptainer-and-slurm">Slurm</a>.</li>
+        <li><a href="/docs/modal-workers">Modal</a>, RunPod or any GPU cloud: use the Docker image above, mount persistent storage at <code>/data</code>, and pass the key as a mounted file or the <code>ECC_API_KEY</code> secret.</li>
       </ul>
     </div>
   </div>
@@ -218,6 +218,6 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
 
 <section class="section">
   <h2>3. Check it's working</h2>
-  <p class="muted">Within a few minutes your run should appear in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="https://github.com/aburan28/ecc-challenges/issues">open an issue</a>.</p>
+  <p class="muted">Within a few minutes your run should appear under <a href="#runners">Your runners</a> above and in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="/help">read the troubleshooting guide</a>.</p>
 </section>
 {% endblock %}

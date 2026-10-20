@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Help · ECC Challenges{% endblock %}
+{% block description %}Troubleshooting worker setup, upload errors, API keys and checkpoints.{% endblock %}
+{% block content %}
+<div class="kicker">Support</div>
+<h1>Help with your worker</h1>
+<p class="lead">Start with the worker log and the <a href="/status">live status page</a>. Keep the worker's data directory between restarts so it can resume.</p>
+<section class="section two" style="margin-top:36px">
+  <div>
+    <h2>Set up your system</h2>
+    <ul class="links">
+      <li><a href="/docs/running-a-worker#docker">Linux and Docker</a></li>
+      <li><a href="/docs/running-a-worker#macos">macOS</a></li>
+      <li><a href="/docs/running-a-worker#windows">Windows</a></li>
+      <li><a href="/docs/running-a-worker#kubernetes">Kubernetes</a>, <a href="/docs/running-a-worker#native-install-and-systemd">systemd</a> and <a href="/docs/running-a-worker#apptainer-and-slurm">Slurm</a></li>
+      <li><a href="/docs/modal-workers">Modal and cloud workers</a></li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h3>Before changing anything</h3>
+    <p>Record the campaign, run ID, worker image or version, operating system, and exact error message. Keep the surrounding log lines and the time the problem occurred.</p>
+    <p class="note">Keep API keys, authorization headers and signed upload URLs private. Never delete a checkpoint to get past an error.</p>
+  </div>
+</section>
+<section class="section document">
+  <h2>Common problems</h2>
+  <h3 id="uploads">Uploads are waiting or the count has not changed</h3>
+  <p>The worker logs accepted uploads and keeps unsent points on disk. A 429 response asks it to slow down; a temporary 503 makes it wait and retry. Check the campaign's availability on the <a href="/status">status page</a>. The status counts refresh about once a minute and cover this gateway.</p>
+  <h3 id="keys">A key is rejected</h3>
+  <p>Check that the worker reads the intended key file and that the key has not been revoked. Manage keys in your <a href="/dashboard">dashboard</a>. Revoking a key stops uploads from every worker using it.</p>
+  <h3 id="state">A worker will not resume</h3>
+  <p>Use the same data directory, campaign and worker identity. Only one process may use a worker's directory at a time. Stop the duplicate process cleanly; preserve all state if the worker reports conflicting checkpoints. The <a href="/docs/modal-workers">cloud guide</a> covers persistent volumes and migration errors.</p>
+  <h3 id="results">A result or count looks wrong</h3>
+  <p>Archived points and independently verified work are different counts. The <a href="/status#main">status page</a> explains the figures, and <a href="/docs/problems">open problems</a> records known validation and capacity gaps. Historical solved results link to their published key and public point from the challenge tables.</p>
+</section>
+{% endblock %}

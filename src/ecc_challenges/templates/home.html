@@ -75,7 +75,7 @@
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num">{{ work.expected(challenge) }}</td>
         <td class="num">{{ work.done(row) }}</td>
-        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/challenges/{{ challenge.id }}">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="{{ challenge.public().name }} published result">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
@@ -88,13 +88,13 @@
     <div class="kicker">Open source</div>
     <h2>Work on the code</h2>
     <p>The website, worker, verifier and infrastructure are in one public repository. Faster kernels, independent checks of the verifier and reviews of the protocol are all useful.</p>
-    <div class="actions"><a class="button ghost" href="https://github.com/aburan28/ecc-challenges">View on GitHub</a></div>
+    <div class="actions"><a class="button ghost" href="/docs/project">Explore the project</a></div>
   </div>
   <ul class="links">
-    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/CONTRIBUTING.md">Contributing guide</a><br><span class="note">Local setup, tests and what a good pull request looks like.</span></li>
-    <li><a href="https://github.com/aburan28/ecc-challenges/tree/main/problems">Open problems</a><br><span class="note">Known gaps before the search can scale up.</span></li>
-    <li><a href="https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md">Running a worker</a><br><span class="note">Linux containers, native Windows, native macOS Metal, Kubernetes, systemd, Podman, Slurm or Modal.</span></li>
-    <li><a href="https://github.com/aburan28/ecc-challenges/issues">Issues</a><br><span class="note">Bugs, questions and suspected bad results.</span></li>
+    <li><a href="/docs/contributing">Contributing guide</a><br><span class="note">Local setup, tests and what a good pull request looks like.</span></li>
+    <li><a href="/docs/problems">Open problems</a><br><span class="note">Known gaps before the search can scale up.</span></li>
+    <li><a href="/docs/running-a-worker">Running a worker</a><br><span class="note">Linux containers, native Windows, native macOS Metal, Kubernetes, systemd, Podman, Slurm or Modal.</span></li>
+    <li><a href="/help">Help</a><br><span class="note">Worker setup, common errors, keys and checkpoints.</span></li>
   </ul>
 </section>
 {% endblock %}

@@ -1,6 +1,6 @@
 {# Work figures: Certicom's estimate and the estimated operations done so far, both as 2^x. #}
 {% macro expected(challenge) -%}
-{{ challenge.estimated_operations_log2|pow2(1, "Certicom 2009: " ~ challenge.estimated_operations_2009) }}
+{{ (challenge.estimated_operations_log2 if challenge.estimated_operations_log2 is defined else challenge.estimated_operations_2009_log2)|pow2(1, "Certicom 2009: " ~ challenge.estimated_operations_2009) }}
 {%- endmacro %}
 {# All work on the curve, the imported ECC2K-130 run included. #}
 {% macro done(row) -%}
