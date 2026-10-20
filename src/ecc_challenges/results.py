@@ -28,6 +28,14 @@ PUBLISHED_RESULTS = {
 }
 
 
+def solved_date(campaign: str) -> str:
+    """The section 6.1 solve date as "16 December 1997"."""
+    return date.fromisoformat(PUBLISHED_RESULTS[campaign][0]).strftime("%d %B %Y").lstrip("0")
+
+
+SOLVED_DATES = {campaign: solved_date(campaign) for campaign in PUBLISHED_RESULTS}
+
+
 @lru_cache(maxsize=1)
 def _registry():
     # Display the published data directly; serving a page requires no curve
@@ -49,7 +57,7 @@ def published_result(campaign: str) -> dict | None:
         "scalar_hex": vector["scalar"],
         "scalar_decimal": str(int(vector["scalar"], 16)),
         "solved_on": solved_on,
-        "solved_date": date.fromisoformat(solved_on).strftime("%d %B %Y").lstrip("0"),
+        "solved_date": solved_date(campaign),
         "communicated_by": communicated_by,
         "source_section": vector["source_section"],
         "source_url": registry["source"]["url"] + f"#page={source_page}",
