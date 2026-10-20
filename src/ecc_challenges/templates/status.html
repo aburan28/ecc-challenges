@@ -59,7 +59,7 @@
       {% set state = "solved" if row.solved_in_2009 else "open" if is_open else "not-started" %}
       {% set primary = row.including_historical or row if is_open else row %}
       <tr class="{{ state }}">
-        <td><a class="name" href="/challenges/{{ row.id }}">{{ row.name }}</a></td>
+        <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a></td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ work.expected(challenge) }}</td>
         <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>

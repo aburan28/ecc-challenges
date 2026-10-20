@@ -62,14 +62,17 @@
 
 <section class="section" id="campaigns">
   <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>. Work so far is estimated from stored points.</p></div>
-  <div class="table-wrap"><table>
+  <div class="table-wrap"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
+    {% for solved, group in challenges|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody>
-    {% for challenge in challenges %}
-      {% set is_open = multicurve_enabled or challenge.contribution == "ecc2k130_gpu_v1" %}
-      {% set row = snapshot.campaigns[loop.index0] if snapshot else none %}
-      <tr{% if is_open and not challenge.solved_in_2009 %} class="open"{% endif %}>
-        <td><a class="name" href="/challenges/{{ challenge.id }}">{{ challenge.public().name }}</a></td>
+    <tr><th scope="rowgroup" colspan="7">{{ "Solved by 2009" if solved else "Unsolved challenges" }} · smallest to largest bit size</th></tr>
+    {% for challenge in group %}
+      {% set row = snapshot.campaigns|selectattr("id", "equalto", challenge.id)|first if snapshot else none %}
+      {% set is_open = row and row.received_points is not none %}
+      {% set state = "solved" if solved else "open" if is_open else "not-started" %}
+      <tr class="{{ state }}">
+        <td><a class="name" href="/{{ 'results' if solved else 'challenges' }}/{{ challenge.id }}">{{ challenge.public().name }}</a></td>
         <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
         <td class="num">{{ challenge.field_bits }}</td>
         <td>{{ level_labels[challenge.level] }}</td>
@@ -79,6 +82,7 @@
       </tr>
     {% endfor %}
     </tbody>
+    {% endfor %}
   </table></div>
   <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. The solved column is Certicom's 2009 snapshot, not a claim about today. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
 </section>
