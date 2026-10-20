@@ -1,0 +1,26 @@
+{
+  "app_aborted": true,
+  "app_id": "ap-A6FbdlWeYOM1g0NPU8OUEk",
+  "app_url": "https://modal.com/apps/a-buran28/main/ap-A6FbdlWeYOM1g0NPU8OUEk",
+  "format": "eccjob03-binary-l4-attempt-v1",
+  "head_commit": "213a94f372aee19c82398e6710d12fa2fdd41009",
+  "image_build_self_tests": {
+    "baseline": "passed",
+    "candidate": "passed"
+  },
+  "launcher_sha256": "a24bab22492270ce4014e5f7cd01fb444f1f6af7015ef637828f612eb7396a35",
+  "modal_log_sha256": "bcec23e68855ba4ec60356483425dc9a2206a195275cbd6e9295baec7a810808",
+  "raw_workload_output": false,
+  "reason": "KeyError ECC_BASELINE_HEADER: local path environment variable unavailable during remote module import",
+  "recorded_at": "2026-10-19T22:06:32.947439+00:00",
+  "requested": {
+    "curves": 9,
+    "gpu": "L4",
+    "lanes": 32,
+    "repeats": 2,
+    "steps_per_round": 64
+  },
+  "stage": "remote_module_import",
+  "status": "failed_infrastructure",
+  "timing_rows": 0
+}
