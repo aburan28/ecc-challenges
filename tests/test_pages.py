@@ -65,7 +65,8 @@ def test_all_site_documentation_links_and_fragments_resolve():
             request=request, login="me", keys=[], csrf="x", issued=None, challenges=CHALLENGES,
             worker_image="example.invalid/image@sha256:" + "a" * 64,
             cpu_worker_image="example.invalid/cpu@sha256:" + "b" * 64,
-            activity=None, multicurve_enabled=False,
+            activity=None, multicurve_enabled=False, campaign_status=None,
+            names={challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
             selected_campaign="ecc2k-130", client_os="linux"))
         for source, page in pages.items():
             for href in page.hrefs:
