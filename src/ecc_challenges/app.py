@@ -353,8 +353,15 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         except Exception:
             LOG.exception("dashboard run activity failed")
             activity = None
+        try:
+            snapshot = await run_in_threadpool(status_reader.read)
+            campaign_status = next((row for row in snapshot["campaigns"] if row["id"] == campaign), None)
+        except Exception:
+            LOG.exception("dashboard challenge progress failed")
+            campaign_status = None
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"login": request.session.get("login"), "keys": keys,
+            {"campaign_status": campaign_status,
+             "login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued, "activity": activity,
              "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,

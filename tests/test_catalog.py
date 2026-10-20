@@ -452,3 +452,43 @@ def test_dashboard_threshold_selector_generates_isolated_compatible_commands(mon
             assert "ECC_DP_WEIGHT" not in other
             assert "-e ECC_PROTOCOL=2" in other
             assert 'ecc-data-$CAMPAIGN-$GPU_ID:/data' in other
+
+
+@pytest.mark.parametrize("mode", ["imported", "public_only", "unavailable"])
+def test_dashboard_progress_uses_selected_challenge_and_preserves_private_activity(monkeypatch, mode):
+    import base64
+    import json
+    from itsdangerous import TimestampSigner
+    from ecc_challenges.service import Service
+
+    snapshot = StatusReader(FakeDB()).read()
+    sigma = snapshot["campaigns"][6]
+    other = dict(sigma, id="eccp-131", including_historical=None,
+                 historical_points=0, expected_work_percent=1.25)
+    snapshot["campaigns"] = [sigma, other]
+    def read(_reader):
+        if mode == "unavailable":
+            raise RuntimeError("snapshot unavailable")
+        return snapshot
+    monkeypatch.setattr(StatusReader, "read", read)
+    monkeypatch.setattr(Service, "account_keys", lambda *args: [])
+    monkeypatch.setattr(Service, "account_runs", lambda *args, **kwargs: None)
+    session = TimestampSigner("s" * 48).sign(base64.b64encode(json.dumps(
+        {"github_id": 1, "login": "test", "csrf": "test"}).encode())).decode()
+    campaign = "eccp-131" if mode == "public_only" else "ecc2k-130"
+    with TestClient(application(multicurve_enabled=True), base_url="https://ecc-challenges.com") as client:
+        client.cookies.set("ecc_session", session)
+        page = client.get("/dashboard?campaign=" + campaign)
+        assert page.status_code == 200 and page.headers["cache-control"] == "no-store"
+        progress = page.text.split('aria-labelledby="challenge-progress"', 1)[1].split('</section>', 1)[0]
+        assert 'href="/challenges/' + campaign + '"' in progress
+        if mode == "imported":
+            assert '<span class="progress-primary">5.96%</span>' in progress
+            assert '&lt;0.01% public uploads only' in progress
+            assert progress.index('progress-primary') < progress.index('progress-public')
+        elif mode == "public_only":
+            assert '<span class="progress-primary">1.25%</span>' in progress
+            assert 'Including imported points' not in progress and 'progress-public' not in progress
+        else:
+            assert 'Progress unavailable' in progress
+        assert 'Your runners' in page.text and 'Run the worker' in page.text
