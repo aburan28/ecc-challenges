@@ -21,10 +21,9 @@ mkdir -p ~/.config/ecc-challenges
 
 <section class="section" style="margin-top:36px" aria-labelledby="challenge-progress">
   <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">Across all contributors. <a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
-  {% set combined = (campaign_status.including_historical or campaign_status) if campaign_status else none %}
   <dl class="stats" aria-label="Challenge progress" style="margin-top:0">
     <div class="stat progress-summary"><dt>Progress</dt><dd>{{ work.summary(campaign_status) }}</dd></div>
-    <div class="stat"><dt>Expected operations</dt><dd>{{ combined.expected_operations_log2|pow2 if combined else "—" }}<small>for this challenge's walk</small></dd></div>
+    <div class="stat iteration-rate"><dt>Iterations per second</dt><dd>{{ campaign_status.operations_per_second_log2|pow2 if campaign_status and campaign_status.operations_per_second_log2 is defined else "—" }}<small>estimated from public uploads, 24 h average</small></dd></div>
     <div class="stat"><dt>Points archived</dt><dd>{{ "{:,}".format((campaign_status.received_points or 0) + (campaign_status.historical_points or 0)) if campaign_status and campaign_status.received_points is not none else "—" }}<small>all contributors{% if campaign_status and campaign_status.including_historical %}, including imported points{% endif %}</small></dd></div>
     <div class="stat"><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(campaign_status.points_per_hour) if campaign_status and campaign_status.points_per_hour is defined else "—" }}<small>public uploads, 24 h average</small></dd></div>
   </dl>
