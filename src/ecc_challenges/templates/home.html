@@ -24,7 +24,7 @@
 {% set flagship = (k130_row.including_historical or k130_row) if k130_row else none %}
 <dl class="stats" aria-label="Current figures">
   <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of Certicom's 24 challenges</small></dd></div>
-  <div class="stat"><dt>Work so far</dt><dd>{{ snapshot.total_estimated_work_log2_including_historical|pow2 if snapshot else "—" }}<small>{% if flagship and flagship.expected_work_percent is not none %}{{ flagship.expected_work_percent|percent }} of ECC2K-130's {{ flagship.expected_operations_log2|pow2 }}{% else %}estimated curve operations{% endif %}</small></dd></div>
+  <div class="stat progress-summary"><dt>ECC2K-130 progress</dt><dd>{{ work.summary(k130_row) }}</dd></div>
   <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}incl. {{ "{:,}".format(imported) }} from the earlier run{% else %}distinguished points stored{% endif %}</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
