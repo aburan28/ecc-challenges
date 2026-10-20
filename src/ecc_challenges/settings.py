@@ -36,6 +36,7 @@ class Settings:
     point_index_mode: str = "dynamodb"
     point_index_merge_seconds: int = 3600
     multicurve_canary_keys: tuple[str, ...] = ()
+    compatibility_binary: str = "/opt/ecc/sigma-compatibility"
 
     @classmethod
     def from_env(cls, *, web: bool = True) -> "Settings":
@@ -72,6 +73,7 @@ class Settings:
             point_index_mode=get("POINT_INDEX_MODE", "dynamodb"),
             point_index_merge_seconds=int(get("POINT_INDEX_MERGE_SECONDS", "3600")),
             multicurve_canary_keys=tuple(v.strip() for v in get("MULTICURVE_CANARY_KEYS", "").split(",") if v.strip()),
+            compatibility_binary=get("COMPATIBILITY_BINARY", "/opt/ecc/sigma-compatibility"),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
         if web:

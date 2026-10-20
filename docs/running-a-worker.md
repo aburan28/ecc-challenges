@@ -345,3 +345,67 @@ server:
 | Windows (x64, ARM64) | CI `Worker platforms`: `install.ps1` under Windows PowerShell 5.1, self-test, all-24-curve CPU walk against a Python reference, file lock and atomic checkpoint, installed wrapper start-up |
 | Linux arm64 native | CI `Worker platforms`: as Windows, plus CMake and `install.sh` builds |
 | Metal kernel source | Type-checked on every CI host with clang's C++ for OpenCL, which enforces address spaces as Metal does; compiled with `xcrun metal` where the Metal toolchain is installed |
+
+## API key activity
+
+The private dashboard shows activity for each API key across all campaigns and
+worker protocols. Workers send an authenticated `POST /v1/heartbeat` immediately
+when their work loop starts and every 60 seconds thereafter, independently of
+point discovery, long compute rounds, checkpoints, and upload retries. Requests
+have a 10-second timeout; failures are retried on the next interval and do not
+interrupt the search. Closing a run or running `--check` does not send heartbeats.
+
+**Active** means a worker using that key pinged within the past three minutes;
+otherwise it shows **Offline**. Multiple workers can share a key: stopping one
+does not mark the others offline. Revoked keys and suspended accounts are always
+offline. This reports worker connectivity, not proof that a GPU is computing.
+Status is calculated when the page loads; use **Refresh status** to update it.
+
+**Last ping** is the last accepted heartbeat, using the server's clock.
+**Last used** is the last other authenticated API request that passed the key's
+rate limit, even if the later operation was rejected. Both timestamps use UTC.
+Heartbeats do not change run cursors, point counts, checkpoints, or last used.
+
+Existing workers need an update and restart before they send heartbeats. For
+Docker, stop the worker gracefully and recreate it with the dashboard's current
+image, preserving the same state volume, protocol and threshold. For native
+installs, stop the worker and rerun the installer, then resume the same state
+directory. No heartbeat history is inferred from earlier point uploads.
+
+**Points received** sums the committed record counters for the key's runs.
+Re-sending a batch does not increase the count. The count includes records
+awaiting verification, can include repeated endpoints in different batches, and
+does not include unuploaded local points or unattributed historical imports.
+Revoked keys retain their history; unused keys show “Never” and zero points.
+
+## ECC2K-130 legacy sigma thresholds
+
+To start a sigma DP34 run that can match the old DP30/DP32 archive, use the
+combined GPU image built with threshold compatibility and a **new, dedicated
+state directory**. Set:
+
+```sh
+ECC_PROTOCOL=1
+ECC_CAMPAIGN=ecc2k-130
+ECC_DP_WEIGHT=34
+```
+
+Pass these as environment variables to the worker alongside your existing API
+key and state-volume configuration. This sigma implementation requires an
+NVIDIA GPU. The gateway advertises supported weights in `/v1/config`.
+`ECC_DP_WEIGHT` accepts 30, 32 or 34. DP34 is recommended for new NVIDIA sigma
+workers and is preselected on the dashboard. New clients use the gateway's
+`recommended_dp_weight` (currently 34) unless `ECC_DP_WEIGHT` is set. The chosen
+weight becomes part of the run and checkpoint binding and cannot be changed
+when resuming. Existing sigma checkpoints retain their original threshold;
+old checkpoints without threshold metadata remain DP32. Pending registrations
+also retain their threshold across retries. Use a separate state directory
+when starting a different threshold.
+
+These are Hamming-weight thresholds: DP34 emits more frequently than DP32.
+This recommendation is not a measured claim of the fastest time to a solution;
+GPU throughput, upload/index capacity and continuation costs also matter.
+Protocol 2's `dp_bits=34` belongs to a different walk and does not query the
+legacy archive. The operator's bounded continuation jobs described in
+[operations](operations.md#reusing-legacy-dp30dp32-records-with-sigma-dp34-runs)
+can extend sigma DP34 trails to the old, rarer endpoints.

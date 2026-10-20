@@ -35,7 +35,14 @@ static int verifyScalar() {
 
 int main(int argc, char **argv) {
     if (argc == 2 && strcmp(argv[1], "--verify-scalar") == 0) return verifyScalar();
-    if (argc != 1) return 3;
+    int weight = CAMPAIGN_DP_WEIGHT;
+    bool untilEndpoint = argc == 2 && strcmp(argv[1], "--until-endpoint") == 0;
+    if (argc == 3 && strcmp(argv[1], "--dp-weight") == 0) {
+        if (strcmp(argv[2], "30") == 0) weight = 30;
+        else if (strcmp(argv[2], "32") == 0) weight = 32;
+        else if (strcmp(argv[2], "34") == 0) weight = 34;
+        else return 3;
+    } else if (argc != 1 && !untilEndpoint) return 3;
     uint8_t input[EC2K_RECORD_BYTES];
     if (fread(input, 1, sizeof(input), stdin) != sizeof(input) || fgetc(stdin) != EOF) {
         fprintf(stderr, "expected exactly one 32-byte record\n");
@@ -48,7 +55,31 @@ int main(int argc, char **argv) {
     HostWalk walk;
     walk.build(P, Q);
     DpRecord report{};
-    if (!referenceReport(walk, seed, CAMPAIGN_DP_WEIGHT, CAMPAIGN_MAX_ITERS, &report)) {
+    if (untilEndpoint) {
+        // Historical records can lack their original threshold. Never infer
+        // it from endpoint weight: the seed may have passed earlier DP32s.
+        ec2k_pt point;
+        if (!startPoint(walk, seed, &point)) return 3;
+        unsigned long long history = HIST_START;
+        report.seed = seed;
+        for (unsigned long long i = 0; i <= CAMPAIGN_MAX_ITERS; ++i) {
+            if (ec2k_fe_weight(&point.x) <= 34) {
+                report.iters = i;
+                toLimbs(point.x, report.x);
+                toLimbs(point.y, report.y);
+                uint8_t actual[EC2K_RECORD_BYTES];
+                campaignRecord(actual, report);
+                if (memcmp(input, actual, sizeof(input)) == 0) {
+                    printf("{\"match\":true,\"steps\":%llu,\"original_threshold\":null}\n", i);
+                    return 0;
+                }
+            }
+            if (i == CAMPAIGN_MAX_ITERS || !referenceStep(walk, &point, &history)) break;
+        }
+        puts("{\"match\":false,\"reason\":\"endpoint_not_reached_within_guard\"}");
+        return 3; // unresolved within the bound, not evidence of a bad record
+    }
+    if (!referenceReport(walk, seed, weight, CAMPAIGN_MAX_ITERS, &report)) {
         puts("{\"match\":false,\"reason\":\"no_report_within_guard\"}");
         return 2;
     }

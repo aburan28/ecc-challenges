@@ -24,7 +24,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from .db import Database
 from .catalog import BY_ID, CHALLENGES, SOURCE_DATE, SOURCE_URL
 from .multicurve.instances import get_instance
-from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES
+from .protocol import (CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECOMMENDED_DP_WEIGHT,
+                       RECORD_BYTES, MAX_BATCH_BYTES, MAX_CHECKPOINT_BYTES)
 from .security import new_csrf
 from .service import Service, Rejected
 from .settings import Settings
@@ -347,7 +348,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         request.session.clear()
         return RedirectResponse("/", status_code=303)
 
-    async def dashboard_page(request: Request, account_id: int, issued: str | None, campaign: str):
+    async def dashboard_page(request: Request, account_id: int, issued: str | None,
+                             campaign: str, dp_weight: int):
         keys = await run_in_threadpool(service.account_keys, account_id)
         try:
             activity = await run_in_threadpool(service.account_runs, account_id,
@@ -361,17 +363,21 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
              "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
              "cpu_worker_image": getattr(settings, "public_cpu_worker_image", ""),
-             "multicurve_enabled": multicurve_enabled, "selected_campaign": campaign,
-             "client_os": client_os(request)},
+             "multicurve_enabled": multicurve_enabled, "client_os": client_os(request),
+             "selected_dp_weight": dp_weight, "recommended_dp_weight": RECOMMENDED_DP_WEIGHT,
+             "sigma_dp_weights": sorted(DP_WEIGHTS, reverse=True), "selected_campaign": campaign},
             headers={"Cache-Control": "no-store", "X-Frame-Options": "DENY"})
 
     @app.get("/dashboard", response_class=HTMLResponse)
-    async def dashboard(request: Request):
+    async def dashboard(request: Request, dp_weight: int = RECOMMENDED_DP_WEIGHT):
         account_id = require_session(request)
+        if dp_weight not in DP_WEIGHTS:
+            raise Rejected(400, "unsupported sigma reporting threshold")
         if "csrf" not in request.session:
             request.session["csrf"] = new_csrf()
-        campaign = request.query_params.get("campaign", CAMPAIGN)
-        return await dashboard_page(request, account_id, None, campaign if campaign in BY_ID else CAMPAIGN)
+        requested = request.query_params.get("campaign", CAMPAIGN)
+        campaign = requested if multicurve_enabled and requested in BY_ID else CAMPAIGN
+        return await dashboard_page(request, account_id, None, campaign, dp_weight)
 
     @app.post("/keys", response_class=HTMLResponse)
     async def create_key(request: Request):
@@ -379,7 +385,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         values = await form_values(request)
         require_csrf(request, values.get("csrf"))
         issued = await run_in_threadpool(service.create_key, account_id, values.get("label", ""))
-        return await dashboard_page(request, account_id, issued, CAMPAIGN)
+        return await dashboard_page(request, account_id, issued, CAMPAIGN, RECOMMENDED_DP_WEIGHT)
 
     @app.post("/keys/{key_id}/revoke")
     async def revoke_key(request: Request, key_id: str):
@@ -405,8 +411,16 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         if challenge.contribution != "ecc2k130_gpu_v1":
             raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         return {"campaign": CAMPAIGN, "walk_id": WALK_ID,
-                "dp_weight": DP_WEIGHT, "record_bytes": RECORD_BYTES,
+                "dp_weight": DP_WEIGHT, "supported_dp_weights": list(DP_WEIGHTS),
+                "recommended_dp_weight": RECOMMENDED_DP_WEIGHT, "record_bytes": RECORD_BYTES,
                 "max_batch_bytes": MAX_BATCH_BYTES}
+
+    @app.post("/v1/heartbeat")
+    async def heartbeat(request: Request):
+        # Shared by both worker protocols; a ping never counts as point activity.
+        await limited_body(request, 0)
+        await run_in_threadpool(service.authenticate, bearer_value(request), heartbeat=True)
+        return Response(status_code=204, headers={"Cache-Control": "no-store"})
 
     @app.post("/v1/register")
     async def register(request: Request):
@@ -415,7 +429,13 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         if request.headers.get("x-campaign-id", CAMPAIGN) != CAMPAIGN:
             raise Rejected(409, "this campaign has no compatible worker and verifier yet")
         key = await run_in_threadpool(service.authenticate, bearer_value(request))
-        result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""))
+        try:
+            dp_weight = int(request.headers.get("x-dp-weight", str(DP_WEIGHT)))
+        except ValueError:
+            raise Rejected(400, "invalid reporting threshold") from None
+        if request.headers.get("x-walk-id", WALK_ID) != WALK_ID:
+            raise Rejected(409, "this endpoint accepts only the legacy sigma walk")
+        result = await run_in_threadpool(service.register, key, request.headers.get("x-registration-id", ""), dp_weight)
         return JSONResponse(result, status_code=201, headers={"Cache-Control": "no-store"})
 
     @app.get("/v1/runs/{run_id}")

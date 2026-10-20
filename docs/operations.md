@@ -312,3 +312,62 @@ containing a temporary pull-only token. Sending that token to a third-party
 importer requires explicit authorization; an automatic approval rejection does
 not authorize another transport. No AWS access keys belong in a contributor
 container. The public release must work with an anonymous provider pull.
+
+## Reusing legacy DP30/DP32 records with sigma DP34 runs
+
+Migration `008_sigma_compatibility.sql` binds each protocol-1 run to Hamming
+weight 30, 32 or 34. The dashboard recommends DP34 for new NVIDIA sigma workers;
+`/v1/config` advertises `recommended_dp_weight: 34`. The original `dp_weight: 32`
+and registration fallback remain for older clients, and existing runs retain
+their registered threshold. Historical records retain their
+seed and may retain an unknown original threshold: the weight of an endpoint
+alone cannot establish which stopping rule generated it. The resolver reaches
+the stored endpoint when that threshold is unknown, with a finite replay bound.
+A bound or timeout leaves the collision unresolved. Every proposed scalar is
+checked separately using the pinned FPGA-model arithmetic.
+
+This applies to `certicom-ecc2k130-frobenius-v1`. Protocol 2 uses another walk
+and a hash-bit predicate; its `dp_bits=34` is not this sigma DP34. Its index is
+separate. Within the sigma walk, weight 34 reports more frequently than weight
+32 or 30. A DP34 walk can stop before the older endpoint, so direct matching
+alone does not reuse every older trail.
+
+The ordinary index automatically matches DP34 uploads against imported DP30/32
+endpoints. The operator can also continue selected DP34 trails to a DP32 or DP30
+endpoint, without changing the contributor's checkpoint or counting a derived
+endpoint as another historical point:
+
+```sh
+python -m ecc_challenges.queues bridge --limit 1 --target-weight 32 \
+  --max-extra-steps 16777216 --timeout-seconds 900
+```
+
+Run this inside the audit image with the existing worker role, archive, and
+DB configuration. It queues at most `--limit` new records (maximum 100) and
+processes at most that many jobs. Repeated invocations select subsequent records.
+Run a separate pass with `--target-weight 30` for the rarer old threshold.
+Each job records immutable input hashes, binary hashes, its continuation,
+matching witnesses, independent scalar checks, and completion/budget status in
+S3 and `ecc_public.sigma_continuations`. Completed jobs check the historical
+index as it exists at that moment, so import and backmatch first. There is no
+unbounded background continuation service. Production continuation throughput
+and benefit have not yet been measured; begin with a single bounded job.
+
+To export directly from the old `rho-dp` database, give the operator a read-only
+`SOURCE_DSN` through its environment, then run:
+
+```sh
+python scripts/historical_import.py export-database --source-id rho-dp \
+  --source-walk-id certicom-ecc2k130-frobenius-v1 \
+  --parts s3://DESTINATION_BUCKET/historical-import/rho-dp-YYYYMMDD \
+  --parts-account DESTINATION_ACCOUNT
+```
+
+The exporter uses a read-only, consistent snapshot and bounded chunks. It keeps
+canonical endpoints with weight at most 32, counts excluded records, and makes
+no changes to the source database. Omit `--source-dp-weight` when source run
+configuration has not established it. After export, use the existing `load`
+and `backmatch` commands. Duplicate points are retained once; different seeds
+at the same point remain collision witnesses. The website's historical totals
+increase only for newly inserted distinct points. Deploy the migration and role
+grants before the new web/audit images.

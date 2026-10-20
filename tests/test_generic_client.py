@@ -85,9 +85,23 @@ def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
     monkeypatch.setenv('ECC_BACKEND','cpu')
     class Stop(Exception):
         pass
+    import threading
+    from contextlib import nullcontext
+    import generic.heartbeat as heartbeat
+    pinged = threading.Event()
+    pings = []
+    def open_ping(self, request, timeout):
+        assert request.full_url.endswith('/v1/heartbeat') and timeout == 10
+        pings.append(request)
+        if len(pings) >= 2:
+            pinged.set()
+        return nullcontext(type('Response', (), {'status': 204})())
+    monkeypatch.setattr(heartbeat, 'HEARTBEAT_SECONDS', 0.02)
+    monkeypatch.setattr(heartbeat, 'build_opener', lambda *_: type('Opener', (), {'open': open_ping})())
     seen=[]
     def run_round(engine,backend,ns_,states,steps,temporary,timeout):
         seen.append(len(states))
+        assert pinged.wait(2), "heartbeat must run during a round without points"
         raise Stop
     monkeypatch.setattr(client,'run_round',run_round)
     try:

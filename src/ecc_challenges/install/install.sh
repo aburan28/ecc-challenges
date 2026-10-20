@@ -7,7 +7,7 @@
 # Installs to ~/.local/ecc-challenges without root, asks for your API key once
 # (saved to ~/.config/ecc-challenges/api-key, mode 0600) and offers to start a
 # worker. Run it again to update. Settings: ECC_CAMPAIGN (default eccp-131),
-# ECC_PREFIX, ECC_STATE_DIR, ECC_REF (git ref, default main), ECC_START=no.
+# ECC_PREFIX, ECC_STATE_DIR, ECC_REF (git ref, default tested release), ECC_START=no.
 # Needs curl, tar, python3 3.10+ and a C++17 compiler; this script names the
 # packages to install if one is missing. Source: deploy/native/install.sh at
 # https://github.com/aburan28/ecc-challenges
@@ -15,7 +15,7 @@ set -eu
 
 repo=aburan28/ecc-challenges
 api=${ECC_API_URL:-https://ecc-challenges.com}
-ref=${ECC_REF:-main}
+ref=${ECC_REF:-57429625caa4c2e885a3fb79dd5eff66fea0e55e}
 campaign=${ECC_CAMPAIGN:-eccp-131}
 prefix=${ECC_PREFIX:-$HOME/.local/ecc-challenges}
 state=${ECC_STATE_DIR:-$HOME/ecc-data/$campaign}

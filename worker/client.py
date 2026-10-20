@@ -18,7 +18,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from protocol import CAMPAIGN, DP_WEIGHT, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
+from protocol import CAMPAIGN, DP_WEIGHT, DP_WEIGHTS, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
+from generic.heartbeat import Heartbeat
 
 
 def log(message: str) -> None:
@@ -64,6 +65,7 @@ class API:
         self.campaign = campaign
         self.run_id = None
         self.registration_id = None
+        self.dp_weight = DP_WEIGHT
 
     def request(self, method: str, path: str, data: bytes | None = None):
         headers = {"User-Agent": "ecc2k130-public-client/1",
@@ -71,6 +73,8 @@ class API:
         headers["Authorization"] = "Bearer " + self.api_key
         if path == "/v1/register":
             headers["X-Registration-Id"] = self.registration_id
+            headers["X-DP-Weight"] = str(self.dp_weight)
+            headers["X-Walk-Id"] = WALK_ID
         if data is not None and path != "/v1/register":
             headers["Content-Type"] = "application/octet-stream"
         req = Request(self.url + path, data=data, headers=headers, method=method)
@@ -92,26 +96,42 @@ class API:
 def ensure_identity(api: API, root: Path) -> dict:
     state_path = root / "state.json"
     config = api.request("GET", f"/v1/config?campaign={api.campaign}")
-    if (config.get("campaign"), config.get("walk_id"), config.get("dp_weight"),
-            config.get("record_bytes")) != (CAMPAIGN, WALK_ID, DP_WEIGHT, 32):
+    if (config.get("campaign"), config.get("walk_id"),
+            config.get("record_bytes")) != (CAMPAIGN, WALK_ID, 32):
         raise RuntimeError("gateway campaign or record format is incompatible")
     if state_path.is_file():
         state = json.loads(state_path.read_text())
+        api.dp_weight = state.get("dp_weight", DP_WEIGHT)
+        if type(api.dp_weight) is not int or api.dp_weight not in DP_WEIGHTS:
+            raise RuntimeError("saved run has an unsupported sigma DP weight")
+        if int(os.environ.get("ECC_DP_WEIGHT", str(api.dp_weight))) != api.dp_weight:
+            raise RuntimeError("existing run has a different reporting threshold; use a separate state directory")
     else:
         if any((root / name).exists() for name in ("dps.bin", "state.ck")):
             raise RuntimeError("walk data exists without its run identity; preserve it for recovery")
         nonce_path = root / "registration.json"
         if nonce_path.is_file():
-            nonce = json.loads(nonce_path.read_text())["registration_id"]
+            registration = json.loads(nonce_path.read_text())
+            nonce = registration["registration_id"]
+            # A retry must retain the original threshold even if the server's
+            # recommendation changes after accepting the first request.
+            chosen = registration.get("dp_weight", int(os.environ.get("ECC_DP_WEIGHT", str(DP_WEIGHT))))
+            if type(chosen) is not int or int(os.environ.get("ECC_DP_WEIGHT", str(chosen))) != chosen:
+                raise RuntimeError("pending registration has a different reporting threshold; preserve its state directory")
         else:
             nonce = str(uuid.uuid4())
-            atomic_json(nonce_path, {"registration_id": nonce})
+            chosen = int(os.environ.get("ECC_DP_WEIGHT", str(config.get("recommended_dp_weight", config.get("dp_weight", DP_WEIGHT)))))
+        api.dp_weight = chosen
+        if api.dp_weight not in DP_WEIGHTS or api.dp_weight not in config.get("supported_dp_weights", [config.get("dp_weight")]):
+            raise RuntimeError("gateway does not support the requested sigma reporting threshold")
+        atomic_json(nonce_path, {"registration_id": nonce, "dp_weight": api.dp_weight})
         api.registration_id = nonce
         result = api.request("POST", "/v1/register", b"")
-        if (result.get("campaign"), result.get("walk_id")) != (api.campaign, WALK_ID):
+        if (result.get("campaign"), result.get("walk_id"), result.get("dp_weight", DP_WEIGHT)) != (api.campaign, WALK_ID, api.dp_weight):
             raise RuntimeError("gateway assigned an incompatible run; registration identity preserved")
         state = {"protocol": "ecc-challenges-v1", "campaign": api.campaign,
                  "run_id": result["run_id"],
+                 "dp_weight": api.dp_weight,
                  "remote_cursor": 0, "uploaded_local": 0}
         atomic_json(state_path, state)
     if state.get("protocol") != "ecc-challenges-v1":
@@ -124,12 +144,14 @@ def ensure_identity(api: API, root: Path) -> dict:
         raise RuntimeError("gateway returned a different run identity")
     if remote.get("campaign", CAMPAIGN) != api.campaign:
         raise RuntimeError("gateway run belongs to another campaign")
+    if remote.get("dp_weight", DP_WEIGHT) != api.dp_weight or remote.get("walk_id", WALK_ID) != WALK_ID:
+        raise RuntimeError("gateway run has a different sigma walk or reporting threshold")
     dp_path = root / "dps.bin"
     ck_path = root / "state.ck"
     if not dp_path.is_file():
         if remote["checkpoint_at"] is not None:
             data = api.request("GET", f"/v1/runs/{api.run_id}/checkpoint")
-            check_checkpoint(data, api.run_id)
+            check_checkpoint(data, api.run_id, api.dp_weight)
             temporary = ck_path.with_suffix(".download")
             temporary.write_bytes(data)
             os.replace(temporary, ck_path)
@@ -149,7 +171,7 @@ def ensure_identity(api: API, root: Path) -> dict:
             atomic_json(state_path, state)
         if not ck_path.is_file() and remote["checkpoint_at"] is not None:
             data = api.request("GET", f"/v1/runs/{api.run_id}/checkpoint")
-            check_checkpoint(data, api.run_id)
+            check_checkpoint(data, api.run_id, api.dp_weight)
             temporary = ck_path.with_suffix(".download")
             temporary.write_bytes(data)
             os.replace(temporary, ck_path)
@@ -190,7 +212,7 @@ def upload_checkpoint(api: API, root: Path, state: dict, *, force: bool = False)
     data = path.read_bytes()
     if len(data) != size:
         raise RuntimeError("checkpoint changed while being read")
-    check_checkpoint(data, api.run_id)
+    check_checkpoint(data, api.run_id, api.dp_weight)
     digest = hashlib.sha256(data).hexdigest()
     if digest == state.get("checkpoint_sha256"):
         return
@@ -229,7 +251,7 @@ def main() -> int:
         raise RuntimeError("CUDA client host known-answer check failed")
     command = [client, "walk", "--run-id", str(api.run_id),
                "--dp-file", str(root / "dps.bin"), "--checkpoint", str(root / "state.ck"),
-               "--dp-weight", "32", "--max-iters", "4294967296",
+               "--dp-weight", str(api.dp_weight), "--max-iters", "4294967296",
                "--checkpoint-every", "60", "--device", os.environ.get("ECC_GPU", "0")]
     stop = False
     proc = None
@@ -245,66 +267,67 @@ def main() -> int:
     interval = max(10, int(os.environ.get("ECC_UPLOAD_SECONDS", "60")))
     spool_limit = max(64 * 1024 * 1024, int(os.environ.get("ECC_SPOOL_MAX_BYTES", str(512 * 1024 * 1024))))
     failed_sync = False
-    try:
-        while not stop:
-            pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
-            if pending >= spool_limit:
-                log(f"run {api.run_id}: upload backlog reached {pending} bytes; GPU paused")
-                while pending >= spool_limit // 2 and not stop:
-                    try:
-                        upload_dps(api, root, state)
-                        upload_checkpoint(api, root, state)
-                        failed_sync = False
-                    except Exception as exc:
-                        failed_sync = True
-                        log(f"run {api.run_id}: backlog retained ({type(exc).__name__}: {exc})")
-                    pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
-                    if pending >= spool_limit // 2:
-                        time.sleep(30)
-                continue
-            log(f"run {api.run_id}: starting sigma GPU walk")
-            proc = subprocess.Popen(command)
-            next_upload = time.monotonic()
-            while proc.poll() is None and not stop:
-                if time.monotonic() >= next_upload:
-                    try:
-                        upload_dps(api, root, state)
-                        upload_checkpoint(api, root, state)
-                        failed_sync = False
-                    except Exception as exc:
-                        failed_sync = True
-                        log(f"run {api.run_id}: upload pending ({type(exc).__name__}: {exc})")
-                    next_upload = time.monotonic() + interval
+    with Heartbeat(api.url, key):
+        try:
+            while not stop:
                 pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
                 if pending >= spool_limit:
+                    log(f"run {api.run_id}: upload backlog reached {pending} bytes; GPU paused")
+                    while pending >= spool_limit // 2 and not stop:
+                        try:
+                            upload_dps(api, root, state)
+                            upload_checkpoint(api, root, state)
+                            failed_sync = False
+                        except Exception as exc:
+                            failed_sync = True
+                            log(f"run {api.run_id}: backlog retained ({type(exc).__name__}: {exc})")
+                        pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
+                        if pending >= spool_limit // 2:
+                            time.sleep(30)
+                    continue
+                log(f"run {api.run_id}: starting sigma GPU walk")
+                proc = subprocess.Popen(command)
+                next_upload = time.monotonic()
+                while proc.poll() is None and not stop:
+                    if time.monotonic() >= next_upload:
+                        try:
+                            upload_dps(api, root, state)
+                            upload_checkpoint(api, root, state)
+                            failed_sync = False
+                        except Exception as exc:
+                            failed_sync = True
+                            log(f"run {api.run_id}: upload pending ({type(exc).__name__}: {exc})")
+                        next_upload = time.monotonic() + interval
+                    pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
+                    if pending >= spool_limit:
+                        proc.send_signal(signal.SIGTERM)
+                        proc.wait(timeout=600)
+                        break
+                    time.sleep(1)
+                if proc.poll() is None:
                     proc.send_signal(signal.SIGTERM)
                     proc.wait(timeout=600)
+                if proc.returncode:
+                    raise RuntimeError(f"GPU client exited {proc.returncode}")
+                if stop:
                     break
-                time.sleep(1)
-            if proc.poll() is None:
+                # A stopped GPU is restarted only from its checkpoint and same run ID.
+                if not (root / "state.ck").is_file():
+                    raise RuntimeError("GPU stopped without a checkpoint")
+            for attempt in range(3):
+                try:
+                    upload_dps(api, root, state)
+                    upload_checkpoint(api, root, state, force=True)
+                    failed_sync = False
+                    break
+                except Exception as exc:
+                    failed_sync = True
+                    log(f"run {api.run_id}: final upload attempt {attempt + 1} failed ({type(exc).__name__}: {exc})")
+                    time.sleep(2)
+        finally:
+            if proc is not None and proc.poll() is None:
                 proc.send_signal(signal.SIGTERM)
                 proc.wait(timeout=600)
-            if proc.returncode:
-                raise RuntimeError(f"GPU client exited {proc.returncode}")
-            if stop:
-                break
-            # A stopped GPU is restarted only from its checkpoint and same run ID.
-            if not (root / "state.ck").is_file():
-                raise RuntimeError("GPU stopped without a checkpoint")
-        for attempt in range(3):
-            try:
-                upload_dps(api, root, state)
-                upload_checkpoint(api, root, state, force=True)
-                failed_sync = False
-                break
-            except Exception as exc:
-                failed_sync = True
-                log(f"run {api.run_id}: final upload attempt {attempt + 1} failed ({type(exc).__name__}: {exc})")
-                time.sleep(2)
-    finally:
-        if proc is not None and proc.poll() is None:
-            proc.send_signal(signal.SIGTERM)
-            proc.wait(timeout=600)
     log(f"run {api.run_id}: client exit={proc.returncode if proc else 0} upload_pending={failed_sync}")
     return 1 if failed_sync else 0
 

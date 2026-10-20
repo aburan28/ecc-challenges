@@ -5,9 +5,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import math
+from datetime import timezone
 from uuid import UUID
 
-from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, RECORD_BYTES, check_records, check_checkpoint
+from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECORD_BYTES, check_records, check_checkpoint
 from .security import generate_key, parse_and_digest, same_digest
 
 
@@ -35,10 +36,30 @@ class Service:
 
     def account_keys(self, account_id: int) -> list[dict]:
         with self.db.connection() as conn:
-            return conn.execute("""
-                SELECT id,label,created_at,revoked_at,last_used_at FROM ecc_public.api_keys
-                WHERE account_id=%s ORDER BY created_at DESC
-            """, (account_id,)).fetchall()
+            keys = conn.execute("""
+                WITH run_activity AS (
+                    SELECT key_id,total_bytes / 32 AS points_received
+                    FROM ecc_public.runs WHERE account_id=%s
+                    UNION ALL
+                    SELECT key_id,total_records AS points_received
+                    FROM ecc_public.dp_runs WHERE account_id=%s
+                ), key_activity AS (
+                    SELECT key_id,sum(points_received) AS points_received
+                    FROM run_activity GROUP BY key_id
+                )
+                SELECT k.id,k.label,k.created_at,k.revoked_at,k.last_used_at,
+                       k.last_ping_at,coalesce(a.points_received,0) AS points_received,
+                       (k.revoked_at IS NULL AND owner.suspended_at IS NULL AND
+                        coalesce(k.last_ping_at > now()-interval '3 minutes',false)) AS worker_active
+                FROM ecc_public.api_keys k LEFT JOIN key_activity a ON a.key_id=k.id
+                JOIN ecc_public.accounts owner ON owner.github_id=k.account_id
+                WHERE k.account_id=%s ORDER BY k.created_at DESC,k.id
+            """, (account_id, account_id, account_id)).fetchall()
+        for key in keys:
+            for field in ("created_at", "last_ping_at", "last_used_at"):
+                if key[field] is not None:
+                    key[field] = key[field].astimezone(timezone.utc)
+        return keys
 
     def account_runs(self, account_id: int, *, include_generic: bool = False, limit: int = 50) -> dict:
         """This account's runs with their recent submission rate, and its latest
@@ -167,7 +188,7 @@ class Service:
                 WHERE key_id=%s
             """, (key_id,))
 
-    def authenticate(self, bearer: str, cost: int = 1) -> dict:
+    def authenticate(self, bearer: str, cost: int = 1, *, heartbeat: bool = False) -> dict:
         parsed = parse_and_digest(self.settings.key_pepper, bearer)
         if not parsed:
             raise Rejected(401, "invalid API key")
@@ -184,11 +205,13 @@ class Service:
             limited = conn.execute("""
                 UPDATE ecc_public.api_keys
                 SET tokens=least(240, tokens + greatest(0,extract(epoch from now()-token_updated_at))*4)-%s,
-                    token_updated_at=now(), last_used_at=now()
+                    token_updated_at=now(),
+                    last_used_at=CASE WHEN %s THEN last_used_at ELSE greatest(last_used_at,now()) END,
+                    last_ping_at=CASE WHEN %s THEN greatest(last_ping_at,now()) ELSE last_ping_at END
                 WHERE id=%s AND least(240, tokens + greatest(0,extract(epoch from now()-token_updated_at))*4)>=%s
                   AND revoked_at IS NULL
                 RETURNING id
-            """, (cost, key_id, cost)).fetchone()
+            """, (cost, heartbeat, heartbeat, key_id, cost)).fetchone()
             if not limited:
                 raise Rejected(429, "API key rate limit exceeded", 15)
             return {"id": key_id, "account_id": row["account_id"]}
@@ -204,17 +227,21 @@ class Service:
             raise Rejected(401, "run or key is unavailable")
         return row
 
-    def register(self, key: dict, registration_id: str) -> dict:
+    def register(self, key: dict, registration_id: str, dp_weight: int = DP_WEIGHT) -> dict:
+        if type(dp_weight) is not int or dp_weight not in DP_WEIGHTS:
+            raise Rejected(400, "unsupported sigma reporting threshold")
         try:
             nonce = UUID(registration_id)
         except (ValueError, TypeError):
             raise Rejected(400, "X-Registration-Id must be a UUID") from None
         with self.db.connection() as conn:
             prior = conn.execute("""
-                SELECT run_id FROM ecc_public.runs WHERE key_id=%s AND registration_id=%s
+                SELECT run_id,dp_weight FROM ecc_public.runs WHERE key_id=%s AND registration_id=%s
             """, (key["id"], nonce)).fetchone()
             if prior:
-                return self._registration_result(prior["run_id"])
+                if prior["dp_weight"] != dp_weight:
+                    raise Rejected(409, "registration_id belongs to a different reporting threshold")
+                return self._registration_result(prior["run_id"], dp_weight)
             account = conn.execute("""
                 SELECT github_id FROM ecc_public.accounts
                 WHERE github_id=%s AND suspended_at IS NULL FOR UPDATE
@@ -222,10 +249,12 @@ class Service:
             if not account:
                 raise Rejected(401, "account unavailable")
             prior = conn.execute("""
-                SELECT run_id FROM ecc_public.runs WHERE key_id=%s AND registration_id=%s
+                SELECT run_id,dp_weight FROM ecc_public.runs WHERE key_id=%s AND registration_id=%s
             """, (key["id"], nonce)).fetchone()
             if prior:
-                return self._registration_result(prior["run_id"])
+                if prior["dp_weight"] != dp_weight:
+                    raise Rejected(409, "registration_id belongs to a different reporting threshold")
+                return self._registration_result(prior["run_id"], dp_weight)
             if conn.execute("""
                 SELECT 1 FROM ecc_public.dp_runs WHERE key_id=%s AND registration_id=%s
             """, (key["id"], nonce)).fetchone():
@@ -252,22 +281,23 @@ class Service:
                 if not self.storage.reserve_run(run_id):
                     continue
                 conn.execute("""
-                    INSERT INTO ecc_public.runs(run_id,account_id,key_id,registration_id)
-                    VALUES (%s,%s,%s,%s)
-                """, (run_id, key["account_id"], key["id"], nonce))
-                return self._registration_result(run_id)
+                    INSERT INTO ecc_public.runs(run_id,account_id,key_id,registration_id,dp_weight)
+                    VALUES (%s,%s,%s,%s,%s)
+                """, (run_id, key["account_id"], key["id"], nonce, dp_weight))
+                return self._registration_result(run_id, dp_weight)
         raise Rejected(503, "run ID range exhausted")
 
     @staticmethod
-    def _registration_result(run_id: int) -> dict:
+    def _registration_result(run_id: int, dp_weight: int = DP_WEIGHT) -> dict:
         return {"run_id": run_id, "campaign": CAMPAIGN, "walk_id": WALK_ID,
-                "dp_weight": DP_WEIGHT}
+                "dp_weight": dp_weight}
 
     def run_status(self, key: dict, run_id: int) -> dict:
         with self.db.connection() as conn:
             run = self._active_run(conn, run_id, key)
             return {"run_id": run_id, "cursor": run["cursor"],
-                    "checkpoint_at": run["checkpoint_at"]}
+                    "checkpoint_at": run["checkpoint_at"], "dp_weight": run["dp_weight"],
+                    "campaign": CAMPAIGN, "walk_id": WALK_ID}
 
     def _charge_daily_bytes(self, conn, key: dict, length: int) -> None:
         quota = conn.execute("""
@@ -284,8 +314,10 @@ class Service:
     def upload_batch(self, key: dict, run_id: int, offset: int, data: bytes) -> dict:
         if offset < 0 or offset % RECORD_BYTES:
             raise Rejected(400, "invalid byte offset")
+        with self.db.connection() as conn:
+            dp_weight = self._active_run(conn, run_id, key)["dp_weight"]
         try:
-            count = check_records(data, run_id)
+            count = check_records(data, run_id, dp_weight)
         except ValueError as exc:
             raise Rejected(400, str(exc)) from exc
         digest = hashlib.sha256(data).hexdigest()
@@ -340,8 +372,10 @@ class Service:
         return {"ok": True, "records": count, "cursor": offset + len(data)}
 
     def upload_checkpoint(self, key: dict, run_id: int, offset: int, data: bytes) -> dict:
+        with self.db.connection() as conn:
+            dp_weight = self._active_run(conn, run_id, key)["dp_weight"]
         try:
-            iterations = check_checkpoint(data, run_id)
+            iterations = check_checkpoint(data, run_id, dp_weight)
         except ValueError as exc:
             raise Rejected(400, str(exc)) from exc
         digest = hashlib.sha256(data).hexdigest()
