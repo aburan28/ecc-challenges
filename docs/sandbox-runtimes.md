@@ -3,6 +3,8 @@
 The Linux worker image passed the offline CPU smoke under both gVisor and
 Kata Containers with the pinned published digest. The detailed receipts and
 host facts are in [`verification/sandbox-runtime-20261019`](../verification/sandbox-runtime-20261019/README.md).
+The later image advertised by the public catalog on 2026-10-20 has its own
+[Kata and gVisor receipts](../verification/sandbox-runtime-20261020/README.md).
 These recipes do not change public campaign enrollment. Check the
 [live catalog](https://ecc-challenges.com/v1/campaigns) before starting a real
 worker.
