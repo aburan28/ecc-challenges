@@ -31,11 +31,12 @@ from .service import Service, Rejected
 from .settings import Settings
 from .storage import Storage
 from .status import StatusReader
-from .results import create_results_router
+from .results import SOLVED_DATES, create_results_router
 from .pages import create_pages_router
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
+TEMPLATES.env.globals["solved_dates"] = SOLVED_DATES
 
 
 def pow2(log2: float | None, places: int = 1, title: str | None = None) -> Markup | str:

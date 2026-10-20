@@ -52,7 +52,7 @@
     {% set rows = snapshot.campaigns if snapshot else challenges %}
     {% for solved, group in rows|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody>
-    <tr><th scope="rowgroup" colspan="{{ 11 if v2 else 10 }}">{{ "Solved by 2009" if solved else "Unsolved challenges" }} · smallest to largest bit size</th></tr>
+    <tr><th scope="rowgroup" colspan="{{ 11 if v2 else 10 }}">{{ "Solved 1997–2004" if solved else "Unsolved challenges" }} · smallest to largest bit size</th></tr>
     {% for challenge in group %}
       {% set row = challenge if snapshot else challenge.public() %}
       {% set is_open = row.received_points is defined and row.received_points is not none %}
@@ -62,7 +62,7 @@
         <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a></td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ work.expected(challenge) }}</td>
-        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">Solved by 2009</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">Solved {{ solved_dates[row.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
         <td>{% if is_open and not row.solved_in_2009 %}<span class="bar mini" aria-hidden="true"><span style="width:{{ [primary.expected_work_percent or 0, 100]|min }}%"></span></span><span class="mono">{{ primary.expected_work_percent|percent }}</span>{% if row.including_historical %}<br><small class="muted">{{ row.expected_work_percent|percent }} public uploads only</small>{% endif %}{% else %}—{% endif %}</td>
         <td class="num">{{ "{:,.0f}".format(row.points_per_hour) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
@@ -75,7 +75,7 @@
     </tbody>
     {% endfor %}
   </table></div>
-  <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}"Solved by 2009" is Certicom's snapshot from that year, not a claim about today. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
+  <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}Solve dates are from section 6.1 of Certicom's 2009 report. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
 </section>
 
 <section class="section two">
