@@ -198,6 +198,25 @@ def detect_backend() -> str:
         return "cpu"
 
 
+def select_backend() -> str:
+    """Apply the worker's backend and provider-visible device selection."""
+    backend = os.environ.get("ECC_BACKEND", "auto")
+    if backend == "auto":
+        backend = detect_backend()
+    if backend == "cuda" and "ECC_GPU" in os.environ:
+        selected = os.environ["ECC_GPU"]
+        if "CUDA_VISIBLE_DEVICES" in os.environ:
+            visible = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+            if selected.isdecimal() and int(selected) < len(visible):
+                selected = visible[int(selected)]
+            elif selected not in visible:
+                raise ValueError("ECC_GPU is outside the provider's visible GPU allocation")
+        os.environ["CUDA_VISIBLE_DEVICES"] = selected
+    if backend not in BACKENDS:
+        raise ValueError("ECC_BACKEND must be auto, cpu, cuda or metal")
+    return backend
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = lock_state_directory(root)  # held until the process exits
@@ -218,21 +237,7 @@ def main(root: Path, key: str, campaign: str) -> int:
         return 0
     if action != "work":
         raise ValueError("ECC_ACTION must be work or close")
-    backend = os.environ.get("ECC_BACKEND", "auto")
-    if backend == "auto":
-        backend = detect_backend()
-    if backend == "cuda" and "ECC_GPU" in os.environ:
-        # This subprocess environment is read by CUDA before device discovery.
-        selected = os.environ["ECC_GPU"]
-        if "CUDA_VISIBLE_DEVICES" in os.environ:
-            visible = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
-            if selected.isdecimal() and int(selected) < len(visible):
-                selected = visible[int(selected)]
-            elif selected not in visible:
-                raise ValueError("ECC_GPU is outside the provider's visible GPU allocation")
-        os.environ["CUDA_VISIBLE_DEVICES"] = selected
-    if backend not in BACKENDS:
-        raise ValueError("ECC_BACKEND must be auto, cpu, cuda or metal")
+    backend = select_backend()
     path = root / "generic-state.json"
     saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
     lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))

@@ -7,6 +7,7 @@ does not infer a challenge's current solution status from that old snapshot.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from math import log2
 
 from .protocol import CAMPAIGN, WALK_ID
 
@@ -25,9 +26,15 @@ class Challenge:
     contribution: str = "not_integrated"
     walk_id: str | None = None
 
+    @property
+    def estimated_operations_log2(self) -> float | None:
+        """Certicom's estimate as a power of two, which is how the site shows it."""
+        return round(log2(float(self.estimated_operations_2009)), 2) if self.estimated_operations_2009 else None
+
     def public(self, multicurve_enabled: bool = False) -> dict:
         value = {**asdict(self), "name": self.id.upper() if self.field != "prime" else
                 "ECCp-" + self.id.rsplit("-", 1)[1],
+                "estimated_operations_2009_log2": self.estimated_operations_log2,
                 "source_url": SOURCE_URL, "source_date": SOURCE_DATE}
         if multicurve_enabled:
             from .multicurve.codec import namespace

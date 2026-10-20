@@ -1,0 +1,37 @@
+{
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8",
+  "concurrency": 4,
+  "campaigns": [
+    "ecc2-79",
+    "ecc2-89",
+    "ecc2-97",
+    "ecc2k-95",
+    "ecc2-109",
+    "ecc2k-108",
+    "ecc2-131",
+    "ecc2k-130",
+    "ecc2-163",
+    "ecc2k-163",
+    "ecc2-191",
+    "ecc2-238",
+    "ecc2k-238",
+    "ecc2-353",
+    "ecc2k-358",
+    "eccp-79",
+    "eccp-89",
+    "eccp-97",
+    "eccp-109",
+    "eccp-131",
+    "eccp-163",
+    "eccp-191",
+    "eccp-239",
+    "eccp-359"
+  ],
+  "requires_production_dp": [
+    "ecc2-79",
+    "eccp-79"
+  ],
+  "max_seconds_per_container": 240,
+  "scope": "real public namespace, registration, native CPU walk, independent checkpoint relation checks, restart, accepted-point drain when present, close; no throughput claim",
+  "boot_sha256": "9fda1cd21da06f547fa7c1f1bf72585e98fa5ea0175f1470f286f6c13b55d6dd"
+}

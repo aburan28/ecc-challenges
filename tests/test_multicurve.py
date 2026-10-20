@@ -222,6 +222,41 @@ def test_invalid_relation_never_reaches_index(platform):
     assert pipeline.process(intent['batch_id'])=='failed'
 
 
+def test_v2_shard_backlog_503_recovers_after_indexing(platform):
+    service,key,run,ns,archive,pipeline,table=platform
+    service.settings=replace(service.settings,max_pending_batches=16)
+    first,_=admit(platform,[dp(ns)])
+    raw=ns.encode(dp(ns,trail=2))
+    digest=hashlib.sha256(raw).hexdigest()
+    with pytest.raises(Rejected) as error:
+        service.intent(key,run['run_id'],ns.record_bytes,len(raw),1,digest)
+    assert error.value.status==503 and error.value.retry_after==60
+    assert pipeline.process(first['batch_id'])=='indexed'
+    second,result=admit(platform,[dp(ns,trail=2)],ns.record_bytes)
+    assert result['cursor']==2*ns.record_bytes
+    assert pipeline.process(second['batch_id'])=='indexed'
+    with service.db.connection() as conn:
+        assert conn.execute('SELECT sum(pending_batches) AS n FROM ecc_public.dp_pressure').fetchone()['n']==0
+
+
+def test_v2_queue_outage_keeps_admission_and_repairs_delivery(platform,monkeypatch):
+    service,key,run,ns,archive,pipeline,table=platform
+    original=archive.storage.sqs.send_message
+    def unavailable(**kwargs):raise OSError('constructed SQS outage')
+    monkeypatch.setattr(archive.storage.sqs,'send_message',unavailable)
+    intent,result=admit(platform,[dp(ns)])
+    assert result['ok'] and result['cursor']==ns.record_bytes
+    with service.db.connection() as conn:
+        row=conn.execute('SELECT state,admission_key,queued_at FROM ecc_public.dp_batches WHERE id=%s',(intent['batch_id'],)).fetchone()
+    assert row['state']=='admitted' and row['admission_key'] and row['queued_at'] is None
+    monkeypatch.setattr(archive.storage.sqs,'send_message',original)
+    assert pipeline.repair()==1
+    duplicate=service.commit(key,run['run_id'],intent['batch_id'])
+    assert duplicate['duplicate'] and duplicate['cursor']==ns.record_bytes
+    assert pipeline.process(intent['batch_id'])=='indexed'
+    assert pipeline.process(intent['batch_id'])=='indexed'
+
+
 def test_crash_after_conditional_insert_preserves_collision(platform,monkeypatch):
     service,key,run,ns,archive,pipeline,table=platform
     record=dp(ns)
@@ -455,6 +490,11 @@ def test_all24_public_catalog_and_authenticated_v2_routes(platform):
         assert all(row['received_points'] is not None for row in status['campaigns'])
         assert client.get('/status').status_code==200
         assert b'Verified' in client.get('/status').content and client.get('/').status_code==200
+        assert all(row['expected_work_percent'] is not None for row in status['campaigns'])
+        assert b'role="progressbar"' in client.get('/status').content
+        activity=service.legacy.account_runs(456,include_generic=True)
+        assert [(r['id'],r['campaign'],r['state']) for r in activity['runs']]==[(assigned.json()['run_id'],'ecc2-131','active')]
+        assert activity['runs'][0]['dp_bits']>0
         run_url='/v2/runs/'+assigned.json()['run_id']
         assert client.post(run_url+'/close',headers=headers,content=b'x').status_code==413
         assert client.post(run_url+'/close',headers=headers).status_code==200
