@@ -31,12 +31,12 @@ negation map saves.
 
 ## Result in one paragraph
 
-One Apple P-core went from about 0.06 M (ECC2-131) and 0.06 M (ECCp-131) steps
+One Apple P-core went from about 0.11 M (ECC2-131) and 0.06 M (ECCp-131) steps
 per CPU-second to about 9.1 M and 3.0 M: roughly **80x** and **50x**. About
-two thirds of the remaining per-step cost of the old walk was SHA-256 (S4a to
-S4b: 3.6 to 9.8 M on ECC2-131), and batch inversion was the other large step.
-The negation map is not free per step (walk 4 steps are slightly slower than
-walk 3) and saves fewer steps than the ideal sqrt(2): **1.26 +/- 0.05** on the
+60% of the per-step cost left after batching was SHA-256 (S4a to S4b: 3.6 to
+9.8 M on ECC2-131), and batch inversion was the other large step. The negation
+map is not free per step (on ECC2-131 walk 4 steps are about 7% slower than
+walk 3; on ECCp-131 the difference is inside the noise) and saves fewer steps than the ideal sqrt(2): **1.26 +/- 0.05** on the
 25-bit toy curve (below), because a table of 32 jumps gives short fruitless
 cycles that cost steps to detect and leave. On the GPU the prime curve gains
 3 to 5x over the old Metal kernel, but **ECC2-131 on the GPU is a loss**: the
