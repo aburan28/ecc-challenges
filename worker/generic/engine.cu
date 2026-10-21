@@ -220,9 +220,25 @@ void run_cuda(const Job& job, std::vector<State>& states,
     cuda_check(cudaMemcpy(device_states.ptr, states.data(),
                           sizeof(State) * job.lanes, cudaMemcpyHostToDevice),
                "copy states to CUDA");
+#ifdef ECC_PROFILE_CUDA
+    cudaEvent_t kernel_start{}, kernel_stop{};
+    cuda_check(cudaEventCreate(&kernel_start), "create CUDA start event");
+    cuda_check(cudaEventCreate(&kernel_stop), "create CUDA stop event");
+    cuda_check(cudaEventRecord(kernel_start), "record CUDA start event");
+#endif
     walk_kernel<<<(job.lanes + 127) / 128, 128>>>(
         device_job.ptr, device_states.ptr, device_errors.ptr);
     cuda_check(cudaGetLastError(), "CUDA walk launch");
+#ifdef ECC_PROFILE_CUDA
+    cuda_check(cudaEventRecord(kernel_stop), "record CUDA stop event");
+    cuda_check(cudaEventSynchronize(kernel_stop), "synchronize CUDA stop event");
+    float kernel_ms = 0.0f;
+    cuda_check(cudaEventElapsedTime(&kernel_ms, kernel_start, kernel_stop),
+               "CUDA kernel elapsed time");
+    std::cerr << "ECC_PROFILE_CUDA_KERNEL_MS=" << kernel_ms << '\n';
+    cuda_check(cudaEventDestroy(kernel_start), "destroy CUDA start event");
+    cuda_check(cudaEventDestroy(kernel_stop), "destroy CUDA stop event");
+#endif
     cuda_check(cudaDeviceSynchronize(), "CUDA walk execution");
     cuda_check(cudaMemcpy(states.data(), device_states.ptr,
                           sizeof(State) * job.lanes, cudaMemcpyDeviceToHost),

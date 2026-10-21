@@ -1,0 +1,1631 @@
+{
+  "binary_sha256": {
+    "baseline": "bac06feba0dcebcd7b43c282cb1a1767ca8e90de19807e3efb21b5a8fdc5932b",
+    "candidate": "f9a89fe4980f46f724f4d18f1a7324addb4e7f6f14f85e7671b5e7760cb7a3f6"
+  },
+  "comparisons": [
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        2107728290,
+        564602393
+      ],
+      "baseline_kernel_bracket_ms": [
+        1878.67,
+        312.069
+      ],
+      "campaign": "ecc2k-130",
+      "candidate_kernel_ms": 1647.53,
+      "candidate_ns": 1846771727,
+      "candidate_over_baseline_median": 1.3821431148085201,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        528153076,
+        534882561
+      ],
+      "baseline_kernel_bracket_ms": [
+        312.152,
+        311.839
+      ],
+      "campaign": "ecc2k-130",
+      "candidate_kernel_ms": 234.208,
+      "candidate_ns": 439034364,
+      "candidate_over_baseline_median": 0.8260012152348943,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        610429276,
+        541150847
+      ],
+      "baseline_kernel_bracket_ms": [
+        310.03,
+        308.505
+      ],
+      "campaign": "ecc2-131",
+      "candidate_kernel_ms": 236.1,
+      "candidate_ns": 555908601,
+      "candidate_over_baseline_median": 0.9654709905061465,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        537458501,
+        538780333
+      ],
+      "baseline_kernel_bracket_ms": [
+        310.536,
+        308.358
+      ],
+      "campaign": "ecc2-131",
+      "candidate_kernel_ms": 231.479,
+      "candidate_ns": 551688732,
+      "candidate_over_baseline_median": 1.0252161779919569,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        577308710,
+        588191288
+      ],
+      "baseline_kernel_bracket_ms": [
+        378.581,
+        378.537
+      ],
+      "campaign": "ecc2k-163",
+      "candidate_kernel_ms": 281.6,
+      "candidate_ns": 487928254,
+      "candidate_over_baseline_median": 0.8372857225865049,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        589315856,
+        634132469
+      ],
+      "baseline_kernel_bracket_ms": [
+        378.597,
+        384.019
+      ],
+      "campaign": "ecc2k-163",
+      "candidate_kernel_ms": 281.889,
+      "candidate_ns": 545543942,
+      "candidate_over_baseline_median": 0.8918136235954224,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        657308446,
+        669045065
+      ],
+      "baseline_kernel_bracket_ms": [
+        391.61,
+        390.907
+      ],
+      "campaign": "ecc2-163",
+      "candidate_kernel_ms": 300.108,
+      "candidate_ns": 564726313,
+      "candidate_over_baseline_median": 0.851547205652928,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        620687412,
+        592490983
+      ],
+      "baseline_kernel_bracket_ms": [
+        390.418,
+        390.064
+      ],
+      "campaign": "ecc2-163",
+      "candidate_kernel_ms": 290.797,
+      "candidate_ns": 498610143,
+      "candidate_over_baseline_median": 0.8219898162627599,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        498685696,
+        525772910
+      ],
+      "baseline_kernel_bracket_ms": [
+        293.532,
+        293.356
+      ],
+      "campaign": "ecc2-191",
+      "candidate_kernel_ms": 214.905,
+      "candidate_ns": 438089009,
+      "candidate_over_baseline_median": 0.85525956136094,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        493746270,
+        486899593
+      ],
+      "baseline_kernel_bracket_ms": [
+        293.414,
+        293.837
+      ],
+      "campaign": "ecc2-191",
+      "candidate_kernel_ms": 215.118,
+      "candidate_ns": 417902756,
+      "candidate_over_baseline_median": 0.8523010635491765,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        564482312,
+        609854779
+      ],
+      "baseline_kernel_bracket_ms": [
+        369.575,
+        369.654
+      ],
+      "campaign": "ecc2k-238",
+      "candidate_kernel_ms": 268.744,
+      "candidate_ns": 464478196,
+      "candidate_over_baseline_median": 0.7910474761628729,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        605006221,
+        571417489
+      ],
+      "baseline_kernel_bracket_ms": [
+        369.381,
+        369.633
+      ],
+      "campaign": "ecc2k-238",
+      "candidate_kernel_ms": 268.685,
+      "candidate_ns": 513678220,
+      "candidate_over_baseline_median": 0.8732877714611855,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        563955818,
+        566937736
+      ],
+      "baseline_kernel_bracket_ms": [
+        368.656,
+        369.248
+      ],
+      "campaign": "ecc2-238",
+      "candidate_kernel_ms": 268.326,
+      "candidate_ns": 462295740,
+      "candidate_over_baseline_median": 0.817576045711549,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        574524343,
+        568938694
+      ],
+      "baseline_kernel_bracket_ms": [
+        368.874,
+        368.516
+      ],
+      "campaign": "ecc2-238",
+      "candidate_kernel_ms": 268.19,
+      "candidate_ns": 463111892,
+      "candidate_over_baseline_median": 0.8100163748450051,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        824252530,
+        822694331
+      ],
+      "baseline_kernel_bracket_ms": [
+        625.842,
+        625.863
+      ],
+      "campaign": "ecc2k-358",
+      "candidate_kernel_ms": 444.0,
+      "candidate_ns": 684884801,
+      "candidate_over_baseline_median": 0.831702366625416,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        829543373,
+        835164447
+      ],
+      "baseline_kernel_bracket_ms": [
+        625.524,
+        625.419
+      ],
+      "campaign": "ecc2k-358",
+      "candidate_kernel_ms": 444.341,
+      "candidate_ns": 655875490,
+      "candidate_over_baseline_median": 0.7879767033232294,
+      "repeat": 1
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        835620423,
+        853466427
+      ],
+      "baseline_kernel_bracket_ms": [
+        620.68,
+        621.112
+      ],
+      "campaign": "ecc2-353",
+      "candidate_kernel_ms": 442.136,
+      "candidate_ns": 666250842,
+      "candidate_over_baseline_median": 0.7888887915976612,
+      "repeat": 0
+    },
+    {
+      "actual_steps": 131072,
+      "baseline_bracket_ns": [
+        862263636,
+        827087843
+      ],
+      "baseline_kernel_bracket_ms": [
+        621.098,
+        620.936
+      ],
+      "campaign": "ecc2-353",
+      "candidate_kernel_ms": 441.558,
+      "candidate_ns": 651637997,
+      "candidate_over_baseline_median": 0.771465269484042,
+      "repeat": 1
+    }
+  ],
+  "compiler_resource_usage": {
+    "baseline": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "\nFatbin ptx code:\n================\narch = sm_80\ncode version = [9,0]\nhost = linux\ncompile_size = 64bit\ncompressed\nptxasOptions = -v  \n"
+    },
+    "candidate": {
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "\nFatbin ptx code:\n================\narch = sm_80\ncode version = [9,0]\nhost = linux\ncompile_size = 64bit\ncompressed\nptxasOptions = -v  \n"
+    }
+  },
+  "device": "NVIDIA L4, GPU-d1544007-3f0d-c81b-59a2-f5504c113d21, 610.57.04, 210 MHz, 405 MHz, 41, 16.83 W",
+  "format": "eccjob03-binary-l4-matched-v1",
+  "lanes": 256,
+  "launcher_sha256": "3d7f5ef3268a853583e8ef4735a419892636c34350014fcacb30c44e3b02bce6",
+  "repeats": 2,
+  "rows": [
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 1878.67,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 2107728290,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 1647.53,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 1846771727,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 312.069,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 564602393,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 312.152,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 528153076,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 234.208,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 439034364,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-130",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-130/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 311.839,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 534882561,
+      "input_sha256": "eadcfbbd5e1583dc904289c57dce401f617f048f684bdfdbb3a40ba0f5b823c5",
+      "job_sha256": "9e0973bf0123c3368636352faa834b06d77604caa892363fdc1c4f8397f38bd2",
+      "output_sha256": "f5c55c6624fb6295dc54a4f5242b911f1b6c03387b1700d5b7483d761594b375",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 310.03,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 610429276,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 236.1,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 555908601,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 308.505,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 541150847,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 310.536,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 537458501,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 231.479,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 551688732,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-131",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-131/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-131/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 308.358,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 538780333,
+      "input_sha256": "85d3d5938747d268fd7443092aa00ec770ecaa3b8a324bc38759787984b64b08",
+      "job_sha256": "92e46c1f5643dff781c99c4b5f839c7f7489aef52697ab544ba4a7b1a616fd4c",
+      "output_sha256": "d053ccd69d74ce23229874a2169ebbf3e34e2d68a50d4bccf187b5819931c753",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 378.581,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 577308710,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 281.6,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 487928254,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 378.537,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 588191288,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 378.597,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 589315856,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 281.889,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 545543942,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-163/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 384.019,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 634132469,
+      "input_sha256": "88c37a5eb92d4aa0928fc8cf8b02125fbe3f6b7d5f52c3137b6fdd7124c83e60",
+      "job_sha256": "ddcf618af1279b8614d37c260c023dc5489ffc62e01072f7b9323dad86b53398",
+      "output_sha256": "a69c1da1fef33b992e7ef3825f4164f879092697c1e4448e258075ddad9bf4dd",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 391.61,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 657308446,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 300.108,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 564726313,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 390.907,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 669045065,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 390.418,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 620687412,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 290.797,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 498610143,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-163",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-163/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-163/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 390.064,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 592490983,
+      "input_sha256": "3dd6b6456f6bf2e65367c0df4f69ecca528cd9d0e04dc8943c83445b59d1e03b",
+      "job_sha256": "369b73e63ece63bbefc13a1cd232250a2d59eb8a09d31f68772fc2061c221416",
+      "output_sha256": "17f1ff31171c120d23fe60503bd68695607f0a509441cd7bfd0851966876ba95",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 293.532,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 498685696,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 214.905,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 438089009,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 293.356,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 525772910,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 293.414,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 493746270,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 215.118,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 417902756,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-191",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-191/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-191/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 293.837,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 486899593,
+      "input_sha256": "2761fdb6385685a59af03be1a26782ab8117e8174580fccd512537ec2ea17108",
+      "job_sha256": "fa4384545bba050f911920d8d9dc1031341dbabe33d9513d115b58ac98c5172a",
+      "output_sha256": "86c6c678ae26cc559bff25e61a33595a9015630c36f256c80b08d9f62a930f8d",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 369.575,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 564482312,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 268.744,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 464478196,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 369.654,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 609854779,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 369.381,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 605006221,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 268.685,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 513678220,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-238/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 369.633,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 571417489,
+      "input_sha256": "676932daa9cf0458851299d6f056125bafe4d974ddc6eea7820469efeac23c72",
+      "job_sha256": "726dc84e6f8813c3cc8f14fe19a14ed98f3cbbd72527872777c6244cb8d9c312",
+      "output_sha256": "b75ee61c8c83c504a8d534561646edc4086e4e8a6b4a63256ac9d3f40099d8f4",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 368.656,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 563955818,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 268.326,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 462295740,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 369.248,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 566937736,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 368.874,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 574524343,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 268.19,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 463111892,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-238",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-238/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-238/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 368.516,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 568938694,
+      "input_sha256": "687db9ad404d8d2f72978a174f1edfe5215efd0fec337c9caadb84ae96006bc6",
+      "job_sha256": "5871193c8a933dfdb11a8354d8e0df06def3e0c8acd3b5d19bb5802404295d66",
+      "output_sha256": "033f745b0c9ebee67211a57f961e898cecf0619172c7a8ef5b7b2c1c91394b81",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 625.842,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 824252530,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 444.0,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 684884801,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 625.863,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 822694331,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 625.524,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 829543373,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 444.341,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 655875490,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2k-358",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2k-358/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 625.419,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 835164447,
+      "input_sha256": "20a88f50ecc953e879be4066977210f71a25c23d4d783ff5e0d9a90bfe427b8b",
+      "job_sha256": "097395a996ffe8af81c442c7fdae27e16971c1b9b137f1f6649cf0df16c14d75",
+      "output_sha256": "d8b7951453534ffca2367bd8be86c909e91d388ce9e337b9d5c7c47297db0d51",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 620.68,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 835620423,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 0,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 442.136,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 666250842,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 1,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/00-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 621.112,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 853466427,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 2,
+      "repeat": 0,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-0-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-0-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 621.098,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 862263636,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 0,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "candidate",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-candidate",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-1-candidate/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-1-candidate/dp.bin"
+      ],
+      "cuda_kernel_ms": 441.558,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 651637997,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 1,
+      "repeat": 1,
+      "returncode": 0
+    },
+    {
+      "actual_steps": 131072,
+      "arm": "baseline",
+      "campaign": "ecc2-353",
+      "command": [
+        "/opt/ecc-baseline",
+        "--backend",
+        "cuda",
+        "/tmp/tmp9kzy8fxv/ecc2-353/job.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/in.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-2-baseline/out.bin",
+        "/tmp/tmp9kzy8fxv/ecc2-353/01-2-baseline/dp.bin"
+      ],
+      "cuda_kernel_ms": 620.936,
+      "dp_count": 0,
+      "dp_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_ns": 827087843,
+      "input_sha256": "7b6dbf389cafd3e45a0f178807be7f5ebacd16bbcc1e9635e354e36b83e9982e",
+      "job_sha256": "8dcca6aaac128cf0e4d9cee9bee53511f33fee87a76ad140c825b520e46ec4d3",
+      "output_sha256": "37d25aaff5125e15ae94f7e34d178d61b4a5d35e49bda4cf007fbe76caf46a56",
+      "position": 2,
+      "repeat": 1,
+      "returncode": 0
+    }
+  ],
+  "source_sha256": {
+    "baseline": {
+      "ec_core.h": "90b2d04da9c626e2d0a0f6e63f3f50929a93b28caf522211bfdae43b414eff80",
+      "engine.cu": "87211d525a18469c59e96fde2461d66d38c22a9b0a2362744ab8e82173443684"
+    },
+    "candidate": {
+      "ec_core.h": "b20f3ae4e47ba25576a4353d374a131333f1b8584c42ca39925baf24c381999a",
+      "engine.cu": "87211d525a18469c59e96fde2461d66d38c22a9b0a2362744ab8e82173443684"
+    }
+  },
+  "steps_per_round": 512,
+  "system": {
+    "machine": "x86_64",
+    "node": "modal",
+    "processor": "x86_64",
+    "release": "4.19.0-gvisor",
+    "system": "Linux",
+    "version": "#1 SMP Sun Jan 10 15:06:54 PST 2016"
+  },
+  "timing_boundary": "full worker process invocation including validation, transfers, kernel and output"
+}
