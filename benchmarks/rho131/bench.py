@@ -104,7 +104,7 @@ def main():
                      "backend": a.backend, "threads": a.threads, "lanes": a.lanes, "round_steps": a.steps,
                      "campaign": a.campaign})
         print(json.dumps(rows[-1]), flush=True)
-        print(f"{stage:4} {label:34} {rate:11.0f} wall  {cpu_rate:11.0f} cpu-s (median)  {m['best_steps_per_engine_cpu_s']:11.0f} cpu-s (best)", file=sys.stderr, flush=True)
+        print(f"{stage:4} {label:34} {rate:11.0f} wall  {cpu_rate:11.0f} cpu-s (median)  {m['cpu_best']:11.0f} cpu-s (best)", file=sys.stderr, flush=True)
         return rate
 
     if not a.skip_reference:

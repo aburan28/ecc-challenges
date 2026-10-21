@@ -1,0 +1,7 @@
+S0   reference engine, walk 2                 41373 wall        56800 cpu-s (median)        58516 cpu-s (best)
+S1   fast field, batch 1, walk 2             134026 wall       387072 cpu-s (median)       406890 cpu-s (best)
+S3   + batch inversion 16                    373893 wall      1502599 cpu-s (median)      1687845 cpu-s (best)
+S3   + batch inversion 64                    428770 wall      1823972 cpu-s (median)      1976268 cpu-s (best)
+S4a  + persistent engine (batch 64)          761579 wall      1875345 cpu-s (median)      2087965 cpu-s (best)
+S4b  + x-only partition/DP (walk 3)          942153 wall      7334863 cpu-s (median)      7479400 cpu-s (best)
+S5   + negation map (walk 4)                1004386 wall      6632932 cpu-s (median)      6757403 cpu-s (best)

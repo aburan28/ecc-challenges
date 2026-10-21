@@ -1,0 +1,3 @@
+S0   reference engine, walk 2                117372 wall            0 cpu-s (median)            0 cpu-s (best)
+S1   fast field + batch inversion, walk 2      121371 wall            0 cpu-s (median)            0 cpu-s (best)
+S4a  + persistent engine                      36656 wall            0 cpu-s (median)            0 cpu-s (best)
