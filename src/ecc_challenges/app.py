@@ -77,6 +77,7 @@ def ago(moment: datetime | None) -> str:
 
 TEMPLATES.env.filters["pow2"] = pow2
 TEMPLATES.env.filters["ago"] = ago
+TEMPLATES.env.filters["utcstamp"] = lambda value: value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 TEMPLATES.env.filters["isoago"] = lambda value: ago(datetime.fromisoformat(value))
 TEMPLATES.env.filters["percent"] = percent
 TEMPLATES.env.filters["duration"] = duration

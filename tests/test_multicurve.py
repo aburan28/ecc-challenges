@@ -489,7 +489,7 @@ def test_all24_public_catalog_and_authenticated_v2_routes(platform):
         assert status['compute_ready']==24
         assert all(row['received_points'] is not None for row in status['campaigns'])
         assert client.get('/status').status_code==200
-        assert b'Verified' in client.get('/status').content and client.get('/').status_code==200
+        assert b'Individually checked points' in client.get('/status').content and client.get('/').status_code==200
         assert all(row['expected_work_percent'] is not None for row in status['campaigns'])
         assert b'role="progressbar"' in client.get('/status').content
         activity=service.legacy.account_runs(456,include_generic=True)

@@ -43,7 +43,7 @@
       <tr><th>Challenge</th><td><a href="/challenges/{{ run.campaign }}">{{ name }}</a></td></tr>
       <tr><th>Key label</th><td>{{ run.key_label }}</td></tr>
       <tr><th>Protocol</th><td>{{ 'Original sigma worker' if run.protocol == 'v1' else 'All-curve worker' }} · DP{{ run.dp_bits }}</td></tr>
-      <tr><th>Registered</th><td>{{ run.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</td></tr>
+      <tr><th>Registered</th><td>{{ run.created_at|utcstamp }}</td></tr>
       <tr><th>Worker version</th><td>{{ run.health.get('version', 'Not reported') }}</td></tr>
       <tr><th>Platform</th><td>{{ run.health.get('platform', 'Not reported') }}</td></tr>
       <tr><th>Backend</th><td>{{ run.health.get('backend', 'Not reported') }}</td></tr>
