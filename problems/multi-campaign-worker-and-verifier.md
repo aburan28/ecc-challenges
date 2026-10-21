@@ -35,6 +35,15 @@ stable pairs. Exact commands, raw receipts, verifier, plots and PDFs are in
 The change is retained as the faster tested arithmetic for this L4 worker
 workload, not as an assertion of global optimality.
 
+The exact-commit public worker image was subsequently built, checked on an L4
+against all 168 archived CUDA controls, and advertised by the live gateway.
+The nine requested binary curves passed 63/63 of those controls, each with
+nonempty positive DP1 output. The web rollout completed with two healthy
+targets; see the [published-image release record](../verification/binary-rho-release-20261021/release-insight.md).
+This closes the image-publication and finite final-image correctness steps for
+the optimized arithmetic. It does not close the sustained nine-curve GPU
+contribution or complete-campaign performance obstruction.
+
 The long DP40 timing panels emitted zero distinguished points, so their DP
 hash parity concerns empty outputs. A separate optimized-source L4 check passed
 168 frozen CUDA controls across all 24 curves, including positive DP1 emission
@@ -69,7 +78,10 @@ account-backlog/refusal/restart/drain check passed. The AWS account currently ha
 vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for 256. Until
 effective, the configured 32-auditor ceiling is not available in full.
 
-V2 stays restricted to the designated canary key while these gates are checked.
+At the 2026-10-16 checkpoint, V2 remained restricted to the designated canary
+key while those gates were checked. The 2026-10-21 live catalog snapshot linked
+above reports `multicurve_enabled: true`; this later operational state does not
+by itself satisfy the outstanding per-curve performance measurements.
 Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
 import ran on 2026-10-17; see docs/operations.md, "Historical point import".

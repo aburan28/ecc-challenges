@@ -10,8 +10,8 @@ labels:
     includeSelectors: true
 images:
   - name: worker-image
-    newName: ghcr.io/aburan28/ecc-challenges-worker-cpu
-    digest: sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8
+    newName: public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu
+    digest: sha256:36b39c08cf882efe08e19fd859604a8dceff70998045b8a32c008797c5d16eb0
 patches:
   - target: {kind: StatefulSet, name: ecc-worker}
     patch: |-

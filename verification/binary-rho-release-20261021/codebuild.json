@@ -1,0 +1,132 @@
+{
+    "id": "ecc-challenges-release:92708fb3-7741-4226-9e75-281f7468b9c5",
+    "status": "SUCCEEDED",
+    "start": "2026-10-21T10:21:59.485000-07:00",
+    "end": "2026-10-21T10:26:26.980000-07:00",
+    "phases": [
+        {
+            "phaseType": "SUBMITTED",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:21:59.485000-07:00",
+            "endTime": "2026-10-21T10:21:59.561000-07:00",
+            "durationInSeconds": 0
+        },
+        {
+            "phaseType": "QUEUED",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:21:59.561000-07:00",
+            "endTime": "2026-10-21T10:22:00.114000-07:00",
+            "durationInSeconds": 0
+        },
+        {
+            "phaseType": "PROVISIONING",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:22:00.114000-07:00",
+            "endTime": "2026-10-21T10:22:07.073000-07:00",
+            "durationInSeconds": 6,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "DOWNLOAD_SOURCE",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:22:07.073000-07:00",
+            "endTime": "2026-10-21T10:22:07.848000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "INSTALL",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:22:07.848000-07:00",
+            "endTime": "2026-10-21T10:22:07.921000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "PRE_BUILD",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:22:07.921000-07:00",
+            "endTime": "2026-10-21T10:22:07.961000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "BUILD",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:22:07.961000-07:00",
+            "endTime": "2026-10-21T10:26:25.430000-07:00",
+            "durationInSeconds": 257,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "POST_BUILD",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:26:25.430000-07:00",
+            "endTime": "2026-10-21T10:26:25.465000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "UPLOAD_ARTIFACTS",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:26:25.465000-07:00",
+            "endTime": "2026-10-21T10:26:25.673000-07:00",
+            "durationInSeconds": 0,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "FINALIZING",
+            "phaseStatus": "SUCCEEDED",
+            "startTime": "2026-10-21T10:26:25.673000-07:00",
+            "endTime": "2026-10-21T10:26:26.980000-07:00",
+            "durationInSeconds": 1,
+            "contexts": [
+                {
+                    "statusCode": "",
+                    "message": ""
+                }
+            ]
+        },
+        {
+            "phaseType": "COMPLETED",
+            "startTime": "2026-10-21T10:26:26.980000-07:00"
+        }
+    ],
+    "logs": "https://console.aws.amazon.com/cloudwatch/home?region=us-west-2#logsV2:log-groups/log-group/$252Fecc-challenges$252Frelease-build/log-events/92708fb3-7741-4226-9e75-281f7468b9c5",
+    "release_commit": "9e04a19e9862945a90098f3a5b377448e29a6819"
+}

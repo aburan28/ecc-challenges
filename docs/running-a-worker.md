@@ -142,7 +142,7 @@ The dashboard shows the exact GPU command, with your image digest. On an amd64
 CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
-ECC_WORKER_IMAGE='ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e'
+ECC_WORKER_IMAGE='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba'
 mkdir -p "$PWD/ecc-data-eccp-131"
 docker run -d --restart unless-stopped --name ecc-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
@@ -155,7 +155,7 @@ docker logs -f ecc-eccp-131
 
 The published digest above supports all 24 curves on CPU and CUDA and includes
 the OpenMP CPU engine. For the smaller CPU-only image, including ARM64, use
-`ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8`.
+`public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:36b39c08cf882efe08e19fd859604a8dceff70998045b8a32c008797c5d16eb0`.
 The dashboard shows the current pinned images.
 
 ## Docker Compose
