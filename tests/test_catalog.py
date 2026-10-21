@@ -137,7 +137,8 @@ def test_challenge_pages_and_catalog_links_cover_all_24_instances():
             page = client.get(page_path)
             assert page.status_code == 200
             for challenge in CHALLENGES:
-                assert f'href="/challenges/{challenge.id}"'.encode() in page.content
+                destination = "results" if challenge.solved_in_2009 else "challenges"
+                assert f'class="name" href="/{destination}/{challenge.id}"'.encode() in page.content
 
         for challenge in CHALLENGES:
             response = client.get(f"/challenges/{challenge.id}")
