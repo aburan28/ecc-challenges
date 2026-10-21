@@ -1,0 +1,17 @@
+{
+  "protocol": "binary-rho-l4-native-replication-v1",
+  "precedes_runs": true,
+  "reason": "The first compute_80 PTX panel showed a favorable paired timing signal but did not yield native L4 register usage; an A/A control and native code generation are needed.",
+  "candidate_header_sha256": "b20f3ae4e47ba25576a4353d374a131333f1b8584c42ca39925baf24c381999a",
+  "baseline_header_sha256": "90b2d04da9c626e2d0a0f6e63f3f50929a93b28caf522211bfdae43b414eff80",
+  "control_archive_sha256": "ce502b916d286a7204430e598f4117ea1c17e8dfb4f6aa991a4edf1168ef4629",
+  "build": "CUDA 13.0.2, arch=compute_89,code=sm_89, -O2, ECC_PROFILE_CUDA, -Xptxas=-v; retain per-arm compiler logs and cuobjdump resource output",
+  "hardware": "NVIDIA L4",
+  "runs": [
+    {"name": "native-ab", "baseline": "original header", "candidate": "CUDA __clz header"},
+    {"name": "native-aa", "baseline": "CUDA __clz header", "candidate": "same CUDA __clz header"}
+  ],
+  "workload": {"curves": 9, "lanes": 256, "steps_per_lane": 512, "repeats": 2, "order_per_repeat": ["baseline", "candidate", "baseline"]},
+  "limits_per_run": {"worker_invocations": 54, "per_invocation_timeout_seconds": 120, "remote_function_timeout_seconds": 900},
+  "gates": "Exact output, DP and step parity; stable baseline brackets <=1.05; A/A timing distribution must be centered near 1 relative to A/B signal; kernel and full-process results reported separately. Preserve raw failures. A native-panel gain supports this worker workload only, not a complete campaign claim."
+}

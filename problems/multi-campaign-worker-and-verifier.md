@@ -18,17 +18,40 @@ was removed from the release diff. See the [insight report and raw receipts](../
 
 This observation establishes a regression for that candidate on those L4
 workloads. It does not identify the cause or prove the present arithmetic
-optimal. Kernel instruction and register costs, sustained useful-step rate,
-collection/verification costs, and other hardware remain unmeasured. A
-specific next test is to retain the same nine pinned job/input pairs, capture
-kernel-only time and compiler register/instruction output for both headers,
-then measure a proposed replacement in baseline–candidate–baseline order on
-the same GPU. Require exact output, distinguished-point and step equality;
-retain failed runs and raw measurements. A candidate that is faster under
-stable brackets would justify independent replication and full pipeline
-accounting. A slower or inconsistent candidate returns to codegen diagnosis.
-Only a verified complete pipeline comparison can establish a campaign-level
-improvement; until then this performance requirement remains open.
+optimal.
+
+### 2026-10-21 CUDA bit-length update
+
+A CUDA-only leading-zero intrinsic for `bit_length` passed exact worker output,
+distinguished-point and step replay across the nine pinned binary campaigns.
+Its native L4 A/B panel had 13 stable baseline brackets out of 18, all 13
+favoring the candidate; the stable-pair median full-process time ratio was
+0.839 and the all-pair median kernel ratio was 0.730. The identical-binary A/A
+control had stable-pair median 1.004 and kernel median 1.000. Native resource
+output reported 160 candidate registers versus 159 baseline, unchanged stack
+and no spills. The first PTX A/B panel also favored the candidate in 11 of 12
+stable pairs. Exact commands, raw receipts, verifier, plots and PDFs are in
+[the arithmetic selection record](../verification/binary-rho-profile-20261021/arithmetic-selection.md).
+The change is retained as the faster tested arithmetic for this L4 worker
+workload, not as an assertion of global optimality.
+
+The long DP40 timing panels emitted zero distinguished points, so their DP
+hash parity concerns empty outputs. A separate optimized-source L4 check passed
+168 frozen CUDA controls across all 24 curves, including positive DP1 emission
+for every curve; 137 DP1 records were checked among the nine requested binary
+curves. The [positive-DP report and receipt](../verification/binary-rho-profile-20261021/positive-dp-insight.md)
+and [boundary correction](../verification/binary-rho-profile-20261021/dp-boundary-correction.md)
+keep that finite correctness result separate from sustained DP40 density.
+
+Sustained useful-step rate, point collection/submission, server verification,
+restart cost and other hardware remain unmeasured. The next discriminating
+test is a sustained nine-curve GPU canary with matched current-image controls,
+recording useful steps, accepted points, wall/GPU time, bytes, verifier cost
+and restart behavior, with an A/A control and exact output checks. A passing
+full pipeline comparison would support a campaign-level improvement for its
+measured scope; a regression would identify the stage that erased the worker
+gain. Only that complete comparison can establish a campaign-level gain, so
+this performance requirement remains open.
 
 ## Current release boundary, 2026-10-16
 
