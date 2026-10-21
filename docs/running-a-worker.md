@@ -409,3 +409,27 @@ Protocol 2's `dp_bits=34` belongs to a different walk and does not query the
 legacy archive. The operator's bounded continuation jobs described in
 [operations](operations.md#reusing-legacy-dp30dp32-records-with-sigma-dp34-runs)
 can extend sigma DP34 trails to the old, rarer endpoints.
+
+
+## Worker health and detail pages
+
+Open your dashboard and select a run to see its health, estimated iterations per
+second, latest upload, verification queue and recent batches. Each run has its own
+heartbeat, including when several runs share an API key. The same state directory
+preserves the run identity across restarts.
+
+New workers report health every minute. After three minutes without a heartbeat,
+the page shows Disconnected. Computing, Upload trouble and Upload backlog are
+worker-reported states; upload receipts and verification results come from the
+gateway. Estimated iterations/s uses a 24-hour upload window and the run's actual
+distinguished-point rule. It is not an instantaneous hardware measurement.
+
+Older workers show Reporting unavailable until updated and restarted. Re-run the
+native installer, or use the current pinned Docker command from your dashboard,
+and keep the existing state directory. A key-level heartbeat alone cannot identify
+which worker is connected. For failed or quarantined batches, retain the state
+directory, inspect the worker logs and include the run ID when requesting help.
+
+Dashboard counters and worker details update once a minute without replacing setup
+forms or newly issued keys. Use Refresh now for an immediate update. If refreshing
+fails, the page keeps the previous figures and labels them as unavailable updates.

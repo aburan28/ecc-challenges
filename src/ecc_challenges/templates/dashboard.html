@@ -7,6 +7,8 @@
   <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button ghost small" type="submit">Sign out {{ login }}</button></form>
 </div>
 
+{% include "_live.html" %}
+
 {% if issued %}
 <div class="panel alert" role="alert" style="margin-top:28px">
   <h3>Copy your new key now</h3>
@@ -19,7 +21,7 @@ mkdir -p ~/.config/ecc-challenges
 </div>
 {% endif %}
 
-<section class="section" style="margin-top:36px" aria-labelledby="challenge-progress">
+<section id="dashboard-progress" data-live-region data-live-as-of="{{ live_as_of }}" class="section" style="margin-top:36px" aria-labelledby="challenge-progress">
   <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">Across all contributors. <a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
   <dl class="stats" aria-label="Challenge progress" style="margin-top:0">
     <div class="stat progress-summary"><dt>Progress</dt><dd>{{ work.summary(campaign_status) }}</dd></div>
@@ -29,8 +31,8 @@ mkdir -p ~/.config/ecc-challenges
   </dl>
 </section>
 
-<section class="section" style="margin-top:36px" aria-labelledby="runners">
-  <div class="section-head"><h2 id="runners">Your runners</h2><p class="muted">Registrations and submissions from your runs. Live worker connectivity is shown with your API keys below. <a href="/dashboard">Refresh</a></p></div>
+<section id="dashboard-runners" data-live-region class="section" style="margin-top:36px" aria-labelledby="runners">
+  <div class="section-head"><h2 id="runners">Your runners</h2><p class="muted">Open a run for worker health, upload history and verification details. Updates arrive every minute.</p></div>
   {% if activity is none %}
   <div class="panel alert"><p>Run activity is unavailable right now. Your keys and worker command below still work.</p></div>
   {% else %}
@@ -43,18 +45,18 @@ mkdir -p ~/.config/ecc-challenges
   {% if activity.runs %}
   {% if activity.total_runs > activity.runs|length %}<p class="table-note">Showing {{ activity.runs|length }} recent runs of {{ activity.total_runs }}. Totals include every run.</p>{% endif %}
   <div class="table-wrap" style="margin-top:22px"><table>
-    <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>State</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Speed</th><th>Last upload</th><th>Last seen</th></tr></thead>
+    <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>Worker health</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Est. iterations/s<br><small>24 h average</small></th><th>Last upload</th><th>Last seen</th></tr></thead>
     <tbody>
     {% for run in activity.runs %}
       <tr{% if run.state == "active" %} class="open"{% endif %}>
-        <td><code title="{{ run.id }}">{{ run.id[:8] }}</code></td>
+        <td><a href="/dashboard/workers/{{ run.protocol }}/{{ run.id }}"><code title="{{ run.id }}">{{ run.id[:8] }}</code></a></td>
         <td><span class="name">{{ names.get(run.campaign, run.campaign) }}</span></td>
         <td>{{ run.key_label }}</td>
-        <td><span class="tag{% if run.state == 'active' %} open{% elif run.state == 'idle' %} idle{% endif %}">{{ run.state|capitalize }}</span></td>
+        <td><span class="tag{% if run.state == 'active' %} open{% elif run.state == 'idle' %} idle{% endif %}">{{ run.health_state }}</span></td>
         <td class="num">{{ "{:,}".format(run.points) }}</td>
         <td class="num">{{ "{:,}".format(run.last_hour) }}</td>
         <td class="num">{{ "{:,.1f}".format(run.points_per_hour) }}</td>
-        <td class="num" title="estimated group operations per second, from DP{{ run.dp_bits }} points over 24 h">{{ run.operations_per_second_log2|pow2 }}{% if run.operations_per_second_log2 is not none %}/s{% endif %}</td>
+        <td class="num" title="Estimated iterations per second, using this run’s DP{{ run.dp_bits }} rule; 24-hour average">{{ run.operations_per_second_log2|pow2 }}{% if run.operations_per_second_log2 is not none %}/s{% endif %}</td>
         <td>{{ run.last_batch_at|ago }}</td>
         <td>{{ run.last_seen_at|ago }}</td>
       </tr>
@@ -90,6 +92,7 @@ mkdir -p ~/.config/ecc-challenges
   <div class="section-head"><h2>1. API keys</h2><p class="muted">Up to three active keys per account. Revoking a key stops uploads from every run that uses it.</p></div>
     <form class="panel" method="post" action="/keys" style="max-width:560px;margin-bottom:24px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
+      <input type="hidden" name="campaign" value="{{ selected_campaign }}">
       <label for="label">Name for the new key</label>
       <div class="row"><input id="label" name="label" type="text" maxlength="80" required placeholder="e.g. home RTX 4090" style="flex:1 1 200px"><button class="button" type="submit">Create key</button></div>
     </form>

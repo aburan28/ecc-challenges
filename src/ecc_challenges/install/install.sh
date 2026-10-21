@@ -15,7 +15,7 @@ set -eu
 
 repo=aburan28/ecc-challenges
 api=${ECC_API_URL:-https://ecc-challenges.com}
-ref=${ECC_REF:-57429625caa4c2e885a3fb79dd5eff66fea0e55e}
+ref=${ECC_REF:-988b0cf7e326697a81615d6721ba83b935fec654}
 campaign=${ECC_CAMPAIGN:-eccp-131}
 prefix=${ECC_PREFIX:-$HOME/.local/ecc-challenges}
 state=${ECC_STATE_DIR:-$HOME/ecc-data/$campaign}

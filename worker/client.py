@@ -267,24 +267,28 @@ def main() -> int:
     interval = max(10, int(os.environ.get("ECC_UPLOAD_SECONDS", "60")))
     spool_limit = max(64 * 1024 * 1024, int(os.environ.get("ECC_SPOOL_MAX_BYTES", str(512 * 1024 * 1024))))
     failed_sync = False
-    with Heartbeat(api.url, key):
+    with Heartbeat(api.url, key, protocol="v1", run_id=api.run_id, backend="cuda") as health:
         try:
             while not stop:
                 pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
                 if pending >= spool_limit:
+                    health.update("backpressure")
                     log(f"run {api.run_id}: upload backlog reached {pending} bytes; GPU paused")
                     while pending >= spool_limit // 2 and not stop:
                         try:
                             upload_dps(api, root, state)
                             upload_checkpoint(api, root, state)
                             failed_sync = False
+                            health.update("backpressure")
                         except Exception as exc:
                             failed_sync = True
+                            health.update("upload_retry")
                             log(f"run {api.run_id}: backlog retained ({type(exc).__name__}: {exc})")
                         pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
                         if pending >= spool_limit // 2:
                             time.sleep(30)
                     continue
+                health.update("computing")
                 log(f"run {api.run_id}: starting sigma GPU walk")
                 proc = subprocess.Popen(command)
                 next_upload = time.monotonic()
@@ -294,8 +298,10 @@ def main() -> int:
                             upload_dps(api, root, state)
                             upload_checkpoint(api, root, state)
                             failed_sync = False
+                            health.update("computing")
                         except Exception as exc:
                             failed_sync = True
+                            health.update("upload_retry")
                             log(f"run {api.run_id}: upload pending ({type(exc).__name__}: {exc})")
                         next_upload = time.monotonic() + interval
                     pending = (root / "dps.bin").stat().st_size - state["uploaded_local"]
