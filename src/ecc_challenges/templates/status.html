@@ -6,7 +6,11 @@
 <div class="kicker">Status</div>
 <h1>Live status</h1>
 {% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
-<p class="lead">Counts for each challenge{% if imported %}, including the points imported from the earlier ECC2K-130 run{% endif %}. Figures refresh about once a minute.{% if snapshot %} Last read {{ snapshot.as_of[:16].replace("T", " ") }} UTC.{% endif %}</p>
+<p class="lead">Counts for each challenge{% if imported %}, including the points imported from the earlier ECC2K-130 run{% endif %}. Figures update about once a minute while this page is open.</p>
+{% set live_as_of = snapshot.as_of if snapshot else none %}
+{% include "_live.html" %}
+<div id="status-live" data-live-region data-live-as-of="{{ live_as_of or '' }}">
+
 
 {% set v2 = snapshot and snapshot.compute_ready > 1 %}
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
@@ -48,7 +52,7 @@
   <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
   {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
   <div class="table-wrap"><table class="challenge-status">
-    <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Verified</th>{% endif %}<th class="num">Queued</th></tr></thead>
+    <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Individually checked points</th>{% endif %}<th class="num">Queued</th></tr></thead>
     {% set rows = snapshot.campaigns if snapshot else challenges %}
     {% for solved, group in rows|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody>
@@ -78,6 +82,21 @@
   <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}Solve dates are from section 6.1 of Certicom's 2009 report. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
 </section>
 
+<section class="section" id="verification">
+  <div class="section-head"><h2>Verification and queue health</h2><p class="muted">Individual point checks and sampled replay are different checks. Imported points are reported separately.</p></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Challenge</th><th>Individual checks / indexed points</th><th>Original-worker sampled / indexed batches</th><th>Failed or quarantined batches</th><th>Oldest awaiting processing</th><th>Last successful check</th></tr></thead>
+    <tbody>{% for row in open_rows %}{% set check = row.verification %}
+      <tr><th><a href="/challenges/{{ row.id }}">{{ row.name }}</a></th>
+        <td>{{ "{:,}".format(check.individually_verified_points) if check.individually_verified_points is not none else "Unavailable" }} / {{ "{:,}".format(check.individually_indexed_points) if check.individually_indexed_points is not none else "Unavailable" }}</td>
+        <td>{% if check.sampled_batches is not none %}{{ check.sampled_batches }} / {{ check.legacy_indexed_batches }}<br><small>{{ check.unsampled_batches }} not selected for replay; {{ check.unverified_batches }} unresolved</small>{% else %}Not applicable{% endif %}</td>
+        <td>{{ check.failed_batches }}</td>
+        <td>{{ check.oldest_pending_at|isoago if check.oldest_pending_at else "No batches waiting" }}</td>
+        <td>{{ check.last_checked_at|isoago if check.last_checked_at else "No successful check recorded" }}</td>
+      </tr>{% endfor %}</tbody>
+  </table></div>
+  <p class="table-note">Individual checks cover new-worker points only. Original-worker sampling replays selected records; it does not verify every point or every iteration. {% if imported %}The {{ "{:,}".format(imported) }} imported points are stored separately; archive audit counts are unavailable here.{% endif %} Reserved uploads have not reached verification yet. Queue age includes checks and indexing still waiting; it is not a failure diagnosis.</p>
+</section>
 <section class="section two">
   <div>
     <h2>Reading these numbers</h2>
@@ -96,4 +115,5 @@
     <a class="button" href="{% if request.session.get('github_id') %}/dashboard{% else %}/auth/github{% endif %}">{% if request.session.get('github_id') %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
   </div>
 </section>
+</div>
 {% endblock %}

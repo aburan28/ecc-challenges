@@ -2,6 +2,7 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import sys
+import json
 import threading
 import time
 
@@ -17,6 +18,8 @@ def gateway():
     ready = threading.Event()
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
+            raw = self.rfile.read(int(self.headers.get("Content-Length", "0")))
+            self.server.payloads.append(json.loads(raw) if raw else None)
             calls.append((self.path, self.headers.get("Authorization"), time.monotonic()))
             status = self.server.responses.pop(0) if self.server.responses else 204
             self.send_response(status)
@@ -33,6 +36,7 @@ def gateway():
             pass
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     server.responses = [503, 204]
+    server.payloads = []
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -74,3 +78,16 @@ def test_redirect_does_not_forward_credential(gateway, monkeypatch):
 def test_heartbeat_rejects_invalid_gateway(origin):
     with pytest.raises(ValueError):
         heartbeat.Heartbeat(origin, "test-only-key")
+
+
+def test_run_identity_and_health_are_sent_without_point_activity(gateway, monkeypatch):
+    server, calls, ready = gateway
+    monkeypatch.setattr(heartbeat, "HEARTBEAT_SECONDS", 0.03)
+    with heartbeat.Heartbeat(f"http://127.0.0.1:{server.server_port}", "test-only-key",
+                             protocol="v1", run_id=50000, backend="cuda") as sender:
+        sender.update("upload_retry")
+        assert ready.wait(2)
+    report = server.payloads[-1]
+    assert report["run_id"] == "50000" and report["protocol"] == "v1"
+    assert report["state"] == "upload_retry" and report["backend"] == "cuda"
+    assert "test-only-key" not in json.dumps(report)

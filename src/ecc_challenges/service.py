@@ -5,7 +5,11 @@ from __future__ import annotations
 import hashlib
 import hmac
 import math
-from datetime import timezone
+from datetime import datetime, timezone
+
+from psycopg.types.json import Jsonb
+
+from .work import sigma_dp_log2
 from uuid import UUID
 
 from .protocol import CAMPAIGN, WALK_ID, DP_WEIGHT, DP_WEIGHTS, RECORD_BYTES, check_records, check_checkpoint
@@ -61,12 +65,13 @@ class Service:
                     key[field] = key[field].astimezone(timezone.utc)
         return keys
 
-    def account_runs(self, account_id: int, *, include_generic: bool = False, limit: int = 50) -> dict:
+    def account_runs(self, account_id: int, *, include_generic: bool = False, limit: int = 50, run_id: str | None = None, protocol: str | None = None) -> dict:
         """This account's runs with their recent submission rate, and its latest
         distinguished-point batches across both protocols."""
         with self.db.connection() as conn:
             runs = conn.execute("""
-                SELECT r.run_id::text AS id,%s AS campaign,%s AS dp_bits,k.label AS key_label,
+                SELECT r.run_id::text AS id,%s AS campaign,r.dp_weight AS dp_bits,k.label AS key_label,
+                  'v1' AS protocol,r.last_ping_at,r.health,
                   r.created_at,r.last_seen_at,r.suspended_at,NULL::timestamptz AS closed_at,
                   r.total_bytes/%s AS points,b.last_hour,b.last_day,b.last_batch_at,
                   count(*) OVER () AS all_runs,
@@ -80,9 +85,12 @@ class Service:
                   SELECT coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '1 hour'),0) AS last_hour,
                     coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '24 hours'),0) AS last_day,
                     max(created_at) AS last_batch_at
-                  FROM ecc_public.batches WHERE run_id=r.run_id) b
-                WHERE r.account_id=%s ORDER BY r.last_seen_at DESC LIMIT %s
-            """, (CAMPAIGN, DP_WEIGHT, RECORD_BYTES, RECORD_BYTES, account_id, limit)).fetchall()
+                  FROM ecc_public.batches WHERE run_id=r.run_id
+                    AND audit_state NOT IN ('failed','quarantined')) b
+                WHERE r.account_id=%s AND (%s::text IS NULL OR r.run_id::text=%s)
+                  AND (%s::text IS NULL OR %s='v1')
+                ORDER BY r.last_seen_at DESC LIMIT %s
+            """, (CAMPAIGN, RECORD_BYTES, RECORD_BYTES, account_id, run_id, run_id, protocol, protocol, limit)).fetchall()
             groups = [runs]
             recent = conn.execute("""
                 SELECT b.created_at,b.run_id::text AS run_id,%s AS campaign,b.records,b.audit_state AS state
@@ -94,6 +102,7 @@ class Service:
                     SELECT r.id::text AS id,n.campaign_id AS campaign,
                       (n.manifest->'walk'->>'dp_bits')::int AS dp_bits,k.label AS key_label,
                       r.created_at,r.last_seen_at,r.suspended_at,r.closed_at,
+                      'v2' AS protocol,r.last_ping_at,r.health,
                       r.total_records AS points,b.last_hour,b.last_day,b.last_batch_at,
                       count(*) OVER () AS all_runs,
                       count(*) FILTER (WHERE r.suspended_at IS NULL AND r.closed_at IS NULL
@@ -109,9 +118,11 @@ class Service:
                         coalesce(sum(records) FILTER (WHERE created_at>=now()-interval '24 hours'),0) AS last_day,
                         max(created_at) AS last_batch_at
                       FROM ecc_public.dp_batches
-                      WHERE run_id=r.id AND state NOT IN ('reserved','expired','failed')) b
-                    WHERE r.account_id=%s ORDER BY r.last_seen_at DESC LIMIT %s
-                """, (account_id, limit)).fetchall()
+                      WHERE run_id=r.id AND state IN ('admitted','verified','indexed')) b
+                    WHERE r.account_id=%s AND (%s::text IS NULL OR r.id::text=%s)
+                      AND (%s::text IS NULL OR %s='v2')
+                    ORDER BY r.last_seen_at DESC LIMIT %s
+                """, (account_id, run_id, run_id, protocol, protocol, limit)).fetchall()
                 groups.append(generic_runs)
                 runs = runs + generic_runs
                 recent += conn.execute("""
@@ -128,8 +139,10 @@ class Service:
             run["state"] = ("suspended" if run["suspended_at"] else "closed" if run["closed_at"]
                             else "active" if age < 900 else "idle" if age < 86400 else "stopped")
             run["points_per_hour"] = round(run["last_day"] / 24, 1)
-            ops = run["last_day"] * 2 ** run["dp_bits"] / 86400
+            log_length = -sigma_dp_log2(run["dp_bits"]) if run["protocol"] == "v1" else run["dp_bits"]
+            ops = run["last_day"] * 2 ** log_length / 86400
             run["operations_per_second_log2"] = round(math.log2(ops), 2) if ops else None
+            self.describe_health(run, now)
         order = {"active": 0, "idle": 1, "stopped": 2, "closed": 3, "suspended": 4}
         runs.sort(key=lambda run: (order[run["state"]], -run["last_seen_at"].timestamp()))
         recent.sort(key=lambda batch: batch["created_at"], reverse=True)
@@ -142,6 +155,86 @@ class Service:
                 "points": totals["all_points"],
                 "points_per_hour": round(totals["all_last_day"] / 24, 1),
                 "points_last_hour": totals["all_last_hour"]}
+
+    @staticmethod
+    def describe_health(run: dict, now: datetime) -> None:
+        ping = run["last_ping_at"]
+        run["health_state"] = (
+            "Suspended" if run["suspended_at"] else "Closed" if run["closed_at"] else
+            "Reporting unavailable" if ping is None else
+            "Disconnected" if (now - ping).total_seconds() >= 180 else
+            {"computing": "Computing", "upload_retry": "Upload trouble",
+             "backpressure": "Upload backlog", "starting": "Starting"}.get(
+                 run["health"].get("state"), "Connected"))
+
+    def record_heartbeat(self, key: dict, payload: dict) -> None:
+        """Run-scoped, bounded telemetry; never used as evidence of mathematical work."""
+        if not isinstance(payload, dict) or set(payload) - {
+                "protocol", "run_id", "version", "platform", "backend", "state"}:
+            raise Rejected(400, "invalid health report")
+        protocol = payload.get("protocol")
+        run_id = payload.get("run_id")
+        if protocol not in ("v1", "v2") or not isinstance(run_id, str):
+            raise Rejected(400, "invalid worker identity")
+        try:
+            identity = int(run_id) if protocol == "v1" else UUID(run_id)
+            if protocol == "v1" and not 1 <= identity <= 65534:
+                raise ValueError()
+        except (ValueError, TypeError):
+            raise Rejected(400, "invalid worker identity") from None
+        health = {k: payload[k] for k in ("version", "platform", "backend", "state") if k in payload}
+        if any(not isinstance(v, str) or not 1 <= len(v) <= 80
+               or any(ord(c) < 32 for c in v) for v in health.values()):
+            raise Rejected(400, "invalid health report")
+        if health.get("state") not in ("starting", "computing", "upload_retry", "backpressure"):
+            raise Rejected(400, "invalid worker state")
+        table, column = ("runs", "run_id") if protocol == "v1" else ("dp_runs", "id")
+        closed = "" if protocol == "v1" else "AND closed_at IS NULL"
+        with self.db.connection() as conn:
+            row = conn.execute(f"""
+                UPDATE ecc_public.{table} SET last_ping_at=now(),health=%s
+                WHERE {column}=%s AND account_id=%s AND key_id=%s
+                  AND suspended_at IS NULL {closed} RETURNING {column}
+            """, (Jsonb(health), identity, key["account_id"], key["id"])).fetchone()
+            if not row:
+                raise Rejected(404, "worker unavailable")
+
+    def worker_detail(self, account_id: int, protocol: str, run_id: str, *, include_generic: bool) -> dict:
+        if protocol not in ("v1", "v2") or (protocol == "v2" and not include_generic):
+            raise Rejected(404, "worker not found")
+        result = self.account_runs(account_id, include_generic=include_generic,
+                                   run_id=run_id, protocol=protocol, limit=1)
+        if not result["runs"]:
+            raise Rejected(404, "worker not found")
+        run = result["runs"][0]
+        table = "batches" if protocol == "v1" else "dp_batches"
+        state = "audit_state" if protocol == "v1" else "state"
+        finished = "audit_finished_at" if protocol == "v1" else "verified_counted_at"
+        pending = ("(audit_state IN ('pending','unverified') OR "
+                   "(audit_state IN ('sampled','not_selected') AND indexed_at IS NULL))"
+                   if protocol == "v1" else "state IN ('admitted','verified')")
+        good = "'sampled'" if protocol == "v1" else "'verified','indexed'"
+        identity = int(run_id) if protocol == "v1" else UUID(run_id)
+        with self.db.connection() as conn:
+            summary = conn.execute(f"""
+                SELECT count(*) AS batches,
+                  count(*) FILTER (WHERE {pending}) AS pending,
+                  count(*) FILTER (WHERE {state} IN ('failed','quarantined')) AS failed,
+                  count(*) FILTER (WHERE {state} IN ({good})) AS checked,
+                  count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed,
+                  min(created_at) FILTER (WHERE {pending}) AS oldest_pending_at,
+                  max({finished}) FILTER (WHERE {state} IN ({good})) AS last_checked_at
+                FROM ecc_public.{table} WHERE run_id=%s
+            """, (identity,)).fetchone()
+            batches = conn.execute(f"""
+                SELECT id::text,records,created_at,{state} AS state,indexed_at
+                FROM ecc_public.{table} WHERE run_id=%s ORDER BY created_at DESC,id DESC LIMIT 20
+            """, (identity,)).fetchall()
+        run.update(summary)
+        run["batches_recent"] = batches
+        run["verification_state"] = ("Needs attention" if run["failed"] else
+            "Waiting for checks" if run["pending"] else "Up to date" if run["batches"] else "No submissions yet")
+        return run
 
     def create_key(self, account_id: int, label: str) -> str:
         label = label.strip()

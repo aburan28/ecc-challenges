@@ -286,14 +286,16 @@ def main(root: Path, key: str, campaign: str) -> int:
         signal.signal(signal.SIGBREAK, terminate)
     engine = engine_for_backend(backend)
     retry = 1
-    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, Heartbeat(api.origin, key):
+    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, Heartbeat(api.origin, key, protocol="v2", run_id=state["run_id"], backend=backend) as health:
         while not stop:
             try:
                 flush(api, ns, state, path)
                 retry = 1
+                health.update("computing")
             except Exception as exc:
                 if isinstance(exc, GatewayError) and not exc.retryable:
                     raise
+                health.update("upload_retry")
                 print(json.dumps({"campaign": campaign, "event": "upload-paused",
                                   "error": type(exc).__name__, "status": getattr(exc, "status", None),
                                   "retry_seconds": retry}), flush=True)

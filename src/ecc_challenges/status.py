@@ -81,9 +81,21 @@ class StatusReader:
                     ) recent ON recent.run_id=r.run_id
                     GROUP BY 1
                 """, (RATE_WINDOW_HOURS,)).fetchall()
+                legacy_checks = conn.execute("""
+                    SELECT count(*) FILTER (WHERE audit_state='sampled') AS sampled_batches,
+                      count(*) FILTER (WHERE audit_state='not_selected') AS unsampled_batches,
+                      count(*) FILTER (WHERE audit_state IN ('failed','quarantined')) AS failed_batches,
+                      count(*) FILTER (WHERE audit_state='unverified') AS unverified_batches,
+                      count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed_batches,
+                      min(created_at) FILTER (WHERE audit_state IN ('pending','unverified')
+                        OR (audit_state IN ('sampled','not_selected') AND indexed_at IS NULL)) AS oldest_pending_at,
+                      max(audit_finished_at) FILTER (WHERE audit_state='sampled') AS last_checked_at
+                    FROM ecc_public.batches
+                """).fetchone()
                 historical = _historical_totals(conn)
                 generic = {}
                 work = {}
+                checks = {}
                 if self.multicurve_enabled:
                     rows = conn.execute("""
                         SELECT n.campaign_id,count(r.id) AS total,
@@ -123,6 +135,16 @@ class StatusReader:
                     """, (RATE_WINDOW_HOURS,)).fetchall():
                         work.setdefault(row["campaign_id"], []).append(
                             (int(row["dp_bits"]), int(row["points"]), int(row["recent"])))
+                    for row in conn.execute("""
+                        SELECT n.campaign_id,
+                          count(*) FILTER (WHERE b.state='failed') AS failed_batches,
+                          min(b.created_at) FILTER (WHERE b.state IN ('admitted','verified')) AS oldest_pending_at,
+                          max(b.verified_counted_at) AS last_checked_at
+                        FROM ecc_public.dp_batches b
+                        JOIN ecc_public.dp_namespaces n ON n.id=b.namespace_id
+                        GROUP BY n.campaign_id
+                    """).fetchall():
+                        checks[row["campaign_id"]] = row
                     # The pending predicate matches dp_batches_run_pending; only
                     # the bounded outstanding pool participates in this scan.
                     pending = conn.execute("""
@@ -161,8 +183,25 @@ class StatusReader:
                     imported = Walk(DP_WEIGHT, historical_points, 0, SIGMA_DP_LOG2,
                                     sigma_expected_log2(order), "sigma")
                     combined = progress(walks + sigma + [imported], expected, RATE_WINDOW_HOURS)
+                check = checks.get(challenge.id, {})
+                oldest = [value for value in (check.get("oldest_pending_at"),
+                          legacy_checks["oldest_pending_at"] if legacy else None) if value]
+                latest = [value for value in (check.get("last_checked_at"),
+                          legacy_checks["last_checked_at"] if legacy else None) if value]
+                verification = {
+                    "individually_verified_points": int(current.get("verified", 0)) if self.multicurve_enabled else None,
+                    "individually_indexed_points": int(current.get("indexed", 0)) if self.multicurve_enabled else None,
+                    "sampled_batches": int(legacy_checks["sampled_batches"]) if legacy else None,
+                    "unsampled_batches": int(legacy_checks["unsampled_batches"]) if legacy else None,
+                    "legacy_indexed_batches": int(legacy_checks["indexed_batches"]) if legacy else None,
+                    "unverified_batches": int(legacy_checks["unverified_batches"]) if legacy else None,
+                    "failed_batches": int(check.get("failed_batches", 0)) + (int(legacy_checks["failed_batches"]) if legacy else 0),
+                    "oldest_pending_at": min(oldest).isoformat() if oldest else None,
+                    "last_checked_at": max(latest).isoformat() if latest else None,
+                    "imported_archive_audit": "not reported" if historical_points else "not applicable",
+                }
                 return {**challenge.public(self.multicurve_enabled), **estimate,
-                    "including_historical": combined,
+                    "including_historical": combined, "verification": verification,
                     "historical_points": historical_points if legacy and historical else None,
                     "received_points": ((int(runs["bytes"]) // RECORD_BYTES if legacy else 0)
                                         + int(current.get("received", 0))) if enabled else None,
