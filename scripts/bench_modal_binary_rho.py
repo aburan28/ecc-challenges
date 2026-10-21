@@ -32,7 +32,13 @@ if modal.is_local():
              .add_local_file(root / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
              .add_local_file(baseline_header, "/src/baseline/ec_core.h", copy=True)
              .add_local_file(root / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
-             .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True))
+             .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True)
+             # engine.cu includes the 131-bit fast path; the baseline engine runs the same
+             # job through it, so only the baseline ec_core.h differs between the two builds.
+             .add_local_file(root / "worker/generic/fast131.h", "/src/baseline/fast131.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131_host.h", "/src/baseline/fast131_host.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131.h", "/src/candidate/fast131.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131_host.h", "/src/candidate/fast131_host.h", copy=True))
     for curve in CURVES:
         for filename in ("job.bin", "in.bin"):
             image = image.add_local_file(

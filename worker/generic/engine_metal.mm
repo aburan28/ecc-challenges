@@ -20,6 +20,34 @@
 namespace ecc {
 namespace {
 
+// Lanes per thread for the specialised kernels: each thread shares one field
+// inversion between this many walks.
+constexpr int FAST_LANES_PER_THREAD = 4;
+const char fast_kernel_source[] = R"ECCMSL(
+typedef ecc::f131::PrimeField<ecc::f131::u32, 5> PrimeGpu;
+typedef ecc::f131::BinaryField<true> BinaryGpu;
+kernel void fast_prime5(device const PrimeGpu::C* ctx [[buffer(0)]],
+                        device const ecc::f131::Entry<PrimeGpu>* table [[buffer(1)]],
+                        device const ecc::f131::Params* prm [[buffer(2)]],
+                        device ecc::f131::Lane<PrimeGpu>* lanes [[buffer(3)]],
+                        constant uint* dims [[buffer(4)]],
+                        uint tid [[thread_position_in_grid]]) {
+    const PrimeGpu::C c = *ctx;
+    const ecc::f131::Params p = *prm;
+    ecc::f131::gpu_chunk<PrimeGpu, FAST_K>(c, table, p, lanes, dims[0], tid * FAST_K, dims[1]);
+}
+kernel void fast_binary(device const BinaryGpu::C* ctx [[buffer(0)]],
+                        device const ecc::f131::Entry<BinaryGpu>* table [[buffer(1)]],
+                        device const ecc::f131::Params* prm [[buffer(2)]],
+                        device ecc::f131::Lane<BinaryGpu>* lanes [[buffer(3)]],
+                        constant uint* dims [[buffer(4)]],
+                        uint tid [[thread_position_in_grid]]) {
+    const BinaryGpu::C c = *ctx;
+    const ecc::f131::Params p = *prm;
+    ecc::f131::gpu_chunk<BinaryGpu, FAST_K>(c, table, p, lanes, dims[0], tid * FAST_K, dims[1]);
+}
+)ECCMSL";
+
 const char kernel_source[] = R"ECCMSL(
 kernel void walk_kernel(const constant ecc::Job& job [[buffer(0)]],
                         device ecc::State* states [[buffer(1)]],
@@ -68,6 +96,103 @@ id<MTLDevice> select_device() {
 
 std::string metal_source() {
     return std::string(core_source) + kernel_source;
+}
+
+namespace {
+std::string fast_metal_source() {
+    return std::string(core_source) + fast_source + "\n#define FAST_K " +
+           std::to_string(FAST_LANES_PER_THREAD) + "\n" + fast_kernel_source;
+}
+
+// Steps per command buffer: macOS stops a command buffer that runs too long.
+constexpr std::uint32_t FAST_CHUNK_STEPS = 64;
+
+template <class FD>
+void run_metal_fast_field(const Job& job, const JobExt& ext, const char* entry,
+                          std::vector<State>& states, std::vector<int>& errors) {
+    @autoreleasepool {
+        f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.escape);
+        std::vector<f131::Lane<FD>> lanes(job.lanes);
+        for (std::uint32_t i = 0; i < job.lanes; ++i) lanes[i] = f131::lane_in(states[i], walk);
+
+        id<MTLDevice> device = select_device();
+        NSError* error = nil;
+        const std::string source = fast_metal_source();
+        id<MTLLibrary> library = [device
+            newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()]
+                         options:[MTLCompileOptions new]
+                           error:&error];
+        require(library != nil, "Metal fast kernel compilation: " + describe(error));
+        id<MTLFunction> function =
+            [library newFunctionWithName:[NSString stringWithUTF8String:entry]];
+        require(function != nil, "Metal fast kernel entry point is missing");
+        id<MTLComputePipelineState> pipeline =
+            [device newComputePipelineStateWithFunction:function error:&error];
+        require(pipeline != nil, "Metal fast pipeline creation: " + describe(error));
+        id<MTLCommandQueue> queue = [device newCommandQueue];
+        require(queue != nil, "Metal command queue creation failed");
+
+        const auto shared = [&](const void* bytes, std::size_t length) {
+            return [device newBufferWithBytes:bytes length:length
+                                      options:MTLResourceStorageModeShared];
+        };
+        id<MTLBuffer> ctx_buffer = shared(&walk.ctx, sizeof(walk.ctx));
+        id<MTLBuffer> table_buffer = shared(walk.table.data(),
+                                            walk.table.size() * sizeof(walk.table[0]));
+        id<MTLBuffer> params_buffer = shared(&walk.params, sizeof(walk.params));
+        id<MTLBuffer> lane_buffer = shared(lanes.data(), lanes.size() * sizeof(lanes[0]));
+        require(ctx_buffer && table_buffer && params_buffer && lane_buffer,
+                "Metal buffer allocation failed");
+
+        const std::uint32_t threads =
+            (job.lanes + FAST_LANES_PER_THREAD - 1) / FAST_LANES_PER_THREAD;
+        const NSUInteger width = std::min<NSUInteger>(pipeline.maxTotalThreadsPerThreadgroup, 64);
+        const MTLSize group = MTLSizeMake(width, 1, 1);
+        const MTLSize grid = MTLSizeMake((threads + width - 1) / width, 1, 1);
+        const f131::Lane<FD>* device_lanes =
+            static_cast<const f131::Lane<FD>*>(lane_buffer.contents);
+        for (std::uint32_t done = 0; done < job.steps_per_round;) {
+            const std::uint32_t steps = std::min(FAST_CHUNK_STEPS, job.steps_per_round - done);
+            const std::uint32_t dims[2] = {job.lanes, steps};
+            id<MTLCommandBuffer> commands = [queue commandBuffer];
+            id<MTLComputeCommandEncoder> encoder = [commands computeCommandEncoder];
+            [encoder setComputePipelineState:pipeline];
+            [encoder setBuffer:ctx_buffer offset:0 atIndex:0];
+            [encoder setBuffer:table_buffer offset:0 atIndex:1];
+            [encoder setBuffer:params_buffer offset:0 atIndex:2];
+            [encoder setBuffer:lane_buffer offset:0 atIndex:3];
+            [encoder setBytes:dims length:sizeof(dims) atIndex:4];
+            [encoder dispatchThreadgroups:grid threadsPerThreadgroup:group];
+            [encoder endEncoding];
+            [commands commit];
+            [commands waitUntilCompleted];
+            require(commands.status == MTLCommandBufferStatusCompleted,
+                    "Metal fast walk execution: " + describe(commands.error));
+            done += steps;
+            bool failed = false, active = false;
+            for (std::uint32_t i = 0; i < job.lanes; ++i) {
+                failed = failed || device_lanes[i].err != 0;
+                active = active || device_lanes[i].active != 0;
+            }
+            if (failed || !active) break;
+        }
+        for (std::uint32_t i = 0; i < job.lanes; ++i) {
+            f131::lane_out(device_lanes[i], walk, states[i]);
+            errors[i] = int(device_lanes[i].err);
+        }
+    }
+}
+} // namespace
+
+bool run_metal_fast(const Job& job, const JobExt& ext, std::vector<State>& states,
+                    std::vector<int>& errors) {
+    if (!f131::fast_curve(job.kind, job.field_bits, job.modulus)) return false;
+    if (job.kind)
+        run_metal_fast_field<f131::BinaryField<true>>(job, ext, "fast_binary", states, errors);
+    else
+        run_metal_fast_field<f131::PrimeField<std::uint32_t, 5>>(job, ext, "fast_prime5",
+                                                                  states, errors);
+    return true;
 }
 
 std::vector<std::string> metal_devices() {

@@ -109,7 +109,7 @@ template <typename W, int N> struct Host<PrimeField<W, N>> {
         c.one = from_u384<W, N>(r);
         for (int i = 0; i < radix_bits; ++i) r = add_mod(r, r, s.modulus);
         c.r2 = from_u384<W, N>(r);
-        c.half = from_u384<W, N>(shift_right_one(subtract_raw(s.modulus, small(1))));
+        c.halfp = from_u384<W, N>(shift_right_one(subtract_raw(s.modulus, small(1))));
         c.pm2 = from_u384<W, N>(subtract_raw(s.modulus, small(2)));
         c.a = mont_mul(from_u384<W, N>(s.a), c.r2, c.p, c.pinv);
         c.b = mont_mul(from_u384<W, N>(s.b), c.r2, c.p, c.pinv);
@@ -174,6 +174,7 @@ template <class FD> Lane<FD> lane_in(const State& s, const Prepared<FD>& w) {
         L.y = FD::zero();
     }
     L.a = Host<FD>::scalar_in(s.a);
+    L.b = Host<FD>::scalar_in(s.b);
     L.steps = s.steps;
     L.active = s.active;
     L.infinity = s.infinity;
@@ -189,7 +190,10 @@ template <class FD> void lane_out(const Lane<FD>& L, const Prepared<FD>& w, Stat
         s.y = Host<FD>::field_out(L.y, w.ctx);
     }
     s.a = Host<FD>::scalar_out(L.a);
-    if (L.negated && !is_zero(s.b)) s.b = subtract_raw(w.n, s.b);
+    // Production tables add multiples of G only, so b is constant up to the
+    // sign the negation map gave it; general tables track b step by step.
+    if (w.params.has_db) s.b = Host<FD>::scalar_out(L.b);
+    else if (L.negated && !is_zero(s.b)) s.b = subtract_raw(w.n, s.b);
     s.steps = L.steps;
     s.active = L.active;
     s.infinity = L.infinity;
@@ -246,11 +250,14 @@ Prepared<FD> prepare(const Job& job, std::uint32_t walk, std::uint32_t anchor_lo
     w.ctx = Host<FD>::context(spec);
     w.n = job.n;
     w.params = Params{walk, job.dp_bits, 5, 32, anchor_log2, (job.field_bits + 7) / 8, 0, 0};
+    for (std::uint32_t i = 0; i < 32; ++i) w.params.has_db |= !is_zero(job.jumps[i].db);
+    w.params.has_db |= !is_zero(escape.db);
     const auto entry = [&](const Jump& j) {
         Entry<FD> e;
         e.x = Host<FD>::field_in(j.x, w.ctx);
         e.y = Host<FD>::field_in(j.y, w.ctx);
         e.da = Host<FD>::scalar_in(j.da);
+        e.db = Host<FD>::scalar_in(j.db);
         return e;
     };
     for (std::uint32_t i = 0; i < 32; ++i) w.table.push_back(entry(job.jumps[i]));

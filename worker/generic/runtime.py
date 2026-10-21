@@ -240,14 +240,20 @@ class EngineSession:
         self.job = root / "job.bin"
         self.job.write_bytes(pack_job(ns, lanes, 1))
         self.paths = tuple(root / name for name in ("input.bin", "output.bin", "dps.bin"))
+        self.engine = engine
+        self.process = None  # started by the first round
+
+    def _start(self):
         self.process = subprocess.Popen(
-            [str(engine), "--serve", backend, str(self.job)],
+            [str(self.engine), "--serve", self.backend, str(self.job)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, **ISOLATE_ENGINE,
         )
 
     def round(self, input_bytes: bytes, steps: int, timeout: float) -> tuple[dict, bytes, bytes]:
         source, output, dps = self.paths
+        if self.process is None:
+            self._start()
         source.write_bytes(input_bytes)
         line = "\t".join(("round", str(source), str(output), str(dps), str(steps)))
         try:
@@ -283,6 +289,9 @@ class EngineSession:
         raise RuntimeError(f"native {self.backend} session failed: {detail.strip()}")
 
     def close(self):
+        if self.process is None:
+            self._directory.cleanup()
+            return
         if self.process.poll() is None:
             try:
                 self.process.stdin.write("quit\n")

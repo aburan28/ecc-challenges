@@ -1,7 +1,7 @@
 FROM nvidia/cuda:13.0.2-devel-ubuntu24.04@sha256:5dc1bca23d05bd37b011be68ec470c03b403a5da07ec3a86e41af9470e9d0cc6 AS generic-build
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends g++ \
   && rm -rf /var/lib/apt/lists/*
-COPY worker/generic/engine.cu worker/generic/ec_core.h /build/
+COPY worker/generic/engine.cu worker/generic/ec_core.h worker/generic/fast131.h worker/generic/fast131_host.h /build/
 RUN nvcc -std=c++17 -O2 -gencode arch=compute_75,code=sm_75 \
       -gencode arch=compute_80,code=sm_80 \
       -gencode arch=compute_86,code=sm_86 -gencode arch=compute_89,code=sm_89 \
@@ -9,7 +9,8 @@ RUN nvcc -std=c++17 -O2 -gencode arch=compute_75,code=sm_75 \
       -gencode arch=compute_120,code=sm_120 -gencode arch=compute_75,code=compute_75 \
       /build/engine.cu -o /build/generic-engine \
   && /build/generic-engine --self-test \
-  && g++ -std=c++17 -O2 -fopenmp -x c++ /build/engine.cu -o /build/generic-engine-cpu \
+  && case "$(uname -m)" in x86_64) CLMUL=-mpclmul ;; aarch64) CLMUL=-march=armv8-a+crypto ;; esac \
+  && g++ -std=c++17 -O2 $CLMUL -fopenmp -x c++ /build/engine.cu -o /build/generic-engine-cpu \
   && /build/generic-engine-cpu --self-test
 
 FROM ghcr.io/aburan28/ecc2k130-worker@sha256:25299db686c6b73bb59edc1b5f6591d917ada4e5d933172a4eca7274a71e9421

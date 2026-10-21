@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -32,10 +33,20 @@ constexpr std::uint32_t MAX_LANES = 4096;
 constexpr std::uint32_t MAX_ROUND_STEPS = 1048576;
 static_assert(sizeof(State) == STATE_BYTES, "unexpected state layout");
 
+// Walk selection beyond the published walk (see fast131.h). walk == 2 is the
+// ECCJOB03 walk; ECCJOB04 selects 3 (x-only) or 4 (x-only, negation map).
+struct JobExt {
+    std::uint32_t walk = f131::WALK_V2, table_log2 = 5, anchor_log2 = 10;
+    Jump escape{};
+};
+
 #ifdef ECC_METAL
 // Defined in engine_metal.mm, which includes this file.
 void run_metal(const Job& job, std::vector<State>& states,
                std::vector<int>& errors);
+// False when the curve has no specialised arithmetic.
+bool run_metal_fast(const Job& job, const JobExt& ext,
+                    std::vector<State>& states, std::vector<int>& errors);
 std::vector<std::string> metal_devices();
 std::string metal_source();
 #endif
@@ -45,6 +56,19 @@ __global__ void walk_kernel(const Job* job, State* states, int* errors) {
     const std::uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < job->lanes)
         errors[index] = walk_lane(*job, states[index], job->steps_per_round);
+}
+#endif
+
+#ifdef __CUDACC__
+// Lanes per thread for the specialised kernels (one shared inversion each).
+constexpr int FAST_CUDA_LANES = 4;
+template <class FD>
+__global__ void fast_kernel(const typename FD::C* ctx, const f131::Entry<FD>* table,
+                            const f131::Params* params, f131::Lane<FD>* lanes,
+                            std::uint32_t total, std::uint32_t steps) {
+    const std::uint32_t thread = blockIdx.x * blockDim.x + threadIdx.x;
+    f131::gpu_chunk<FD, FAST_CUDA_LANES>(*ctx, table, *params, lanes, total,
+                                         thread * FAST_CUDA_LANES, steps);
 }
 #endif
 
@@ -105,12 +129,6 @@ void validate_point(const Point& point, const Job& job,
                 name + ": infinity must have zero coordinates");
     require(on_curve(point, job), name + ": point is not on the curve");
 }
-// Walk selection beyond the published walk (see fast131.h). walk == 2 is the
-// ECCJOB03 walk; ECCJOB04 selects 3 (x-only) or 4 (x-only, negation map).
-struct JobExt {
-    std::uint32_t walk = f131::WALK_V2, table_log2 = 5, anchor_log2 = 10;
-    Jump escape{};
-};
 Job load_job(const std::string& path, JobExt& ext) {
     const auto bytes = read_file(path, JOB4_BYTES);
     require(bytes.size() == JOB_BYTES || bytes.size() == JOB4_BYTES,
@@ -257,6 +275,58 @@ void run_cuda(const Job& job, std::vector<State>& states,
     cuda_check(cudaMemcpy(errors.data(), device_errors.ptr,
                           sizeof(int) * job.lanes, cudaMemcpyDeviceToHost),
                "copy errors from CUDA");
+}
+template <class FD>
+void run_cuda_fast_field(const Job& job, const JobExt& ext, std::vector<State>& states,
+                         std::vector<int>& errors) {
+    f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.escape);
+    std::vector<f131::Lane<FD>> lanes(job.lanes);
+    for (std::uint32_t i = 0; i < job.lanes; ++i) lanes[i] = f131::lane_in(states[i], walk);
+    int count = 0;
+    cuda_check(cudaGetDeviceCount(&count), "CUDA device discovery");
+    require(count > 0, "no CUDA device is available");
+    cuda_check(cudaDeviceSetLimit(cudaLimitStackSize, 8192), "CUDA stack limit");
+    DeviceBuffer<typename FD::C> device_ctx(1);
+    DeviceBuffer<f131::Entry<FD>> device_table(walk.table.size());
+    DeviceBuffer<f131::Params> device_params(1);
+    DeviceBuffer<f131::Lane<FD>> device_lanes(job.lanes);
+    cuda_check(cudaMemcpy(device_ctx.ptr, &walk.ctx, sizeof(walk.ctx), cudaMemcpyHostToDevice),
+               "copy context to CUDA");
+    cuda_check(cudaMemcpy(device_table.ptr, walk.table.data(),
+                          walk.table.size() * sizeof(walk.table[0]), cudaMemcpyHostToDevice),
+               "copy jump table to CUDA");
+    cuda_check(cudaMemcpy(device_params.ptr, &walk.params, sizeof(walk.params),
+                          cudaMemcpyHostToDevice), "copy parameters to CUDA");
+    cuda_check(cudaMemcpy(device_lanes.ptr, lanes.data(), lanes.size() * sizeof(lanes[0]),
+                          cudaMemcpyHostToDevice), "copy lanes to CUDA");
+    const std::uint32_t threads = (job.lanes + FAST_CUDA_LANES - 1) / FAST_CUDA_LANES;
+    // Launches are stream-ordered; a long round is split only so that one
+    // kernel never runs long enough to trip a display watchdog.
+    for (std::uint32_t done = 0; done < job.steps_per_round;) {
+        const std::uint32_t steps = std::min<std::uint32_t>(1024, job.steps_per_round - done);
+        fast_kernel<FD><<<(threads + 127) / 128, 128>>>(
+            device_ctx.ptr, device_table.ptr, device_params.ptr, device_lanes.ptr,
+            job.lanes, steps);
+        cuda_check(cudaGetLastError(), "CUDA fast walk launch");
+        done += steps;
+    }
+    cuda_check(cudaDeviceSynchronize(), "CUDA fast walk execution");
+    cuda_check(cudaMemcpy(lanes.data(), device_lanes.ptr, lanes.size() * sizeof(lanes[0]),
+                          cudaMemcpyDeviceToHost), "copy lanes from CUDA");
+    for (std::uint32_t i = 0; i < job.lanes; ++i) {
+        f131::lane_out(lanes[i], walk, states[i]);
+        errors[i] = int(lanes[i].err);
+    }
+}
+// False when the curve has no specialised arithmetic.
+bool run_cuda_fast(const Job& job, const JobExt& ext, std::vector<State>& states,
+                   std::vector<int>& errors) {
+    if (!f131::fast_curve(job.kind, job.field_bits, job.modulus)) return false;
+    if (job.kind)
+        run_cuda_fast_field<f131::BinaryField<true>>(job, ext, states, errors);
+    else
+        run_cuda_fast_field<f131::PrimeField<std::uint32_t, 5>>(job, ext, states, errors);
+    return true;
 }
 #endif
 
@@ -512,6 +582,7 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
                           const std::string& dps_path) {
     require(input != output && output != dps_path && input != dps_path,
             "output state and DP paths must differ");
+    const std::clock_t cpu_start = std::clock();
     std::vector<State> states = load_states(input, job);
     std::vector<std::uint32_t> was_active(job.lanes);
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
@@ -523,8 +594,20 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
                                       errors, cpu_threads());
         if (done) engine = "fast131";
     }
+#ifdef __CUDACC__
+    if (!done && backend == "cuda" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+        done = run_cuda_fast(job, ext, states, errors);
+        if (done) engine = "fast131";
+    }
+#endif
+#ifdef ECC_METAL
+    if (!done && backend == "metal" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+        done = run_metal_fast(job, ext, states, errors);
+        if (done) engine = "fast131";
+    }
+#endif
     require(done || ext.walk == f131::WALK_V2,
-            "walks 3 and 4 need the specialised CPU engine");
+            "walks 3 and 4 need a specialised engine backend");
     if (!done) {
         if (backend == "cpu") run_cpu(job, states, errors);
 #ifdef __CUDACC__
@@ -547,7 +630,11 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
             append_state(dps, states[i]);
     }
     write_file(output, out); write_file(dps_path, dps);
-    return "{\"backend\":\"" + backend + "\",\"engine\":\"" + engine + "\",\"lanes\":" +
+    // Process CPU time of the round, summed over threads: lets a benchmark on
+    // a shared host report steps per CPU-second instead of per wall second.
+    const double cpu = double(std::clock() - cpu_start) / CLOCKS_PER_SEC;
+    return "{\"backend\":\"" + backend + "\",\"engine\":\"" + engine +
+           "\",\"cpu_seconds\":" + std::to_string(cpu) + ",\"lanes\":" +
            std::to_string(job.lanes) + ",\"distinguished_points\":" +
            std::to_string(dps.size() / STATE_BYTES) + "}";
 }

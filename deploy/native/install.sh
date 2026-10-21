@@ -49,10 +49,18 @@ if ! printf 'int main() { return 0; }\n' \
   echo "$cxx has no OpenMP; the CPU backend uses std::thread instead"
 fi
 
+# The 131-bit fast path wants the hardware carry-less multiply (PCLMULQDQ or
+# PMULL); Apple Clang on arm64 already targets it.
+clmul=
+case "$(uname -m)" in
+  x86_64|amd64) clmul=-mpclmul ;;
+  aarch64) [ "$os" = Darwin ] || clmul=-march=armv8-a+crypto ;;
+esac
+
 echo "building CPU engine with $cxx"
 mkdir -p "$prefix/bin"
 # shellcheck disable=SC2086 # CXXFLAGS, openmp and threads hold flags on purpose
-"$cxx" -std=c++17 -O2 $openmp $threads ${CXXFLAGS:-} -x c++ \
+"$cxx" -std=c++17 -O2 $clmul $openmp $threads ${CXXFLAGS:-} -x c++ \
   "$repo/worker/generic/engine.cu" -o "$prefix/bin/generic-engine"
 "$prefix/bin/generic-engine" --self-test
 
@@ -74,6 +82,9 @@ if [ "$os" = Darwin ] && [ "${METAL:-auto}" != no ]; then
   {
     printf 'static const char core_source[] = R"ECCMSL(\n'
     cat "$repo/worker/generic/ec_core.h"
+    printf ')ECCMSL";\n'
+    printf 'static const char fast_source[] = R"ECCMSL(\n'
+    cat "$repo/worker/generic/fast131.h"
     printf ')ECCMSL";\n'
   } > "$generated/metal_core_source.inc"
   # shellcheck disable=SC2086

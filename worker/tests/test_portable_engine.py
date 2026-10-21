@@ -16,7 +16,7 @@ import subprocess
 
 import pytest
 
-from ecc_challenges.multicurve.codec import Namespace, Record
+from ecc_challenges.multicurve.codec import WALK_V2, Namespace, Record
 from ecc_challenges.multicurve.instances import instance_ids
 from generic.runtime import NativeState, run_round
 
@@ -57,7 +57,8 @@ def test_self_test_and_probe(engine, probe):
 
 @pytest.mark.parametrize("campaign", instance_ids())
 def test_cpu_walk_matches_python_reference(engine, campaign):
-    ns = Namespace(campaign, dp_bits=3)
+    # The reference replays the published walk; the 131-bit curves default to a newer one.
+    ns = Namespace(campaign, dp_bits=3, walk_version=WALK_V2)
     initial = tuple(NativeState(ns.start(RUN_ID, trail)) for trail in range(3))
     result = run_round(engine, "cpu", ns, initial, 12, timeout=300)
     assert result.states == reference_round(ns, initial, 12)
@@ -67,7 +68,7 @@ def test_cpu_walk_matches_python_reference(engine, campaign):
 def test_metal_matches_cpu(engine, probe, campaign):
     if not has_metal_device(probe):
         pytest.skip("engine has no Metal backend or no Metal device is present")
-    ns = Namespace(campaign, dp_bits=4)
+    ns = Namespace(campaign, dp_bits=4, walk_version=WALK_V2)
     # 37 lanes leave a partial threadgroup; 40 steps cross two 16-step chunks.
     initial = tuple(NativeState(ns.start(RUN_ID, trail)) for trail in range(37))
     cpu = run_round(engine, "cpu", ns, initial, 40, timeout=600)
@@ -75,6 +76,22 @@ def test_metal_matches_cpu(engine, probe, campaign):
     assert metal.states == cpu.states
     assert metal.distinguished == cpu.distinguished
     assert metal.receipt["backend"] == "metal"
+
+
+@pytest.mark.parametrize("campaign", ("ecc2-131", "eccp-131"))
+@pytest.mark.parametrize("walk", (2, 3, 4))
+def test_fast_metal_matches_cpu(engine, probe, campaign, walk):
+    """The specialised GPU kernels reproduce the specialised CPU engine."""
+    if not has_metal_device(probe):
+        pytest.skip("engine has no Metal backend or no Metal device is present")
+    ns = Namespace(campaign, dp_bits=4, walk_version=walk)
+    # 10 lanes: a partial last thread (4 lanes per thread); 100 steps: two chunks.
+    initial = tuple(NativeState(ns.start(RUN_ID, trail)) for trail in range(10))
+    cpu = run_round(engine, "cpu", ns, initial, 100, timeout=600)
+    metal = run_round(engine, "metal", ns, initial, 100, timeout=600)
+    assert metal.receipt["engine"] == "fast131"
+    assert metal.states == cpu.states
+    assert metal.distinguished == cpu.distinguished
 
 
 def test_metal_resumed_rounds_match_one_round(engine, probe):

@@ -4,8 +4,11 @@
 FROM python:3.12-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 AS build
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends g++ \
   && rm -rf /var/lib/apt/lists/*
-COPY worker/generic/engine.cu worker/generic/ec_core.h /build/
-RUN g++ -std=c++17 -O2 -fopenmp -x c++ /build/engine.cu -o /build/generic-engine \
+COPY worker/generic/engine.cu worker/generic/ec_core.h worker/generic/fast131.h worker/generic/fast131_host.h /build/
+# The 131-bit fast path wants the hardware carry-less multiply: PCLMULQDQ
+# (every x86-64 CPU since 2010) or PMULL (the arm64 crypto extension).
+RUN case "$(uname -m)" in x86_64) CLMUL=-mpclmul ;; aarch64) CLMUL=-march=armv8-a+crypto ;; esac \
+  && g++ -std=c++17 -O2 $CLMUL -fopenmp -x c++ /build/engine.cu -o /build/generic-engine \
   && /build/generic-engine --self-test
 
 FROM python:3.12-slim-trixie@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1

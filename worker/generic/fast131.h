@@ -87,10 +87,10 @@ HD inline void mulw(u32 a, u32 b, ECC_THREAD u32& lo, ECC_THREAD u32& hi) {
 HD inline void mulw(u64 a, u64 b, ECC_THREAD u64& lo, ECC_THREAD u64& hi) {
 #if defined(__CUDA_ARCH__)
     lo = a * b;
-    hi = __umul64hi(a, b);
+    hi = u64(__umul64hi((unsigned long long)a, (unsigned long long)b));
 #elif defined(__METAL_VERSION__)
     lo = a * b;
-    hi = mulhi(a, b);
+    hi = metal::mulhi(a, b);
 #elif defined(__SIZEOF_INT128__)
     const unsigned __int128 p = (unsigned __int128)a * b;
     lo = u64(p);
@@ -214,8 +214,38 @@ HD inline Num<W, N> mont_mul(Num<W, N> a, Num<W, N> b, Num<W, N> p, W pinv) {
     return num_select(W(0) - borrow, r, s);
 }
 
+// a * R^-1 mod p (Montgomery reduction of a single operand): half a product.
+template <typename W, int N>
+HD inline Num<W, N> mont_redc(Num<W, N> a, Num<W, N> p, W pinv) {
+    W t[N + 1];
+    for (int i = 0; i < N; ++i) t[i] = a.v[i];
+    t[N] = 0;
+    for (int i = 0; i < N; ++i) {
+        const W m = t[0] * pinv;
+        W lo, hi, c1;
+        mulw(m, p.v[0], lo, hi);
+        addc(t[0], lo, 0, c1);
+        W carry = hi + c1;
+        for (int j = 1; j < N; ++j) {
+            W c2;
+            mulw(m, p.v[j], lo, hi);
+            W s = addc(t[j], lo, 0, c1);
+            s = addc(s, carry, 0, c2);
+            t[j - 1] = s;
+            carry = hi + c1 + c2;
+        }
+        t[N - 1] = addc(t[N], carry, 0, c1);
+        t[N] = c1;
+    }
+    Num<W, N> r;
+    for (int i = 0; i < N; ++i) r.v[i] = t[i];
+    W borrow;
+    const Num<W, N> s = num_sub(r, p, borrow);
+    return num_select(W(0) - borrow, r, s);
+}
+
 template <typename W, int N> struct PrimeCtx {
-    Num<W, N> p, n, one, r2, half, pm2;  // one = R mod p, half = (p-1)/2
+    Num<W, N> p, n, one, r2, halfp, pm2;  // one = R mod p, halfp = (p-1)/2
     Num<W, N> a, b;                     // curve coefficients, Montgomery form
     W pinv;                             // -p^-1 mod 2^w
     u32 bits;                           // field bits
@@ -256,18 +286,14 @@ template <typename W, int N> struct PrimeField {
         return r;
     }
     static HD void canon(E x, C c, ECC_THREAD u64 out[3]) {
-        Num<W, N> one = num_zero<W, N>();
-        one.v[0] = 1;
-        words(mont_mul(x, one, c.p, c.pinv), out);
+        words(mont_redc(x, c.p, c.pinv), out);
     }
     // -y in the field, for the negation map: -(x, y) = (x, -y).
     static HD E neg_y(E x, E y, C c) { (void)x; return mod_neg(y, c.p); }
     // True when y is the larger of {y, -y} as canonical integers.
     static HD bool y_is_upper(E x, E y, C c) {
         (void)x;
-        Num<W, N> one = num_zero<W, N>();
-        one.v[0] = 1;
-        return num_less(c.half, mont_mul(y, one, c.p, c.pinv));
+        return num_less(c.halfp, mont_redc(y, c.p, c.pinv));
     }
     static HD S scalar_add(S a, S b, C c) { return mod_add(a, b, c.n); }
     static HD S scalar_neg(S a, C c) { return mod_neg(a, c.n); }
@@ -474,19 +500,20 @@ struct Params {
     u32 escape;        // v4: index of the escape jump (= table size)
     u32 anchor_log2;   // v4: cycle anchors every 2^anchor_log2 steps
     u32 field_bytes;   // v2 digest width
-    u32 reserved0, reserved1;
+    u32 has_db;        // some jump carries a b coefficient (production tables do not)
+    u32 reserved;
 };
 
 template <class FD> struct Entry {
     typename FD::E x, y;
-    typename FD::S da;
+    typename FD::S da, db;
 };
 
 // One walk. The cycle fields are round-local: they reset whenever the
 // engine loads a lane, which only delays a detection (see codec.py).
 template <class FD> struct Lane {
     typename FD::E x, y;
-    typename FD::S a;
+    typename FD::S a, b;
     u64 steps;
     u64 fcur, fprev, anchor, target;  // v4 fingerprints: low 64 bits of x
     u32 active, infinity, negated, err;
@@ -583,10 +610,12 @@ template <class FD> HD inline u32 choose_jump(ECC_THREAD Lane<FD>& L, Params prm
     return L.index;
 }
 
-template <class FD> HD inline void canonicalize(ECC_THREAD Lane<FD>& L, typename FD::C c) {
+template <class FD> HD inline void canonicalize(ECC_THREAD Lane<FD>& L, typename FD::C c,
+                                                Params prm) {
     if (FD::y_is_upper(L.x, L.y, c)) {
         L.y = FD::neg_y(L.x, L.y, c);
         L.a = FD::scalar_neg(L.a, c);
+        if (prm.has_db) L.b = FD::scalar_neg(L.b, c);
         L.negated ^= 1U;
     }
 }
@@ -657,6 +686,7 @@ HD inline void walk_batch(typename FD::C c, const F131_DEV Entry<FD>* table, Par
                 }
             }
             L.a = FD::scalar_add(L.a, table[j].da, c);
+            if (prm.has_db) L.b = FD::scalar_add(L.b, table[j].db, c);
             ++L.steps;
             if (L.infinity) {
                 // The identity's next step adds jump 0, as in walk_lane.
@@ -665,13 +695,29 @@ HD inline void walk_batch(typename FD::C c, const F131_DEV Entry<FD>* table, Par
                 L.mode = MODE_NORMAL; L.fcur_ok = 0; L.fprev_ok = 0; L.anchor_ok = 0;
                 continue;
             }
-            if (prm.walk == WALK_V4) canonicalize(L, c);
+            if (prm.walk == WALK_V4) canonicalize(L, c, prm);
             const u64 two_back = L.fprev;
             const u32 two_back_ok = L.fprev_ok;
             classify(L, c, prm);
             if (prm.walk == WALK_V4 && L.active) track_cycles(L, prm, two_back, two_back_ok);
         }
     }
+}
+
+
+// Device entry point shared by the CUDA and Metal kernels: thread `first / K`
+// loads K lanes, runs `steps` transitions sharing one inversion per step, and
+// stores them. Lanes keep their cycle state in device memory between chunks,
+// so splitting a round into command buffers never changes an output.
+template <class FD, int K>
+HD inline void gpu_chunk(typename FD::C c, const F131_DEV Entry<FD>* table, Params prm,
+                         F131_DEV Lane<FD>* lanes, u32 total, u32 first, u32 steps) {
+    if (first >= total) return;
+    const u32 count = total - first < u32(K) ? total - first : u32(K);
+    Lane<FD> local[K];
+    for (u32 k = 0; k < count; ++k) local[k] = lanes[first + k];
+    walk_batch<FD, K>(c, table, prm, local, count, steps);
+    for (u32 k = 0; k < count; ++k) lanes[first + k] = local[k];
 }
 
 }  // namespace f131
