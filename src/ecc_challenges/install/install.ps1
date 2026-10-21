@@ -17,7 +17,7 @@ $ProgressPreference = 'SilentlyContinue'
 
 $repo = 'aburan28/ecc-challenges'
 $api = if ($env:ECC_API_URL) { $env:ECC_API_URL } else { 'https://ecc-challenges.com' }
-$ref = if ($env:ECC_REF) { $env:ECC_REF } else { 'a515a2f3ee08e68193d93b9236e6ca8f8ccbae78' }
+$ref = if ($env:ECC_REF) { $env:ECC_REF } else { '988b0cf7e326697a81615d6721ba83b935fec654' }
 $campaign = if ($env:ECC_CAMPAIGN) { $env:ECC_CAMPAIGN } else { 'eccp-131' }
 $state = if ($env:ECC_STATE_DIR) { $env:ECC_STATE_DIR } else { Join-Path $env:USERPROFILE "ecc-data\$campaign" }
 $prefix = Join-Path $env:LOCALAPPDATA 'ecc-challenges'
