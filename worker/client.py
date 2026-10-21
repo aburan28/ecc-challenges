@@ -279,7 +279,7 @@ def main() -> int:
                             upload_dps(api, root, state)
                             upload_checkpoint(api, root, state)
                             failed_sync = False
-                            health.update("computing")
+                            health.update("backpressure")
                         except Exception as exc:
                             failed_sync = True
                             health.update("upload_retry")
