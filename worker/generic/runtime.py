@@ -15,10 +15,15 @@ import subprocess
 import tempfile
 from typing import Sequence
 
-from ecc_challenges.multicurve.codec import MAX_TRAIL_STEPS, Namespace, Record
+from ecc_challenges.multicurve.codec import (
+    ANCHOR_LOG2, MAX_TRAIL_STEPS, TABLE_LOG2, WALK_V2, Namespace, Record,
+)
 
 INTEGER_BYTES = 48
 JOB_BYTES = 6568
+# ECCJOB04 (walks 3 and 4): the ECCJOB03 body, then walk, table_log2,
+# anchor_log2, a zero word and the escape jump.
+JOB4_BYTES = JOB_BYTES + 16 + 4 * INTEGER_BYTES
 STATE_BYTES = 216
 MAX_LANES = 4096
 MAX_ROUND_STEPS = 1 << 20
@@ -100,8 +105,9 @@ def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
         raise ValueError("instance exceeds the native engine width")
     if type(ns.dp_bits) is not int or not 1 <= ns.dp_bits <= 40:
         raise ValueError("DP bits must be between one and forty")
+    fast_walk = ns.walk_version != WALK_V2
     encoded = bytearray(JOB_HEADER.pack(
-        b"ECCJOB03", int(instance.field_kind == "binary"), instance.bits,
+        b"ECCJOB04" if fast_walk else b"ECCJOB03", int(instance.field_kind == "binary"), instance.bits,
         instance.n.bit_length(), ns.dp_bits, lanes, steps, 32, 0,
     ))
     for name, value in (
@@ -124,7 +130,12 @@ def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
             ("x", point[0]), ("y", point[1]), ("da", da), ("db", db)
         ):
             encoded.extend(_integer(value, f"jump {index}.{name}"))
-    if len(encoded) != JOB_BYTES:
+    if fast_walk:
+        encoded.extend(struct.pack("<4I", ns.walk_version, TABLE_LOG2, ANCHOR_LOG2, 0))
+        point, da, db = ns.escape_jump()
+        for value in (point[0], point[1], da, db):
+            encoded.extend(_integer(value, "escape jump"))
+    if len(encoded) != (JOB4_BYTES if fast_walk else JOB_BYTES):
         raise RuntimeError("native job encoder produced an unexpected length")
     return bytes(encoded)
 
@@ -212,6 +223,87 @@ def _check_state(ns: Namespace, state: NativeState) -> None:
         )
 
 
+class EngineSession:
+    """A long-lived engine process for one namespace and lane count.
+
+    The engine validates the job and prepares its tables once; each round is a
+    request on stdin and a receipt on stdout, so a round costs no process
+    start. Close it (or use it as a context manager) to stop the engine.
+    """
+
+    def __init__(self, engine, backend, ns, lanes, directory=None):
+        if backend not in BACKENDS:
+            raise ValueError("backend must be cpu, cuda or metal")
+        self.backend, self.ns, self.lanes = backend, ns, lanes
+        self._directory = tempfile.TemporaryDirectory(prefix="ecc-session-", dir=directory)
+        root = Path(self._directory.name)
+        self.job = root / "job.bin"
+        self.job.write_bytes(pack_job(ns, lanes, 1))
+        self.paths = tuple(root / name for name in ("input.bin", "output.bin", "dps.bin"))
+        self.process = subprocess.Popen(
+            [str(engine), "--serve", backend, str(self.job)],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, **ISOLATE_ENGINE,
+        )
+
+    def round(self, input_bytes: bytes, steps: int, timeout: float) -> tuple[dict, bytes, bytes]:
+        source, output, dps = self.paths
+        source.write_bytes(input_bytes)
+        line = "\t".join(("round", str(source), str(output), str(dps), str(steps)))
+        try:
+            self.process.stdin.write(line + "\n")
+            self.process.stdin.flush()
+        except (BrokenPipeError, OSError):
+            self._fail()
+        # The engine answers one line per request; a timer guards a hung one.
+        import threading
+        timer = threading.Timer(timeout, self.process.kill)
+        timer.start()
+        try:
+            reply = self.process.stdout.readline()
+        finally:
+            timer.cancel()
+        if not reply:
+            self._fail()
+        try:
+            receipt = json.loads(reply)
+        except ValueError as error:
+            raise RuntimeError("native engine returned an invalid receipt") from error
+        return (receipt, _read_bounded(output, self.lanes * STATE_BYTES),
+                _read_bounded(dps, self.lanes * STATE_BYTES))
+
+    def _fail(self):
+        self.process.poll()
+        detail = ""
+        try:
+            self.process.kill()
+            detail = self.process.stderr.read()[-2000:]
+        except OSError:
+            pass
+        raise RuntimeError(f"native {self.backend} session failed: {detail.strip()}")
+
+    def close(self):
+        if self.process.poll() is None:
+            try:
+                self.process.stdin.write("quit\n")
+                self.process.stdin.flush()
+                self.process.wait(timeout=10)
+            except (OSError, subprocess.TimeoutExpired):
+                self.process.kill()
+        for stream in (self.process.stdin, self.process.stdout, self.process.stderr):
+            try:
+                stream.close()
+            except OSError:
+                pass
+        self._directory.cleanup()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+
 def run_round(
     engine: str | Path,
     backend: str,
@@ -221,6 +313,7 @@ def run_round(
     directory: str | Path | None = None,
     *,
     timeout: float = 600,
+    session: EngineSession | None = None,
 ) -> RoundResult:
     """Run one bounded round; accept outputs only after complete validation.
 
@@ -255,51 +348,56 @@ def run_round(
             )
     if len({state.trail_id for state in inputs}) != len(inputs):
         raise ValueError("each lane must have a distinct trail ID")
-    job_bytes = pack_job(ns, len(inputs), steps)
     input_bytes = b"".join(
         pack_state(state.record, state.active) for state in inputs
     )
-    with tempfile.TemporaryDirectory(
-        prefix="ecc-round-", dir=directory
-    ) as temporary:
-        root = Path(temporary)
-        job, source, output, dps = (
-            root / name
-            for name in ("job.bin", "input.bin", "output.bin", "dps.bin")
-        )
-        job.write_bytes(job_bytes)
-        source.write_bytes(input_bytes)
-        completed = subprocess.run(
-            [
-                str(engine), "--backend", backend,
-                str(job), str(source), str(output), str(dps),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
-            **ISOLATE_ENGINE,
-        )
-        if completed.returncode:
-            detail = (
-                completed.stderr or completed.stdout
-            ).strip()[-2000:]
-            raise RuntimeError(
-                f"native {backend} round failed "
-                f"({completed.returncode}): {detail}"
+    if session is not None:
+        if session.ns is not ns or session.backend != backend or session.lanes != len(inputs):
+            raise ValueError("engine session does not match this round")
+        receipt, output_bytes, dp_bytes = session.round(input_bytes, steps, timeout)
+    else:
+        job_bytes = pack_job(ns, len(inputs), steps)
+        with tempfile.TemporaryDirectory(
+            prefix="ecc-round-", dir=directory
+        ) as temporary:
+            root = Path(temporary)
+            job, source, output, dps = (
+                root / name
+                for name in ("job.bin", "input.bin", "output.bin", "dps.bin")
             )
-        try:
-            receipt = json.loads(completed.stdout)
-        except (ValueError, TypeError) as error:
-            raise RuntimeError(
-                "native engine returned an invalid receipt"
-            ) from error
-        output_bytes = _read_bounded(
-            output, len(inputs) * STATE_BYTES
-        )
-        dp_bytes = _read_bounded(
-            dps, len(inputs) * STATE_BYTES
-        )
+            job.write_bytes(job_bytes)
+            source.write_bytes(input_bytes)
+            completed = subprocess.run(
+                [
+                    str(engine), "--backend", backend,
+                    str(job), str(source), str(output), str(dps),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                check=False,
+                **ISOLATE_ENGINE,
+            )
+            if completed.returncode:
+                detail = (
+                    completed.stderr or completed.stdout
+                ).strip()[-2000:]
+                raise RuntimeError(
+                    f"native {backend} round failed "
+                    f"({completed.returncode}): {detail}"
+                )
+            try:
+                receipt = json.loads(completed.stdout)
+            except (ValueError, TypeError) as error:
+                raise RuntimeError(
+                    "native engine returned an invalid receipt"
+                ) from error
+            output_bytes = _read_bounded(
+                output, len(inputs) * STATE_BYTES
+            )
+            dp_bytes = _read_bounded(
+                dps, len(inputs) * STATE_BYTES
+            )
     if len(output_bytes) != len(inputs) * STATE_BYTES:
         raise RuntimeError(
             "native output state count differs from input lane count"

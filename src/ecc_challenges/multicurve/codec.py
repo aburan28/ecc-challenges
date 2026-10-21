@@ -27,17 +27,42 @@ MAX_DP_BITS = 34
 MAX_TRAIL_STEPS = 1 << 48
 PREFIX = struct.Struct("<QQ")
 
+# Walk versions. V2 is the published SHA-256 walk and stays valid for every
+# curve and for every run already registered under it. V3 and V4 read the
+# partition and the DP test from bits of x (no hash) and are defined only for
+# the two 131-bit Certicom curves; V4 also walks the classes {P, -P}.
+WALK_V2, WALK_V3, WALK_V4 = 2, 3, 4
+WALK_IDS = {
+    WALK_V2: "certicom-affine-radding32-v2",
+    WALK_V3: "certicom-affine-radding32-xonly-v3",
+    WALK_V4: "certicom-affine-radding32-negmap-v4",
+}
+FAST_WALK_CAMPAIGNS = ("ecc2-131", "eccp-131")
+DEFAULT_WALKS = {campaign: WALK_V4 for campaign in FAST_WALK_CAMPAIGNS}
+PARTITION_MULTIPLIER = 0x9E3779B97F4A7C15
+TABLE_LOG2 = 5
+ANCHOR_LOG2 = 10
+M64 = (1 << 64) - 1
+
 
 def canonical(value: dict) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
 
 
-def expected_steps_log2(order: int) -> float:
-    return (math.log2(order) + math.log2(math.pi / 2)) / 2
+def expected_steps_log2(order: int, walk: int = WALK_V2) -> float:
+    # The negation map halves the group: sqrt(pi n / 4) instead of sqrt(pi n / 2).
+    factor = math.pi / 4 if walk == WALK_V4 else math.pi / 2
+    return (math.log2(order) + math.log2(factor)) / 2
 
 
-def dp_bits_for(order: int) -> int:
-    return max(1, min(MAX_DP_BITS, math.floor(expected_steps_log2(order)) - PLANNED_WALKS_BITS - 7))
+def dp_bits_for(order: int, walk: int = WALK_V2) -> int:
+    return max(1, min(MAX_DP_BITS,
+                      math.floor(expected_steps_log2(order, walk)) - PLANNED_WALKS_BITS - 7))
+
+
+def partition_x(x: int) -> int:
+    """V3/V4 jump index: top bits of a multiplicative hash of x's low word."""
+    return ((x & M64) * PARTITION_MULTIPLIER & M64) >> (64 - TABLE_LOG2)
 
 
 def derive_scalar(domain: bytes, order: int, *, nonzero: bool = False) -> int:
@@ -63,10 +88,17 @@ class Record:
 
 
 class Namespace:
-    def __init__(self, campaign: str, dp_bits: int | None = None):
+    def __init__(self, campaign: str, dp_bits: int | None = None, walk_version: int | None = None):
         self.instance = get_instance(campaign)
+        if walk_version is None:
+            walk_version = DEFAULT_WALKS.get(self.instance.id, WALK_V2)
+        if walk_version not in WALK_IDS:
+            raise ValueError("unknown walk version")
+        if walk_version != WALK_V2 and self.instance.id not in FAST_WALK_CAMPAIGNS:
+            raise ValueError("walks 3 and 4 are defined only for the 131-bit Certicom curves")
+        self.walk_version = walk_version
         if dp_bits is None:
-            dp_bits = dp_bits_for(self.instance.n)
+            dp_bits = dp_bits_for(self.instance.n, walk_version)
         if type(dp_bits) is not int or not 1 <= dp_bits <= 40:
             raise ValueError("distinguished bits must be between 1 and 40")
         campaign = self.instance.id
@@ -83,17 +115,41 @@ class Namespace:
                 , self.instance.n, nonzero=True), 0)
             for i in range(32)
         )
-        self.walk = {
-            "id": "certicom-affine-radding32-v2",
-            "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
-            "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
-            "native_job": "ECCJOB03",
-            "dp_bits": dp_bits,
-            "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
-            "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
-            "automorphism_quotient": "none",
-            "max_trail_steps": MAX_TRAIL_STEPS,
-        }
+        if walk_version == WALK_V2:
+            self.walk = {
+                "id": WALK_IDS[WALK_V2],
+                "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+                "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+                "native_job": "ECCJOB03",
+                "dp_bits": dp_bits,
+                "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
+                "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
+                "automorphism_quotient": "none",
+                "max_trail_steps": MAX_TRAIL_STEPS,
+            }
+        else:
+            # One extra coefficient is the V4 escape jump, derived like the others.
+            self.escape = (derive_scalar(
+                f"ecc-radding32-v1:{self.instance.instance_sha256}:32".encode(),
+                self.instance.n, nonzero=True), 0)
+            self.walk = {
+                "id": WALK_IDS[walk_version],
+                "partition": "jump=((x mod 2^64)*0x9e3779b97f4a7c15 mod 2^64)>>59; infinity-zero",
+                "distinguished": "finite-bits-64..64+dp_bits-1-of-x-zero",
+                "native_job": "ECCJOB04",
+                "dp_bits": dp_bits,
+                "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
+                "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
+                "automorphism_quotient": "none" if walk_version == WALK_V3 else "negation",
+                "max_trail_steps": MAX_TRAIL_STEPS,
+            }
+            if walk_version == WALK_V4:
+                self.walk.update({
+                    "canonical_point": "y-not-greater-than-its-negation (prime: y<=(p-1)/2; binary: y<=x^y)",
+                    "negation_coefficients": "a and b are negated with the point, so aG+bQ equals the stored point exactly",
+                    "escape_jump": [hex(self.escape[0]), hex(self.escape[1])],
+                    "cycle_escape": f"2-cycles and cycles revisiting a 2^{ANCHOR_LOG2}-step anchor leave through the escape jump at the cycle's least x low word; cycle state resets each engine round",
+                })
         self.binding = {
             "protocol": 2, "campaign": campaign,
             "instance_sha256": self.instance.instance_sha256,
@@ -116,14 +172,29 @@ class Namespace:
     def witness(self, record: Record) -> bytes:
         return record.a.to_bytes(self.scalar_bytes, "big") + record.b.to_bytes(self.scalar_bytes, "big")
 
+    def canonical_sign(self, point: tuple[int, int]) -> bool:
+        """True if the point is the representative of {P, -P} that V4 stores."""
+        x, y = point
+        if self.instance.field_kind == "prime":
+            return y <= (self.instance.modulus - 1) // 2
+        return (x ^ y) >= y
+
     def selector(self, point: tuple[int, int]) -> bytes:
         return hashlib.sha256(b"".join(v.to_bytes(self.field_bytes, "big") for v in point)).digest()
 
     def partition(self, point: tuple[int, int] | None) -> int:
-        return 0 if point is None else self.selector(point)[0] & 31
+        if point is None:
+            return 0
+        if self.walk_version != WALK_V2:
+            return partition_x(point[0])
+        return self.selector(point)[0] & 31
 
     def distinguished(self, point: tuple[int, int] | None) -> bool:
-        return point is not None and int.from_bytes(self.selector(point)[-5:], "big") & ((1 << self.dp_bits) - 1) == 0
+        if point is None:
+            return False
+        if self.walk_version != WALK_V2:
+            return (point[0] >> 64) & ((1 << self.dp_bits) - 1) == 0
+        return int.from_bytes(self.selector(point)[-5:], "big") & ((1 << self.dp_bits) - 1) == 0
 
     def encode(self, record: Record) -> bytes:
         self.check_record(record)
@@ -143,6 +214,8 @@ class Namespace:
             raise ValueError("noncanonical subgroup coefficient")
         if not self.distinguished(record.point):
             raise ValueError("point does not satisfy the namespace DP predicate")
+        if self.walk_version == WALK_V4 and not self.canonical_sign(record.point):
+            raise ValueError("point is not the canonical representative of its +/- class")
 
     def decode(self, data: bytes) -> list[Record]:
         if not data or len(data) > MAX_BATCH_BYTES or len(data) % self.record_bytes:
@@ -171,6 +244,11 @@ class Namespace:
     def table(self) -> tuple:
         return tuple((self.instance.mul(a, self.instance.G), a, b) for a, b in self.coefficients)
 
+    def escape_jump(self) -> tuple:
+        """The V4 escape jump (point, da, db)."""
+        a, b = self.escape
+        return (self.instance.mul(a, self.instance.G), a, b)
+
     def _start_seed(self, run_id: str, trail_id: int, counter: int) -> bytes:
         run = UUID(str(run_id))
         if type(trail_id) is not int or not 0 <= trail_id < 1 << 64:
@@ -192,18 +270,22 @@ class Namespace:
     def check_trail(self, record: Record, run_id: str) -> None:
         """Jumps add only multiples of G, so b is fixed for a whole trail: a DP
         must carry the b of the start this run's trail ID derives."""
+        # The V4 negation map flips the sign of b with the point, so a trail's
+        # b is the start's b or its negative.
+        n = self.instance.n
+        accepted = (lambda b0: {b0, (n - b0) % n}) if self.walk_version == WALK_V4 else (lambda b0: {b0})
         seed = self._start_seed(run_id, record.trail_id, 0)
-        if record.b == derive_scalar(seed + b"b", self.instance.n, nonzero=True):
+        if record.b in accepted(derive_scalar(seed + b"b", n, nonzero=True)):
             return
         # Counter 0 yields the point at infinity with probability ~1/n; only
         # then does the start use a later counter.
-        if record.b != self.start(run_id, record.trail_id).b:
+        if record.b not in accepted(self.start(run_id, record.trail_id).b):
             raise ValueError("DP b does not match its trail start")
 
 
 @lru_cache(maxsize=96)
-def namespace(campaign: str, dp_bits: int | None = None) -> Namespace:
-    return Namespace(campaign, dp_bits)
+def namespace(campaign: str, dp_bits: int | None = None, walk_version: int | None = None) -> Namespace:
+    return Namespace(campaign, dp_bits, walk_version)
 
 
 def pinned_namespace(campaign: str, manifest: dict) -> Namespace:
@@ -213,4 +295,9 @@ def pinned_namespace(campaign: str, manifest: dict) -> Namespace:
     dp_bits = walk.get("dp_bits") if isinstance(walk, dict) else None
     if type(dp_bits) is not int:
         raise ValueError("pinned manifest has no DP bit count")
-    return namespace(campaign, dp_bits)
+    # Manifests written before walk versions existed carry the V2 id.
+    versions = {identity: version for version, identity in WALK_IDS.items()}
+    version = versions.get(walk.get("id"))
+    if version is None:
+        raise ValueError("pinned manifest names an unknown walk")
+    return namespace(campaign, dp_bits, version)

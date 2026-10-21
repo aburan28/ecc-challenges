@@ -76,6 +76,17 @@ else()
 endif()
 ecc_platform_settings(generic-engine)
 
+# The 131-bit fast path wants the hardware carry-less multiply (fast131.h falls
+# back to a portable product without it, several times slower). PCLMULQDQ is on
+# every x86-64 CPU since 2010; Apple Clang already targets PMULL on arm64.
+if(NOT MSVC)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
+    target_compile_options(generic-engine PRIVATE -mpclmul)
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$" AND NOT APPLE)
+    target_compile_options(generic-engine PRIVATE -march=armv8-a+crypto)
+  endif()
+endif()
+
 if(ECC_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)
   if(OpenMP_CXX_FOUND)

@@ -21,9 +21,12 @@
 #include <omp.h>
 #endif
 #include "ec_core.h"
+#include "fast131_host.h"
 
 namespace ecc {
 constexpr std::size_t JOB_BYTES = 6568;
+// ECCJOB04 appends walk parameters and the escape jump to an ECCJOB03 body.
+constexpr std::size_t JOB4_BYTES = JOB_BYTES + 16 + 192;
 constexpr std::size_t STATE_BYTES = 216;
 constexpr std::uint32_t MAX_LANES = 4096;
 constexpr std::uint32_t MAX_ROUND_STEPS = 1048576;
@@ -102,10 +105,19 @@ void validate_point(const Point& point, const Job& job,
                 name + ": infinity must have zero coordinates");
     require(on_curve(point, job), name + ": point is not on the curve");
 }
-Job load_job(const std::string& path) {
-    const auto bytes = read_file(path, JOB_BYTES);
-    require(bytes.size() == JOB_BYTES, "job must contain exactly 6568 bytes");
-    require(std::memcmp(bytes.data(), "ECCJOB03", 8) == 0, "invalid job magic");
+// Walk selection beyond the published walk (see fast131.h). walk == 2 is the
+// ECCJOB03 walk; ECCJOB04 selects 3 (x-only) or 4 (x-only, negation map).
+struct JobExt {
+    std::uint32_t walk = f131::WALK_V2, table_log2 = 5, anchor_log2 = 10;
+    Jump escape{};
+};
+Job load_job(const std::string& path, JobExt& ext) {
+    const auto bytes = read_file(path, JOB4_BYTES);
+    require(bytes.size() == JOB_BYTES || bytes.size() == JOB4_BYTES,
+            "job must contain exactly 6568 or 6776 bytes");
+    const bool v4 = bytes.size() == JOB4_BYTES;
+    require(std::memcmp(bytes.data(), v4 ? "ECCJOB04" : "ECCJOB03", 8) == 0,
+            "invalid job magic");
     Reader r{bytes, 8}; Job job{};
     job.kind = r.u32(); job.field_bits = r.u32(); job.scalar_bits = r.u32();
     job.dp_bits = r.u32(); job.lanes = r.u32(); job.steps_per_round = r.u32();
@@ -154,6 +166,21 @@ Job load_job(const std::string& path) {
         require(compare(j.da, job.n) < 0 && compare(j.db, job.n) < 0,
                 "jump coefficients must be reduced");
         validate_point(Point{j.x, j.y, 0}, job, "jump " + std::to_string(i));
+    }
+    if (v4) {
+        ext.walk = r.u32(); ext.table_log2 = r.u32(); ext.anchor_log2 = r.u32();
+        require(r.u32() == 0, "reserved extension field must be zero");
+        ext.escape.x = r.integer(); ext.escape.y = r.integer();
+        ext.escape.da = r.integer(); ext.escape.db = r.integer();
+        require(ext.walk == f131::WALK_V3 || ext.walk == f131::WALK_V4,
+                "unsupported walk");
+        require(ext.table_log2 == 5, "unsupported partition table size");
+        require(ext.anchor_log2 >= 2 && ext.anchor_log2 <= 24, "invalid cycle anchor period");
+        require(compare(ext.escape.da, job.n) < 0 && compare(ext.escape.db, job.n) < 0,
+                "escape coefficients must be reduced");
+        validate_point(Point{ext.escape.x, ext.escape.y, 0}, job, "escape jump");
+        require(f131::fast_curve(job.kind, job.field_bits, job.modulus),
+                "walks 3 and 4 need a 131-bit Certicom field");
     }
     require(r.pos == bytes.size(), "job parser length mismatch");
     return job;
@@ -470,9 +497,75 @@ void probe() {
     std::cout << "]}\n";
 }
 
+// Specialised CPU arithmetic is on unless ECC_ENGINE_FAST=0, which forces the
+// reference engine (the baseline of benchmarks/rho131 and the correctness
+// oracle for the specialised paths).
+bool fast_enabled() {
+    const char* value = std::getenv("ECC_ENGINE_FAST");
+    return !(value && std::string(value) == "0");
+}
+
+// One round: reads INPUT, advances every lane, writes OUTPUT and DPS and
+// returns the JSON receipt.
+std::string execute_round(const std::string& backend, Job job, const JobExt& ext,
+                          const std::string& input, const std::string& output,
+                          const std::string& dps_path) {
+    require(input != output && output != dps_path && input != dps_path,
+            "output state and DP paths must differ");
+    std::vector<State> states = load_states(input, job);
+    std::vector<std::uint32_t> was_active(job.lanes);
+    for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
+    std::vector<int> errors(job.lanes, 0);
+    bool done = false;
+    const char* engine = "reference";
+    if (backend == "cpu" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+        done = f131::run_cpu_fast_job(job, ext.walk, ext.anchor_log2, ext.escape, states,
+                                      errors, cpu_threads());
+        if (done) engine = "fast131";
+    }
+    require(done || ext.walk == f131::WALK_V2,
+            "walks 3 and 4 need the specialised CPU engine");
+    if (!done) {
+        if (backend == "cpu") run_cpu(job, states, errors);
+#ifdef __CUDACC__
+        else if (backend == "cuda") run_cuda(job, states, errors);
+#endif
+#ifdef ECC_METAL
+        else if (backend == "metal") run_metal(job, states, errors);
+#endif
+    }
+    for (std::uint32_t i = 0; i < job.lanes; ++i)
+        require(errors[i] == 0, "lane " + std::to_string(i) +
+                (errors[i] == 2 ? ": step counter exhausted" :
+                                  (errors[i] == 3 ? ": point digest failed" :
+                                   ": field inversion failed or watchdog expired")));
+    std::vector<std::uint8_t> out, dps;
+    out.reserve(std::size_t(job.lanes) * STATE_BYTES);
+    for (std::uint32_t i = 0; i < job.lanes; ++i) {
+        append_state(out, states[i]);
+        if (was_active[i] && !states[i].active && !states[i].infinity)
+            append_state(dps, states[i]);
+    }
+    write_file(output, out); write_file(dps_path, dps);
+    return "{\"backend\":\"" + backend + "\",\"engine\":\"" + engine + "\",\"lanes\":" +
+           std::to_string(job.lanes) + ",\"distinguished_points\":" +
+           std::to_string(dps.size() / STATE_BYTES) + "}";
+}
+
+std::vector<std::string> split_tabs(const std::string& line) {
+    std::vector<std::string> parts;
+    std::size_t start = 0;
+    for (;;) {
+        const std::size_t tab = line.find('\t', start);
+        parts.push_back(line.substr(start, tab == std::string::npos ? tab : tab - start));
+        if (tab == std::string::npos) return parts;
+        start = tab + 1;
+    }
+}
+
 int run(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--self-test") {
-        self_test(); return 0;
+        self_test(); f131::self_test(); return 0;
     }
     if (argc == 2 && std::string(argv[1]) == "--probe") {
         probe(); return 0;
@@ -482,10 +575,12 @@ int run(int argc, char** argv) {
         std::cout << metal_source(); return 0;
     }
 #endif
-    require(argc == 7 && std::string(argv[1]) == "--backend",
+    const bool serve = argc == 4 && std::string(argv[1]) == "--serve";
+    require(serve || (argc == 7 && std::string(argv[1]) == "--backend"),
             "usage: engine --backend cpu|cuda|metal JOB INPUT_STATES OUTPUT_STATES DP_STATES"
+            "\n       engine --serve cpu|cuda|metal JOB   (rounds on stdin)"
             "\n       engine --self-test | --probe");
-    const std::string backend = argv[2];
+    const std::string backend = serve ? argv[2] : argv[2];
     require(backend == "cpu" || backend == "cuda" || backend == "metal",
             "unknown backend");
 #ifndef __CUDACC__
@@ -496,35 +591,28 @@ int run(int argc, char** argv) {
     require(backend != "metal",
             "Metal backend unavailable in this build; build engine_metal.mm on macOS");
 #endif
-    require(std::string(argv[5]) != std::string(argv[6]),
-            "output state and DP paths must differ");
-    const Job job = load_job(argv[3]);
-    std::vector<State> states = load_states(argv[4], job);
-    std::vector<std::uint32_t> was_active(job.lanes);
-    for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
-    std::vector<int> errors(job.lanes, 0);
-    if (backend == "cpu") run_cpu(job, states, errors);
-#ifdef __CUDACC__
-    else if (backend == "cuda") run_cuda(job, states, errors);
-#endif
-#ifdef ECC_METAL
-    else if (backend == "metal") run_metal(job, states, errors);
-#endif
-    for (std::uint32_t i = 0; i < job.lanes; ++i)
-        require(errors[i] == 0, "lane " + std::to_string(i) +
-                (errors[i] == 2 ? ": step counter exhausted" :
-                                  (errors[i] == 3 ? ": point digest failed" :
-                                   ": field inversion failed or watchdog expired")));
-    std::vector<std::uint8_t> output, dps;
-    output.reserve(std::size_t(job.lanes) * STATE_BYTES);
-    for (std::uint32_t i = 0; i < job.lanes; ++i) {
-        append_state(output, states[i]);
-        if (was_active[i] && !states[i].active && !states[i].infinity)
-            append_state(dps, states[i]);
+    JobExt ext;
+    Job job = load_job(argv[3], ext);
+    if (!serve) {
+        require(std::string(argv[5]) != std::string(argv[6]),
+                "output state and DP paths must differ");
+        std::cout << execute_round(backend, job, ext, argv[4], argv[5], argv[6]) << '\n';
+        return 0;
     }
-    write_file(argv[5], output); write_file(argv[6], dps);
-    std::cout << "{\"backend\":\"" << backend << "\",\"lanes\":" << job.lanes
-              << ",\"distinguished_points\":" << dps.size() / STATE_BYTES << "}\n";
+    // Serve mode keeps the validated job and prepared tables for the life of
+    // the process: one tab-separated request per line, "round IN OUT DPS STEPS".
+    // The round uses the job's lane count and the requested step count.
+    std::string line;
+    while (std::getline(std::cin, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line == "quit") return 0;
+        const std::vector<std::string> p = split_tabs(line);
+        require(p.size() == 5 && p[0] == "round", "serve: malformed request");
+        const unsigned long steps = std::strtoul(p[4].c_str(), nullptr, 10);
+        require(steps >= 1 && steps <= MAX_ROUND_STEPS, "serve: steps must be 1..1048576");
+        job.steps_per_round = std::uint32_t(steps);
+        std::cout << execute_round(backend, job, ext, p[1], p[2], p[3]) << std::endl;
+    }
     return 0;
 }
 } // namespace ecc
