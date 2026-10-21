@@ -35,6 +35,14 @@ stable pairs. Exact commands, raw receipts, verifier, plots and PDFs are in
 The change is retained as the faster tested arithmetic for this L4 worker
 workload, not as an assertion of global optimality.
 
+The long DP40 timing panels emitted zero distinguished points, so their DP
+hash parity concerns empty outputs. A separate optimized-source L4 check passed
+168 frozen CUDA controls across all 24 curves, including positive DP1 emission
+for every curve; 137 DP1 records were checked among the nine requested binary
+curves. The [positive-DP report and receipt](../verification/binary-rho-profile-20261021/positive-dp-insight.md)
+and [boundary correction](../verification/binary-rho-profile-20261021/dp-boundary-correction.md)
+keep that finite correctness result separate from sustained DP40 density.
+
 Sustained useful-step rate, point collection/submission, server verification,
 restart cost and other hardware remain unmeasured. The next discriminating
 test is a sustained nine-curve GPU canary with matched current-image controls,
