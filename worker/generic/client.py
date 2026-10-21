@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from ecc_challenges.multicurve.codec import (
-    MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_IDS, canonical, namespace,
+    MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_IDS, WALK_V2, canonical, namespace,
 )
 from .runtime import BACKENDS, EngineSession, NativeState, pack_state, run_round, unpack_states
 from .heartbeat import Heartbeat
@@ -157,7 +157,12 @@ def cpu_threads() -> int:
     return len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count() or 1
 
 
-def default_lanes(backend: str) -> int:
+def default_lanes(backend: str, batched: bool = False) -> int:
+    if batched:
+        # The specialised engine shares one field inversion between the lanes
+        # of a thread (up to 64) or, on a GPU, of a four-lane group, so more
+        # lanes are cheaper per step and a GPU needs thousands to fill.
+        return 4096 if backend in ("cuda", "metal") else min(4096, 32 * cpu_threads())
     # Four lanes per thread keeps every core busy while lanes pause at DPs.
     return 64 if backend in ("cuda", "metal") else min(4096, 4 * cpu_threads())
 
@@ -265,9 +270,13 @@ def main(root: Path, key: str, campaign: str) -> int:
     if action != "work":
         raise ValueError("ECC_ACTION must be work or close")
     backend = select_backend()
-    saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
-    lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))
-    steps = int(os.environ.get("ECC_STEPS_PER_ROUND", "256"))
+    saved = json.loads(path.read_text()) if path.exists() else {}
+    # Walks 3 and 4 run on the specialised engine; the published walk keeps its
+    # original sizes so existing state directories resume unchanged.
+    fast = ns.walk_version != WALK_V2
+    lanes = int(os.environ.get("ECC_LANES") or saved.get("lanes") or default_lanes(backend, fast))
+    steps = int(os.environ.get("ECC_STEPS_PER_ROUND") or saved.get("round_steps")
+                or (4096 if ns.walk_version != WALK_V2 else 256))
     if not 1 <= lanes <= 4096 or not 1 <= steps <= 1048576:
         raise ValueError("invalid lane or round size")
     if (root / "state.json").exists():

@@ -36,7 +36,7 @@ static_assert(sizeof(State) == STATE_BYTES, "unexpected state layout");
 // Walk selection beyond the published walk (see fast131.h). walk == 2 is the
 // ECCJOB03 walk; ECCJOB04 selects 3 (x-only) or 4 (x-only, negation map).
 struct JobExt {
-    std::uint32_t walk = f131::WALK_V2, table_log2 = 5, anchor_log2 = 10;
+    std::uint32_t walk = f131::WALK_V2, table_log2 = 5, anchor_log2 = 10, dp_shift = 64;
     Jump escape{};
 };
 
@@ -187,13 +187,14 @@ Job load_job(const std::string& path, JobExt& ext) {
     }
     if (v4) {
         ext.walk = r.u32(); ext.table_log2 = r.u32(); ext.anchor_log2 = r.u32();
-        require(r.u32() == 0, "reserved extension field must be zero");
+        ext.dp_shift = r.u32();
         ext.escape.x = r.integer(); ext.escape.y = r.integer();
         ext.escape.da = r.integer(); ext.escape.db = r.integer();
         require(ext.walk == f131::WALK_V3 || ext.walk == f131::WALK_V4,
                 "unsupported walk");
         require(ext.table_log2 == 5, "unsupported partition table size");
         require(ext.anchor_log2 >= 2 && ext.anchor_log2 <= 24, "invalid cycle anchor period");
+        require(ext.dp_shift >= 1 && ext.dp_shift + job.dp_bits <= 128, "invalid DP bit window");
         require(compare(ext.escape.da, job.n) < 0 && compare(ext.escape.db, job.n) < 0,
                 "escape coefficients must be reduced");
         validate_point(Point{ext.escape.x, ext.escape.y, 0}, job, "escape jump");
@@ -279,7 +280,7 @@ void run_cuda(const Job& job, std::vector<State>& states,
 template <class FD>
 void run_cuda_fast_field(const Job& job, const JobExt& ext, std::vector<State>& states,
                          std::vector<int>& errors) {
-    f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.escape);
+    f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape);
     std::vector<f131::Lane<FD>> lanes(job.lanes);
     for (std::uint32_t i = 0; i < job.lanes; ++i) lanes[i] = f131::lane_in(states[i], walk);
     int count = 0;
@@ -590,7 +591,7 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
     bool done = false;
     const char* engine = "reference";
     if (backend == "cpu" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
-        done = f131::run_cpu_fast_job(job, ext.walk, ext.anchor_log2, ext.escape, states,
+        done = f131::run_cpu_fast_job(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape, states,
                                       errors, cpu_threads());
         if (done) engine = "fast131";
     }

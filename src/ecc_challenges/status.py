@@ -11,7 +11,7 @@ from time import monotonic
 from psycopg import errors
 
 from .catalog import CHALLENGES
-from .multicurve.codec import expected_steps_log2
+from .multicurve.codec import DEFAULT_WALKS, WALK_V2, expected_steps_log2
 from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
 from .work import SIGMA_DP_LOG2, Walk, progress, sigma_dp_log2, sigma_expected_log2
@@ -140,7 +140,10 @@ class StatusReader:
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
                 order = get_instance(challenge.id).n
-                generic_walk = expected_steps_log2(order)
+                # The campaign's current walk; runs pinned to an older walk of the
+                # same curve are counted against it too (a small overestimate of
+                # the work they stand for when the newer walk halves the group).
+                generic_walk = expected_steps_log2(order, DEFAULT_WALKS.get(challenge.id, WALK_V2))
                 walks = [Walk(bits, points, recent, -bits, generic_walk)
                          for bits, points, recent in work.get(challenge.id, ())]
                 # Imported from the earlier private run (same DP32 walk); not in received_points.

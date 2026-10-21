@@ -317,7 +317,8 @@ cluster's policy on long-running jobs and outbound HTTPS before you start.
 | `ECC_BACKEND` | `auto` (CPU-only image: `cpu`) | `cuda`, `metal`, `cpu`, or `auto` (Metal on a Mac whose engine sees a Metal device, CUDA when `nvidia-smi` sees a GPU, else CPU) |
 | `ECC_GPU` | unset | GPU index for this worker (CUDA device, or Metal device from `generic-engine --probe`) |
 | `OMP_NUM_THREADS` | all available cores | CPU engine threads (also honored by builds without OpenMP) |
-| `ECC_LANES` | GPU (CUDA, Metal) 64, CPU 4 × threads | Parallel walks. Fixed for a run once it starts |
+| `ECC_LANES` | GPU (CUDA, Metal) 64, CPU 4 × threads; ECC2-131 and ECCp-131 (walk 4): GPU 4096, CPU 32 × threads | Parallel walks. Fixed for a run once it starts |
+| `ECC_STEPS_PER_ROUND` | 256; ECC2-131 and ECCp-131 (walk 4): 4096 | Steps between checkpoints. Fixed for a run once it starts |
 | `ECC_STATE_DIR` | `/data` | Persistent state directory |
 | `ECC_API_KEY_FILE` | `/run/secrets/ecc_api_key` | Key file |
 | `ECC_API_KEY` | unset | Key as an environment variable instead of a file |

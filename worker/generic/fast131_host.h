@@ -244,12 +244,12 @@ void run_cpu_fast(const Prepared<FD>& w, std::vector<State>& states, std::vector
 // Everything a walk needs, converted once per job.
 template <class FD>
 Prepared<FD> prepare(const Job& job, std::uint32_t walk, std::uint32_t anchor_log2,
-                     const Jump& escape) {
+                     std::uint32_t dp_shift, const Jump& escape) {
     CurveSpec spec{job.kind, job.field_bits, job.modulus, job.a, job.b, job.n};
     Prepared<FD> w;
     w.ctx = Host<FD>::context(spec);
     w.n = job.n;
-    w.params = Params{walk, job.dp_bits, 5, 32, anchor_log2, (job.field_bits + 7) / 8, 0, 0};
+    w.params = Params{walk, job.dp_bits, 5, 32, anchor_log2, (job.field_bits + 7) / 8, 0, dp_shift};
     for (std::uint32_t i = 0; i < 32; ++i) w.params.has_db |= !is_zero(job.jumps[i].db);
     w.params.has_db |= !is_zero(escape.db);
     const auto entry = [&](const Jump& j) {
@@ -268,20 +268,20 @@ Prepared<FD> prepare(const Job& job, std::uint32_t walk, std::uint32_t anchor_lo
 // Dispatches on the field of the job. Returns false when no specialised
 // arithmetic covers the curve.
 inline bool run_cpu_fast_job(const Job& job, std::uint32_t walk, std::uint32_t anchor_log2,
-                             const Jump& escape, std::vector<State>& states,
+                             std::uint32_t dp_shift, const Jump& escape, std::vector<State>& states,
                              std::vector<int>& errors, unsigned threads) {
     if (!fast_curve(job.kind, job.field_bits, job.modulus)) return false;
     if (job.kind) {
         const bool soft = std::getenv("ECC_F131_SOFT_CLMUL") != nullptr;
         if (soft) {
-            run_cpu_fast(prepare<BinaryField<true>>(job, walk, anchor_log2, escape), states,
+            run_cpu_fast(prepare<BinaryField<true>>(job, walk, anchor_log2, dp_shift, escape), states,
                          errors, job.steps_per_round, threads);
         } else {
-            run_cpu_fast(prepare<BinaryField<false>>(job, walk, anchor_log2, escape), states,
+            run_cpu_fast(prepare<BinaryField<false>>(job, walk, anchor_log2, dp_shift, escape), states,
                          errors, job.steps_per_round, threads);
         }
     } else {
-        run_cpu_fast(prepare<PrimeField<std::uint64_t, 3>>(job, walk, anchor_log2, escape),
+        run_cpu_fast(prepare<PrimeField<std::uint64_t, 3>>(job, walk, anchor_log2, dp_shift, escape),
                      states, errors, job.steps_per_round, threads);
     }
     return true;

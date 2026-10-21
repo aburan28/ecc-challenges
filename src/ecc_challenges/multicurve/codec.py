@@ -41,6 +41,7 @@ FAST_WALK_CAMPAIGNS = ("ecc2-131", "eccp-131")
 DEFAULT_WALKS = {campaign: WALK_V4 for campaign in FAST_WALK_CAMPAIGNS}
 PARTITION_MULTIPLIER = 0x9E3779B97F4A7C15
 TABLE_LOG2 = 5
+DP_SHIFT = 64  # walks 3/4: the DP test reads x bits DP_SHIFT .. DP_SHIFT + dp_bits - 1
 ANCHOR_LOG2 = 10
 M64 = (1 << 64) - 1
 
@@ -97,6 +98,7 @@ class Namespace:
         if walk_version != WALK_V2 and self.instance.id not in FAST_WALK_CAMPAIGNS:
             raise ValueError("walks 3 and 4 are defined only for the 131-bit Certicom curves")
         self.walk_version = walk_version
+        self.dp_shift = DP_SHIFT  # tests of toy groups narrower than 64 bits lower it
         if dp_bits is None:
             dp_bits = dp_bits_for(self.instance.n, walk_version)
         if type(dp_bits) is not int or not 1 <= dp_bits <= 40:
@@ -193,7 +195,7 @@ class Namespace:
         if point is None:
             return False
         if self.walk_version != WALK_V2:
-            return (point[0] >> 64) & ((1 << self.dp_bits) - 1) == 0
+            return (point[0] >> self.dp_shift) & ((1 << self.dp_bits) - 1) == 0
         return int.from_bytes(self.selector(point)[-5:], "big") & ((1 << self.dp_bits) - 1) == 0
 
     def encode(self, record: Record) -> bytes:
@@ -284,8 +286,18 @@ class Namespace:
 
 
 @lru_cache(maxsize=96)
-def namespace(campaign: str, dp_bits: int | None = None, walk_version: int | None = None) -> Namespace:
+def _namespace(campaign: str, dp_bits: int, walk_version: int) -> Namespace:
     return Namespace(campaign, dp_bits, walk_version)
+
+
+def namespace(campaign: str, dp_bits: int | None = None, walk_version: int | None = None) -> Namespace:
+    """One shared object per (campaign, DP bits, walk), however the caller spells the defaults."""
+    instance = get_instance(campaign)
+    if walk_version is None:
+        walk_version = DEFAULT_WALKS.get(instance.id, WALK_V2)
+    if dp_bits is None and walk_version in WALK_IDS:
+        dp_bits = dp_bits_for(instance.n, walk_version)
+    return _namespace(campaign, dp_bits, walk_version)
 
 
 def pinned_namespace(campaign: str, manifest: dict) -> Namespace:

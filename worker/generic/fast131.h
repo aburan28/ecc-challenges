@@ -501,7 +501,7 @@ struct Params {
     u32 anchor_log2;   // v4: cycle anchors every 2^anchor_log2 steps
     u32 field_bytes;   // v2 digest width
     u32 has_db;        // some jump carries a b coefficient (production tables do not)
-    u32 reserved;
+    u32 dp_shift;      // v3/v4: DP bits are x bits dp_shift .. dp_shift + dp_bits - 1
 };
 
 template <class FD> struct Entry {
@@ -532,8 +532,12 @@ HD inline void put_be(ECC_THREAD const u64* w, u32 width, ECC_THREAD std::uint8_
 HD inline u32 x_partition(u64 x0, u32 table_log2) {
     return u32((x0 * PARTITION_MULTIPLIER) >> (64 - table_log2));
 }
-HD inline bool x_distinguished(u64 x1, u32 dp_bits) {
-    return (x1 & ((u64(1) << dp_bits) - 1)) == 0;
+// Bits dp_shift .. dp_shift + dp_bits - 1 of x (a 128-bit window, 1 <= shift,
+// shift + bits <= 128) are all zero.
+HD inline bool x_distinguished(u64 w0, u64 w1, u32 shift, u32 dp_bits) {
+    const u64 window = shift >= 64 ? (w1 >> (shift - 64))
+                                   : ((w0 >> shift) | (w1 << (64 - shift)));
+    return (window & ((u64(1) << dp_bits) - 1)) == 0;
 }
 
 // Sets the next jump of a finite lane and stops it on a DP. For v2 this is
@@ -559,7 +563,7 @@ HD inline void classify(ECC_THREAD Lane<FD>& L, typename FD::C c, Params prm) {
     L.fprev_ok = L.fcur_ok;
     L.fcur = xw[0];
     L.fcur_ok = 1;
-    if (x_distinguished(xw[1], prm.dp_bits)) L.active = 0;
+    if (x_distinguished(xw[0], xw[1], prm.dp_shift, prm.dp_bits)) L.active = 0;
 }
 
 // v4 bookkeeping after a finite step to the point whose fingerprint is now

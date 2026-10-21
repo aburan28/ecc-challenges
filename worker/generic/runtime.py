@@ -22,7 +22,7 @@ from ecc_challenges.multicurve.codec import (
 INTEGER_BYTES = 48
 JOB_BYTES = 6568
 # ECCJOB04 (walks 3 and 4): the ECCJOB03 body, then walk, table_log2,
-# anchor_log2, a zero word and the escape jump.
+# anchor_log2, dp_shift and the escape jump.
 JOB4_BYTES = JOB_BYTES + 16 + 4 * INTEGER_BYTES
 STATE_BYTES = 216
 MAX_LANES = 4096
@@ -131,7 +131,7 @@ def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
         ):
             encoded.extend(_integer(value, f"jump {index}.{name}"))
     if fast_walk:
-        encoded.extend(struct.pack("<4I", ns.walk_version, TABLE_LOG2, ANCHOR_LOG2, 0))
+        encoded.extend(struct.pack("<4I", ns.walk_version, TABLE_LOG2, ANCHOR_LOG2, ns.dp_shift))
         point, da, db = ns.escape_jump()
         for value in (point[0], point[1], da, db):
             encoded.extend(_integer(value, "escape jump"))

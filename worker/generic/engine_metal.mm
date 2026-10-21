@@ -111,7 +111,7 @@ template <class FD>
 void run_metal_fast_field(const Job& job, const JobExt& ext, const char* entry,
                           std::vector<State>& states, std::vector<int>& errors) {
     @autoreleasepool {
-        f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.escape);
+        f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape);
         std::vector<f131::Lane<FD>> lanes(job.lanes);
         for (std::uint32_t i = 0; i < job.lanes; ++i) lanes[i] = f131::lane_in(states[i], walk);
 

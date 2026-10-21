@@ -222,7 +222,7 @@ def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
     assert row["generic_verified_points"] == 8
     assert row["estimated_work_log2"] == round(log2(3 * 2**20 + 5 * 2**18), 2)
     assert row["dp_bits"] == [18, 20]
-    assert row["expected_operations_log2"] == 65.42
+    assert row["expected_operations_log2"] == 64.92  # the negation-map walk halves the group
     assert 0 < row["estimated_completion_probability_percent"] < 1e-10
 
 

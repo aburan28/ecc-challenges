@@ -40,7 +40,7 @@ def measure(engine, ns, lanes, steps, rounds, env, session, backend="cpu"):
     try:
         states = [runtime.NativeState(ns.start(RUN, i)) for i in range(lanes)]
         sess = runtime.EngineSession(engine, backend, ns, lanes) if session else None
-        times, done, cpu_total = [], 0, 0.0
+        per_round = []  # (steps, wall seconds, engine cpu seconds)
         try:
             for r in range(rounds + 1):  # round 0 warms caches and is dropped
                 t0, c0 = time.perf_counter(), sum(os.times()[2:4])
@@ -48,9 +48,8 @@ def measure(engine, ns, lanes, steps, rounds, env, session, backend="cpu"):
                                         timeout=3600, session=sess)
                 wall, cpu = time.perf_counter() - t0, sum(os.times()[2:4]) - c0
                 if r:
-                    times.append((wall, cpu))
-                    done += sum(s.steps - b.steps for s, b in zip(res.states, states))
-                    cpu_total += res.receipt.get("cpu_seconds", 0.0)
+                    per_round.append((sum(s.steps - b.steps for s, b in zip(res.states, states)),
+                                      wall, res.receipt.get("cpu_seconds", 0.0)))
                 # restart finished walks like the client; keep the rest
                 states = [s if s.active else runtime.NativeState(
                     ns.start(RUN, 10_000 * (r + 1) + i)) for i, s in enumerate(res.states)]
@@ -63,13 +62,18 @@ def measure(engine, ns, lanes, steps, rounds, env, session, backend="cpu"):
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
-    wall = sum(t[0] for t in times)
-    spread = statistics.pstdev([lanes * steps / t[0] for t in times]) if len(times) > 1 else 0.0
-    return done / wall, spread, (done / cpu_total if cpu_total else 0.0)
+    wall = [n / w for n, w, _ in per_round]
+    # Engine CPU seconds mean nothing for a GPU backend (the host thread waits).
+    cpu = [n / c for n, _, c in per_round if c > 0 and backend == "cpu"]
+    # Medians resist the other jobs on a shared host; the best round is the
+    # least disturbed one and bounds what the engine can do.
+    return {"median": statistics.median(wall), "best": max(wall),
+            "cpu_median": statistics.median(cpu) if cpu else 0.0,
+            "cpu_best": max(cpu) if cpu else 0.0}
 
 
 def cpu_pick(row):
-    return row["steps_per_engine_cpu_s"] or row["steps_per_s"]
+    return row["best_steps_per_engine_cpu_s"] or row["best_steps_per_s"]
 
 
 def main():
@@ -91,14 +95,16 @@ def main():
     rows = []
 
     def row(stage, ns, env, session, label):
-        rate, sd, cpu_rate = measure(a.engine, ns, a.lanes, a.steps, a.rounds, {**thr, **env}, session, a.backend)
+        m = measure(a.engine, ns, a.lanes, a.steps, a.rounds, {**thr, **env}, session, a.backend)
+        rate, cpu_rate = m["median"], m["cpu_median"]
         rows.append({"stage": stage, "label": label, "walk": ns.walk_version,
-                     "steps_per_s": round(rate), "stdev": round(sd),
+                     "steps_per_s": round(rate), "best_steps_per_s": round(m["best"]),
                      "steps_per_engine_cpu_s": round(cpu_rate),
+                     "best_steps_per_engine_cpu_s": round(m["cpu_best"]),
                      "backend": a.backend, "threads": a.threads, "lanes": a.lanes, "round_steps": a.steps,
                      "campaign": a.campaign})
         print(json.dumps(rows[-1]), flush=True)
-        print(f"{stage:4} {label:34} {rate:12.0f} steps/s wall {cpu_rate:12.0f} steps/cpu-s", file=sys.stderr, flush=True)
+        print(f"{stage:4} {label:34} {rate:11.0f} wall  {cpu_rate:11.0f} cpu-s (median)  {m['best_steps_per_engine_cpu_s']:11.0f} cpu-s (best)", file=sys.stderr, flush=True)
         return rate
 
     if not a.skip_reference:
