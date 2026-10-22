@@ -31,6 +31,32 @@ class QueueWorker:
         self.db, self.storage, self.settings, self.sqs = db, storage, settings, sqs
         self.verifier_sha = hashlib.sha256(open(settings.replay_binary, "rb").read()).hexdigest() if os.path.isfile(settings.replay_binary) else None
 
+    def dispatch_trusted_audits(self, limit: int = 100) -> int:
+        """Select sealed trusted-run audits without waiting for replay capacity.
+
+        Admission already validates record structure before sealing. Indexing
+        independently checks the archive digest and structure. First-run audits
+        and any selection already made by a replay worker remain untouched.
+        """
+        with self.db.connection() as conn:
+            rows = conn.execute("""
+                SELECT b.id,b.records FROM ecc_public.batches b
+                JOIN ecc_public.runs r ON r.run_id=b.run_id
+                WHERE b.audit_state='pending' AND b.audit_indices IS NULL
+                  AND r.trusted_at IS NOT NULL AND r.suspended_at IS NULL
+                ORDER BY b.id LIMIT %s FOR UPDATE OF b SKIP LOCKED
+            """, (limit,)).fetchall()
+            for row in rows:
+                indices = [secrets.randbelow(row["records"])] if secrets.randbelow(128) == 0 else []
+                conn.execute("""
+                    UPDATE ecc_public.batches
+                    SET audit_indices=%s::jsonb,audit_started_at=now(),
+                        audit_state=CASE WHEN %s THEN 'pending' ELSE 'not_selected' END,
+                        audit_finished_at=CASE WHEN %s THEN NULL ELSE now() END
+                    WHERE id=%s AND audit_state='pending' AND audit_indices IS NULL
+                """, (json.dumps(indices), bool(indices), bool(indices), row["id"]))
+        return len(rows)
+
     def release_unverified_pressure(self, limit: int = 100) -> int:
         """Keep terminal audit evidence, but release its active queue capacity.
 
@@ -64,6 +90,7 @@ class QueueWorker:
 
     def repair_outbox(self, limit: int = 100) -> int:
         """Safe after S3/DB commit or process death; duplicate SQS sends are expected."""
+        self.dispatch_trusted_audits(limit)
         self.release_unverified_pressure(limit)
         sent = 0
         with self.db.connection() as conn:
@@ -224,7 +251,7 @@ class QueueWorker:
         records = list(batch_records(body, row["run_id"], row["dp_weight"]))
         with self.db.connection() as conn:
             run_state = conn.execute("""
-                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE
+                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s
             """, (row["run_id"],)).fetchone()
             if run_state["suspended_at"] is not None or run_state["trusted_at"] is None:
                 return "discarded"
@@ -282,6 +309,15 @@ class QueueWorker:
             """, (batch_id, row["run_id"], batch_id))
             leads = conn.execute("SELECT count(*) AS n FROM ecc_public.collision_leads WHERE batch_id=%s",
                                  (batch_id,)).fetchone()["n"]
+            # Keep slow historical joins outside the run-row lock used by
+            # uploads. Recheck immediately before publication: suspension
+            # during the joins must roll back every candidate and lead.
+            final_state = conn.execute("""
+                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE
+            """, (row["run_id"],)).fetchone()
+            if final_state["suspended_at"] is not None or final_state["trusted_at"] is None:
+                conn.rollback()
+                return "discarded"
             conn.execute("""
                 INSERT INTO ecc_public.indexed_batches(batch_id,records,candidate_new,leads)
                 VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING

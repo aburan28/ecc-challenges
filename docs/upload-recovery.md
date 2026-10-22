@@ -27,10 +27,10 @@ header to make it pass admission. The original upload route can remain active
 while the companion catches up.
 
 During the October 21 recovery, the production reconciler was deployed as ECS
-revision `ecc-challenges-reconcile:13`, using the existing immutable image and
+revision `ecc-challenges-reconcile:14`, using the existing immutable image and
 an embedded, hashed bootstrap applying the tested pressure-release method.
 Its bootstrap SHA-256 is
-`ede1758f1f233177684d8298a208633729ccefa55e1d47839b05b6e7c765e907`.
+`a57853300181137a9ff492bb8e18658bb8efc9c57de204e0b77328390907d5dc`.
 A normal image deployment containing this change replaces that operational
 bootstrap. Keep the correction in the image before removing the override.
 
@@ -38,3 +38,15 @@ Validation covers exact acknowledgement retry after a lost response, retention
 after source-file unlink, rejection of changed run IDs, preservation of audit
 evidence and trust boundaries, admission reopening, and idempotent pressure
 release including a later successful audit retry.
+
+The reconciler also makes the existing 1/128 sampling choice for sealed
+trusted-run batches whose audit selection is still unset. This lets ordinary
+unsampled batches reach indexing even when all replay workers are occupied by
+long checks. First-run audits, existing selections, in-progress replays, and
+unverified results retain their original gates.
+
+Indexing performs historical joins before taking the shared run-row lock. It
+rechecks trust and suspension immediately before publication and rolls back
+all candidate/lead changes if the run was suspended in the meantime. This
+prevents slow joins from holding up uploads on the same run. Concurrent tests
+exercise both continued upload and suspension during the join interval.

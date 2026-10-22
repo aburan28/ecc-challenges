@@ -325,3 +325,73 @@ def test_terminal_audit_preserves_evidence_and_releases_admission(database, aws_
     assert worker.index_one(batch['id']) == 'already_done'
     with database.connection() as conn:
         assert conn.execute('SELECT pending_batches FROM ecc_public.pressure_shards WHERE shard=%s', (run_id % 16,)).fetchone()['pending_batches'] == 1
+
+
+def test_dispatch_keeps_sampling_and_first_run_gate(database, aws_resources, settings, monkeypatch):
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, settings)
+    _, key = account(service)
+    trusted_run = service.register(key, str(uuid.uuid4()))['run_id']
+    untrusted_run = service.register(key, str(uuid.uuid4()))['run_id']
+    for offset in (0, 32, 64):
+        service.upload_batch(key, trusted_run, offset, record(trusted_run, offset))
+    service.upload_batch(key, untrusted_run, 0, record(untrusted_run, 0))
+    with database.connection() as conn:
+        conn.execute('UPDATE ecc_public.runs SET trusted_at=now() WHERE run_id=%s', (trusted_run,))
+        conn.execute("UPDATE ecc_public.batches SET audit_indices='[0]'::jsonb WHERE run_id=%s AND byte_offset=64", (trusted_run,))
+    draws = iter([1, 0, 0])  # One unsampled batch and one selected record.
+    monkeypatch.setattr('ecc_challenges.queues.secrets.randbelow', lambda _: next(draws))
+    worker = QueueWorker(database, storage, settings, sqs)
+    assert worker.dispatch_trusted_audits() == 2
+    assert worker.dispatch_trusted_audits() == 0
+    with database.connection() as conn:
+        rows = conn.execute('SELECT run_id,byte_offset,audit_indices,audit_state,indexed_at FROM ecc_public.batches ORDER BY run_id,byte_offset').fetchall()
+    assert [(r['audit_state'], r['audit_indices']) for r in rows[:3]] == [('not_selected', []), ('pending', [0]), ('pending', [0])]
+    assert rows[3]['audit_state'] == 'pending' and rows[3]['audit_indices'] is None
+    assert all(r['indexed_at'] is None for r in rows)
+
+
+@pytest.mark.parametrize('suspend', [False, True])
+def test_slow_index_does_not_block_upload_or_publish_suspended_run(database, aws_resources, settings, suspend):
+    from contextlib import contextmanager
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, settings)
+    _, key = account(service)
+    run = service.register(key, str(uuid.uuid4()))['run_id']
+    service.upload_batch(key, run, 0, record(run, 0))
+    with database.connection() as conn:
+        conn.execute('UPDATE ecc_public.runs SET trusted_at=now() WHERE run_id=%s', (run,))
+        batch = conn.execute("UPDATE ecc_public.batches SET audit_state='not_selected' RETURNING id").fetchone()['id']
+    reached, resume = Event(), Event()
+    class Proxy:
+        def __init__(self, conn): self.conn = conn
+        def __getattr__(self, name): return getattr(self.conn, name)
+        def execute(self, query, *args, **kwargs):
+            result = self.conn.execute(query, *args, **kwargs)
+            if query == 'ANALYZE incoming':
+                reached.set()
+                assert resume.wait(10)
+            return result
+    class SlowDatabase:
+        @contextmanager
+        def connection(self):
+            with database.connection() as conn:
+                yield Proxy(conn)
+    worker = QueueWorker(SlowDatabase(), storage, settings, sqs)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        indexed = pool.submit(worker.index_one, batch)
+        assert reached.wait(5)
+        try:
+            uploaded = pool.submit(service.upload_batch, key, run, 32, record(run, 1))
+            assert uploaded.result(timeout=3)['cursor'] == 64
+            if suspend:
+                with database.connection() as conn:
+                    conn.execute('UPDATE ecc_public.runs SET suspended_at=now() WHERE run_id=%s', (run,))
+        finally:
+            resume.set()
+        assert indexed.result(timeout=5) == ('discarded' if suspend else 'indexed')
+    with database.connection() as conn:
+        assert conn.execute('SELECT count(*) AS n FROM ecc_public.candidate_points').fetchone()['n'] == (0 if suspend else 1)
+        assert (conn.execute('SELECT indexed_at FROM ecc_public.batches WHERE id=%s', (batch,)).fetchone()['indexed_at'] is None) == suspend
