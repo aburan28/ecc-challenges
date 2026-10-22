@@ -284,3 +284,44 @@ def test_footer_credits_isogeny_labs_with_served_logos(database, aws_resources, 
             assert logo.content.startswith(b"\x89PNG\r\n\x1a\n")
         assert client.get("/assets/missing.png").status_code == 404
         assert client.get("/assets/..%2fapp.py").status_code == 404
+
+
+def test_terminal_audit_preserves_evidence_and_releases_admission(database, aws_resources, settings, tmp_path):
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, replace(settings, max_pending_batches=16))
+    _, key = account(service)
+    run_id = service.register(key, str(uuid.uuid4()))['run_id']
+    body = record(run_id, 0)
+    service.upload_batch(key, run_id, 0, body)
+    verifier = tmp_path / 'unavailable-replay'
+    verifier.write_text('#!/bin/sh\nexit 3\n')
+    verifier.chmod(0o700)
+    worker = QueueWorker(database, storage, replace(settings, replay_binary=str(verifier)), sqs)
+    with database.connection() as conn:
+        batch = conn.execute('SELECT * FROM ecc_public.batches').fetchone()
+    assert worker.audit_one(batch['id']) == 'unverified'
+    with pytest.raises(Rejected):
+        service.upload_batch(key, run_id, 32, record(run_id, 1))
+    worker.repair_outbox()
+    assert worker.release_unverified_pressure() == 0
+    assert worker.index_one(batch['id']) == 'not_ready'
+    assert storage.get(batch['object_key']) == body
+    with database.connection() as conn:
+        archived = conn.execute('SELECT * FROM ecc_public.batches WHERE id=%s', (batch['id'],)).fetchone()
+        assert archived['audit_state'] == 'unverified'
+        assert archived['indexed_at'] is None
+        assert archived['pressure_released_at'] is not None
+        assert conn.execute('SELECT outcome FROM ecc_public.audit_events').fetchone()['outcome'] == 'error'
+        assert conn.execute('SELECT trusted_at FROM ecc_public.runs').fetchone()['trusted_at'] is None
+        assert conn.execute('SELECT pending_batches,pending_bytes FROM ecc_public.pressure_shards WHERE shard=%s', (run_id % 16,)).fetchone() == {'pending_batches': 0, 'pending_bytes': 0}
+    assert service.upload_batch(key, run_id, 32, record(run_id, 1))['cursor'] == 64
+    assert worker.release_unverified_pressure() == 0
+
+    # A later successful operator retry must not release the same capacity twice.
+    with database.connection() as conn:
+        conn.execute("UPDATE ecc_public.runs SET trusted_at=now() WHERE run_id=%s", (run_id,))
+        conn.execute("UPDATE ecc_public.batches SET audit_state='sampled' WHERE id=%s", (batch['id'],))
+    assert worker.index_one(batch['id']) == 'indexed'
+    assert worker.index_one(batch['id']) == 'already_done'
+    with database.connection() as conn:
+        assert conn.execute('SELECT pending_batches FROM ecc_public.pressure_shards WHERE shard=%s', (run_id % 16,)).fetchone()['pending_batches'] == 1

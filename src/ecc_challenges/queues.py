@@ -31,8 +31,40 @@ class QueueWorker:
         self.db, self.storage, self.settings, self.sqs = db, storage, settings, sqs
         self.verifier_sha = hashlib.sha256(open(settings.replay_binary, "rb").read()).hexdigest() if os.path.isfile(settings.replay_binary) else None
 
+    def release_unverified_pressure(self, limit: int = 100) -> int:
+        """Keep terminal audit evidence, but release its active queue capacity.
+
+        A timed-out audit is not queued for automatic retry and cannot be
+        indexed. Its immutable archive and unverified state remain unchanged.
+        Row locking and the receipt make repeated reconciliation idempotent.
+        """
+        with self.db.connection() as conn:
+            rows = conn.execute("""
+                WITH terminal AS (
+                    SELECT id FROM ecc_public.batches
+                    WHERE audit_state='unverified' AND pressure_released_at IS NULL
+                    ORDER BY id LIMIT %s FOR UPDATE SKIP LOCKED
+                )
+                UPDATE ecc_public.batches b SET pressure_released_at=now()
+                FROM terminal t WHERE b.id=t.id AND b.pressure_released_at IS NULL
+                RETURNING b.run_id,b.byte_length
+            """, (limit,)).fetchall()
+            totals = {}
+            for row in rows:
+                shard = row["run_id"] % 16
+                count, size = totals.get(shard, (0, 0))
+                totals[shard] = (count + 1, size + row["byte_length"])
+            for shard, (count, size) in sorted(totals.items()):
+                conn.execute("""
+                    UPDATE ecc_public.pressure_shards
+                    SET pending_batches=pending_batches-%s,pending_bytes=pending_bytes-%s
+                    WHERE shard=%s
+                """, (count, size, shard))
+        return len(rows)
+
     def repair_outbox(self, limit: int = 100) -> int:
         """Safe after S3/DB commit or process death; duplicate SQS sends are expected."""
+        self.release_unverified_pressure(limit)
         sent = 0
         with self.db.connection() as conn:
             rows = conn.execute("""
@@ -254,12 +286,17 @@ class QueueWorker:
                 INSERT INTO ecc_public.indexed_batches(batch_id,records,candidate_new,leads)
                 VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING
             """, (batch_id, len(records), inserted, leads))
-            conn.execute("UPDATE ecc_public.batches SET indexed_at=now(),pressure_released_at=now() WHERE id=%s", (batch_id,))
-            conn.execute("""
-                UPDATE ecc_public.pressure_shards
-                SET pending_batches=pending_batches-1,pending_bytes=pending_bytes-%s
-                WHERE shard=%s
-            """, (len(body), row["run_id"] % 16))
+            released = conn.execute("""
+                UPDATE ecc_public.batches SET pressure_released_at=now()
+                WHERE id=%s AND pressure_released_at IS NULL RETURNING id
+            """, (batch_id,)).fetchone()
+            conn.execute("UPDATE ecc_public.batches SET indexed_at=now() WHERE id=%s", (batch_id,))
+            if released:
+                conn.execute("""
+                    UPDATE ecc_public.pressure_shards
+                    SET pending_batches=pending_batches-1,pending_bytes=pending_bytes-%s
+                    WHERE shard=%s
+                """, (len(body), row["run_id"] % 16))
         return "indexed"
 
     def resolve_one(self, lead_id: int, timeout_seconds: int = 3600) -> str:
