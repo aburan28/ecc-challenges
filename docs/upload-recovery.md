@@ -50,3 +50,17 @@ rechecks trust and suspension immediately before publication and rolls back
 all candidate/lead changes if the run was suspended in the meantime. This
 prevents slow joins from holding up uploads on the same run. Concurrent tests
 exercise both continued upload and suspension during the join interval.
+
+The indexing lock correction is deployed as `ecc-challenges-index:14` with
+bootstrap SHA-256
+`e115c71c90aace1a47d28da79fe5e5711e52373c2f60df5d4b66616f9a37aa9c`.
+Its startup check verifies the deployed baseline method hash before replacing
+it. Both operational overrides must be superseded by an image containing the
+source fixes, rather than removed independently.
+
+For the public 5090 worker, local checkpoints remain every 60 seconds and
+remote checkpoint publication is hourly. A roughly 72 MB checkpoint every
+minute would exhaust the shared daily upload allowance. The existing legacy
+worker keeps its native checkpoint schedule and receives separate hourly
+native recovery archives. Its public relay runs on the pod; a macOS launchd
+watchdog checks it and performs the native backups while that host is awake.
