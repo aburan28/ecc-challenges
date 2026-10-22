@@ -7,17 +7,17 @@ An exclusive lock and a write-ahead pending file allow exact POST retries.
 """
 import fcntl
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
 import time
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
 
 ROOT = Path(os.environ.get('ECC_RELAY_ROOT', '/work/ecc2k130/public-bridge'))
 SOURCE = Path(os.environ.get('ECC_RELAY_SOURCE', '/work/ecc2k130/gpu0/dp.bin'))
 API = 'https://ecc-challenges.com'
 RUN = 249
+_connection = None
 
 
 def atomic(path, data):
@@ -40,14 +40,22 @@ def save(state):
 
 
 def request(key, method, path, data=None):
-    req = Request(API + path, data=data, method=method, headers={
-        'Authorization': 'Bearer ' + key, 'Content-Type': 'application/octet-stream',
-        'X-Campaign-Id': 'ecc2k-130', 'User-Agent': 'ecc-legacy-preserving-relay/1'})
+    global _connection
+    if _connection is None:
+        _connection = http.client.HTTPSConnection('ecc-challenges.com', timeout=120)
     try:
-        with urlopen(req, timeout=120) as r:
-            return json.load(r)
-    except HTTPError as e:
-        raise RuntimeError('gateway HTTP ' + str(e.code)) from None
+        _connection.request(method, path, body=data, headers={
+            'Authorization': 'Bearer ' + key, 'Content-Type': 'application/octet-stream',
+            'X-Campaign-Id': 'ecc2k-130', 'User-Agent': 'ecc-legacy-preserving-relay/1'})
+        response = _connection.getresponse()
+        body = response.read()
+        if response.status >= 400:
+            raise RuntimeError('gateway HTTP ' + str(response.status))
+        return json.loads(body)
+    except Exception:
+        _connection.close()
+        _connection = None
+        raise
 
 
 def check_records(data):
@@ -65,6 +73,7 @@ def main():
     ROOT.mkdir(mode=0o700, parents=True, exist_ok=True)
     lock = (ROOT / 'relay.lock').open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    atomic(ROOT / 'relay.pid', str(os.getpid()).encode())
     key = (ROOT / 'api-key').read_text().strip()
     state_path = ROOT / 'relay-state.json'
     if state_path.exists():
@@ -95,7 +104,7 @@ def main():
                         continue
                     with (ROOT / g['file']).open('rb') as f:
                         f.seek(g['offset'])
-                        data = f.read(min(32 if state['cursor'] == 0 else 65536, size-g['offset']))
+                        data = f.read(min(32 if state['cursor'] == 0 else 262144, size-g['offset']))
                     check_records(data)
                     atomic(ROOT / 'pending.bin', data)
                     state['pending'] = pending = {'file': g['file'], 'local_offset': g['offset'],
@@ -122,7 +131,7 @@ def main():
             save(state)
             print(json.dumps({'event': 'acknowledged', 'run_id': RUN, 'cursor': expected,
                               'sha256': pending['sha256'], 'bytes': len(data)}), flush=True)
-            time.sleep(0.3)
+            time.sleep(1)
             if expected == 32:
                 time.sleep(90)
         except Exception as exc:
