@@ -86,3 +86,16 @@ If you find a way to forge accepted work, read other contributors' data or
 get around key revocation, please don't open a public issue. Use
 [GitHub private vulnerability reporting](https://github.com/aburan28/ecc-challenges/security/advisories/new)
 instead.
+
+## Progress metrics (daily lab report)
+
+`tools/progress_metrics.py` exports this repo's progress KPIs as JSONL for the lab-wide daily
+report (`/Volumes/SSD990-2/progress-metrics`). It reads committed state at `origin/<default>` and
+prints one sample per line (`metric, value, date, problem, unit, better, kind, label, source`).
+
+- When a PR adds or changes a benchmark, leaderboard, result file or ledger source that carries a
+  number worth tracking day over day, extend the exporter in the same PR. Keep metric ids stable;
+  a renamed id is a new series.
+- Never emit estimates. If a source is missing, emit nothing for it.
+- `python3 tools/progress_metrics.py --since 2026-10-01` must run in under a minute, stdlib only,
+  no builds, and never read the working tree.
