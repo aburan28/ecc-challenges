@@ -3,6 +3,8 @@ from pathlib import Path
 import json
 import pytest
 
+pytest.importorskip("fcntl", reason="The legacy RunPod relay requires POSIX file locks")
+
 spec = importlib.util.spec_from_file_location('legacy_relay', Path(__file__).parents[1] / 'legacy_relay.py')
 relay = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(relay)
