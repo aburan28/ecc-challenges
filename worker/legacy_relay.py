@@ -104,7 +104,7 @@ def main():
                         continue
                     with (ROOT / g['file']).open('rb') as f:
                         f.seek(g['offset'])
-                        data = f.read(min(32 if state['cursor'] == 0 else 262144, size-g['offset']))
+                        data = f.read(min(32 if state['cursor'] == 0 else 1048576, size-g['offset']))
                     check_records(data)
                     atomic(ROOT / 'pending.bin', data)
                     state['pending'] = pending = {'file': g['file'], 'local_offset': g['offset'],
