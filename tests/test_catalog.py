@@ -35,6 +35,10 @@ class FakeConnection:
             return SimpleNamespace(fetchone=lambda: {"total": 3, "recent": 2, "bytes": 320})
         if "ecc_public.pressure_shards" in statement:
             return SimpleNamespace(fetchone=lambda: {"pending_batches": 4, "pending_bytes": 128})
+        if "AS sampled_batches" in statement:
+            return SimpleNamespace(fetchone=lambda: dict(sampled_batches=1, unsampled_batches=2,
+                failed_batches=0, unverified_batches=0, indexed_batches=3,
+                oldest_pending_at=None, last_checked_at=None))
         raise AssertionError(statement)
 
 
@@ -139,7 +143,8 @@ def test_challenge_pages_and_catalog_links_cover_all_24_instances():
             page = client.get(page_path)
             assert page.status_code == 200
             for challenge in CHALLENGES:
-                assert f'href="/challenges/{challenge.id}"'.encode() in page.content
+                destination = "results" if challenge.solved_in_2009 else "challenges"
+                assert f'class="name" href="/{destination}/{challenge.id}"'.encode() in page.content
 
         for challenge in CHALLENGES:
             response = client.get(f"/challenges/{challenge.id}")

@@ -98,9 +98,13 @@ HD inline int bit_length(ECC_IN(UInt384) a) {
     for (int i = WORDS - 1; i >= 0; --i) {
         std::uint32_t v = a.w[i];
         if (v) {
+#if defined(__CUDA_ARCH__)
+            return i * 32 + 32 - __clz(static_cast<int>(v));
+#else
             int n = 0;
             while (v) { ++n; v >>= 1; }
             return i * 32 + n;
+#endif
         }
     }
     return 0;

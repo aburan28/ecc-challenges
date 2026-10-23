@@ -1,0 +1,16 @@
+{
+  "protocol": "binary-rho-l4-clz-v1",
+  "frozen_before_execution": "2026-10-21",
+  "objective": "Test whether a CUDA leading-zero intrinsic improves matched nine-curve Pollard-rho worker time and identify its kernel-time and register-cost effects.",
+  "baseline_header_sha256": "90b2d04da9c626e2d0a0f6e63f3f50929a93b28caf522211bfdae43b414eff80",
+  "baseline_engine_sha256": "391d46a725d2dc7d63a9eb9bfe94eaf863c83074f54353dcecc9e51d28fcb13e",
+  "control_archive_sha256": "ce502b916d286a7204430e598f4117ea1c17e8dfb4f6aa991a4edf1168ef4629",
+  "curves": ["ecc2k-130", "ecc2-131", "ecc2k-163", "ecc2-163", "ecc2-191", "ecc2k-238", "ecc2-238", "ecc2k-358", "ecc2-353"],
+  "candidate": "Use CUDA __clz on the first nonzero 32-bit word in bit_length; retain host arithmetic.",
+  "hardware": "NVIDIA L4, CUDA 13.0.2 development image, compile for compute_80",
+  "workload": {"lanes": 256, "steps_per_lane": 512, "repeats": 2, "order_per_repeat": ["baseline", "candidate", "baseline"]},
+  "limits": {"worker_invocations": 54, "per_invocation_timeout_seconds": 120, "remote_function_timeout_seconds": 900},
+  "controls": "Identical pinned ECCJOB03 jobs and active input states in both arms; exact output, DP, and actual-step equality required; baseline brackets expose drift.",
+  "metrics": ["full process elapsed_ns", "CUDA event kernel_ms", "compiler resource usage", "actual steps", "output and DP hashes"],
+  "decision": "Retain only if exact parity passes and paired full-process timing improves under baseline bracket drift <= 1.05; report kernel timing and codegen separately. Otherwise revert the candidate and retain all receipts. No end-to-end campaign speed claim follows from this panel."
+}

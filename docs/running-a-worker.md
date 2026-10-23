@@ -142,7 +142,7 @@ The dashboard shows the exact GPU command, with your image digest. On an amd64
 CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
-ECC_WORKER_IMAGE='ghcr.io/aburan28/ecc-challenges-worker@sha256:c7b58f784a8d8ea62d1649062387e76558d627c166fef14f185b6dab417a6f2e'
+ECC_WORKER_IMAGE='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba'
 mkdir -p "$PWD/ecc-data-eccp-131"
 docker run -d --restart unless-stopped --name ecc-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
@@ -155,7 +155,7 @@ docker logs -f ecc-eccp-131
 
 The published digest above supports all 24 curves on CPU and CUDA and includes
 the OpenMP CPU engine. For the smaller CPU-only image, including ARM64, use
-`ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:3e64885e81d55cbe67552e664ca46a38cc5f7276e6041d211b03fc8d2b0a30d8`.
+`public.ecr.aws/o1a3z1g6/ecc-challenges-worker-cpu@sha256:36b39c08cf882efe08e19fd859604a8dceff70998045b8a32c008797c5d16eb0`.
 The dashboard shows the current pinned images.
 
 ## Docker Compose
@@ -410,3 +410,27 @@ Protocol 2's `dp_bits=34` belongs to a different walk and does not query the
 legacy archive. The operator's bounded continuation jobs described in
 [operations](operations.md#reusing-legacy-dp30dp32-records-with-sigma-dp34-runs)
 can extend sigma DP34 trails to the old, rarer endpoints.
+
+
+## Worker health and detail pages
+
+Open your dashboard and select a run to see its health, estimated iterations per
+second, latest upload, verification queue and recent batches. Each run has its own
+heartbeat, including when several runs share an API key. The same state directory
+preserves the run identity across restarts.
+
+New workers report health every minute. After three minutes without a heartbeat,
+the page shows Disconnected. Computing, Upload trouble and Upload backlog are
+worker-reported states; upload receipts and verification results come from the
+gateway. Estimated iterations/s uses a 24-hour upload window and the run's actual
+distinguished-point rule. It is not an instantaneous hardware measurement.
+
+Older workers show Reporting unavailable until updated and restarted. Re-run the
+native installer, or use the current pinned Docker command from your dashboard,
+and keep the existing state directory. A key-level heartbeat alone cannot identify
+which worker is connected. For failed or quarantined batches, retain the state
+directory, inspect the worker logs and include the run ID when requesting help.
+
+Dashboard counters and worker details update once a minute without replacing setup
+forms or newly issued keys. Use Refresh now for an immediate update. If refreshing
+fails, the page keeps the previous figures and labels them as unavailable updates.

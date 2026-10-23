@@ -1,0 +1,54 @@
+{
+    "ChangeSetId": "arn:aws:cloudformation:us-west-2:104186811093:changeSet/codex-binary-rho-worker-9e04a19-20261021/1d5a5d37-0a65-41b0-8269-73ae7895c3fa",
+    "StackId": "arn:aws:cloudformation:us-west-2:104186811093:stack/ecc-challenges-service/7513e1d0-c92b-11f1-9531-02fff6bddba1",
+    "Status": "CREATE_COMPLETE",
+    "ExecutionStatus": "AVAILABLE",
+    "CreationTime": "2026-10-21T17:47:05.824000+00:00",
+    "Changes": [
+        {
+            "Action": "Modify",
+            "LogicalResourceId": "WebService",
+            "ResourceType": "AWS::ECS::Service",
+            "Replacement": "False",
+            "Details": [
+                {
+                    "Target": {
+                        "Attribute": "Properties",
+                        "Name": "TaskDefinition",
+                        "RequiresRecreation": "Never"
+                    },
+                    "Evaluation": "Static",
+                    "ChangeSource": "ResourceReference",
+                    "CausingEntity": "WebTask"
+                }
+            ]
+        },
+        {
+            "Action": "Modify",
+            "LogicalResourceId": "WebTask",
+            "ResourceType": "AWS::ECS::TaskDefinition",
+            "Replacement": "True",
+            "Details": [
+                {
+                    "Target": {
+                        "Attribute": "Properties",
+                        "Name": "ContainerDefinitions",
+                        "RequiresRecreation": "Always"
+                    },
+                    "Evaluation": "Static",
+                    "ChangeSource": "ParameterReference",
+                    "CausingEntity": "PublicWorkerImage"
+                },
+                {
+                    "Target": {
+                        "Attribute": "Properties",
+                        "Name": "ContainerDefinitions",
+                        "RequiresRecreation": "Always"
+                    },
+                    "Evaluation": "Dynamic",
+                    "ChangeSource": "DirectModification"
+                }
+            ]
+        }
+    ]
+}

@@ -49,8 +49,16 @@ def test_only_solved_challenges_link_to_results_on_both_catalog_pages(offline):
             response = client.get(path)
             assert response.status_code == 200
             links = re.findall(r'href="/results/([^"]+)"', response.text)
-            assert len(links) == len(SOLVED)
+            assert len(links) == 2 * len(SOLVED)
             assert set(links) == SOLVED
+            names = re.findall(r'class="name" href="/results/([^"]+)"', response.text)
+            assert len(names) == len(SOLVED)
+            assert set(names) == SOLVED
+            for campaign in names:
+                result = client.get(f"/results/{campaign}")
+                assert result.status_code == 200
+                assert published_result(campaign)["scalar_hex"] in result.text
+                assert published_result(campaign)["scalar_decimal"] in result.text
 
 
 @pytest.mark.parametrize("campaign", ["ecc2k-130", "eccp-359", "not-a-challenge"])

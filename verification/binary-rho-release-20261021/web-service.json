@@ -1,0 +1,29 @@
+{
+    "status": "ACTIVE",
+    "desired": 2,
+    "running": 2,
+    "pending": 0,
+    "deployments": [
+        [
+            "PRIMARY",
+            "COMPLETED",
+            2,
+            2,
+            "arn:aws:ecs:us-west-2:104186811093:task-definition/ecc-challenges-web:32"
+        ]
+    ],
+    "events": [
+        [
+            "2026-10-21T10:50:29.668000-07:00",
+            "(service ecc-challenges-web) has reached a steady state."
+        ],
+        [
+            "2026-10-21T10:50:29.667000-07:00",
+            "(service ecc-challenges-web) (deployment ecs-svc/5403895706251998238) deployment completed."
+        ],
+        [
+            "2026-10-21T10:49:29.559000-07:00",
+            "(service ecc-challenges-web, taskSet ecs-svc/7123277196962286781) has begun draining connections on 2 tasks."
+        ]
+    ]
+}

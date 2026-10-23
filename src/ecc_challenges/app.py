@@ -6,6 +6,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 import logging
+import json
 from pathlib import Path
 import secrets
 from urllib.parse import parse_qs
@@ -76,6 +77,8 @@ def ago(moment: datetime | None) -> str:
 
 TEMPLATES.env.filters["pow2"] = pow2
 TEMPLATES.env.filters["ago"] = ago
+TEMPLATES.env.filters["utcstamp"] = lambda value: value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+TEMPLATES.env.filters["isoago"] = lambda value: ago(datetime.fromisoformat(value))
 TEMPLATES.env.filters["percent"] = percent
 TEMPLATES.env.filters["duration"] = duration
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
@@ -194,6 +197,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret,
                        session_cookie="ecc_session", https_only=True, same_site="lax", max_age=86400)
     app.state.service = service
+    app.state.oauth = oauth
     if multicurve_enabled or getattr(settings, "multicurve_canary_keys", ()):
         from .multicurve.api import create_router
         app.include_router(create_router(service, database, storage, settings))
@@ -208,7 +212,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
-            "frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:"
+            "frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:; "
+            "script-src 'self'; connect-src 'self'"
         )
         return response
 
@@ -245,6 +250,11 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     @app.get("/robots.txt", response_class=PlainTextResponse)
     async def robots():
         return PlainTextResponse(ROBOTS, headers={"Cache-Control": "public, max-age=86400"})
+
+    @app.get("/assets/live.js")
+    async def live_script():
+        return Response((Path(__file__).parent / "assets/live.js").read_text(),
+                        media_type="text/javascript", headers={"Cache-Control": "public, max-age=300"})
 
     @app.get("/assets/{name}")
     async def asset(name: str):
@@ -328,6 +338,10 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
 
     @app.get("/auth/github")
     async def auth_start(request: Request):
+        campaign = request.query_params.get("campaign", CAMPAIGN)
+        if campaign not in BY_ID:
+            raise Rejected(400, "unknown campaign")
+        request.session["login_campaign"] = campaign
         return await oauth.github.authorize_redirect(request, settings.public_origin + "/auth/callback")
 
     @app.get("/auth/callback")
@@ -338,9 +352,12 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         profile = response.json()
         account_id, login = int(profile["id"]), str(profile["login"])
         await run_in_threadpool(service.upsert_account, account_id, login)
+        campaign = request.session.get("login_campaign", CAMPAIGN)
+        if campaign not in BY_ID:
+            campaign = CAMPAIGN
         request.session.clear()
         request.session.update({"github_id": account_id, "login": login, "csrf": new_csrf()})
-        return RedirectResponse("/dashboard", status_code=303)
+        return RedirectResponse("/dashboard?campaign=" + campaign, status_code=303)
 
     @app.post("/logout")
     async def logout(request: Request):
@@ -365,7 +382,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             LOG.exception("dashboard challenge progress failed")
             campaign_status = None
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
-            {"campaign_status": campaign_status,
+            {"campaign_status": campaign_status, "live_as_of": datetime.now(timezone.utc).isoformat(),
              "login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued, "activity": activity,
              "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
@@ -387,13 +404,25 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         campaign = requested if multicurve_enabled and requested in BY_ID else CAMPAIGN
         return await dashboard_page(request, account_id, None, campaign, dp_weight)
 
+    @app.get("/dashboard/workers/{protocol}/{run_id}", response_class=HTMLResponse)
+    async def worker_page(request: Request, protocol: str, run_id: str):
+        account_id = require_session(request)
+        run = await run_in_threadpool(service.worker_detail, account_id, protocol, run_id,
+                                     include_generic=multicurve_enabled)
+        return TEMPLATES.TemplateResponse(request, "worker.html",
+            {"run": run, "name": BY_ID[run["campaign"]].public()["name"],
+             "live_as_of": datetime.now(timezone.utc).isoformat()},
+            headers={"Cache-Control": "private, no-store"})
+
     @app.post("/keys", response_class=HTMLResponse)
     async def create_key(request: Request):
         account_id = require_session(request)
         values = await form_values(request)
         require_csrf(request, values.get("csrf"))
         issued = await run_in_threadpool(service.create_key, account_id, values.get("label", ""))
-        return await dashboard_page(request, account_id, issued, CAMPAIGN, RECOMMENDED_DP_WEIGHT)
+        campaign = values.get("campaign", CAMPAIGN)
+        campaign = campaign if multicurve_enabled and campaign in BY_ID else CAMPAIGN
+        return await dashboard_page(request, account_id, issued, campaign, RECOMMENDED_DP_WEIGHT)
 
     @app.post("/keys/{key_id}/revoke")
     async def revoke_key(request: Request, key_id: str):
@@ -426,8 +455,17 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     @app.post("/v1/heartbeat")
     async def heartbeat(request: Request):
         # Shared by both worker protocols; a ping never counts as point activity.
-        await limited_body(request, 0)
-        await run_in_threadpool(service.authenticate, bearer_value(request), heartbeat=True)
+        body = await limited_body(request, 1024)
+        if body:
+            if request.headers.get("content-type", "").split(";")[0] != "application/json":
+                raise Rejected(413, "legacy heartbeat body is not used")
+            try:
+                report = json.loads(body)
+            except (ValueError, UnicodeDecodeError):
+                raise Rejected(400, "invalid health report") from None
+        key = await run_in_threadpool(service.authenticate, bearer_value(request), heartbeat=True)
+        if body:
+            await run_in_threadpool(service.record_heartbeat, key, report)
         return Response(status_code=204, headers={"Cache-Control": "no-store"})
 
     @app.post("/v1/register")

@@ -28,13 +28,16 @@ if modal.is_local():
     baseline_header = Path(os.environ["ECC_BASELINE_HEADER"]).resolve()
     controls = Path(os.environ["ECC_NATIVE_CONTROLS"]).resolve()
     out = Path(os.environ["ECC_BENCH_OUT"]).resolve()
+    gencode = os.environ.get("ECC_CUDA_GENCODE", "arch=compute_80,code=compute_80")
+    if gencode not in ("arch=compute_80,code=compute_80", "arch=compute_89,code=sm_89"):
+        raise ValueError("unsupported CUDA gencode")
     image = (modal.Image.from_registry("nvidia/cuda:13.0.2-devel-ubuntu24.04", add_python="3.12")
              .add_local_file(root / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
              .add_local_file(baseline_header, "/src/baseline/ec_core.h", copy=True)
              .add_local_file(root / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
              .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True)
-             # engine.cu includes the 131-bit fast path; the baseline engine runs the same
-             # job through it, so only the baseline ec_core.h differs between the two builds.
+             # Both builds need these headers, but measurements explicitly select
+             # the reference engine so the changed ec_core.h is exercised.
              .add_local_file(root / "worker/generic/fast131.h", "/src/baseline/fast131.h", copy=True)
              .add_local_file(root / "worker/generic/fast131_host.h", "/src/baseline/fast131_host.h", copy=True)
              .add_local_file(root / "worker/generic/fast131.h", "/src/candidate/fast131.h", copy=True)
@@ -45,8 +48,8 @@ if modal.is_local():
                 controls / curve / "mixed-dp40-cpu" / filename,
                 f"/controls/{curve}/mixed-dp40-cpu/{filename}", copy=True)
     image = image.run_commands(
-        "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/baseline/engine.cu -o /opt/ecc-baseline",
-        "nvcc -std=c++17 -O2 -gencode arch=compute_80,code=compute_80 /src/candidate/engine.cu -o /opt/ecc-candidate",
+        f"nvcc -std=c++17 -O2 -DECC_PROFILE_CUDA -Xptxas=-v -gencode {gencode} /src/baseline/engine.cu -o /opt/ecc-baseline > /opt/build-baseline.log 2>&1",
+        f"nvcc -std=c++17 -O2 -DECC_PROFILE_CUDA -Xptxas=-v -gencode {gencode} /src/candidate/engine.cu -o /opt/ecc-candidate > /opt/build-candidate.log 2>&1",
         "/opt/ecc-baseline --self-test", "/opt/ecc-candidate --self-test")
 else:
     # The deployed image above is already bound to the remote function.
@@ -75,16 +78,25 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
          "--format=csv,noheader"], capture_output=True, text=True,
         check=True, timeout=30).stdout.strip()
     sources = {arm: {name: sha(Path(f"/src/{arm}/{name}").read_bytes())
-                     for name in ("engine.cu", "ec_core.h")}
+                     for name in ("engine.cu", "ec_core.h", "fast131.h", "fast131_host.h")}
                for arm in ("baseline", "candidate")}
     binaries = {arm: sha(Path(f"/opt/ecc-{arm}").read_bytes())
                 for arm in ("baseline", "candidate")}
+    resources = {}
+    for arm in ("baseline", "candidate"):
+        tool = subprocess.run(["cuobjdump", "--dump-resource-usage", f"/opt/ecc-{arm}"],
+                              capture_output=True, text=True, timeout=30)
+        resources[arm] = {"returncode": tool.returncode, "stdout": tool.stdout,
+                          "stderr": tool.stderr,
+                          "build_log": Path(f"/opt/build-{arm}.log").read_text()}
     receipt = {"format": "eccjob03-binary-l4-matched-v1", "device": device,
                "system": platform.uname()._asdict(), "source_sha256": sources,
                "binary_sha256": binaries, "launcher_sha256": launcher_sha256,
+               "compiler_resource_usage": resources,
                "lanes": lanes,
                "steps_per_round": steps, "repeats": repeats,
                "timing_boundary": "full worker process invocation including validation, transfers, kernel and output",
+               "engine_environment": {"ECC_ENGINE_FAST": "0"},
                "rows": [], "comparisons": []}
     def pack_raw(root: Path) -> bytes:
         tar_buffer = io.BytesIO()
@@ -132,7 +144,8 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                                str(out), str(dp)]
                     start = time.perf_counter_ns()
                     try:
-                        process = subprocess.run(command, capture_output=True, timeout=120)
+                        process = subprocess.run(command, capture_output=True, timeout=120,
+                                                 env={**os.environ, "ECC_ENGINE_FAST": "0"})
                     except subprocess.TimeoutExpired as error:
                         (trial / "stdout.txt").write_bytes(error.stdout or b"")
                         (trial / "stderr.txt").write_bytes(error.stderr or b"")
@@ -151,6 +164,14 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                            "arm": arm, "command": command, "returncode": process.returncode,
                            "elapsed_ns": elapsed, "job_sha256": sha(job),
                            "input_sha256": sha(payload)}
+                    profile_lines = [line for line in process.stderr.decode(errors="replace").splitlines()
+                                     if line.startswith("ECC_PROFILE_CUDA_KERNEL_MS=")]
+                    if process.returncode == 0:
+                        if len(profile_lines) != 1:
+                            receipt["rows"].append(row)
+                            receipt["failure"] = f"missing CUDA kernel timing: {curve} {arm}"
+                            return receipt, pack_raw(root)
+                        row["cuda_kernel_ms"] = float(profile_lines[0].split("=", 1)[1])
                     if process.returncode:
                         receipt["rows"].append(row)
                         receipt["failure"] = (f"{curve} {arm} failed: "
@@ -183,6 +204,8 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                     "baseline_bracket_ns": baseline_ns,
                     "candidate_ns": candidate_ns,
                     "candidate_over_baseline_median": candidate_ns / statistics.median(baseline_ns),
+                    "baseline_kernel_bracket_ms": [r["cuda_kernel_ms"] for r in rows if r["arm"] == "baseline"],
+                    "candidate_kernel_ms": next(r["cuda_kernel_ms"] for r in rows if r["arm"] == "candidate"),
                     "actual_steps": rows[0]["actual_steps"]})
         return receipt, pack_raw(root)
 

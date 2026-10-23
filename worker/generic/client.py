@@ -325,15 +325,17 @@ def main(root: Path, key: str, campaign: str) -> int:
     # One engine process serves every round: the job is validated once, and
     # a round costs a request instead of another process start.
     with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, \
-            Heartbeat(api.origin, key), \
+            Heartbeat(api.origin, key, protocol="v2", run_id=state["run_id"], backend=backend) as health, \
             EngineSession(engine, backend, ns, lanes, temporary) as session:
         while not stop:
             try:
                 flush(api, ns, state, path)
                 retry = 1
+                health.update("computing")
             except Exception as exc:
                 if isinstance(exc, GatewayError) and not exc.retryable:
                     raise
+                health.update("upload_retry")
                 print(json.dumps({"campaign": campaign, "event": "upload-paused",
                                   "error": type(exc).__name__, "status": getattr(exc, "status", None),
                                   "retry_seconds": retry}), flush=True)
