@@ -395,3 +395,72 @@ def test_slow_index_does_not_block_upload_or_publish_suspended_run(database, aws
     with database.connection() as conn:
         assert conn.execute('SELECT count(*) AS n FROM ecc_public.candidate_points').fetchone()['n'] == (0 if suspend else 1)
         assert (conn.execute('SELECT indexed_at FROM ecc_public.batches WHERE id=%s', (batch,)).fetchone()['indexed_at'] is None) == suspend
+
+
+def test_index_retries_without_waiting_for_busy_run_lock(database, aws_resources, settings):
+    from concurrent.futures import ThreadPoolExecutor
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, settings)
+    _, key = account(service)
+    run = service.register(key, str(uuid.uuid4()))['run_id']
+    service.upload_batch(key, run, 0, record(run, 0))
+    with database.connection() as conn:
+        conn.execute('UPDATE ecc_public.runs SET trusted_at=now() WHERE run_id=%s', (run,))
+        batch = conn.execute("UPDATE ecc_public.batches SET audit_state='not_selected' RETURNING id").fetchone()['id']
+    worker = QueueWorker(database, storage, settings, sqs)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        with database.connection() as conn:
+            conn.execute('SELECT run_id FROM ecc_public.runs WHERE run_id=%s FOR UPDATE', (run,))
+            indexed = pool.submit(worker.index_one, batch)
+            try:
+                assert indexed.result(timeout=3) == 'not_ready'
+            finally:
+                conn.rollback()
+    with database.connection() as conn:
+        assert conn.execute('SELECT count(*) AS n FROM ecc_public.candidate_points').fetchone()['n'] == 0
+        assert conn.execute('SELECT indexed_at FROM ecc_public.batches WHERE id=%s', (batch,)).fetchone()['indexed_at'] is None
+    assert worker.index_one(batch) == 'indexed'
+
+
+def test_suspension_and_terminal_reconcile_release_each_receipt_once(database, aws_resources, settings):
+    from contextlib import contextmanager
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    storage, sqs, _, _, _ = aws_resources
+    service = Service(database, storage, settings)
+    _, key = account(service)
+    run = service.register(key, str(uuid.uuid4()))['run_id']
+    for offset in (0, 32):
+        service.upload_batch(key, run, offset, record(run, offset))
+    with database.connection() as conn:
+        batches = conn.execute("UPDATE ecc_public.batches SET audit_state='unverified' RETURNING id").fetchall()
+    reached, resume = Event(), Event()
+    class Proxy:
+        def __init__(self, conn): self.conn = conn
+        def __getattr__(self, name): return getattr(self.conn, name)
+        def execute(self, query, *args, **kwargs):
+            result = self.conn.execute(query, *args, **kwargs)
+            # Pause the suspension's capacity accounting while another worker
+            # reconciles terminal receipts on the same run.
+            if 'coalesce(sum(byte_length),0)' in query:
+                reached.set()
+                assert resume.wait(10)
+            return result
+    class PausedDatabase:
+        @contextmanager
+        def connection(self):
+            with database.connection() as conn:
+                yield Proxy(conn)
+    worker = QueueWorker(PausedDatabase(), storage, settings, sqs)
+    reconciler = QueueWorker(database, storage, settings, sqs)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        failed = pool.submit(worker._fail_batch, batches[0]['id'], run, 'test_mismatch')
+        assert reached.wait(5)
+        try:
+            reconciler.release_unverified_pressure()
+        finally:
+            resume.set()
+        failed.result(timeout=5)
+    with database.connection() as conn:
+        assert conn.execute('SELECT suspended_at FROM ecc_public.runs WHERE run_id=%s', (run,)).fetchone()['suspended_at']
+        assert conn.execute('SELECT pending_batches,pending_bytes FROM ecc_public.pressure_shards WHERE shard=%s', (run % 16,)).fetchone() == {'pending_batches': 0, 'pending_bytes': 0}

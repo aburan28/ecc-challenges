@@ -20,7 +20,18 @@ RUN = 249
 _connection = None
 
 
+class JournalError(OSError):
+    """Continuing after a failed durable write could overwrite retry bytes."""
+
+
 def atomic(path, data):
+    try:
+        _atomic(path, data)
+    except OSError as exc:
+        raise JournalError(f'cannot persist relay journal {path.name}') from exc
+
+
+def _atomic(path, data):
     tmp = path.with_suffix(path.suffix + '.tmp')
     with tmp.open('wb') as f:
         os.fchmod(f.fileno(), 0o600)
@@ -86,14 +97,23 @@ def main():
         save(state)
     while True:
         try:
-            st = SOURCE.stat()
-            name = f'preserved-{st.st_dev}-{st.st_ino}.bin'
-            target = ROOT / name
-            if not target.exists():
-                os.link(SOURCE, target)
-            if not any(g['file'] == name for g in state['generations']):
-                state['generations'].append({'file': name, 'offset': 0})
-                save(state)
+            try:
+                st = SOURCE.stat()
+                name = f'preserved-{st.st_dev}-{st.st_ino}.bin'
+                target = ROOT / name
+                if not target.exists():
+                    os.link(SOURCE, target)
+                    linked = target.stat()
+                    if (linked.st_dev, linked.st_ino) != (st.st_dev, st.st_ino):
+                        target.unlink()
+                        raise RuntimeError('source rotated during retention; retry discovery')
+                if not any(g['file'] == name for g in state['generations']):
+                    state['generations'].append({'file': name, 'offset': 0})
+                    save(state)
+            except FileNotFoundError:
+                # A rotation gap must not block an exact pending POST retry or
+                # draining bytes already retained under a generation hard link.
+                pass
             pending = state['pending']
             if pending is None:
                 for g in state['generations']:
@@ -134,6 +154,8 @@ def main():
             time.sleep(1)
             if expected == 32:
                 time.sleep(90)
+        except JournalError:
+            raise
         except Exception as exc:
             print(json.dumps({'event': 'retry_preserved', 'error': str(exc), 'cursor': state['cursor']}), flush=True)
             time.sleep(20)

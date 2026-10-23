@@ -11,6 +11,8 @@ import subprocess
 import tempfile
 import time
 
+from psycopg.errors import LockNotAvailable
+
 from .protocol import CAMPAIGN, DP_WEIGHT, check_records
 
 
@@ -213,13 +215,14 @@ class QueueWorker:
                 WHERE run_id=%s AND id<>%s AND audit_state='pending'
             """, (run_id, batch_id))
             unreleased = conn.execute("""
+                WITH released AS (
+                    UPDATE ecc_public.batches SET pressure_released_at=now()
+                    WHERE run_id=%s AND pressure_released_at IS NULL
+                    RETURNING byte_length
+                )
                 SELECT count(*) AS n,coalesce(sum(byte_length),0) AS bytes
-                FROM ecc_public.batches WHERE run_id=%s AND pressure_released_at IS NULL
+                FROM released
             """, (run_id,)).fetchone()
-            conn.execute("""
-                UPDATE ecc_public.batches SET pressure_released_at=now()
-                WHERE run_id=%s AND pressure_released_at IS NULL
-            """, (run_id,))
             conn.execute("""
                 UPDATE ecc_public.pressure_shards
                 SET pending_batches=pending_batches-%s,pending_bytes=pending_bytes-%s
@@ -312,9 +315,15 @@ class QueueWorker:
             # Keep slow historical joins outside the run-row lock used by
             # uploads. Recheck immediately before publication: suspension
             # during the joins must roll back every candidate and lead.
-            final_state = conn.execute("""
-                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE
-            """, (row["run_id"],)).fetchone()
+            # Suspension locks the run before its batches. Do not wait for that
+            # lock while holding a batch/candidate lock in the reverse order.
+            try:
+                final_state = conn.execute("""
+                    SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE NOWAIT
+                """, (row["run_id"],)).fetchone()
+            except LockNotAvailable:
+                conn.rollback()
+                return "not_ready"
             if final_state["suspended_at"] is not None or final_state["trusted_at"] is None:
                 conn.rollback()
                 return "discarded"

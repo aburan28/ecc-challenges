@@ -14,7 +14,9 @@ it does not allocate or rewrite seeds. The current deployment is restricted
 to run 249 and reads a mode-0600 API key from its state directory. It retains
 hard links to each input-file generation, checks the original record encoding,
 and persists the exact pending POST before sending it. A crash or lost reply
-retries those same bytes at the same cursor. It does not delete the original
+retries those same bytes at the same cursor, including while the producer
+file is absent during rotation. A durable-journal write failure stops the
+relay before it can replace the pending retry bytes. It does not delete the original
 worker's files or change its checkpoint format. The relay stops admitting new
 source data if the producer changes run ID or truncates a generation; that
 condition requires operator review.
@@ -37,7 +39,8 @@ bootstrap. Keep the correction in the image before removing the override.
 Validation covers exact acknowledgement retry after a lost response, retention
 after source-file unlink, rejection of changed run IDs, preservation of audit
 evidence and trust boundaries, admission reopening, and idempotent pressure
-release including a later successful audit retry.
+release including a later successful audit retry and concurrent suspension.
+Suspension decrements only receipts atomically claimed by its own update.
 
 The reconciler also makes the existing 1/128 sampling choice for sealed
 trusted-run batches whose audit selection is still unset. This lets ordinary
@@ -50,6 +53,9 @@ rechecks trust and suspension immediately before publication and rolls back
 all candidate/lead changes if the run was suspended in the meantime. This
 prevents slow joins from holding up uploads on the same run. Concurrent tests
 exercise both continued upload and suspension during the join interval.
+If another transaction holds the run row at final publication, indexing
+rolls back and returns `not_ready`, retaining the SQS delivery for retry; it
+does not wait while holding batch locks in the reverse order to suspension.
 
 The indexing lock correction is deployed as `ecc-challenges-index:14` with
 bootstrap SHA-256
