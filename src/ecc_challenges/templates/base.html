@@ -166,6 +166,7 @@
     .bar{height:10px;border-radius:999px;background:var(--sunk);border:1px solid var(--line);overflow:hidden}
     .bar>span{display:block;height:100%;min-width:2px;background:var(--accent);border-radius:inherit}
     .bar.mini{height:6px;width:84px;display:inline-block;vertical-align:middle;margin-right:8px}
+    .bar.done>span{background:var(--ok)}
     .progress-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:20px}
     .progress-card .top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:12px}
     .progress-card .pct{font:500 2.2rem/1 var(--serif);font-variant-numeric:tabular-nums}
@@ -245,6 +246,7 @@
     /* documentation */
     .document{max-width:78ch;overflow-wrap:anywhere}
     .document h2{margin-top:1.6em;padding-top:.6em;border-top:1px solid var(--line)}
+    .section.document>h2:first-child{margin-top:0;padding-top:0;border-top:0}
     .document h3{margin-top:1.5em}
     .document li{margin-bottom:.35em}
     .document blockquote{margin:1.5em 0;padding:10px 18px;border-left:3px solid var(--accent);background:var(--accent-soft)}
