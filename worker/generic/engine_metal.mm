@@ -98,12 +98,12 @@ std::string metal_source() {
     return std::string(core_source) + kernel_source;
 }
 
-namespace {
 std::string fast_metal_source() {
     return std::string(core_source) + fast_source + "\n#define FAST_K " +
            std::to_string(FAST_LANES_PER_THREAD) + "\n" + fast_kernel_source;
 }
 
+namespace {
 // Steps per command buffer: macOS stops a command buffer that runs too long.
 constexpr std::uint32_t FAST_CHUNK_STEPS = 64;
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 import importlib.util
 import shutil
+import struct
 import subprocess
 import sys
 
@@ -42,9 +43,6 @@ def engine(tmp_path_factory):
         pytest.fail("a C++17 compiler is required")
     out = tmp_path_factory.mktemp("fast131") / "engine"
     flags = ["-std=c++17", "-O2", "-x", "c++"]
-    if subprocess.run([compiler, "-mpclmul", "-x", "c++", "-fsyntax-only", "-"],
-                      input="", text=True, capture_output=True).returncode == 0:
-        flags.append("-mpclmul")
     subprocess.run([compiler, *flags, str(ROOT / "worker/generic/engine.cu"),
                     "-o", str(out)], check=True, capture_output=True, text=True,
                    timeout=900)
@@ -142,6 +140,59 @@ def test_session_rejects_wrong_round_shape(engine):
     with runtime.EngineSession(engine, "cpu", ns, 3) as session:
         with pytest.raises(ValueError):
             runtime.run_round(engine, "cpu", ns, starts(ns, 2), 5, session=session)
+
+
+def test_native_job_rejects_overflowing_dp_window(engine, tmp_path):
+    ns = Namespace("eccp-131", dp_bits=4, walk_version=WALK_V4)
+    job = bytearray(runtime.pack_job(ns, 1, 1))
+    struct.pack_into("<I", job, runtime.JOB_BYTES + 12, 0xfffffffe)
+    path = tmp_path / "job.bin"
+    path.write_bytes(job)
+    source = tmp_path / "input.bin"
+    source.write_bytes(runtime.pack_state(ns.start(RUN, 0), 1))
+    result = subprocess.run([str(engine), "--backend", "cpu", str(path), str(source),
+                             str(tmp_path / "output.bin"), str(tmp_path / "dps.bin")],
+                            capture_output=True, text=True, timeout=60)
+    assert result.returncode != 0
+    assert "invalid DP bit window" in result.stderr
+    assert not (tmp_path / "output.bin").exists()
+
+
+def test_session_rejects_non_decimal_step_count(engine, tmp_path):
+    ns = Namespace("eccp-131", dp_bits=4, walk_version=WALK_V4)
+    job = tmp_path / "job.bin"
+    job.write_bytes(runtime.pack_job(ns, 1, 1))
+    source = tmp_path / "input.bin"
+    source.write_bytes(runtime.pack_state(ns.start(RUN, 0), 1))
+    request = "\t".join(("round", str(source), str(tmp_path / "output.bin"),
+                          str(tmp_path / "dps.bin"), "1garbage"))
+    result = subprocess.run([str(engine), "--serve", "cpu", str(job)],
+                            input=request + "\n", capture_output=True, text=True, timeout=60)
+    assert result.returncode != 0
+    assert "steps must be decimal digits" in result.stderr
+    assert not (tmp_path / "output.bin").exists()
+
+
+def test_portable_multiplication_carry_cases(tmp_path):
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if compiler is None:
+        pytest.fail("a C++17 compiler is required")
+    values = (0, 1, 2, 2**32 - 1, 2**32, 2**63 - 1, 2**63, 2**64 - 1)
+    cases = "\n".join(
+        "{%dULL, %dULL, %dULL, %dULL}," % (a, b, a * b % 2**64, a * b >> 64)
+        for a in values for b in values)
+    source = tmp_path / "mulw.cpp"
+    source.write_text('#include "fast131.h"\nint main() {\n'
+                      'using ecc::f131::u64; const u64 cases[][4] = {\n' + cases +
+                      '\n}; for (const auto& c : cases) { u64 lo, hi; '
+                      'ecc::f131::mulw(c[0], c[1], lo, hi); '
+                      'if (lo != c[2] || hi != c[3]) return 1; } return 0; }\n')
+    binary = tmp_path / "mulw"
+    subprocess.run([compiler, "-std=c++17", "-O2", "-U__SIZEOF_INT128__",
+                    "-DF131_SOFT_CLMUL", "-I", str(ROOT / "worker/generic"),
+                    str(source), "-o", str(binary)], check=True, capture_output=True,
+                   text=True, timeout=120)
+    subprocess.run([str(binary)], check=True, timeout=60)
 
 
 def test_new_walks_are_refused_on_other_curves(engine):

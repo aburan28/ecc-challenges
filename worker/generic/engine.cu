@@ -15,6 +15,12 @@
 #include <system_error>
 #include <thread>
 #include <vector>
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 #endif
@@ -49,6 +55,7 @@ bool run_metal_fast(const Job& job, const JobExt& ext,
                     std::vector<State>& states, std::vector<int>& errors);
 std::vector<std::string> metal_devices();
 std::string metal_source();
+std::string fast_metal_source();
 #endif
 
 #ifdef __CUDACC__
@@ -194,7 +201,7 @@ Job load_job(const std::string& path, JobExt& ext) {
                 "unsupported walk");
         require(ext.table_log2 == 5, "unsupported partition table size");
         require(ext.anchor_log2 >= 2 && ext.anchor_log2 <= 24, "invalid cycle anchor period");
-        require(ext.dp_shift >= 1 && ext.dp_shift + job.dp_bits <= 128, "invalid DP bit window");
+        require(ext.dp_shift >= 1 && ext.dp_shift <= 128 - job.dp_bits, "invalid DP bit window");
         require(compare(ext.escape.da, job.n) < 0 && compare(ext.escape.db, job.n) < 0,
                 "escape coefficients must be reduced");
         validate_point(Point{ext.escape.x, ext.escape.y, 0}, job, "escape jump");
@@ -576,6 +583,23 @@ bool fast_enabled() {
     return !(value && std::string(value) == "0");
 }
 
+double process_cpu_seconds() {
+#ifdef _WIN32
+    // MSVC's clock() measures wall time; sum kernel and user CPU time instead.
+    FILETIME created, exited, kernel, user;
+    require(GetProcessTimes(GetCurrentProcess(), &created, &exited, &kernel, &user) != 0,
+            "cannot read process CPU time");
+    const auto ticks = [](FILETIME t) {
+        return (std::uint64_t(t.dwHighDateTime) << 32) | t.dwLowDateTime;
+    };
+    return double(ticks(kernel) + ticks(user)) / 10000000.0;
+#else
+    const std::clock_t value = std::clock();
+    require(value != std::clock_t(-1), "cannot read process CPU time");
+    return double(value) / CLOCKS_PER_SEC;
+#endif
+}
+
 // One round: reads INPUT, advances every lane, writes OUTPUT and DPS and
 // returns the JSON receipt.
 std::string execute_round(const std::string& backend, Job job, const JobExt& ext,
@@ -583,7 +607,7 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
                           const std::string& dps_path) {
     require(input != output && output != dps_path && input != dps_path,
             "output state and DP paths must differ");
-    const std::clock_t cpu_start = std::clock();
+    const double cpu_start = process_cpu_seconds();
     std::vector<State> states = load_states(input, job);
     std::vector<std::uint32_t> was_active(job.lanes);
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
@@ -633,7 +657,8 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
     write_file(output, out); write_file(dps_path, dps);
     // Process CPU time of the round, summed over threads: lets a benchmark on
     // a shared host report steps per CPU-second instead of per wall second.
-    const double cpu = double(std::clock() - cpu_start) / CLOCKS_PER_SEC;
+    const double cpu = process_cpu_seconds() - cpu_start;
+    require(cpu >= 0, "process CPU clock moved backwards");
     return "{\"backend\":\"" + backend + "\",\"engine\":\"" + engine +
            "\",\"cpu_seconds\":" + std::to_string(cpu) + ",\"lanes\":" +
            std::to_string(job.lanes) + ",\"distinguished_points\":" +
@@ -662,6 +687,9 @@ int run(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--emit-metal-source") {
         std::cout << metal_source(); return 0;
     }
+    if (argc == 2 && std::string(argv[1]) == "--emit-metal-fast-source") {
+        std::cout << fast_metal_source(); return 0;
+    }
 #endif
     const bool serve = argc == 4 && std::string(argv[1]) == "--serve";
     require(serve || (argc == 7 && std::string(argv[1]) == "--backend"),
@@ -687,7 +715,7 @@ int run(int argc, char** argv) {
         std::cout << execute_round(backend, job, ext, argv[4], argv[5], argv[6]) << '\n';
         return 0;
     }
-    // Serve mode keeps the validated job and prepared tables for the life of
+    // Serve mode keeps the validated job for the life of
     // the process: one tab-separated request per line, "round IN OUT DPS STEPS".
     // The round uses the job's lane count and the requested step count.
     std::string line;
@@ -696,6 +724,8 @@ int run(int argc, char** argv) {
         if (line == "quit") return 0;
         const std::vector<std::string> p = split_tabs(line);
         require(p.size() == 5 && p[0] == "round", "serve: malformed request");
+        require(!p[4].empty() && p[4].find_first_not_of("0123456789") == std::string::npos,
+                "serve: steps must be decimal digits");
         const unsigned long steps = std::strtoul(p[4].c_str(), nullptr, 10);
         require(steps >= 1 && steps <= MAX_ROUND_STEPS, "serve: steps must be 1..1048576");
         job.steps_per_round = std::uint32_t(steps);

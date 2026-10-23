@@ -29,10 +29,14 @@
 #endif
 
 #if !defined(__METAL_VERSION__) && !defined(__CUDACC__) && !defined(F131_SOFT_CLMUL)
-#if defined(__aarch64__) && (defined(__ARM_FEATURE_AES) || defined(__ARM_FEATURE_CRYPTO))
+#if defined(__aarch64__) && (defined(__APPLE__) || defined(__linux__))
 #include <arm_neon.h>
 #define F131_PMULL 1
-#elif defined(__PCLMUL__) || defined(__AVX2__) || (defined(_M_X64) && defined(_MSC_VER))
+#if defined(__linux__)
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
+#endif
+#elif defined(__x86_64__) || (defined(_M_X64) && defined(_MSC_VER))
 #include <immintrin.h>
 #define F131_PCLMUL 1
 #endif
@@ -52,6 +56,46 @@ namespace ecc {
 namespace f131 {
 typedef std::uint32_t u32;
 typedef std::uint64_t u64;
+
+// Optional instructions stay inside these functions. Distributed binaries
+// must also run on hosts without PCLMULQDQ or the Arm crypto extension.
+#if defined(F131_PMULL) || defined(F131_PCLMUL)
+inline bool hardware_clmul_available() {
+#if defined(F131_PMULL) && defined(__APPLE__)
+    return true;  // Every supported Apple-silicon target has PMULL.
+#elif defined(F131_PMULL)
+    static const bool available = (getauxval(AT_HWCAP) & HWCAP_PMULL) != 0;
+#elif defined(_MSC_VER)
+    static const bool available = []() {
+        int info[4];
+        __cpuid(info, 1);
+        return (info[2] & (1 << 1)) != 0;
+    }();
+#else
+    static const bool available = __builtin_cpu_supports("pclmul");
+#endif
+#if !(defined(F131_PMULL) && defined(__APPLE__))
+    return available;
+#endif
+}
+#if defined(F131_PMULL) && defined(__linux__)
+__attribute__((target("arch=armv8-a+crypto")))
+#elif defined(F131_PCLMUL) && (defined(__GNUC__) || defined(__clang__))
+__attribute__((target("pclmul")))
+#endif
+inline void hardware_clmul(u64 a, u64 b, u64& lo, u64& hi) {
+#if defined(F131_PMULL)
+    const uint64x2_t p = vreinterpretq_u64_p128(vmull_p64((poly64_t)a, (poly64_t)b));
+    lo = vgetq_lane_u64(p, 0);
+    hi = vgetq_lane_u64(p, 1);
+#else
+    const __m128i p = _mm_clmulepi64_si128(_mm_cvtsi64_si128((long long)a),
+                                         _mm_cvtsi64_si128((long long)b), 0);
+    lo = (u64)_mm_cvtsi128_si64(p);
+    hi = (u64)_mm_cvtsi128_si64(_mm_unpackhi_epi64(p, p));
+#endif
+}
+#endif
 
 template <typename W, int N> struct Num { W v[N]; };
 typedef Num<u64, 3> N3;
@@ -95,7 +139,7 @@ HD inline void mulw(u64 a, u64 b, ECC_THREAD u64& lo, ECC_THREAD u64& hi) {
     const unsigned __int128 p = (unsigned __int128)a * b;
     lo = u64(p);
     hi = u64(p >> 64);
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && defined(_M_X64)
     lo = _umul128(a, b, &hi);
 #else
     const u64 a0 = a & 0xffffffffU, a1 = a >> 32, b0 = b & 0xffffffffU, b1 = b >> 32;
@@ -279,7 +323,8 @@ template <typename W, int N> struct PrimeField {
                 r = sqr(r, c); r = sqr(r, c); r = sqr(r, c); r = sqr(r, c);
             }
             if (nibble) {
-                r = started ? mul(r, table[nibble], c) : table[nibble];
+                if (started) r = mul(r, table[nibble], c);
+                else r = table[nibble];
                 started = true;
             }
         }
@@ -353,19 +398,9 @@ HD inline u64 spread32(u32 x) {
 }
 template <bool SOFT>
 HD inline void clmul64(u64 a, u64 b, ECC_THREAD u64& lo, ECC_THREAD u64& hi) {
-#if defined(F131_PMULL)
-    if (!SOFT) {
-        const uint64x2_t p = vreinterpretq_u64_p128(vmull_p64((poly64_t)a, (poly64_t)b));
-        lo = vgetq_lane_u64(p, 0);
-        hi = vgetq_lane_u64(p, 1);
-        return;
-    }
-#elif defined(F131_PCLMUL)
-    if (!SOFT) {
-        const __m128i p = _mm_clmulepi64_si128(_mm_cvtsi64_si128((long long)a),
-                                               _mm_cvtsi64_si128((long long)b), 0);
-        lo = (u64)_mm_cvtsi128_si64(p);
-        hi = (u64)_mm_cvtsi128_si64(_mm_unpackhi_epi64(p, p));
+#if defined(F131_PMULL) || defined(F131_PCLMUL)
+    if (!SOFT && hardware_clmul_available()) {
+        hardware_clmul(a, b, lo, hi);
         return;
     }
 #endif

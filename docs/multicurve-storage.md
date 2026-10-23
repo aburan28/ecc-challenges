@@ -60,14 +60,15 @@ the point, so a stored record still satisfies `R = aG + bQ` exactly. The
 collision rule, the scalar recovery `(a1-a2)/(b2-b1)` and the DP codec are
 unchanged; a collision of P with -P is the same stored point. A trail's `b` is
 its start's `b` or `n - b`, which `check_trail` accepts for walk 4 only. Because
-the group is halved, a solve takes about sqrt(pi*n/4) steps. A canonical walk
+the group is halved, the ideal birthday model predicts sqrt(pi*n/4) steps;
+cycle handling adds work whose cost must be measured. A canonical walk
 can fall into short cycles; the engine detects 2-cycles and cycles that return to
 a periodic anchor and leaves them through a 33rd jump (the escape jump) at the
-cycle's smallest x, so walks that share a cycle also share its exit. Cycle state
+cycle's smallest low 64-bit x word, so walks that share a cycle also share its exit. Cycle state
 is local to one engine call and does not enter any record.
 
-Every trail keeps the `b` of its start, because jumps add only multiples of G.
-Verification therefore also checks that each DP's `b` equals the start derived
+Walks 2 and 3 keep the `b` of their start, because jumps add only multiples of G.
+Walk 4 may negate it. Verification checks that each DP's `b` matches the permitted sign of the start derived
 from its run ID and trail ID, which ties the DP to a server-assigned trail
 without replaying the walk. It does not check the trail's `a` or step count.
 

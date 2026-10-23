@@ -49,18 +49,12 @@ if ! printf 'int main() { return 0; }\n' \
   echo "$cxx has no OpenMP; the CPU backend uses std::thread instead"
 fi
 
-# The 131-bit fast path wants the hardware carry-less multiply (PCLMULQDQ or
-# PMULL); Apple Clang on arm64 already targets it.
-clmul=
-case "$(uname -m)" in
-  x86_64|amd64) clmul=-mpclmul ;;
-  aarch64) [ "$os" = Darwin ] || clmul=-march=armv8-a+crypto ;;
-esac
+# Optional carry-less multiplication instructions are selected at runtime.
 
 echo "building CPU engine with $cxx"
 mkdir -p "$prefix/bin"
 # shellcheck disable=SC2086 # CXXFLAGS, openmp and threads hold flags on purpose
-"$cxx" -std=c++17 -O2 $clmul $openmp $threads ${CXXFLAGS:-} -x c++ \
+"$cxx" -std=c++17 -O2 $openmp $threads ${CXXFLAGS:-} -x c++ \
   "$repo/worker/generic/engine.cu" -o "$prefix/bin/generic-engine"
 "$prefix/bin/generic-engine" --self-test
 

@@ -15,9 +15,10 @@ negation map saves.
   average 50 to 250 on 14 cores. Wall-clock columns are therefore low and
   noisy, and some rows are not monotone for no reason the code explains.
   *Engine CPU-s* is the engine's own process CPU time per round, which is much
-  less disturbed than wall time, and *best* is the least disturbed round of up
-  to two runs. Read the CPU-s columns, and treat them as lower bounds on what a
-  quiet core does. The GPU rows only have wall time and are the least reliable.
+  less disturbed than wall time, and *best* is the highest observed round of up
+  to two runs. CPU-s excludes Python and service work; these are observed
+  component rates, not bounds on quiet-host throughput. Per-row best selection
+  can favor different runs. The GPU rows only have wall time and are the least reliable.
 * One thread, 128 lanes, 256 steps per round (the client's old round size)
   unless a table says otherwise. S0 is the engine as it was on `main`
   (`ECC_ENGINE_FAST=0`), driven through the same `run_round`.
@@ -31,13 +32,13 @@ negation map saves.
 
 ## Result in one paragraph
 
-One Apple P-core went from about 0.11 M (ECC2-131) and 0.06 M (ECCp-131) steps
+The single-thread runs went from about 0.11 M (ECC2-131) and 0.06 M (ECCp-131) steps
 per CPU-second to about 9.1 M and 3.0 M: roughly **80x** and **50x**. About
 60% of the per-step cost left after batching was SHA-256 (S4a to S4b: 3.6 to
 9.8 M on ECC2-131), and batch inversion was the other large step. The negation
 map is not free per step (on ECC2-131 walk 4 steps are about 7% slower than
 walk 3; on ECCp-131 the difference is inside the noise) and saves fewer steps than the ideal sqrt(2): **1.26 +/- 0.05** on the
-25-bit toy curve (below), because a table of 32 jumps gives short fruitless
+25-bit control curve (below), because a table of 32 jumps gives short fruitless
 cycles that cost steps to detect and leave. On the GPU the prime curve gains
 3 to 5x over the old Metal kernel, but **ECC2-131 on the GPU is a loss**: the
 carry-less product is emulated with integer multiplies and the M4 Pro GPU does
@@ -147,18 +148,19 @@ production engine, ECCJOB04 jobs and record checks (`results/toy-negation-gain.j
 | ratio | **1.26** | 1.41 |
 
 Walk 4 costs 5% more steps than the theory and walk 3 7% fewer, so the ratio
-sits between the two; 300 trials give about +/-0.05. The same fruitless-cycle
-rate applies at 131 bits (it depends on the table size, 32, not the group), so
-expect a similar gap, not 1.41. A larger jump table would close it; that
-changes the walk and is a separate decision.
+sits between the two; 300 trials give about +/-0.05. The table size affects short cycles, but this control does not measure their
+rate on either 131-bit challenge. It does not establish the same gain there.
+A larger jump table changes the walk and needs its own correctness and cost measurements.
 
 ## What the speedup means for the challenges
 
 Arithmetic only, from the best single-core rates above. ECCp-131 needs about
-2^65.4 steps by walk 2 and 2^64.9 by walk 4 (the toy ratio says to budget 1.26x
-rather than 1.41x). The old engine at 57 k steps/s is 2^65.4 / 57,550 =
+2^65.4 steps by the ideal walk-2 birthday model and 2^64.9 by the ideal
+walk-4 model, before cycle overhead. The old engine at 57 k steps/s is 2^65.4 / 57,550 =
 1.5e7 core-years; walk 4 at 2.95 M steps/s is 2^64.9 / 2.95e6 = 3.0e5
-core-years. Both are far beyond one machine; the point is the ratio, about 50x.
+core-years. These extrapolations omit cycle overhead, Python validation,
+checkpointing, upload, indexing and collision processing. They are not measured
+completion times or an end-to-end speedup.
 
 ## What was not run
 
@@ -167,8 +169,8 @@ core-years. Both are far beyond one machine; the point is the ratio, about 50x.
   with clang's CUDA front end (host and device passes, stubbed runtime), never
   built with `nvcc` or executed. The GPU image build will compile it first.
 * **x86-64.** Only arm64 (PMULL) was built and measured. The PCLMULQDQ path is
-  the same code and is exercised by the self-test only where the compiler
-  defines `__PCLMUL__`; it has not been run here.
+  covered by the arithmetic self-test when runtime CPU detection enables it.
+  These benchmark records contain no x86-64 measurement.
 * **A quiet host.** See above. Rerun `bench.py` on an idle machine before
   quoting a figure.
 * **Windows/MSVC** builds of the new headers.

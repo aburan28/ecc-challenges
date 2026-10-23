@@ -9,8 +9,7 @@ RUN nvcc -std=c++17 -O2 -gencode arch=compute_75,code=sm_75 \
       -gencode arch=compute_120,code=sm_120 -gencode arch=compute_75,code=compute_75 \
       /build/engine.cu -o /build/generic-engine \
   && /build/generic-engine --self-test \
-  && case "$(uname -m)" in x86_64) CLMUL=-mpclmul ;; aarch64) CLMUL=-march=armv8-a+crypto ;; esac \
-  && g++ -std=c++17 -O2 $CLMUL -fopenmp -x c++ /build/engine.cu -o /build/generic-engine-cpu \
+  && g++ -std=c++17 -O2 -fopenmp -x c++ /build/engine.cu -o /build/generic-engine-cpu \
   && /build/generic-engine-cpu --self-test
 
 FROM ghcr.io/aburan28/ecc2k130-worker@sha256:25299db686c6b73bb59edc1b5f6591d917ada4e5d933172a4eca7274a71e9421

@@ -113,12 +113,14 @@ def test_backend_missing_from_build_is_refused(engine, probe):
         run_round(engine, missing, ns, [NativeState(ns.start(RUN_ID, 0))], 1)
 
 
-def kernel_source():
+def kernel_source(name):
     text = (ROOT / "worker/generic/engine_metal.mm").read_text()
-    return re.search(r'R"ECCMSL\((.*?)\)ECCMSL"', text, re.S).group(1)
+    return re.search(r'const char ' + name + r'\[\] = R"ECCMSL\((.*?)\)ECCMSL"',
+                     text, re.S).group(1)
 
 
-def test_metal_kernel_respects_address_spaces(tmp_path):
+@pytest.mark.parametrize("fast", (False, True), ids=("reference", "fast131"))
+def test_metal_kernel_respects_address_spaces(tmp_path, fast):
     """Type-check the Metal configuration of ec_core.h and the real kernel.
 
     Clang's C++ for OpenCL enforces address spaces on references the way the
@@ -134,26 +136,35 @@ def test_metal_kernel_respects_address_spaces(tmp_path):
         "struct S { unsigned w[2]; };\n"
         "S copy(S s) { S r = s; return r; }\n"
         "S load(const __constant S& c) { S r{}; r.w[0] = c.w[0]; return copy(r); }\n")
-    if subprocess.run([clang, "-x", "clcpp", "-cl-std=clc++2021", "-fsyntax-only",
+    # SPIR uses OpenCL's generic address space for implicit copy operations;
+    # targeting a host CPU can reject even the probe's valid struct copies.
+    target = ["-target", "spir64-unknown-unknown"]
+    if subprocess.run([clang, *target, "-x", "clcpp", "-cl-std=clc++2021", "-fsyntax-only",
                        str(probe_source)], capture_output=True).returncode:
         pytest.skip("this clang's C++ for OpenCL 2021 cannot copy structs")
     # OpenCL has no Metal attributes or kernels taking references, so the
     # kernel body is checked as an ordinary function with the same signature.
-    kernel = re.sub(r"\[\[[^\]]*\]\]", "", kernel_source())
-    kernel = kernel.replace("kernel void", "void", 1)
+    kernel = re.sub(r"\[\[[^\]]*\]\]", "",
+                    kernel_source("fast_kernel_source" if fast else "kernel_source"))
+    kernel = kernel.replace("kernel void", "void")
+    fast_header = (
+        "namespace metal { inline ulong mulhi(ulong a, ulong b) { return mul_hi(a, b); } }\n"
+        '#include "fast131.h"\n#define FAST_K 4\n' if fast else "")
     source = tmp_path / "metal_emulation.clcpp"
     source.write_text(
         "#define __METAL_VERSION__ 300\n#define thread __private\n"
         "#define constant __constant\n#define device __global\n"
-        '#include "ec_core.h"\n' + kernel)
+        "#undef local\n#define local lane_storage\n"
+        '#include "ec_core.h"\n' + fast_header + kernel)
     checked = subprocess.run(
-        [clang, "-x", "clcpp", "-cl-std=clc++2021", "-fsyntax-only", "-Werror",
+        [clang, *target, "-x", "clcpp", "-cl-std=clc++2021", "-fsyntax-only", "-Werror",
          "-I", str(ROOT / "worker/generic"), str(source)],
         capture_output=True, text=True, timeout=120)
     assert checked.returncode == 0, checked.stderr
 
 
-def test_emitted_metal_source_compiles(engine, probe, tmp_path):
+@pytest.mark.parametrize("option", ("--emit-metal-source", "--emit-metal-fast-source"))
+def test_emitted_metal_source_compiles(engine, probe, tmp_path, option):
     """On a Mac with the Metal toolchain, compile the exact embedded shader."""
     if "metal" not in probe.get("backends", ()):
         pytest.skip("engine has no Metal backend")
@@ -163,7 +174,7 @@ def test_emitted_metal_source_compiles(engine, probe, tmp_path):
         pytest.skip("the offline Metal compiler is not installed")
     source = tmp_path / "walk.metal"
     source.write_text(subprocess.run(
-        [str(engine), "--emit-metal-source"], check=True, capture_output=True,
+        [str(engine), option], check=True, capture_output=True,
         text=True, timeout=60).stdout)
     compiled = subprocess.run(
         ["xcrun", "-sdk", "macosx", "metal", "-c", str(source),

@@ -322,8 +322,8 @@ def main(root: Path, key: str, campaign: str) -> int:
         signal.signal(signal.SIGBREAK, terminate)
     engine = engine_for_backend(backend)
     retry = 1
-    # One engine process serves every round: the job is validated and its
-    # tables are built once, and a round costs a request, not a process start.
+    # One engine process serves every round: the job is validated once, and
+    # a round costs a request instead of another process start.
     with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, \
             Heartbeat(api.origin, key), \
             EngineSession(engine, backend, ns, lanes, temporary) as session:

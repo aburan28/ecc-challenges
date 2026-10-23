@@ -226,7 +226,7 @@ def _check_state(ns: Namespace, state: NativeState) -> None:
 class EngineSession:
     """A long-lived engine process for one namespace and lane count.
 
-    The engine validates the job and prepares its tables once; each round is a
+    The engine validates the job once; each round is a
     request on stdin and a receipt on stdout, so a round costs no process
     start. Close it (or use it as a context manager) to stop the engine.
     """
