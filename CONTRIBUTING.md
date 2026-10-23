@@ -90,12 +90,17 @@ instead.
 ## Progress metrics (daily lab report)
 
 `tools/progress_metrics.py` exports this repo's progress KPIs as JSONL for the lab-wide daily
-report (`/Volumes/SSD990-2/progress-metrics`). It reads committed state at `origin/<default>` and
-prints one sample per line (`metric, value, date, problem, unit, better, kind, label, source`).
+report (`/Volumes/SSD990-2/progress-metrics`). It reads the committed challenge-instance registry at `origin/main`
+(override with `--ref` or `PM_REF`) and prints one sample per line (`metric, value, date, problem, unit, better, kind, label, source`).
 
 - When a PR adds or changes a benchmark, leaderboard, result file or ledger source that carries a
   number worth tracking day over day, extend the exporter in the same PR. Keep metric ids stable;
   a renamed id is a new series.
-- Never emit estimates. If a source is missing, emit nothing for it.
+- Never emit estimates. Expected rho work, DP-derived operation counts and rates, and projected
+  completion times are omitted. If a source is missing, emit nothing for it; a missing walk rate
+  is not a measured zero. Non-finite values are omitted.
+- Live gateway counts and local ingest snapshots are separate from committed repository data.
+  Snapshot samples identify the source filename and SHA-256; an invalid Git reference is an error.
 - `python3 tools/progress_metrics.py --since 2026-10-01` must run in under a minute, stdlib only,
-  no builds, and never read the working tree.
+  no builds, and never read repository data from the working tree. The optional public gateway
+  request has a 25-second total deadline; an unavailable gateway does not prevent local exports.
