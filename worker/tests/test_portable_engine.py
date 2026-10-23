@@ -55,6 +55,20 @@ def test_self_test_and_probe(engine, probe):
     assert probe["cpu_threads"] >= 1
 
 
+def test_engine_compiles_with_windows_rpc_small_macro(tmp_path):
+    """The Windows SDK's RPC macro must not replace the EC small() helper."""
+    compiler = shutil.which("clang++") or shutil.which("g++")
+    if compiler is None:
+        pytest.skip("a GCC-compatible C++ compiler is unavailable")
+    source = tmp_path / "windows_rpc_macro.cpp"
+    source.write_text('#define small char\n#include "engine.cu"\n')
+    compiled = subprocess.run(
+        [compiler, "-std=c++17", "-fsyntax-only", "-I",
+         str(ROOT / "worker/generic"), str(source)],
+        capture_output=True, text=True, timeout=120)
+    assert compiled.returncode == 0, compiled.stderr
+
+
 @pytest.mark.parametrize("campaign", instance_ids())
 def test_cpu_walk_matches_python_reference(engine, campaign):
     # The reference replays the published walk; the 131-bit curves default to a newer one.
@@ -148,7 +162,6 @@ def test_metal_kernel_respects_address_spaces(tmp_path, fast):
                     kernel_source("fast_kernel_source" if fast else "kernel_source"))
     kernel = kernel.replace("kernel void", "void")
     fast_header = (
-        "namespace metal { inline ulong mulhi(ulong a, ulong b) { return mul_hi(a, b); } }\n"
         '#include "fast131.h"\n#define FAST_K 4\n' if fast else "")
     source = tmp_path / "metal_emulation.clcpp"
     source.write_text(

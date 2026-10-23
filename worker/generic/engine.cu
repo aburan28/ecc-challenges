@@ -27,6 +27,11 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+// Windows RPC headers define small as char; the EC core uses small() as a
+// function name. Keep that platform macro out of the arithmetic headers.
+#ifdef small
+#undef small
+#endif
 #include "ec_core.h"
 #include "fast131_host.h"
 

@@ -132,16 +132,15 @@ HD inline void mulw(u64 a, u64 b, ECC_THREAD u64& lo, ECC_THREAD u64& hi) {
 #if defined(__CUDA_ARCH__)
     lo = a * b;
     hi = u64(__umul64hi((unsigned long long)a, (unsigned long long)b));
-#elif defined(__METAL_VERSION__)
-    lo = a * b;
-    hi = metal::mulhi(a, b);
-#elif defined(__SIZEOF_INT128__)
+#elif defined(__SIZEOF_INT128__) && !defined(__METAL_VERSION__)
     const unsigned __int128 p = (unsigned __int128)a * b;
     lo = u64(p);
     hi = u64(p >> 64);
 #elif defined(_MSC_VER) && defined(_M_X64)
     lo = _umul128(a, b, &hi);
 #else
+    // Metal has no 64-bit mulhi builtin. The split product is also the
+    // portable host fallback when a native 128-bit integer is unavailable.
     const u64 a0 = a & 0xffffffffU, a1 = a >> 32, b0 = b & 0xffffffffU, b1 = b >> 32;
     const u64 p00 = a0 * b0, p01 = a0 * b1, p10 = a1 * b0, p11 = a1 * b1;
     const u64 mid = (p00 >> 32) + (p01 & 0xffffffffU) + (p10 & 0xffffffffU);

@@ -11,6 +11,8 @@ import subprocess
 import tempfile
 import time
 
+from psycopg.errors import LockNotAvailable
+
 from .protocol import CAMPAIGN, DP_WEIGHT, check_records
 
 
@@ -31,8 +33,67 @@ class QueueWorker:
         self.db, self.storage, self.settings, self.sqs = db, storage, settings, sqs
         self.verifier_sha = hashlib.sha256(open(settings.replay_binary, "rb").read()).hexdigest() if os.path.isfile(settings.replay_binary) else None
 
+    def dispatch_trusted_audits(self, limit: int = 100) -> int:
+        """Select sealed trusted-run audits without waiting for replay capacity.
+
+        Admission already validates record structure before sealing. Indexing
+        independently checks the archive digest and structure. First-run audits
+        and any selection already made by a replay worker remain untouched.
+        """
+        with self.db.connection() as conn:
+            rows = conn.execute("""
+                SELECT b.id,b.records FROM ecc_public.batches b
+                JOIN ecc_public.runs r ON r.run_id=b.run_id
+                WHERE b.audit_state='pending' AND b.audit_indices IS NULL
+                  AND r.trusted_at IS NOT NULL AND r.suspended_at IS NULL
+                ORDER BY b.id LIMIT %s FOR UPDATE OF b SKIP LOCKED
+            """, (limit,)).fetchall()
+            for row in rows:
+                indices = [secrets.randbelow(row["records"])] if secrets.randbelow(128) == 0 else []
+                conn.execute("""
+                    UPDATE ecc_public.batches
+                    SET audit_indices=%s::jsonb,audit_started_at=now(),
+                        audit_state=CASE WHEN %s THEN 'pending' ELSE 'not_selected' END,
+                        audit_finished_at=CASE WHEN %s THEN NULL ELSE now() END
+                    WHERE id=%s AND audit_state='pending' AND audit_indices IS NULL
+                """, (json.dumps(indices), bool(indices), bool(indices), row["id"]))
+        return len(rows)
+
+    def release_unverified_pressure(self, limit: int = 100) -> int:
+        """Keep terminal audit evidence, but release its active queue capacity.
+
+        A timed-out audit is not queued for automatic retry and cannot be
+        indexed. Its immutable archive and unverified state remain unchanged.
+        Row locking and the receipt make repeated reconciliation idempotent.
+        """
+        with self.db.connection() as conn:
+            rows = conn.execute("""
+                WITH terminal AS (
+                    SELECT id FROM ecc_public.batches
+                    WHERE audit_state='unverified' AND pressure_released_at IS NULL
+                    ORDER BY id LIMIT %s FOR UPDATE SKIP LOCKED
+                )
+                UPDATE ecc_public.batches b SET pressure_released_at=now()
+                FROM terminal t WHERE b.id=t.id AND b.pressure_released_at IS NULL
+                RETURNING b.run_id,b.byte_length
+            """, (limit,)).fetchall()
+            totals = {}
+            for row in rows:
+                shard = row["run_id"] % 16
+                count, size = totals.get(shard, (0, 0))
+                totals[shard] = (count + 1, size + row["byte_length"])
+            for shard, (count, size) in sorted(totals.items()):
+                conn.execute("""
+                    UPDATE ecc_public.pressure_shards
+                    SET pending_batches=pending_batches-%s,pending_bytes=pending_bytes-%s
+                    WHERE shard=%s
+                """, (count, size, shard))
+        return len(rows)
+
     def repair_outbox(self, limit: int = 100) -> int:
         """Safe after S3/DB commit or process death; duplicate SQS sends are expected."""
+        self.dispatch_trusted_audits(limit)
+        self.release_unverified_pressure(limit)
         sent = 0
         with self.db.connection() as conn:
             rows = conn.execute("""
@@ -154,13 +215,14 @@ class QueueWorker:
                 WHERE run_id=%s AND id<>%s AND audit_state='pending'
             """, (run_id, batch_id))
             unreleased = conn.execute("""
+                WITH released AS (
+                    UPDATE ecc_public.batches SET pressure_released_at=now()
+                    WHERE run_id=%s AND pressure_released_at IS NULL
+                    RETURNING byte_length
+                )
                 SELECT count(*) AS n,coalesce(sum(byte_length),0) AS bytes
-                FROM ecc_public.batches WHERE run_id=%s AND pressure_released_at IS NULL
+                FROM released
             """, (run_id,)).fetchone()
-            conn.execute("""
-                UPDATE ecc_public.batches SET pressure_released_at=now()
-                WHERE run_id=%s AND pressure_released_at IS NULL
-            """, (run_id,))
             conn.execute("""
                 UPDATE ecc_public.pressure_shards
                 SET pending_batches=pending_batches-%s,pending_bytes=pending_bytes-%s
@@ -192,7 +254,7 @@ class QueueWorker:
         records = list(batch_records(body, row["run_id"], row["dp_weight"]))
         with self.db.connection() as conn:
             run_state = conn.execute("""
-                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE
+                SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s
             """, (row["run_id"],)).fetchone()
             if run_state["suspended_at"] is not None or run_state["trusted_at"] is None:
                 return "discarded"
@@ -250,16 +312,36 @@ class QueueWorker:
             """, (batch_id, row["run_id"], batch_id))
             leads = conn.execute("SELECT count(*) AS n FROM ecc_public.collision_leads WHERE batch_id=%s",
                                  (batch_id,)).fetchone()["n"]
+            # Keep slow historical joins outside the run-row lock used by
+            # uploads. Recheck immediately before publication: suspension
+            # during the joins must roll back every candidate and lead.
+            # Suspension locks the run before its batches. Do not wait for that
+            # lock while holding a batch/candidate lock in the reverse order.
+            try:
+                final_state = conn.execute("""
+                    SELECT trusted_at,suspended_at FROM ecc_public.runs WHERE run_id=%s FOR SHARE NOWAIT
+                """, (row["run_id"],)).fetchone()
+            except LockNotAvailable:
+                conn.rollback()
+                return "not_ready"
+            if final_state["suspended_at"] is not None or final_state["trusted_at"] is None:
+                conn.rollback()
+                return "discarded"
             conn.execute("""
                 INSERT INTO ecc_public.indexed_batches(batch_id,records,candidate_new,leads)
                 VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING
             """, (batch_id, len(records), inserted, leads))
-            conn.execute("UPDATE ecc_public.batches SET indexed_at=now(),pressure_released_at=now() WHERE id=%s", (batch_id,))
-            conn.execute("""
-                UPDATE ecc_public.pressure_shards
-                SET pending_batches=pending_batches-1,pending_bytes=pending_bytes-%s
-                WHERE shard=%s
-            """, (len(body), row["run_id"] % 16))
+            released = conn.execute("""
+                UPDATE ecc_public.batches SET pressure_released_at=now()
+                WHERE id=%s AND pressure_released_at IS NULL RETURNING id
+            """, (batch_id,)).fetchone()
+            conn.execute("UPDATE ecc_public.batches SET indexed_at=now() WHERE id=%s", (batch_id,))
+            if released:
+                conn.execute("""
+                    UPDATE ecc_public.pressure_shards
+                    SET pending_batches=pending_batches-1,pending_bytes=pending_bytes-%s
+                    WHERE shard=%s
+                """, (len(body), row["run_id"] % 16))
         return "indexed"
 
     def resolve_one(self, lead_id: int, timeout_seconds: int = 3600) -> str:
