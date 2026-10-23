@@ -36,7 +36,7 @@ class ProgressMetricsTests(unittest.TestCase):
     def test_missing_rates_are_absent_real_zero_and_observation_sources_survive(self):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(metrics, 'INGEST_DIR', Path(tmp)):
             records = [
-                {'generated_at': '2026-10-01T00:00:00Z', 'dps': 1},
+                {'generated_at': '2026-10-01T00:00:00Z', 'dps': 1, 'work': {'iterations_log2': 32}},
                 {'generated_at': '2026-10-02T00:00:00Z', 'walk_rate': {'iterations_per_second': 0}},
                 {'generated_at': '2026-10-03T00:00:00Z', 'walk_rate': {'iterations_per_second': 8}},
                 {'generated_at': '2026-10-03T01:00:00Z', 'walk_rate': {'iterations_per_second': 2}},
@@ -46,6 +46,7 @@ class ProgressMetricsTests(unittest.TestCase):
             for i, record in enumerate(records):
                 (Path(tmp) / f'status-{i}.json').write_text(json.dumps(record))
             rows = samples(lambda: metrics.ingest_history('2026-10-01'))
+        self.assertEqual([r['value'] for r in rows if r['metric'].endswith('iterations_log2')], [32])
         rates = [r for r in rows if r['metric'].endswith('walk_rate_ips_peak')]
         self.assertEqual({r['date']: r['value'] for r in rates}, {'2026-10-02': 0, '2026-10-03': 8})
         peak = next(r for r in rates if r['value'] == 8)

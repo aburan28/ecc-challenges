@@ -184,6 +184,8 @@ def ingest_history(since):
              label="ECC2K-130 ingest: distinguished points stored", source=src)
         emit("ingest.ecc2k130.dps_last_day", d.get("dps_last_day"), date=day, problem=P_RHO, unit="DP/day",
              better="higher", label="ECC2K-130 ingest: DPs in trailing 24h", source=src)
+        emit("ingest.ecc2k130.iterations_log2", w.get("iterations_log2"), date=day, problem=P_RHO, unit="log2 it",
+             better="higher", label="ECC2K-130 ingest: checkpoint-counted walk iterations (log2)", source=src)
         emit("ingest.ecc2k130.walkers", d.get("walkers"), date=day, problem=P_RHO, unit="count", better="higher",
              label="ECC2K-130 ingest: walkers reporting (end of day)", source=src)
         emit("ingest.ecc2k130.walking_slots", w.get("walking_slots"), date=day, problem=P_RHO, unit="count",

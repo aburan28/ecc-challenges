@@ -98,7 +98,8 @@ report (`/Volumes/SSD990-2/progress-metrics`). It reads the committed challenge-
   a renamed id is a new series.
 - Never emit estimates. Expected rho work, DP-derived operation counts and rates, and projected
   completion times are omitted. If a source is missing, emit nothing for it; a missing walk rate
-  is not a measured zero. Non-finite values are omitted.
+  is not a measured zero. Non-finite values are omitted. Iteration totals counted from worker
+  checkpoints are retained; they are independent of distinguished-point density.
 - Live gateway counts and local ingest snapshots are separate from committed repository data.
   Snapshot samples identify the source filename and SHA-256; an invalid Git reference is an error.
 - `python3 tools/progress_metrics.py --since 2026-10-01` must run in under a minute, stdlib only,
