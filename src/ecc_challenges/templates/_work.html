@@ -11,6 +11,11 @@
 {%- else -%}—{%- endif %}
 {%- endmacro %}
 
+{# A challenge Certicom lists as solved: the search is complete, whatever this gateway has stored. #}
+{% macro solved(challenge) -%}
+<span class="work"><span class="pct progress-primary">100%</span><span class="bar mini done" role="img" aria-label="Solved: the published result closes this challenge"><span style="width:100%"></span></span></span><small class="work-detail">Search complete</small>
+{%- endmacro %}
+
 {# Shared summary: combined progress first, then the public-only contribution. #}
 {% macro summary(row) -%}
 {% set est = (row.including_historical or row) if row else none %}

@@ -11,8 +11,21 @@
 <h1>{{ challenge_name }}</h1>
 <p class="lead">{{ parameters.bits }}-bit {{ "binary field" if parameters.field_kind == "binary" else "prime field" }} discrete-log challenge, listed in Certicom's {{ catalog_date }} challenge document.</p>
 
+{% if challenge.solved_in_2009 %}
 <dl class="stats" aria-label="Challenge summary">
-  <div class="stat"><dt>Status</dt><dd>{% if challenge.solved_in_2009 %}Solved<small>{{ solved_dates[challenge.id] }}</small>{% elif is_open %}Open here<small>accepting worker points</small>{% else %}Not open yet<small>not accepting worker points</small>{% endif %}</dd></div>
+  <div class="stat"><dt>Status</dt><dd>Solved<small>{{ solved_dates[challenge.id] }}</small></dd></div>
+  <div class="stat"><dt>Expected operations</dt><dd>{{ work.expected(challenge) }}<small>Certicom 2009: {{ challenge.estimated_operations_2009 or "—" }}</small></dd></div>
+  <div class="stat progress-summary"><dt>Progress</dt><dd><span class="progress-primary">100%</span><small>Closed by the published result</small></dd></div>
+  <div class="stat"><dt>Result</dt><dd><a href="/results/{{ challenge.id }}">Private key</a><small>as recorded by Certicom</small></dd></div>
+</dl>
+<div class="panel" style="margin-top:24px">
+  <h2>Already solved</h2>
+  <p class="muted">Certicom records this challenge as solved on {{ solved_dates[challenge.id] }}. The recovered key, the public point and the original report are on the <a href="/results/{{ challenge.id }}">result page</a>.</p>
+  <p class="muted">{% if is_open %}The gateway still accepts points for it, so a worker can use it as a quick end-to-end check, but that work does not count towards anything.{% else %}Points cannot be submitted for it.{% endif %} The open challenges are listed <a href="/status#challenges">on the status page</a>.</p>
+</div>
+{% else %}
+<dl class="stats" aria-label="Challenge summary">
+  <div class="stat"><dt>Status</dt><dd>{% if is_open %}Open here<small>accepting worker points</small>{% else %}Not open yet<small>not accepting worker points</small>{% endif %}</dd></div>
   <div class="stat"><dt>Expected operations</dt><dd>{{ work.expected(challenge) }}<small>Certicom 2009: {{ challenge.estimated_operations_2009 or "—" }}</small></dd></div>
   <div class="stat progress-summary"><dt>Progress</dt><dd>{{ work.summary(status) }}</dd></div>
   <div class="stat"><dt>Collision odds</dt><dd>{% if est and est.estimated_completion_probability_percent is defined %}{{ est.estimated_completion_probability_percent|percent }}<small>chance rho would have hit one by now</small>{% else %}—<small>after the work so far</small>{% endif %}</dd></div>
@@ -24,6 +37,7 @@
 
 {% if is_open and status and status.expected_operations_log2 is not none and challenge.estimated_operations_log2 and (status.expected_operations_log2 - challenge.estimated_operations_log2)|abs > 0.1 %}
 <p class="table-note">This project's walk for {{ challenge_name }} expects {{ status.expected_operations_log2|pow2(2) }} operations rather than Certicom's {{ challenge.estimated_operations_log2|pow2(2) }}, because it does not yet fold in the {% if challenge.id.startswith("ecc2k") %}negation and Frobenius maps{% else %}negation map{% endif %}. <a href="/pollard-rho#automorphisms">Why that matters</a>.</p>
+{% endif %}
 {% endif %}
 {% if not status %}<div class="panel alert" style="margin-top:24px"><p>Live status is unavailable right now. The published challenge parameters remain available below.</p></div>{% endif %}
 {% if not challenge.solved_in_2009 and not is_open %}
