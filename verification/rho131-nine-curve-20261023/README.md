@@ -1,14 +1,16 @@
 # Rho131 current-head and nine-curve release checks
 
 This directory separates the base-commit controls from the still-unreleased
-Metal candidate and the live gates. The base is
+Metal repair and the live gates. The base is
 `b78fc2921e9b9a60174e1693aff15c7daf23f9c7`, the 2026-10-23 merge of
 the specialised 131-bit engine. The live catalog snapshot continues to pin
 the earlier worker digest
 `sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba`.
-The code candidate in this branch adds a Metal 32-bit multiply variant for
-Apple Paravirtual devices, records which variant ran, adds parity controls,
-and parameterizes the canary launcher. No new image has been advertised.
+PR #55 added a Metal 32-bit multiply variant for Apple Paravirtual devices,
+but its hosted macOS x86_64 job repeated the invalid ECCp-131 walk-4 state.
+PR #57 tests a 32-bit carry and borrow repair. The key-free L4 control on
+its commit `e77c242` passed; its Apple Paravirtual job is pending. No new
+image has been advertised.
 
 ## Evidence index
 
@@ -40,17 +42,20 @@ manifest. The raw source archives remain local and were not published.
 | `canary-plan-published/plan.json` | Dry run for nine sequential L4 canaries against the still-published immutable image. No contributor key was used. |
 | `cuda-head-plan/plan.json` | Key-free dry run that checked the archived all-curve controls and bound the current CUDA source hashes. |
 | `cuda-head-plan/validator-controls.json` | Local receipt-validator control accepted a complete synthetic 168-case receipt and rejected one altered input digest and one duplicate case. This is not a CUDA execution result. |
+| `l4-control-e77c242/`, `l4-control-20261024.md` | Key-free NVIDIA L4 execution on PR #57 source: 168 of 168 hashes matched archived CPU controls across all 24 curves. Source, binary, device, inputs, and per-case results are bound in the receipt. |
 | `gates.svg`, `report.typ`, `report.pdf` | Editable gate diagram and one-page visual report. |
 
-The current-head [Worker platforms run](https://github.com/aburan28/ecc-challenges/actions/runs/40066130516)
+The base [Worker platforms run](https://github.com/aburan28/ecc-challenges/actions/runs/40066130516)
 reported an off-curve ECCp-131 walk-4 state on the hosted macOS x86_64
 Apple Paravirtual Metal device in job 120789662742. Its initial 79 other
 worker tests passed. A diagnostic retry of that job was requested to test
 repeatability. The retry (job 120796467229) failed the same walk-4 case
 with the same off-curve state after five steps. The
-selective split-product path is a hypothesis about the cause, not an
-established explanation. Hosted CI must exercise the candidate before the
-patch can be called a fix.
+selective split-product path was a hypothesis about the cause. The merged PR
+[#55](https://github.com/aburan28/ecc-challenges/pull/55) candidate failed
+on the same device in [run 40070444197](https://github.com/aburan28/ecc-challenges/actions/runs/40070444197).
+PR [#57](https://github.com/aburan28/ecc-challenges/pull/57) must pass its
+hosted Apple Paravirtual check before its repair is validated.
 
 ## Commands and boundaries
 
@@ -94,5 +99,6 @@ run to the image, campaign, gateway namespace, native checkpoint, accepted
 records, indexing, restart, and closure. The wrapper runs one L4 curve at a
 time and retains a receipt for each; its normal mode requires a production
 distinguished point. A bounded no-point attempt is censored, not counted as
-an upload success. The current-head CUDA correctness and full contributor
-cost gates remain open until live receipts exist.
+an upload success. Bounded CUDA parity passed on PR #57 source. Authenticated
+contribution and full contributor plus verifier cost remain open until live
+receipts exist.

@@ -103,9 +103,10 @@ typedef Num<u32, 5> N5;
 
 // ---------------------------------------------------------------- limbs
 HD inline u32 addc(u32 a, u32 b, u32 cin, ECC_THREAD u32& cout) {
-    const u64 s = u64(a) + b + cin;
-    cout = u32(s >> 32);
-    return u32(s);
+    const u32 s = a + b;
+    const u32 r = s + cin;
+    cout = u32(s < a) | u32(r < s);
+    return r;
 }
 HD inline u64 addc(u64 a, u64 b, u64 cin, ECC_THREAD u64& cout) {
     const u64 s = a + b;
@@ -114,9 +115,9 @@ HD inline u64 addc(u64 a, u64 b, u64 cin, ECC_THREAD u64& cout) {
     return r;
 }
 HD inline u32 subb(u32 a, u32 b, u32 bin, ECC_THREAD u32& bout) {
-    const u64 d = u64(a) - u64(b) - u64(bin);
-    bout = u32(d >> 63);
-    return u32(d);
+    const u32 d = a - b;
+    bout = u32(a < b) | u32(d < bin);
+    return d - bin;
 }
 HD inline u64 subb(u64 a, u64 b, u64 bin, ECC_THREAD u64& bout) {
     const u64 d = a - b;
