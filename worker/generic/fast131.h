@@ -164,11 +164,15 @@ template <typename W, int N> HD inline bool num_eq(Num<W, N> a, Num<W, N> b) {
     for (int i = 0; i < N; ++i) r |= a.v[i] ^ b.v[i];
     return r == 0;
 }
-// a < b as unsigned integers.
+// a < b as unsigned integers, from the most significant limb down. Plain
+// compares keep this free of subb's aliased borrow, which no caller needs here.
 template <typename W, int N> HD inline bool num_less(Num<W, N> a, Num<W, N> b) {
-    W borrow = 0;
-    for (int i = 0; i < N; ++i) subb(a.v[i], b.v[i], borrow, borrow);
-    return borrow != 0;
+    W less = 0, equal = 1;
+    for (int i = N - 1; i >= 0; --i) {
+        less |= equal & W(a.v[i] < b.v[i]);
+        equal &= W(a.v[i] == b.v[i]);
+    }
+    return less != 0;
 }
 template <typename W, int N> HD inline Num<W, N> num_sub(Num<W, N> a, Num<W, N> b,
                                                         ECC_THREAD W& borrow) {
