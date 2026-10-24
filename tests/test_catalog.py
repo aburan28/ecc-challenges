@@ -117,7 +117,9 @@ def test_catalog_site_status_and_fail_closed_registration():
         assert combined["hours_to_expected_work"] < ecc2k130["hours_to_expected_work"]
         assert ecc2k130["hours_to_expected_work"] > 0
         # Unopened rows still say what their walk would need, beside Certicom's figure.
-        assert status["campaigns"][19]["expected_operations_log2"] == 65.42
+        # ECCp-131 runs the negation-map walk, whose group is halved: its expected
+        # work is Certicom's own figure rather than sqrt(2) above it.
+        assert status["campaigns"][19]["expected_operations_log2"] == 64.92
         assert status["campaigns"][19]["estimated_operations_2009_log2"] == 64.92
         assert "expected_work_percent" not in status["campaigns"][19]
         assert status["campaigns"][19]["received_points"] is None

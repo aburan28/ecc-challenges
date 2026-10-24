@@ -35,7 +35,13 @@ if modal.is_local():
              .add_local_file(root / "worker/generic/engine.cu", "/src/baseline/engine.cu", copy=True)
              .add_local_file(baseline_header, "/src/baseline/ec_core.h", copy=True)
              .add_local_file(root / "worker/generic/engine.cu", "/src/candidate/engine.cu", copy=True)
-             .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True))
+             .add_local_file(root / "worker/generic/ec_core.h", "/src/candidate/ec_core.h", copy=True)
+             # Both builds need these headers, but measurements explicitly select
+             # the reference engine so the changed ec_core.h is exercised.
+             .add_local_file(root / "worker/generic/fast131.h", "/src/baseline/fast131.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131_host.h", "/src/baseline/fast131_host.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131.h", "/src/candidate/fast131.h", copy=True)
+             .add_local_file(root / "worker/generic/fast131_host.h", "/src/candidate/fast131_host.h", copy=True))
     for curve in CURVES:
         for filename in ("job.bin", "in.bin"):
             image = image.add_local_file(
@@ -72,7 +78,7 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
          "--format=csv,noheader"], capture_output=True, text=True,
         check=True, timeout=30).stdout.strip()
     sources = {arm: {name: sha(Path(f"/src/{arm}/{name}").read_bytes())
-                     for name in ("engine.cu", "ec_core.h")}
+                     for name in ("engine.cu", "ec_core.h", "fast131.h", "fast131_host.h")}
                for arm in ("baseline", "candidate")}
     binaries = {arm: sha(Path(f"/opt/ecc-{arm}").read_bytes())
                 for arm in ("baseline", "candidate")}
@@ -90,6 +96,7 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                "lanes": lanes,
                "steps_per_round": steps, "repeats": repeats,
                "timing_boundary": "full worker process invocation including validation, transfers, kernel and output",
+               "engine_environment": {"ECC_ENGINE_FAST": "0"},
                "rows": [], "comparisons": []}
     def pack_raw(root: Path) -> bytes:
         tar_buffer = io.BytesIO()
@@ -137,7 +144,8 @@ def measure(lanes: int = 32, steps: int = 64, repeats: int = 2,
                                str(out), str(dp)]
                     start = time.perf_counter_ns()
                     try:
-                        process = subprocess.run(command, capture_output=True, timeout=120)
+                        process = subprocess.run(command, capture_output=True, timeout=120,
+                                                 env={**os.environ, "ECC_ENGINE_FAST": "0"})
                     except subprocess.TimeoutExpired as error:
                         (trial / "stdout.txt").write_bytes(error.stdout or b"")
                         (trial / "stderr.txt").write_bytes(error.stderr or b"")

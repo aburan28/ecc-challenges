@@ -46,7 +46,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(ECC_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/generic)
 set(ECC_GENERATED ${CMAKE_CURRENT_BINARY_DIR}/generated)
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-             ${ECC_SOURCE}/ec_core.h)
+             ${ECC_SOURCE}/ec_core.h ${ECC_SOURCE}/fast131.h)
 
 function(ecc_platform_settings target)
   if(MSVC)
@@ -60,8 +60,10 @@ endfunction()
 if(APPLE AND ECC_ENABLE_METAL)
   # The kernel is compiled at run time from ec_core.h, embedded here.
   file(READ ${ECC_SOURCE}/ec_core.h _ecc_core)
+  file(READ ${ECC_SOURCE}/fast131.h _ecc_fast)
   file(WRITE ${ECC_GENERATED}/metal_core_source.inc
-       "static const char core_source[] = R\"ECCMSL(\n${_ecc_core})ECCMSL\";\n")
+       "static const char core_source[] = R\"ECCMSL(\n${_ecc_core})ECCMSL\";\n"
+       "static const char fast_source[] = R\"ECCMSL(\n${_ecc_fast})ECCMSL\";\n")
   # Clang compiles .mm as Objective-C++; CMake treats it as a CXX source, so
   # the OpenMP flags below apply to it too.
   add_executable(generic-engine ${ECC_SOURCE}/engine_metal.mm)
@@ -75,6 +77,9 @@ else()
   target_include_directories(generic-engine PRIVATE ${ECC_SOURCE})
 endif()
 ecc_platform_settings(generic-engine)
+
+# fast131.h selects carry-less multiplication at runtime. Keep the rest of
+# the binary on the platform baseline so it also runs without that extension.
 
 if(ECC_ENABLE_OPENMP)
   find_package(OpenMP COMPONENTS CXX)

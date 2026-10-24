@@ -16,8 +16,10 @@ from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from ecc_challenges.multicurve.codec import MAX_BATCH_BYTES, MAX_TRAIL_STEPS, canonical, namespace
-from .runtime import BACKENDS, NativeState, pack_state, run_round, unpack_states
+from ecc_challenges.multicurve.codec import (
+    MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_IDS, WALK_V2, canonical, namespace,
+)
+from .runtime import BACKENDS, EngineSession, NativeState, pack_state, run_round, unpack_states
 from .heartbeat import Heartbeat
 
 try:
@@ -155,7 +157,12 @@ def cpu_threads() -> int:
     return len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count() or 1
 
 
-def default_lanes(backend: str) -> int:
+def default_lanes(backend: str, batched: bool = False) -> int:
+    if batched:
+        # The specialised engine shares one field inversion between the lanes
+        # of a thread (up to 64) or, on a GPU, of a four-lane group, so more
+        # lanes are cheaper per step and a GPU needs thousands to fill.
+        return 4096 if backend in ("cuda", "metal") else min(4096, 32 * cpu_threads())
     # Four lanes per thread keeps every core busy while lanes pause at DPs.
     return 64 if backend in ("cuda", "metal") else min(4096, 4 * cpu_threads())
 
@@ -218,14 +225,38 @@ def select_backend() -> str:
     return backend
 
 
+def namespace_for_state(campaign: str, namespace_id: str):
+    """The namespace a saved run was registered under, whatever the walk.
+
+    Runs stay pinned to the walk they registered with: a state directory from
+    before a campaign's default walk changed keeps running its old walk.
+    """
+    for version in WALK_IDS:
+        try:
+            candidate = namespace(campaign, None, version)
+        except ValueError:  # walk not defined for this curve
+            continue
+        if candidate.id == namespace_id:
+            return candidate
+    return None
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = lock_state_directory(root)  # held until the process exits
     ns = namespace(campaign)
+    path = root / "generic-state.json"
+    pinned = False
+    if path.exists():
+        saved_id = json.loads(path.read_text()).get("namespace_id")
+        older = namespace_for_state(campaign, saved_id) if saved_id != ns.id else None
+        if older is not None:
+            ns, pinned = older, True
     api = API(os.environ.get("ECC_API_URL", "https://ecc-challenges.com"), key)
-    remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
-    if canonical(remote_config) != canonical(ns.public()):
-        raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
+    if not pinned:
+        remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
+        if canonical(remote_config) != canonical(ns.public()):
+            raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
     action = os.environ.get("ECC_ACTION", "work")
     if action == "close":
         saved = json.loads((root / "generic-state.json").read_text())
@@ -239,10 +270,13 @@ def main(root: Path, key: str, campaign: str) -> int:
     if action != "work":
         raise ValueError("ECC_ACTION must be work or close")
     backend = select_backend()
-    path = root / "generic-state.json"
-    saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
-    lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))
-    steps = int(os.environ.get("ECC_STEPS_PER_ROUND", "256"))
+    saved = json.loads(path.read_text()) if path.exists() else {}
+    # Walks 3 and 4 run on the specialised engine; the published walk keeps its
+    # original sizes so existing state directories resume unchanged.
+    fast = ns.walk_version != WALK_V2
+    lanes = int(os.environ.get("ECC_LANES") or saved.get("lanes") or default_lanes(backend, fast))
+    steps = int(os.environ.get("ECC_STEPS_PER_ROUND") or saved.get("round_steps")
+                or (4096 if ns.walk_version != WALK_V2 else 256))
     if not 1 <= lanes <= 4096 or not 1 <= steps <= 1048576:
         raise ValueError("invalid lane or round size")
     if (root / "state.json").exists():
@@ -253,6 +287,8 @@ def main(root: Path, key: str, campaign: str) -> int:
                 or state["round_steps"] != steps):
             raise RuntimeError("state directory has another namespace or lane count")
         status = api.request("GET", f"/v2/runs/{state['run_id']}")
+        if pinned and canonical(status.get("config")) != canonical(ns.public()):
+            raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
         if status.get("closed_at"):
             raise RuntimeError("run is closed; preserve this checkpoint and choose a new state directory")
     else:
@@ -286,7 +322,11 @@ def main(root: Path, key: str, campaign: str) -> int:
         signal.signal(signal.SIGBREAK, terminate)
     engine = engine_for_backend(backend)
     retry = 1
-    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, Heartbeat(api.origin, key, protocol="v2", run_id=state["run_id"], backend=backend) as health:
+    # One engine process serves every round: the job is validated once, and
+    # a round costs a request instead of another process start.
+    with tempfile.TemporaryDirectory(prefix="ecc-round-", dir=root) as temporary, \
+            Heartbeat(api.origin, key, protocol="v2", run_id=state["run_id"], backend=backend) as health, \
+            EngineSession(engine, backend, ns, lanes, temporary) as session:
         while not stop:
             try:
                 flush(api, ns, state, path)
@@ -308,7 +348,8 @@ def main(root: Path, key: str, campaign: str) -> int:
             if stop:
                 break
             states = unpack_states(base64.b64decode(state["states"], validate=True))
-            result = run_round(engine, backend, ns, states, steps, Path(temporary), timeout=600)
+            result = run_round(engine, backend, ns, states, steps, Path(temporary), timeout=600,
+                               session=session)
             pending = bytearray()
             next_states = []
             for item in result.states:

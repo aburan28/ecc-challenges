@@ -204,6 +204,33 @@ def test_status_reports_imported_points_beside_gateway_uploads(database, conn):
     assert row["including_historical"]["estimated_work_log2"] == round(log2(338) + 28.409072957536694, 2)
 
 
+def test_status_preserves_each_namespace_walk_expectation(database, conn):
+    import math
+    from psycopg.types.json import Jsonb
+    from ecc_challenges.multicurve.codec import Namespace
+    from ecc_challenges.status import StatusReader
+
+    # Equal work in distinct point and negation namespaces contributes separate
+    # birthday terms, using n and n/2 respectively, regardless of today's default.
+    points, bits = 10**9, 34
+    for version in (2, 4):
+        ns = Namespace("eccp-131", bits, version)
+        conn.execute("INSERT INTO ecc_public.dp_namespaces(id,campaign_id,manifest,record_bytes) VALUES (%s,%s,%s,%s)",
+                     (ns.id, ns.campaign, Jsonb(ns.public()), ns.record_bytes))
+        conn.execute("""INSERT INTO ecc_public.dp_namespace_stats(namespace_id,shard,admitted_records)
+                        VALUES (%s,0,%s)""", (ns.id, points))
+    row = next(c for c in StatusReader(database, ttl_seconds=0, multicurve_enabled=True).read()["campaigns"]
+               if c["id"] == "eccp-131")
+    work = points * 2**bits
+    n = ns.instance.n
+    expectation2, expectation4 = math.sqrt(math.pi * n / 2), math.sqrt(math.pi * n / 4)
+    share = (work / expectation2)**2 + (work / expectation4)**2
+    assert math.isclose(row["expected_work_percent"], 100 * math.sqrt(share))
+    assert math.isclose(row["estimated_completion_probability_percent"],
+                        -100 * math.expm1(-math.pi / 4 * share))
+    assert row["estimated_work_operations"] == 2 * work
+
+
 def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
     from psycopg.types.json import Jsonb
 
@@ -222,7 +249,7 @@ def test_status_estimates_v2_work_per_pinned_dp_setting(database, conn):
     assert row["generic_verified_points"] == 8
     assert row["estimated_work_log2"] == round(log2(3 * 2**20 + 5 * 2**18), 2)
     assert row["dp_bits"] == [18, 20]
-    assert row["expected_operations_log2"] == 65.42
+    assert row["expected_operations_log2"] == 64.92  # the negation-map walk halves the group
     assert 0 < row["estimated_completion_probability_percent"] < 1e-10
 
 
