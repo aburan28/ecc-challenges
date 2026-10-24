@@ -16,7 +16,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from ecc_challenges.multicurve.codec import MAX_BATCH_BYTES, MAX_TRAIL_STEPS, canonical, namespace
+from ecc_challenges.multicurve.codec import (MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_NEGATION,
+                                             WALK_V2, canonical, namespace)
 from .runtime import BACKENDS, NativeState, pack_state, run_round, unpack_states
 from .heartbeat import Heartbeat
 
@@ -218,12 +219,26 @@ def select_backend() -> str:
     return backend
 
 
+def selected_walk() -> str:
+    """ECC_WALK: unset or "v2" is the adding walk; "negation" (or the full walk
+    ID) selects the negation-class walk, which is disabled by default."""
+    value = os.environ.get("ECC_WALK", "v2")
+    aliases = {"v2": WALK_V2, "negation": WALK_NEGATION}
+    walk = aliases.get(value, value)
+    if walk not in (WALK_V2, WALK_NEGATION):
+        raise ValueError("ECC_WALK must be v2 or negation")
+    return walk
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = lock_state_directory(root)  # held until the process exits
-    ns = namespace(campaign)
+    walk = selected_walk()
+    # The v2 requests below are byte for byte what they were before ECC_WALK.
+    ns = namespace(campaign) if walk == WALK_V2 else namespace(campaign, None, walk)
     api = API(os.environ.get("ECC_API_URL", "https://ecc-challenges.com"), key)
-    remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
+    remote_config = api.request(
+        "GET", f"/v2/config?campaign={ns.campaign}" + ("" if walk == WALK_V2 else f"&walk={walk}"))
     if canonical(remote_config) != canonical(ns.public()):
         raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
     action = os.environ.get("ECC_ACTION", "work")
@@ -239,6 +254,8 @@ def main(root: Path, key: str, campaign: str) -> int:
     if action != "work":
         raise ValueError("ECC_ACTION must be work or close")
     backend = select_backend()
+    if ns.negation and backend == "metal":
+        raise RuntimeError("the negation-class walk is not implemented for the Metal backend")
     path = root / "generic-state.json"
     saved_lanes = json.loads(path.read_text())["lanes"] if path.exists() else None
     lanes = int(os.environ.get("ECC_LANES") or saved_lanes or default_lanes(backend))
@@ -265,7 +282,9 @@ def main(root: Path, key: str, campaign: str) -> int:
         nonce_record = json.loads(nonce_path.read_text())
         if nonce_record["namespace_id"] != ns.id:
             raise RuntimeError("registration belongs to another namespace")
-        assigned = api.request("POST", "/v2/register", {"campaign": ns.campaign, "registration_id": nonce})
+        assigned = api.request("POST", "/v2/register", {
+            "campaign": ns.campaign, "registration_id": nonce,
+            **({} if walk == WALK_V2 else {"walk": walk})})
         if assigned["namespace_id"] != ns.id or assigned["cursor"] != 0:
             raise RuntimeError("existing registration lacks local checkpoint; preserve it for recovery")
         state = {"protocol": 2, "namespace_id": ns.id, "run_id": assigned["run_id"],

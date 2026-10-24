@@ -487,6 +487,265 @@ HD inline int walk_lane(const ECC_JOB Job& job, ECC_THREAD State& state,
     }
     return 0;
 }
+
+// ---------------------------------------------------------------------------
+// Negation-class walk (job magic ECCJOB04, job.reserved = 1).
+//
+// The walk runs on the classes {P, -P}. Every state holds the class
+// representative with the smaller y (as an unsigned integer) of y and -y: for
+// a prime field min(y, p - y), for a binary field min(y, x ^ y). A point with
+// y = -y is its own representative. The partition and the distinguished-point
+// predicate hash the representative's x||y, so both are functions of the
+// class. Whenever the computed point is not the representative, the point
+// is replaced by its negative and (a, b) are negated mod n, which keeps
+// R = aG + bQ exact for the stored representative.
+//
+// Fruitless 2-cycles (P -> Q = -(P + T_j) -> P when the sign flipped and the
+// partition of Q is j again; probability about 1/(2*32) per step) are handled
+// as in Bernstein-Lange-Schwabe 2011 and Bos-Kleinjung-Lenstra 2010:
+//  * look-ahead: when that cycle is about to form, the step from P is redone
+//    with the next jump index (up to NEG_LOOKAHEAD tries); the rule depends
+//    only on P, so walks that meet still merge;
+//  * periodic cycle check: every NEG_PERIOD steps the new class fingerprint
+//    is compared with the last NEG_WINDOW ones; on a repeat of length L the
+//    walk advances to the cycle member M with the smallest fingerprint and
+//    leaves it by adding c*G, where the small multiplier c in 1..65535 is
+//    derived from M's fingerprint, (a, b) -> (a + c, b). c*G is not in the
+//    span of the table jumps with small coefficients, so no later step can
+//    return into the cycle, and b is unchanged. The move depends only on the
+//    cycle, so every walk that enters the cycle leaves at the same point.
+//    (Escapes that add a table jump were tried and fail: they rejoin the
+//    cycle through short reflections, see below.) The cycle window lives in
+//    the call, not in the state: it restarts at every call.
+// All extra transitions count as steps, and the escape is attempted only when
+// it fits in the rest of the round, so an active lane advances by exactly
+// the requested number of steps.
+//
+// job.reserved selects the variant: 1 is the walk; 2 the same walk with no
+// cycle handling; 3 and 4 are earlier escape rules kept so the measurements in
+// verification/negation-walk-20261024 stay reproducible from this source:
+// 3 escapes by a table jump without the 2-cycle look-ahead (it undoes itself
+// about once in 64 escapes and then repeats forever), 4 by a table jump that
+// no cycle step can have used, with the look-ahead (it still rejoins the cycle
+// through three-step reflections, about once in several hundred cycles). The
+// engine's job parser accepts only 1.
+static ECC_CONST constexpr std::uint32_t NEG_LOOKAHEAD = 4;
+static ECC_CONST constexpr std::uint32_t NEG_WINDOW = 32;
+static ECC_CONST constexpr std::uint32_t NEG_PERIOD = 4;
+static ECC_CONST constexpr std::uint32_t NEG_ESCAPE_OFFSET = 16;
+
+#ifdef ECC_COUNT_OPS
+// Host-only operation counters for the measurement driver.
+inline thread_local std::uint64_t g_point_adds = 0, g_lookaheads = 0, g_escapes = 0;
+#endif
+
+HD inline UInt384 negated_y(ECC_IN(UInt384) x, ECC_IN(UInt384) y,
+                             const ECC_JOB Job& job) {
+    if (job.kind) return xor_value(x, y);
+    if (is_zero(y)) return y;
+    return subtract_raw(load(job.modulus), y);
+}
+HD inline bool is_class_representative(ECC_IN(UInt384) x, ECC_IN(UInt384) y,
+                                        const ECC_JOB Job& job) {
+    return compare(y, negated_y(x, y, job)) <= 0;
+}
+HD inline UInt384 negate_scalar(ECC_IN(UInt384) a, const ECC_JOB Job& job) {
+    return subtract_mod(small(0), a, load(job.n));
+}
+// Class fingerprint for the cycle window: 59 digest bits, then the partition
+// index in the low five bits, so a window entry also tells which jumps the
+// class's step may have used.
+HD inline std::uint64_t digest_fingerprint(const ECC_THREAD std::uint8_t digest[32]) {
+    std::uint64_t value = 0;
+    for (int i = 1; i <= 8; ++i) value = (value << 8) | digest[i];
+    return (value & ~std::uint64_t(31)) | std::uint64_t(digest[0] & 31U);
+}
+
+// Adds delta (a point with exponents da, db) to the state and keeps the class
+// representative, negating (a, b) with the point. Leaves the new point's digest
+// in digest when it is finite; flipped tells whether the sum was negated.
+HD inline int neg_apply(const ECC_JOB Job& job, ECC_THREAD State& state,
+                        ECC_IN(Point) delta, ECC_IN(UInt384) da, ECC_IN(UInt384) db,
+                        ECC_THREAD bool& flipped, std::uint8_t digest[32]) {
+    const Point current{state.x, state.y, state.infinity};
+    Point next{};
+#ifdef ECC_COUNT_OPS
+    ++g_point_adds;
+#endif
+    if (!point_add(current, delta, job, next)) return 1;
+    UInt384 a = add_mod(state.a, da, load(job.n));
+    UInt384 b = add_mod(state.b, db, load(job.n));
+    flipped = false;
+    if (!next.infinity) {
+        const UInt384 ny = negated_y(next.x, next.y, job);
+        if (compare(next.y, ny) > 0) {
+            next.y = ny;
+            a = negate_scalar(a, job);
+            b = negate_scalar(b, job);
+            flipped = true;
+        }
+        if (!point_digest(next.x, next.y, job, digest)) return 3;
+    }
+    state.x = next.x; state.y = next.y; state.infinity = next.infinity;
+    state.a = a; state.b = b;
+    ++state.steps;
+    return 0;
+}
+
+// One class transition. Tries jumps index, index+1, ... (at most attempts) and
+// keeps the first whose result does not close a 2-cycle (or the last one).
+// Leaves the new representative's digest in digest when it is finite.
+HD inline int neg_step(const ECC_JOB Job& job, ECC_THREAD State& state,
+                       std::uint32_t index, std::uint32_t attempts,
+                       std::uint8_t digest[32]) {
+    if (state.steps == UINT64_MAX) return 2;
+    const State before = state;
+    for (std::uint32_t k = 0; k < attempts; ++k) {
+        const std::uint32_t j = (index + k) & 31U;
+        const ECC_JOB Jump& jump = job.jumps[j];
+        const Point delta{load(jump.x), load(jump.y), 0};
+#ifdef ECC_COUNT_OPS
+        if (k) ++g_lookaheads;
+#endif
+        state = before;
+        bool flipped = false;
+        const int rc = neg_apply(job, state, delta, load(jump.da), load(jump.db), flipped, digest);
+        if (rc) return rc;
+        if (state.infinity || !flipped || (digest[0] & 31U) != j || k + 1 >= attempts) break;
+    }
+    return 0;
+}
+
+// The escape move c*G: c in 1..65535 from the cycle's smallest fingerprint.
+HD inline int neg_escape_small(const ECC_JOB Job& job, ECC_THREAD State& state,
+                               std::uint64_t smallest, std::uint8_t digest[32]) {
+    if (state.steps == UINT64_MAX) return 2;
+    const std::uint32_t c = 1U + std::uint32_t((smallest >> 5) % 65535U);
+    const Point g{load(job.gx), load(job.gy), 0};
+    Point multiple = identity();
+    for (int bit_index = 15; bit_index >= 0; --bit_index) {
+        Point doubled{};
+#ifdef ECC_COUNT_OPS
+        ++g_point_adds;
+#endif
+        if (!point_add(multiple, multiple, job, doubled)) return 1;
+        multiple = doubled;
+        if ((c >> bit_index) & 1U) {
+#ifdef ECC_COUNT_OPS
+            ++g_point_adds;
+#endif
+            if (!point_add(multiple, g, job, doubled)) return 1;
+            multiple = doubled;
+        }
+    }
+    // c < n whenever n > 2^16; reduce for the tiny orders used in self-tests.
+    UInt384 da = small(c);
+    const UInt384 order = load(job.n);
+    if (bit_length(order) <= 16) da = small(c % order.w[0]);
+    bool flipped = false;
+    return neg_apply(job, state, multiple, da, UInt384{}, flipped, digest);
+}
+
+HD inline int walk_lane_neg(const ECC_JOB Job& job, ECC_THREAD State& state,
+                            std::uint32_t steps) {
+    if (!state.active) return 0;
+    const std::uint32_t variant = job.reserved;
+    const bool handling = variant != 2U;
+    const std::uint32_t escape_attempts = variant == 3U ? 1U : NEG_LOOKAHEAD;
+    std::uint8_t digest[32]{};
+    std::uint32_t index = 0;
+    if (!state.infinity) {
+        if (!point_digest(state.x, state.y, job, digest)) return 3;
+        index = digest[0] & 31U;
+    }
+    std::uint64_t ring[NEG_WINDOW];
+    std::uint32_t pushed = 0, done = 0;
+    while (done < steps) {
+        int rc = neg_step(job, state, index, handling ? NEG_LOOKAHEAD : 1U, digest);
+        if (rc) return rc;
+        ++done;
+        if (state.infinity) { index = 0; pushed = 0; continue; }
+        if (digest_distinguished(digest, job.dp_bits)) {
+            state.active = 0;
+            return 0;
+        }
+        index = digest[0] & 31U;
+        if (!handling) continue;
+        const std::uint64_t fp = digest_fingerprint(digest);
+        if (pushed && done % NEG_PERIOD == 0) {
+            const std::uint32_t span = pushed < NEG_WINDOW ? pushed : NEG_WINDOW;
+            std::uint32_t length = 0;
+            for (std::uint32_t d = 1; d <= span; ++d)
+                if (ring[(pushed - d) % NEG_WINDOW] == fp) { length = d; break; }
+            if (length && steps - done >= length) {
+#ifdef ECC_COUNT_OPS
+                ++g_escapes;
+#endif
+                // The cycle is the last `length` pushed classes. Walk to its
+                // smallest fingerprint, then leave it by the escape move.
+                std::uint64_t smallest = fp;
+                for (std::uint32_t d = 1; d <= length; ++d) {
+                    const std::uint64_t v = ring[(pushed - d) % NEG_WINDOW];
+                    if (v < smallest) smallest = v;
+                }
+                std::uint64_t current = fp;
+                for (std::uint32_t hop = 0; current != smallest && hop + 1 < length; ++hop) {
+                    rc = neg_step(job, state, index, NEG_LOOKAHEAD, digest);
+                    if (rc) return rc;
+                    ++done;
+                    if (state.infinity) break;
+                    if (digest_distinguished(digest, job.dp_bits)) {
+                        state.active = 0;
+                        return 0;
+                    }
+                    index = digest[0] & 31U;
+                    current = digest_fingerprint(digest);
+                }
+                if (!state.infinity) {
+                    if (variant == 1U) {
+                        rc = neg_escape_small(job, state, smallest, digest);
+                    } else {
+                        std::uint32_t used = 0;
+                        for (std::uint32_t d = 1; d <= length; ++d) {
+                            const std::uint32_t member = std::uint32_t(ring[(pushed - d) % NEG_WINDOW] & 31U);
+                            for (std::uint32_t k = 0; k < NEG_LOOKAHEAD; ++k)
+                                used |= 1U << ((member + k) & 31U);
+                        }
+                        std::uint32_t escape = (index + NEG_ESCAPE_OFFSET) & 31U;
+                        for (std::uint32_t k = 0; k < 32U; ++k) {
+                            const std::uint32_t candidate = (escape + k) & 31U;
+                            if (!((used >> candidate) & 1U)) { escape = candidate; break; }
+                        }
+                        rc = neg_step(job, state, escape, escape_attempts, digest);
+                    }
+                    if (rc) return rc;
+                    ++done;
+                }
+                pushed = 0;
+                if (state.infinity) { index = 0; continue; }
+                if (digest_distinguished(digest, job.dp_bits)) {
+                    state.active = 0;
+                    return 0;
+                }
+                index = digest[0] & 31U;
+                ring[0] = digest_fingerprint(digest);
+                pushed = 1;
+                continue;
+            }
+        }
+        ring[pushed % NEG_WINDOW] = fp;
+        ++pushed;
+    }
+    return 0;
+}
+
+// Selects the walk from the job: 0 is the v2 adding walk, nonzero the
+// negation-class walk.
+HD inline int walk_lane_any(const ECC_JOB Job& job, ECC_THREAD State& state,
+                            std::uint32_t steps) {
+    return job.reserved ? walk_lane_neg(job, state, steps)
+                        : walk_lane(job, state, steps);
+}
 } // namespace ecc
 
 #endif // ECC_CORE_H

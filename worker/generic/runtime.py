@@ -88,7 +88,9 @@ class RoundResult:
 
 
 def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
-    """Encode the exact ECCJOB03 format consumed by engine.cu."""
+    """Encode the exact ECCJOB03 (v2 adding walk) or ECCJOB04 (negation-class
+    walk) format consumed by engine.cu. The two differ only in the magic and
+    the `reserved` header field, which selects the walk."""
     _unsigned(lanes, 32, "lanes")
     _unsigned(steps, 32, "steps")
     if not 1 <= lanes <= MAX_LANES or not 1 <= steps <= MAX_ROUND_STEPS:
@@ -101,8 +103,9 @@ def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
     if type(ns.dp_bits) is not int or not 1 <= ns.dp_bits <= 40:
         raise ValueError("DP bits must be between one and forty")
     encoded = bytearray(JOB_HEADER.pack(
-        b"ECCJOB03", int(instance.field_kind == "binary"), instance.bits,
-        instance.n.bit_length(), ns.dp_bits, lanes, steps, 32, 0,
+        b"ECCJOB04" if ns.negation else b"ECCJOB03",
+        int(instance.field_kind == "binary"), instance.bits,
+        instance.n.bit_length(), ns.dp_bits, lanes, steps, 32, int(ns.negation),
     ))
     for name, value in (
         ("modulus", instance.modulus), ("a", instance.a), ("b", instance.b),
@@ -210,6 +213,8 @@ def _check_state(ns: Namespace, state: NativeState) -> None:
         raise ValueError(
             "state is not a canonical point on the assigned curve"
         )
+    if ns.negation and ns.canonical_point(record.point)[1]:
+        raise ValueError("state is not the canonical class representative")
 
 
 def run_round(

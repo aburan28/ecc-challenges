@@ -27,17 +27,36 @@ MAX_DP_BITS = 34
 MAX_TRAIL_STEPS = 1 << 48
 PREFIX = struct.Struct("<QQ")
 
+# Walks. The v2 adding walk is the default and its records, namespaces and
+# manifests are unchanged. The negation-class walk is a separate namespace
+# family behind its own flag (MULTICURVE_NEGATION_ENABLED); see
+# docs/negation-walk.md. Its native parameters are pinned by the walk record.
+WALK_V2 = "certicom-affine-radding32-v2"
+WALK_NEGATION = "certicom-affine-negation-class32-v1"
+WALKS = (WALK_V2, WALK_NEGATION)
+NEGATION_PARAMETERS = {
+    "lookahead_attempts": 4,
+    "cycle_window": 32,
+    "cycle_check_period": 4,
+    "escape_multiplier_max": 65535,
+}
+
 
 def canonical(value: dict) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
 
 
-def expected_steps_log2(order: int) -> float:
+def expected_steps_log2(order: int, walk: str = WALK_V2) -> float:
+    """log2 of the expected steps to a collision: sqrt(pi*n/2) for the v2 walk
+    and sqrt(pi*n/4) for the negation-class walk, which searches n/2 classes
+    (before the small look-ahead and cycle-handling overhead)."""
+    if walk == WALK_NEGATION:
+        return (math.log2(order) + math.log2(math.pi / 4)) / 2
     return (math.log2(order) + math.log2(math.pi / 2)) / 2
 
 
-def dp_bits_for(order: int) -> int:
-    return max(1, min(MAX_DP_BITS, math.floor(expected_steps_log2(order)) - PLANNED_WALKS_BITS - 7))
+def dp_bits_for(order: int, walk: str = WALK_V2) -> int:
+    return max(1, min(MAX_DP_BITS, math.floor(expected_steps_log2(order, walk)) - PLANNED_WALKS_BITS - 7))
 
 
 def derive_scalar(domain: bytes, order: int, *, nonzero: bool = False) -> int:
@@ -63,10 +82,16 @@ class Record:
 
 
 class Namespace:
-    def __init__(self, campaign: str, dp_bits: int | None = None):
-        self.instance = get_instance(campaign)
+    def __init__(self, campaign: str, dp_bits: int | None = None,
+                 walk: str = WALK_V2, *, instance=None):
+        # `instance` lets tests and measurements build a namespace for a toy
+        # curve; the registry instance is used otherwise.
+        if walk not in WALKS:
+            raise ValueError("unknown walk")
+        self.instance = instance if instance is not None else get_instance(campaign)
+        self.negation = walk == WALK_NEGATION
         if dp_bits is None:
-            dp_bits = dp_bits_for(self.instance.n)
+            dp_bits = dp_bits_for(self.instance.n, walk)
         if type(dp_bits) is not int or not 1 <= dp_bits <= 40:
             raise ValueError("distinguished bits must be between 1 and 40")
         campaign = self.instance.id
@@ -83,17 +108,36 @@ class Namespace:
                 , self.instance.n, nonzero=True), 0)
             for i in range(32)
         )
-        self.walk = {
-            "id": "certicom-affine-radding32-v2",
-            "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
-            "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
-            "native_job": "ECCJOB03",
-            "dp_bits": dp_bits,
-            "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
-            "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
-            "automorphism_quotient": "none",
-            "max_trail_steps": MAX_TRAIL_STEPS,
-        }
+        if self.negation:
+            self.walk = {
+                "id": WALK_NEGATION,
+                "class_representative": "of {P,-P} the point with the smaller y as an unsigned integer (prime: min(y,p-y); binary: min(y,x^y)); y=-y is its own representative",
+                "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE of the class representative)-first-byte-low-5-bits; infinity-zero",
+                "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE of the class representative)-trailing-dp-bits-zero",
+                "coefficients": "R=aG+bQ for the stored representative; (a,b) negated mod n whenever the representative is the negative of the computed point",
+                "cycle_handling": {
+                    "technique": "2-cycle look-ahead plus periodic cycle check; a detected cycle is left from its smallest-fingerprint member by adding c*G with c = 1 + (fingerprint>>5) mod escape_multiplier_max, (a,b)->(a+c,b), a deterministic function of the cycle (Bernstein-Lange-Schwabe 2011; Bos-Kleinjung-Lenstra 2010)",
+                    **NEGATION_PARAMETERS,
+                },
+                "native_job": "ECCJOB04",
+                "dp_bits": dp_bits,
+                "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
+                "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
+                "automorphism_quotient": "negation",
+                "max_trail_steps": MAX_TRAIL_STEPS,
+            }
+        else:
+            self.walk = {
+                "id": WALK_V2,
+                "partition": "sha256(x-field-bytes-BE||y-field-bytes-BE)-first-byte-low-5-bits; infinity-zero",
+                "distinguished": "finite-sha256(x-field-bytes-BE||y-field-bytes-BE)-trailing-dp-bits-zero",
+                "native_job": "ECCJOB03",
+                "dp_bits": dp_bits,
+                "seed_derivation": "shake256-full-width-rejection-domain-run-uuid-trail-counter-v1",
+                "jump_coefficients": [[hex(a), hex(b)] for a, b in self.coefficients],
+                "automorphism_quotient": "none",
+                "max_trail_steps": MAX_TRAIL_STEPS,
+            }
         self.binding = {
             "protocol": 2, "campaign": campaign,
             "instance_sha256": self.instance.instance_sha256,
@@ -117,7 +161,31 @@ class Namespace:
         return record.a.to_bytes(self.scalar_bytes, "big") + record.b.to_bytes(self.scalar_bytes, "big")
 
     def selector(self, point: tuple[int, int]) -> bytes:
+        if self.negation:
+            # The digest of the class, whichever of P and -P is passed.
+            point = self.canonical_point(point)[0]
         return hashlib.sha256(b"".join(v.to_bytes(self.field_bytes, "big") for v in point)).digest()
+
+    def negated_point(self, point):
+        """-P for an affine point (None is its own negative)."""
+        return self.instance.neg(point)
+
+    def canonical_point(self, point):
+        """(class representative, negated) for the negation-class walk.
+
+        The representative is the one of P and -P with the smaller y as an
+        unsigned integer; a point with y = -y is its own representative.
+        """
+        if point is None:
+            return None, False
+        negative = self.instance.neg(point)
+        if negative[1] < point[1]:
+            return negative, True
+        return tuple(point), False
+
+    def negate_coefficients(self, a: int, b: int) -> tuple[int, int]:
+        n = self.instance.n
+        return (-a) % n, (-b) % n
 
     def partition(self, point: tuple[int, int] | None) -> int:
         return 0 if point is None else self.selector(point)[0] & 31
@@ -141,6 +209,8 @@ class Namespace:
         if (type(record.a) is not int or type(record.b) is not int
                 or not 0 <= record.a < self.instance.n or not 0 <= record.b < self.instance.n):
             raise ValueError("noncanonical subgroup coefficient")
+        if self.negation and self.canonical_point(record.point)[1]:
+            raise ValueError("point is not the canonical class representative")
         if not self.distinguished(record.point):
             raise ValueError("point does not satisfy the namespace DP predicate")
 
@@ -185,6 +255,12 @@ class Namespace:
             b = derive_scalar(seed + b"b", self.instance.n, nonzero=True)
             point = self.instance.mul2(a, b)
             if point is not None:
+                if self.negation:
+                    # A trail starts on its class representative, with (a, b)
+                    # negated along with the point.
+                    point, negated = self.canonical_point(point)
+                    if negated:
+                        a, b = self.negate_coefficients(a, b)
                 # Starts are not DP records: steps=0 and no DP requirement.
                 return Record(trail_id, 0, point, a, b)
         raise RuntimeError("unable to derive a finite trail start")
@@ -193,17 +269,74 @@ class Namespace:
         """Jumps add only multiples of G, so b is fixed for a whole trail: a DP
         must carry the b of the start this run's trail ID derives."""
         seed = self._start_seed(run_id, record.trail_id, 0)
-        if record.b == derive_scalar(seed + b"b", self.instance.n, nonzero=True):
+        start_b = derive_scalar(seed + b"b", self.instance.n, nonzero=True)
+        # The negation-class walk negates (a, b) with the point, so a trail's
+        # b is the start's b or its negative; no other value is reachable.
+        allowed = (start_b, -start_b % self.instance.n) if self.negation else (start_b,)
+        if record.b in allowed:
             return
         # Counter 0 yields the point at infinity with probability ~1/n; only
         # then does the start use a later counter.
-        if record.b != self.start(run_id, record.trail_id).b:
+        later = self.start(run_id, record.trail_id).b
+        if record.b not in ((later, -later % self.instance.n) if self.negation else (later,)):
             raise ValueError("DP b does not match its trail start")
+
+    def _solve(self, sign: int, pairs):
+        """d from two coefficient pairs under R1 = sign * R2; accepted only if dG = Q.
+
+        sign +1: a1 + b1 d = a2 + b2 d, so d = (a1-a2)/(b2-b1).
+        sign -1: a1 + b1 d = -(a2 + b2 d), so d = -(a1+a2)/(b1+b2).
+        Returns (state, reason, scalar).
+        """
+        n = self.instance.n
+        (a1, b1), (a2, b2) = pairs
+        if sign == 1:
+            numerator, denominator = (a1 - a2) % n, (b2 - b1) % n
+        else:
+            numerator, denominator = (-(a1 + a2)) % n, (b1 + b2) % n
+        if not denominator:
+            return "degenerate", "coefficient difference has zero target denominator", None
+        try:
+            value = numerator * pow(denominator, -1, n) % n
+        except ValueError:
+            return "degenerate", "coefficient difference has a noninvertible denominator", None
+        if self.instance.mul(value, self.instance.G) == self.instance.Q:
+            return "verified", "recovered scalar independently satisfies dG = Q", value
+        return "rejected", "recovered scalar does not satisfy dG = Q", None
+
+    def solve_collision(self, point, pairs):
+        """Solve the target from two coefficient pairs of one stored point.
+
+        Returns (state, reason, scalar, sign) with sign +1: both pairs satisfy
+        R = aG + bQ for the same point, so d = (a1-a2)/(b2-b1). This is the
+        server path for both walks: the negation-class walk stores class
+        representatives, so records of one class are equal points.
+        """
+        return (*self._solve(1, pairs), 1)
+
+    def solve_class_collision(self, first, second):
+        """Solve from two records (point, a, b) whose points are R1 = +-R2.
+
+        R1 = R2 gives d = (a1-a2)/(b2-b1); for the negation-class walk R1 = -R2
+        gives d = -(a1+a2)/(b1+b2). The sign is read off the points and the
+        candidate is accepted only if dG = Q, so a wrong sign cannot be
+        returned as a solution. Raises ValueError unless the points are equal
+        or, for the negation-class walk, negatives of each other. Returns
+        (state, reason, scalar, sign).
+        """
+        (r1, a1, b1), (r2, a2, b2) = first, second
+        if r1 == r2:
+            sign = 1
+        elif self.negation and r1 == self.negated_point(r2):
+            sign = -1
+        else:
+            raise ValueError("points are not in one negation class" if self.negation else "points differ")
+        return (*self._solve(sign, ((a1, b1), (a2, b2))), sign)
 
 
 @lru_cache(maxsize=96)
-def namespace(campaign: str, dp_bits: int | None = None) -> Namespace:
-    return Namespace(campaign, dp_bits)
+def namespace(campaign: str, dp_bits: int | None = None, walk: str = WALK_V2) -> Namespace:
+    return Namespace(campaign, dp_bits, walk)
 
 
 def pinned_namespace(campaign: str, manifest: dict) -> Namespace:
@@ -213,4 +346,8 @@ def pinned_namespace(campaign: str, manifest: dict) -> Namespace:
     dp_bits = walk.get("dp_bits") if isinstance(walk, dict) else None
     if type(dp_bits) is not int:
         raise ValueError("pinned manifest has no DP bit count")
-    return namespace(campaign, dp_bits)
+    walk_id = walk.get("id", WALK_V2)
+    if walk_id not in WALKS:
+        raise ValueError("pinned manifest names an unknown walk")
+    # The v2 call is unchanged so its cache entries and identities are shared.
+    return namespace(campaign, dp_bits) if walk_id == WALK_V2 else namespace(campaign, dp_bits, walk_id)

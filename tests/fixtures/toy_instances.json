@@ -1,0 +1,142 @@
+[
+ {
+  "id": "toy-prime-24-0",
+  "field_kind": "prime",
+  "bits": 24,
+  "modulus": "0x842f4b",
+  "a": "0x130a13",
+  "b": "0x1dfdb8",
+  "n": "0x84220f",
+  "h": 1,
+  "G": [
+   "0x25cb3",
+   "0x72290b"
+  ],
+  "Q": [
+   "0x431207",
+   "0x824466"
+  ],
+  "planted_d": "0x368c84",
+  "group_order": 8659471
+ },
+ {
+  "id": "toy-prime-28-1",
+  "field_kind": "prime",
+  "bits": 28,
+  "modulus": "0xc164da3",
+  "a": "0x515bb75",
+  "b": "0x9cc1e4b",
+  "n": "0xc16621d",
+  "h": 1,
+  "G": [
+   "0x1cce34f",
+   "0x9cba1c3"
+  ],
+  "Q": [
+   "0x7a6da3c",
+   "0x34f00b2"
+  ],
+  "planted_d": "0x8c122e5",
+  "group_order": 202793501
+ },
+ {
+  "id": "toy-prime-31-2",
+  "field_kind": "prime",
+  "bits": 32,
+  "modulus": "0xe99ed653",
+  "a": "0xc6f94c78",
+  "b": "0x94d20289",
+  "n": "0x74cfd7eb",
+  "h": 2,
+  "G": [
+   "0xaa3be636",
+   "0xae019914"
+  ],
+  "Q": [
+   "0x8bf1b904",
+   "0x9f0d35b0"
+  ],
+  "planted_d": "0x4b989c78",
+  "group_order": 3919556566
+ },
+ {
+  "id": "toy-prime-35-3",
+  "field_kind": "prime",
+  "bits": 36,
+  "modulus": "0xb81a3860b",
+  "a": "0x34c7b2767",
+  "b": "0x6eb537a4c",
+  "n": "0x5c0d2bd93",
+  "h": 2,
+  "G": [
+   "0x963d882ec",
+   "0x4207eac"
+  ],
+  "Q": [
+   "0x647b42dff",
+   "0x25371be72"
+  ],
+  "planted_d": "0x4b4697daa",
+  "group_order": 49419746086
+ },
+ {
+  "id": "toy-binary-25-0",
+  "field_kind": "binary",
+  "bits": 25,
+  "modulus": "0x2000009",
+  "a": "0x1",
+  "b": "0x505f3",
+  "n": "0x100088f",
+  "h": 2,
+  "G": [
+   "0x29b66f",
+   "0x186247f"
+  ],
+  "Q": [
+   "0x1bcd345",
+   "0xddf26e"
+  ],
+  "planted_d": "0xec5807",
+  "group_order": 33558814
+ },
+ {
+  "id": "toy-binary-28-1",
+  "field_kind": "binary",
+  "bits": 29,
+  "modulus": "0x20000005",
+  "a": "0x0",
+  "b": "0x1a52c2f",
+  "n": "0x8000551",
+  "h": 4,
+  "G": [
+   "0xb3c7ee",
+   "0xede9240"
+  ],
+  "Q": [
+   "0x1526ea66",
+   "0x1661d987"
+  ],
+  "planted_d": "0x410abc3",
+  "group_order": 536876356
+ },
+ {
+  "id": "toy-binary-33-2",
+  "field_kind": "binary",
+  "bits": 33,
+  "modulus": "0x200000401",
+  "a": "0x1",
+  "b": "0xf9cde311",
+  "n": "0x10000480d",
+  "h": 2,
+  "G": [
+   "0x14801282f",
+   "0x3131984"
+  ],
+  "Q": [
+   "0xe9663b0f",
+   "0x1a877ab58"
+  ],
+  "planted_d": "0x20acabb7",
+  "group_order": 8589971482
+ }
+]

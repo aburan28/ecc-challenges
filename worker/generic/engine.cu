@@ -41,7 +41,7 @@ std::string metal_source();
 __global__ void walk_kernel(const Job* job, State* states, int* errors) {
     const std::uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < job->lanes)
-        errors[index] = walk_lane(*job, states[index], job->steps_per_round);
+        errors[index] = walk_lane_any(*job, states[index], job->steps_per_round);
 }
 #endif
 
@@ -105,7 +105,10 @@ void validate_point(const Point& point, const Job& job,
 Job load_job(const std::string& path) {
     const auto bytes = read_file(path, JOB_BYTES);
     require(bytes.size() == JOB_BYTES, "job must contain exactly 6568 bytes");
-    require(std::memcmp(bytes.data(), "ECCJOB03", 8) == 0, "invalid job magic");
+    // ECCJOB03 is the v2 adding walk; ECCJOB04 selects the negation-class walk.
+    const bool negation = std::memcmp(bytes.data(), "ECCJOB04", 8) == 0;
+    require(negation || std::memcmp(bytes.data(), "ECCJOB03", 8) == 0,
+            "invalid job magic");
     Reader r{bytes, 8}; Job job{};
     job.kind = r.u32(); job.field_bits = r.u32(); job.scalar_bits = r.u32();
     job.dp_bits = r.u32(); job.lanes = r.u32(); job.steps_per_round = r.u32();
@@ -119,7 +122,7 @@ Job load_job(const std::string& path) {
     require(job.lanes >= 1 && job.lanes <= MAX_LANES, "lanes must be 1..4096");
     require(job.steps_per_round >= 1 && job.steps_per_round <= MAX_ROUND_STEPS,
             "steps_per_round must be 1..1048576");
-    require(job.table_size == 32 && job.reserved == 0,
+    require(job.table_size == 32 && job.reserved == (negation ? 1U : 0U),
             "unsupported table size or reserved field");
     job.modulus = r.integer(); job.a = r.integer(); job.b = r.integer();
     job.n = r.integer(); job.gx = r.integer(); job.gy = r.integer();
@@ -173,6 +176,10 @@ std::vector<State> load_states(const std::string& path, const Job& job) {
                 "noncanonical scalar in state " + std::to_string(i));
         validate_point(Point{s.x, s.y, s.infinity}, job,
                        "state " + std::to_string(i));
+        if (job.reserved && !s.infinity)
+            require(is_class_representative(s.x, s.y, job),
+                    "state " + std::to_string(i) +
+                    ": not the canonical class representative");
     }
     return states;
 }
@@ -401,6 +408,25 @@ void self_test() {
             }
         }
     }
+    // Negation classes: exactly one of P and -P is the representative.
+    for (int field = 0; field < 2; ++field) {
+        const Job& group = field ? binary : curve;
+        for (std::uint32_t x = 0; x < 17; ++x)
+            for (std::uint32_t y = 0; y < 17; ++y) {
+                const Point p{small(x), small(y), 0};
+                if (!on_curve(p, group)) continue;
+                Point n = p;
+                n.y = negated_y(p.x, p.y, group);
+                require(on_curve(n, group), "negative stays on the curve");
+                require(equal(negated_y(n.x, n.y, group), p.y),
+                        "negation is an involution");
+                const bool self_inverse = equal(p.y, n.y);
+                require(self_inverse ||
+                        is_class_representative(p.x, p.y, group) !=
+                        is_class_representative(n.x, n.y, group),
+                        "exactly one representative per negation class");
+            }
+    }
     std::cout << "{\"self_test\":\"passed\",\"wide_modulus_bits\":127,"
                  "\"prime_control_order\":19,\"binary_field_bits\":4}\n";
 }
@@ -428,12 +454,12 @@ void run_cpu(const Job& job, std::vector<State>& states,
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
     for (int i = 0; i < lanes; ++i)
-        errors[i] = walk_lane(job, states[i], job.steps_per_round);
+        errors[i] = walk_lane_any(job, states[i], job.steps_per_round);
 #else
     std::atomic<int> next{0};
     auto worker = [&]() {
         for (int i = next++; i < lanes; i = next++)
-            errors[i] = walk_lane(job, states[i], job.steps_per_round);
+            errors[i] = walk_lane_any(job, states[i], job.steps_per_round);
     };
     const unsigned wanted = std::min(cpu_threads(), unsigned(lanes));
     std::vector<std::thread> pool;

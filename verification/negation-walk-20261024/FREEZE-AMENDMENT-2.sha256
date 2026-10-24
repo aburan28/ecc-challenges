@@ -1,0 +1,13 @@
+eb72caa813708960f2af24cf78a1b0fb1ca477b152a6aeb6d91656dbe52d94c6  verification/negation-walk-20261024/PROTOCOL-AMENDMENT-2.md
+4c736402e5f68f42d311e3c8c848a2d412cff566156ac26bce67ffa6178956d2  verification/negation-walk-20261024/results/reproduction_gate.json
+34903e495f1cbc8b48219c0b3fd0184f6445156efad5df68dde4f577b72cf32d  worker/generic/ec_core.h
+725372a5d739861794c522d9936e7d309b24c0cc483cecb67b8fc5ffff24974c  worker/generic/solve_bench.cpp
+3a48cf6b0d9d612aca0f4108b3c25ab950b022d2fefd93f471871752719f433c  worker/generic/engine.cu
+ec77865d42df98e7930786453e4e4a1144c56ebd2f31ec7071aac3cef897cb2c  src/ecc_challenges/multicurve/negation_walk.py
+9201c002fa3437f89b090823f69318edc4b16cf981127dcf4a7b4d2559aaa334  src/ecc_challenges/multicurve/codec.py
+36d60ec7c4a794151dc5ddcb4d960bec83ec6234e3f3fce6ba71722f40bef428  verification/negation-walk-20261024/run_study.py
+7e5b047d23b5f8ebb8242a5c3a54526cf47c967cdd026a3af243616a662c51cc  verification/negation-walk-20261024/analyze.py
+427ca47c26de39ccc823ad88157fdbd5a877fea29587dbefce3016c24362476f  verification/negation-walk-20261024/reproduction_gate.py
+Sat Oct 24 07:03:17 UTC 2026
+7e3fb21ce791063cf25ccce426cd01a68858069073f57a9c7fa4a42b4f0f3fa1  verification/negation-walk-20261024/run_study.py
+run_study.py changed above at Sat Oct 24 07:46:43 UTC 2026: rate and longtrail steps argument made per lane, as PROTOCOL.md says
