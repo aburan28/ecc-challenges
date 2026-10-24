@@ -83,6 +83,57 @@ def extract_controls(destination: Path) -> dict:
             "receipt_sha256": receipt, "campaigns": len(campaigns)}
 
 
+def expected_cases(controls: Path) -> dict[tuple[str, str], dict]:
+    expected = {}
+    for campaign in sorted(p for p in controls.iterdir() if p.is_dir()):
+        for case in sorted(p for p in campaign.iterdir() if p.is_dir() and p.name.endswith("-cpu")):
+            job, incoming = (case / "job.bin").read_bytes(), (case / "in.bin").read_bytes()
+            output, points = case / "out.bin", case / "dp.bin"
+            success = output.is_file()
+            if success != points.is_file():
+                raise ValueError("incomplete CPU control output")
+            if case.name == "mixed-dp1-cpu" and (not success or not points.read_bytes()):
+                raise ValueError("missing positive distinguished-point control")
+            expected[(campaign.name, case.name)] = {
+                "input_sha256": hashlib.sha256(job + incoming).hexdigest(),
+                "state_sha256": sha(output) if success else None,
+                "dp_sha256": sha(points) if success else None,
+                "success": success,
+            }
+    if len(expected) != 168:
+        raise ValueError("expected 168 CPU control cases")
+    return expected
+
+
+def verify_receipt(receipt: dict | None, cases: dict[tuple[str, str], dict],
+                   source_hashes: dict[str, str], code: int | None) -> bool:
+    if not receipt or code != 0 or receipt.get("campaigns") != 24 or receipt.get("checks") != 168:
+        return False
+    if "L4" not in str(receipt.get("device", "")) or not re.fullmatch(
+            r"[0-9a-f]{64}", str(receipt.get("engine_binary_sha256", ""))):
+        return False
+    if any(receipt.get(name) != digest for name, digest in source_hashes.items()):
+        return False
+    rows = receipt.get("rows")
+    if not isinstance(rows, list) or len(rows) != len(cases):
+        return False
+    seen: set[tuple[str, str]] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            return False
+        identity = (row.get("campaign"), row.get("case"))
+        if identity not in cases or identity in seen:
+            return False
+        seen.add(identity)
+        expected = cases[identity]
+        if any(row.get(name) != expected[name]
+               for name in ("input_sha256", "state_sha256", "dp_sha256")):
+            return False
+        if (row.get("returncode") == 0) != expected["success"]:
+            return False
+    return seen == set(cases) and set(CURVES).issubset({name for name, _ in seen})
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", required=True, type=Path)
@@ -98,6 +149,7 @@ def main() -> None:
         controls = Path(scratch) / "controls"
         controls.mkdir(mode=0o700)
         archive = extract_controls(controls)
+        cases = expected_cases(controls)
         plan = {"format": "rho131-current-head-l4-control-plan-v1",
                 "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"],
                                                          cwd=ROOT, text=True).strip(),
@@ -126,14 +178,7 @@ def main() -> None:
         if receipt_path.exists():
             shutil.copyfile(receipt_path, args.out / "cuda-receipt.json")
             receipt = json.loads(receipt_path.read_text())
-        rows = receipt.get("rows", []) if receipt else []
-        valid = bool(
-            code == 0 and receipt and receipt.get("campaigns") == 24 and
-            receipt.get("checks") == 168 and "L4" in receipt.get("device", "") and
-            set(CURVES).issubset({row.get("campaign") for row in rows}) and
-            all(receipt.get(name) == digest for name, digest in plan["source_sha256"].items()) and
-            re.fullmatch(r"[0-9a-f]{64}", receipt.get("engine_binary_sha256", ""))
-        )
+        valid = verify_receipt(receipt, cases, plan["source_sha256"], code)
         result = {"format": "rho131-current-head-l4-control-result-v1", "ok": valid,
                   "modal_returncode": code, "receipt": "cuda-receipt.json" if receipt else None,
                   "stdout_sha256": hashlib.sha256(stdout).hexdigest(),

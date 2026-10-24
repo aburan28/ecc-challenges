@@ -39,6 +39,7 @@ manifest. The raw source archives remain local and were not published.
 | `local/matched-metal-selective-sandbox-unavailable.log` | First candidate timing attempt could not access a Metal device under the default shell sandbox; it produced no performance result. |
 | `canary-plan-published/plan.json` | Dry run for nine sequential L4 canaries against the still-published immutable image. No contributor key was used. |
 | `cuda-head-plan/plan.json` | Key-free dry run that checked the archived all-curve controls and bound the current CUDA source hashes. |
+| `cuda-head-plan/validator-controls.json` | Local receipt-validator control accepted a complete synthetic 168-case receipt and rejected one altered input digest and one duplicate case. This is not a CUDA execution result. |
 | `gates.svg`, `report.typ`, `report.pdf` | Editable gate diagram and one-page visual report. |
 
 The current-head [Worker platforms run](https://github.com/aburan28/ecc-challenges/actions/runs/40066130516)
@@ -73,8 +74,8 @@ python3 verification/rho131-nine-curve-20261023/run_cuda_head.py \
 ```
 
 This key-free L4 gate compiles the current source, replays all 168 archived
-controls, and checks that the returned engine and four source hashes match the
-local inputs. It needs a newly rotated Modal token configured outside the
+controls, and checks every returned input and output digest against the
+archived CPU controls, plus the engine and four source hashes. It needs a newly rotated Modal token configured outside the
 repository. The dry-run command without `--apply` verifies the archive and
 produces a plan without contacting Modal.
 
