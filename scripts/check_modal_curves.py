@@ -50,6 +50,8 @@ def verify():
     return {"format": "cuda-native-correctness-v1", "device": device,
             "engine_source_sha256": hashlib.sha256(Path('/src/engine.cu').read_bytes()).hexdigest(),
             "core_source_sha256": hashlib.sha256(Path('/src/ec_core.h').read_bytes()).hexdigest(),
+            "fast131_source_sha256": hashlib.sha256(Path('/src/fast131.h').read_bytes()).hexdigest(),
+            "fast131_host_source_sha256": hashlib.sha256(Path('/src/fast131_host.h').read_bytes()).hexdigest(),
             "engine_binary_sha256": hashlib.sha256(Path('/src/engine').read_bytes()).hexdigest(),
             "campaigns": len({r['campaign'] for r in rows}), "checks": len(rows), "rows": rows}
 

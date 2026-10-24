@@ -1,0 +1,9 @@
+{
+  "archive": "native-controls-all24.tar.zst",
+  "files": 1969,
+  "format": "raw-native-controls-archive-v1",
+  "receipt_sha256": "4e8fd5dc70bff0d255d63796e0925c191e22304131336fe9af0b38386f0a9fea",
+  "sha256": "123559357af6495961de5951a078b2790dafc47f21b4356c0454753c76752355",
+  "tar_headers": "normalized for public archive",
+  "uncompressed_bytes": 3526878
+}
