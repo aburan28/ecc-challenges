@@ -78,6 +78,7 @@ def main() -> None:
         if destination.exists():
             receipt = json.loads(destination.read_text())
             row["ok"] = bool(receipt.get("ok"))
+            row["closure_verified"] = bool(receipt.get("closure_verified"))
             row["run_id"] = (receipt.get("result") or {}).get("run_id")
             row["indexed_records"] = (receipt.get("result") or {}).get("production_records_indexed")
         rows.append(row)

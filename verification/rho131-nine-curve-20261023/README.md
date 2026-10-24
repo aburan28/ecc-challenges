@@ -44,7 +44,8 @@ The current-head [Worker platforms run](https://github.com/aburan28/ecc-challeng
 reported an off-curve ECCp-131 walk-4 state on the hosted macOS x86_64
 Apple Paravirtual Metal device in job 120789662742. Its initial 79 other
 worker tests passed. A diagnostic retry of that job was requested to test
-repeatability; it does not make the original failure disappear. The
+repeatability. The retry (job 120796467229) failed the same walk-4 case
+with the same off-curve state after five steps. The
 selective split-product path is a hypothesis about the cause, not an
 established explanation. Hosted CI must exercise the candidate before the
 patch can be called a fix.

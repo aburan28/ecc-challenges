@@ -1,5 +1,5 @@
-#set page(paper: "a4", margin: 20mm)
-#set text(font: "Arial", size: 10pt)
+#set page(paper: "a4", margin: 18mm)
+#set text(font: "Arial", size: 9.5pt)
 #set heading(numbering: none)
 
 = Rho131 current-head and nine-curve validation
@@ -31,8 +31,9 @@ error; the corrected image has not been published.
 The current-head GitHub worker-platform run reported one failing case:
 ECCp-131 walk 4 on the macOS x86_64 Apple Paravirtual Metal device produced
 an off-curve state at five steps. The same targeted case passed with an
-x86_64 process under Rosetta on the local M4 Pro. That distinguishes the two
-observed devices but does not establish the cause. A 32-bit-only Metal
+x86_64 process under Rosetta on the local M4 Pro. A diagnostic rerun on the
+hosted Apple Paravirtual device failed with the same case and state. That
+distinguishes the two observed devices but does not establish the cause. A 32-bit-only Metal
 multiplication path and a repeated parity control are under validation.
 The candidate passed the repeated case on the local M4 Pro and a packaged
 amd64 CPU self-check with 168 controls. Hosted Apple Paravirtual and L4 CUDA

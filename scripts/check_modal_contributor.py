@@ -104,6 +104,10 @@ if os.getuid()==0:
         result=json.loads(body)
         receipt.update(result=result,sandbox_exit_code=sandbox.poll(),
                        sandbox_stderr=stderr.replace(key,'[redacted]'))
+        closure=result.get('closure') or {}
+        receipt['closure_verified']=(closure.get('run_id')==result.get('run_id') and
+                                     closure.get('namespace_id')==result.get('namespace_id') and
+                                     bool(closure.get('closed_at')))
         deadline=time.monotonic()+30
         while True:
             try:
@@ -114,7 +118,8 @@ if os.getuid()==0:
             if time.monotonic()>deadline:raise ValueError('persistent volume commit deadline')
             time.sleep(1)
         receipt.update(persisted_checkpoint_sha256=hashlib.sha256(persisted).hexdigest(),persisted_checkpoint_matches=True,
-                       ok=bool(result.get('ok') and sandbox.poll()==0 and result.get('uid')==result.get('gid')==10001))
+                       ok=bool(result.get('ok') and receipt['closure_verified'] and sandbox.poll()==0 and
+                               result.get('uid')==result.get('gid')==10001))
     except Exception as error:
         receipt.update(ok=False,error_type=type(error).__name__)
         if sandbox:
