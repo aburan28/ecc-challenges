@@ -1,10 +1,10 @@
-#set page(paper: "a4", margin: 18mm)
-#set text(font: "Arial", size: 9.5pt)
+#set page(paper: "a4", margin: 14mm)
+#set text(font: "Arial", size: 9pt)
 #set heading(numbering: none)
 
 = Rho131 current-head and nine-curve validation
 
-Snapshot: 2026-10-23. Base source commit
+Snapshot: 2026-10-24. Base source commit
 `b78fc2921e9b9a60174e1693aff15c7daf23f9c7`. The public catalog
 currently pins `sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba`;
 that image predates this base commit. The report is an execution snapshot, not
@@ -34,10 +34,24 @@ an off-curve state at five steps. The same targeted case passed with an
 x86_64 process under Rosetta on the local M4 Pro. A diagnostic rerun on the
 hosted Apple Paravirtual device failed with the same case and state. That
 distinguishes the two observed devices but does not establish the cause. A 32-bit-only Metal
-multiplication path and a repeated parity control are under validation.
-The candidate passed the repeated case on the local M4 Pro and a packaged
-amd64 CPU self-check with 168 controls. Hosted Apple Paravirtual and L4 CUDA
-correctness remain to be checked.
+multiplication path and a repeated parity control were then tested on hosted
+Apple Paravirtual in PR #55, run 40070444197. The same invalid five-step state
+recurred; the split product did not repair the failure. PR #57 changes the
+prime GPU limb carry and borrow operations to 32-bit arithmetic. Its local
+boundary tests and CPU controls passed, while hosted Apple Paravirtual CI
+remains pending. The cause has not been established.
+
+== L4 CUDA control on the repair commit
+
+Commit `e77c24294aaac8a70bddbb219a6a572650e5fdfc` ran the key-free
+current-source L4 control against the archived CPU inputs. The NVIDIA L4
+engine binary SHA-256 was
+`2ec2935e3aac237986711387371eb4d5c09225757a41220a8751bec4c2cbd871`.
+The verifier checked all 168 returned case hashes across all 24 curves,
+including the nine requested binary curves, against the archive; 168 passed.
+The source, inputs, binary, device and per-case hashes are in
+`l4-control-e77c242/`. This establishes bounded CUDA byte parity; it does not
+measure sustained worker rate or gateway/verifier cost.
 
 == Exploratory matched invocation timing
 
@@ -53,10 +67,9 @@ useful-step equality. Its Apple Paravirtual variant remains unmeasured.
 
 == Open gates
 
-Current-head hosted CI and L4 CUDA parity remain open; a key-free 168-case L4
-launcher is prepared. The
-authenticated nine-curve canary needs a newly rotated provider token and a
-fresh dedicated contributor key stored in a local mode-0600 file. Its planned
+PR #57 hosted Apple Paravirtual CI remains open. The authenticated nine-curve
+canary needs the fresh dedicated contributor key stored in a local mode-0600
+file. Its planned
 launcher uses one L4 sandbox at a time, a fresh volume per curve, immutable
 image identity, authenticated per-run status, checkpoint restart, accepted
 records, index completion and closure. A no-point attempt is retained as a
