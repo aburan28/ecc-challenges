@@ -25,6 +25,7 @@
       <div class="stat"><dt>Last successful check</dt><dd style="font-size:1.25rem">{{ run.last_checked_at|ago }}</dd></div>
     </dl>
     <p class="note">Waiting age does not by itself indicate a stalled verifier. Upload attempts rejected before storage are not included in the batch history.</p>
+    {% if run.unresolved %}<p class="pending">{{ run.unresolved }} batch{{ '' if run.unresolved == 1 else 'es' }} unresolved after a replay timeout or error. These batches are archived but not indexed, and are not queued for automatic retry. Operator review is needed; keep the worker's state directory.</p>{% endif %}
     {% if run.failed %}<p class="pending">Keep the state directory and run ID. Review the worker logs and <a href="/help">get help</a> before starting a replacement run.</p>{% endif %}
     <h3>Latest 20 submissions</h3>
     <div class="table-wrap"><table>

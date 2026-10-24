@@ -1,0 +1,169 @@
+{
+  "as_of": "2026-10-24T02:30:53.305562+00:00",
+  "public": [
+    {
+      "path": "/",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/status",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/eccp-79",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/pollard-rho",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 320,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/status",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/eccp-79",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/pollard-rho",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 390,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/status",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/challenges/eccp-79",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/pollard-rho",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 1440,
+      "status": 200,
+      "overflow": false
+    }
+  ],
+  "local": [
+    {
+      "path": "/dashboard?campaign=eccp-131",
+      "width": 320,
+      "status": 200
+    },
+    {
+      "path": "/dashboard/workers/v1/50000",
+      "width": 320,
+      "status": 200
+    },
+    {
+      "path": "/dashboard?campaign=eccp-131",
+      "width": 390,
+      "status": 200
+    },
+    {
+      "path": "/dashboard/workers/v1/50000",
+      "width": 390,
+      "status": 200
+    },
+    {
+      "path": "/dashboard?campaign=eccp-131",
+      "width": 1440,
+      "status": 200
+    },
+    {
+      "path": "/dashboard/workers/v1/50000",
+      "width": 1440,
+      "status": 200
+    }
+  ],
+  "public_catalog_routes": 24,
+  "public_result_routes": 10,
+  "public_manual_refresh": "passed",
+  "local_key_creation_refresh": "passed; selected campaign, secret and form input preserved",
+  "local_refresh_failure_recovery": "passed",
+  "javascript_errors": []
+}
