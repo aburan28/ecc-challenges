@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException
 
@@ -14,6 +14,12 @@ DOCUMENTS = json.loads((Path(__file__).parent / "site_docs.json").read_text())
 def create_pages_router(templates: Jinja2Templates) -> APIRouter:
     router = APIRouter()
     headers = {"Cache-Control": "private, max-age=300"}
+
+    @router.get("/skill.md", response_class=PlainTextResponse)
+    async def contributor_skill():
+        return PlainTextResponse(DOCUMENTS["agents"]["skill_markdown"],
+                                 media_type="text/markdown",
+                                 headers={"Cache-Control": "public, max-age=300"})
 
     @router.get("/docs", response_class=HTMLResponse)
     async def documentation_index(request: Request):

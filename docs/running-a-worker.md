@@ -24,6 +24,10 @@ that matches what you have:
 
 ## Quickest start
 
+If a coding agent is helping you, use [agent setup](agents.md) and give it
+the [worker skill](https://ecc-challenges.com/skill.md). It covers machine
+selection, private key entry, persistent state and checking worker health.
+
 On a Mac or a Linux machine without Docker, one command downloads the source,
 builds the native worker into `~/.local/ecc-challenges`, asks for your API key
 and offers to start it:
@@ -66,8 +70,10 @@ and print the command to start the worker again. They wrap the
    - **Stop with SIGTERM and give it up to two minutes.** The worker finishes the
      current round, uploads what it has and saves. Every recipe here is set up
      that way.
-   - To retire a worker for good, run it once with `ECC_ACTION=close`. This
-     closes the run on the server and keeps the data directory as a record.
+   - To retire a generic protocol-2 worker, let it flush pending uploads, then
+     run it once with `ECC_ACTION=close`. This closes the run on the server and
+     keeps the data directory as a record. Original ECC2K-130 protocol-1 workers
+     do not support that action. Pausing and resuming does not require closing.
 
 ## Images
 
@@ -152,6 +158,12 @@ docker run -d --restart unless-stopped --name ecc-eccp-131 \
   "$ECC_WORKER_IMAGE"
 docker logs -f ecc-eccp-131
 ```
+
+The worker runs in the background; Ctrl-C stops following its logs. Pause with
+`docker stop ecc-eccp-131` and resume with `docker start ecc-eccp-131`. Keep the
+same container and data directory. If the name already exists, use `docker
+start` instead of repeating `docker run`. The dashboard's GPU and CPU commands
+also assign stable names and allow two minutes for shutdown.
 
 The published digest above supports all 24 curves on CPU and CUDA and includes
 the OpenMP CPU engine. For the smaller CPU-only image, including ARM64, use
