@@ -14,23 +14,32 @@ from modal_state import STATE_SETUP
 app=modal.App('ecc-challenges-live-release-canary')
 
 @app.local_entrypoint()
-def main(key_file:str,out:str,registry_auth_file:str=''):
+def main(key_file:str,out:str,image:str,campaign:str,
+         registry_auth_file:str='',backend:str='cuda',lanes:int=256,
+         require_dp:bool=True):
     destination=Path(out)
     if destination.exists():raise FileExistsError(destination)
+    if not re.fullmatch(r'ecc(?:2k?|p)-[0-9]+',campaign):
+        raise ValueError('invalid campaign ID')
+    if not re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}',image):
+        raise ValueError('worker image must be an approved immutable public digest')
+    if backend not in ('cpu','cuda') or not 1<=lanes<=4096:
+        raise ValueError('invalid backend or lane count')
     key_path=Path(key_file)
     if key_path.stat().st_mode&0o077:
         raise ValueError('runtime secret files must have mode 0600')
     key=key_path.read_text().strip()
     if not re.fullmatch(r'ecc1_[0-9a-f]{24}_[A-Za-z0-9_-]{43}',key):raise ValueError('invalid contributor key')
     registry_secret=None
-    image_uri='ghcr.io/aburan28/ecc-challenges-worker@sha256:f6333f0cf90ff080b7d49d701a2745ad821cc10abeb2fa5c43c623eb1afaf2ee'
+    image_uri=image
     if registry_auth_file:
+        if not image_uri.startswith('public.ecr.aws/'):
+            raise ValueError('registry authentication is only for ECR Public')
         auth_path=Path(registry_auth_file)
         if auth_path.stat().st_mode&0o077:raise ValueError('runtime secret files must have mode 0600')
         auth=json.loads(auth_path.read_text())
         if set(auth)!={'REGISTRY_USERNAME','REGISTRY_PASSWORD'} or auth['REGISTRY_USERNAME']!='AWS':
             raise ValueError('expected approved temporary public pull-only registry authentication')
-        image_uri=image_uri.replace('ghcr.io/aburan28/','public.ecr.aws/o1a3z1g6/')
         registry_secret=modal.Secret.from_dict(auth)
     source=Path(__file__).with_name('contributor_canary_boot.py').read_text()
     old="root=Path('/tmp/ecc-canary')"
@@ -63,19 +72,22 @@ if os.getuid()==0:
     volume=modal.Volume.from_name(volume_name,create_if_missing=True)
     image=modal.Image.from_registry(image_uri,secret=registry_secret,setup_dockerfile_commands=['ENTRYPOINT []'])
     sandbox=None
-    receipt={'format':'modal-gpu-contributor-canary-execution-v1','image':image_uri,'ok':False,
+    receipt={'format':'modal-gpu-contributor-canary-execution-v2','image':image_uri,'ok':False,
+             'campaign':campaign,'backend':backend,'lanes':lanes,'requires_production_dp':require_dp,
              'boot_sha256':hashlib.sha256(boot.encode()).hexdigest(),'volume_name':volume_name,'root_name':root_name}
     try:
         sandbox=modal.Sandbox.create('python3','-c',boot,app=app,image=image,gpu='L4',cpu=2,memory=4096,
             timeout=1200,workdir='/tmp',volumes={'/data':volume},
             secrets=[modal.Secret.from_dict({'ECC_API_KEY':key})],
             env={'ECC_RELEASE_IMAGE':image_uri,'ECC_CANARY_ROOT':'/data/ecc-state/'+root_name,
-                 'ECC_CANARY_CAMPAIGN':'eccp-79','ECC_CANARY_BACKEND':'cuda','ECC_CANARY_LANES':'256'})
+                 'ECC_CANARY_CAMPAIGN':campaign,'ECC_CANARY_BACKEND':backend,
+                 'ECC_CANARY_LANES':str(lanes),
+                 'ECC_CANARY_REQUIRE_DP':'true' if require_dp else 'false'})
         print('contributor sandbox: '+sandbox.object_id,flush=True)
         sandbox.wait(raise_on_termination=False)
         stdout,stderr=sandbox.stdout.read(),sandbox.stderr.read()
         # Keep the remote failure even when no complete receipt was printed.
-        receipt.update(sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr)
+        receipt.update(sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr.replace(key,'[redacted]'))
         chunks={};end=None
         for line in stdout.splitlines():
             if line.startswith('ECC_RECEIPT_CHUNK '):
@@ -85,12 +97,17 @@ if os.getuid()==0:
             elif line.startswith('ECC_RECEIPT_END '):end=json.loads(line[len('ECC_RECEIPT_END '):])
             elif line.startswith('ECC_DEVICE '):receipt['device']=json.loads(line[len('ECC_DEVICE '):])
         if end is None or set(chunks)!=set(range(end['chunks'])):
-            receipt['stdout']=stdout
+            receipt['stdout']=stdout.replace(key,'[redacted]')
             raise ValueError('incomplete contributor receipt')
         body=b''.join(chunks[i] for i in range(end['chunks']))
         if hashlib.sha256(body).hexdigest()!=end['sha256']:raise ValueError('contributor receipt checksum differs')
         result=json.loads(body)
-        receipt.update(result=result,sandbox_exit_code=sandbox.poll(),sandbox_stderr=stderr)
+        receipt.update(result=result,sandbox_exit_code=sandbox.poll(),
+                       sandbox_stderr=stderr.replace(key,'[redacted]'))
+        closure=result.get('closure') or {}
+        receipt['closure_verified']=(closure.get('run_id')==result.get('run_id') and
+                                     closure.get('namespace_id')==result.get('namespace_id') and
+                                     bool(closure.get('closed_at')))
         deadline=time.monotonic()+30
         while True:
             try:
@@ -101,7 +118,8 @@ if os.getuid()==0:
             if time.monotonic()>deadline:raise ValueError('persistent volume commit deadline')
             time.sleep(1)
         receipt.update(persisted_checkpoint_sha256=hashlib.sha256(persisted).hexdigest(),persisted_checkpoint_matches=True,
-                       ok=bool(result.get('ok') and sandbox.poll()==0 and result.get('uid')==result.get('gid')==10001))
+                       ok=bool(result.get('ok') and receipt['closure_verified'] and sandbox.poll()==0 and
+                               result.get('uid')==result.get('gid')==10001))
     except Exception as error:
         receipt.update(ok=False,error_type=type(error).__name__)
         if sandbox:

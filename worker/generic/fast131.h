@@ -124,9 +124,21 @@ HD inline u64 subb(u64 a, u64 b, u64 bin, ECC_THREAD u64& bout) {
     return d - bin;
 }
 HD inline void mulw(u32 a, u32 b, ECC_THREAD u32& lo, ECC_THREAD u32& hi) {
+#if defined(F131_SOFT_MUL32)
+    // A 32x32 product using only 32-bit multiplies. In particular this keeps
+    // the Metal path independent of how a device lowers unsigned 64-bit mul.
+    const u32 a0 = a & 0xffffU, a1 = a >> 16;
+    const u32 b0 = b & 0xffffU, b1 = b >> 16;
+    const u32 p00 = a0 * b0, p01 = a0 * b1;
+    const u32 p10 = a1 * b0, p11 = a1 * b1;
+    const u32 mid = (p00 >> 16) + (p01 & 0xffffU) + (p10 & 0xffffU);
+    lo = (p00 & 0xffffU) | (mid << 16);
+    hi = p11 + (p01 >> 16) + (p10 >> 16) + (mid >> 16);
+#else
     const u64 p = u64(a) * u64(b);
     lo = u32(p);
     hi = u32(p >> 32);
+#endif
 }
 HD inline void mulw(u64 a, u64 b, ECC_THREAD u64& lo, ECC_THREAD u64& hi) {
 #if defined(__CUDA_ARCH__)
