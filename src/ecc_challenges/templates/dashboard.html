@@ -22,9 +22,10 @@ mkdir -p ~/.config/ecc-challenges
 {% endif %}
 
 <section id="dashboard-progress" data-live-region data-live-as-of="{{ live_as_of }}" class="section" style="margin-top:36px" aria-labelledby="challenge-progress">
-  <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">Across all contributors. <a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
+  {% set selected_solved = (challenges|selectattr("id", "equalto", selected_campaign)|first).solved_in_2009 %}
+  <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">{% if selected_solved %}Already solved. Points for it only exercise your worker and the pipeline; they do not count towards a search. {% else %}Across all contributors. {% endif %}<a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
   <dl class="stats" aria-label="Challenge progress" style="margin-top:0">
-    <div class="stat progress-summary"><dt>Progress</dt><dd>{{ work.summary(campaign_status) }}</dd></div>
+    <div class="stat progress-summary"><dt>Progress</dt><dd>{% if selected_solved %}<span class="progress-primary">100%</span><small>Solved {{ solved_dates[selected_campaign] }}; <a href="/results/{{ selected_campaign }}">published result</a></small>{% else %}{{ work.summary(campaign_status) }}{% endif %}</dd></div>
     <div class="stat iteration-rate"><dt>Iterations per second</dt><dd>{{ campaign_status.operations_per_second_log2|pow2 if campaign_status and campaign_status.operations_per_second_log2 is defined else "—" }}<small>estimated from public uploads, 24 h average</small></dd></div>
     <div class="stat"><dt>Points archived</dt><dd>{{ "{:,}".format((campaign_status.received_points or 0) + (campaign_status.historical_points or 0)) if campaign_status and campaign_status.received_points is not none else "—" }}<small>all contributors{% if campaign_status and campaign_status.including_historical %}, including imported points{% endif %}</small></dd></div>
     <div class="stat"><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(campaign_status.points_per_hour) if campaign_status and campaign_status.points_per_hour is defined else "—" }}<small>public uploads, 24 h average</small></dd></div>
@@ -119,7 +120,7 @@ mkdir -p ~/.config/ecc-challenges
   {% if multicurve_enabled %}
   <form method="get" action="/dashboard" style="margin-bottom:18px">
     <label for="campaign">Challenge</label>
-    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for challenge in challenges %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
+    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for solved, group in challenges|groupby("solved_in_2009") %}<optgroup label="{{ "Solved 1997–2004 · test runs only" if solved else "Open challenges" }}">{% for challenge in group %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</optgroup>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
   </form>
   {% set sh_env = "ECC_CAMPAIGN=" ~ selected_campaign ~ " " %}
   {% set ps_env = "$env:ECC_CAMPAIGN = '" ~ selected_campaign ~ "'; " %}

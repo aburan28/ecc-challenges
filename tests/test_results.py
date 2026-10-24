@@ -76,3 +76,44 @@ def test_source_decimal_and_parameter_normalization_are_preserved():
     with TestClient(application(), base_url="https://ecc-challenges.com") as client:
         assert "reduced modulo p" in client.get("/results/eccp-89").text
         assert "97-bit challenge" in client.get("/results/ecc2k-95").text
+
+
+def test_solved_challenges_show_a_complete_search_instead_of_live_progress(monkeypatch):
+    """Certicom's solved list closes a challenge: 100%, never this gateway's test-run estimate."""
+    from itsdangerous import TimestampSigner
+    import base64
+    import json
+
+    from ecc_challenges.service import Service
+
+    monkeypatch.setattr(Service, "account_keys", lambda *args: [])
+    monkeypatch.setattr(Service, "account_runs", lambda *args, **kwargs: None)
+    session = TimestampSigner("s" * 48).sign(base64.b64encode(json.dumps(
+        {"github_id": 1, "login": "test", "csrf": "test"}).encode())).decode()
+    with TestClient(application(multicurve_enabled=True), base_url="https://ecc-challenges.com") as client:
+        for path in ("/", "/status"):
+            table = re.search(r'<table class="challenge-status">(.*?)</table>', client.get(path).text, re.S).group(1)
+            rows = re.findall(r'<tr class="(solved|open|not-started)">(.*?)</tr>', table, re.S)
+            solved = [html for state, html in rows if state == "solved"]
+            assert len(solved) == len(SOLVED)
+            for html in solved:
+                assert '<span class="pct progress-primary">100%</span>' in html
+                assert 'class="bar mini done"' in html and "Search complete" in html
+                assert "operations</small>" not in html and "public uploads only" not in html
+            assert all('bar mini done' not in html for state, html in rows if state != "solved")
+        page = client.get("/challenges/ecc2-79").text
+        assert "<dt>Progress</dt><dd><span class=\"progress-primary\">100%</span>" in page
+        assert "Already solved" in page and 'href="/results/ecc2-79"' in page
+        for live in ("Collision odds", "Archived points", "batches awaiting checks", "Join the search",
+                     "does not yet fold in"):
+            assert live not in page, live
+        open_page = client.get("/challenges/eccp-131").text
+        assert "Already solved" not in open_page and "Collision odds" in open_page
+        client.cookies.set("ecc_session", session)
+        dashboard = client.get("/dashboard?campaign=ecc2-79").text
+        progress = dashboard.split('aria-labelledby="challenge-progress"', 1)[1].split("</section>", 1)[0]
+        assert '<span class="progress-primary">100%</span>' in progress
+        assert "Solved 16 December 1997" in progress and 'href="/results/ecc2-79"' in progress
+        assert "Already solved" in progress and "expected operations" not in progress
+        assert '<optgroup label="Open challenges">' in dashboard
+        assert '<optgroup label="Solved 1997–2004 · test runs only">' in dashboard
