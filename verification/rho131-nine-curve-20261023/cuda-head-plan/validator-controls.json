@@ -1,0 +1,8 @@
+{
+  "control_cases": 168,
+  "corrupt_input_rejected": true,
+  "duplicate_case_rejected": true,
+  "format": "cuda-head-local-receipt-validator-controls-v1",
+  "synthetic_receipt": true,
+  "valid_control": true
+}

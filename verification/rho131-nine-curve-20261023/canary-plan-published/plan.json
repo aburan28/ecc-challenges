@@ -1,0 +1,25 @@
+{
+  "backend": "cuda",
+  "boot_sha256": "9fda1cd21da06f547fa7c1f1bf72585e98fa5ea0175f1470f286f6c13b55d6dd",
+  "campaigns": [
+    "ecc2k-130",
+    "ecc2-131",
+    "ecc2k-163",
+    "ecc2-163",
+    "ecc2-191",
+    "ecc2k-238",
+    "ecc2-238",
+    "ecc2k-358",
+    "ecc2-353"
+  ],
+  "concurrency": 1,
+  "format": "nine-binary-modal-contributor-plan-v1",
+  "gpu": "L4",
+  "image": "public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba",
+  "lanes": 256,
+  "launcher_sha256": "8a75c6f5065a65ba9a68bef49950ded1a572b41cc85bb0cd08c8ba73a807d16e",
+  "max_sandbox_seconds": 1200,
+  "mode": "plan",
+  "requires_production_dp": true,
+  "source_commit": "6728eaa3553e2e8fce8f6c738617632cff3713f3"
+}

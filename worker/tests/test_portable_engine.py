@@ -108,6 +108,22 @@ def test_fast_metal_matches_cpu(engine, probe, campaign, walk):
     assert metal.distinguished == cpu.distinguished
 
 
+def test_prime_negation_metal_is_repeatable(engine, probe):
+    """A prime walk-4 lane stays valid across repeated Metal command buffers."""
+    if not has_metal_device(probe):
+        pytest.skip("engine has no Metal backend or no Metal device is present")
+    ns = Namespace("eccp-131", dp_bits=4, walk_version=4)
+    initial = tuple(NativeState(ns.start(RUN_ID, trail)) for trail in range(10))
+    expected = run_round(engine, "cpu", ns, initial, 100, timeout=600)
+    for _ in range(4):
+        actual = run_round(engine, "metal", ns, initial, 100, timeout=600)
+        assert actual.receipt["engine"] == "fast131"
+        assert actual.receipt["metal_soft_mul32"] == any(
+            "Paravirtual" in name for name in probe["metal_devices"])
+        assert actual.states == expected.states
+        assert actual.distinguished == expected.distinguished
+
+
 def test_metal_resumed_rounds_match_one_round(engine, probe):
     if not has_metal_device(probe):
         pytest.skip("engine has no Metal backend or no Metal device is present")
@@ -133,8 +149,9 @@ def kernel_source(name):
                      text, re.S).group(1)
 
 
-@pytest.mark.parametrize("fast", (False, True), ids=("reference", "fast131"))
-def test_metal_kernel_respects_address_spaces(tmp_path, fast):
+@pytest.mark.parametrize("fast,soft", ((False, False), (True, False), (True, True)),
+                         ids=("reference", "fast131", "fast131-soft32"))
+def test_metal_kernel_respects_address_spaces(tmp_path, fast, soft):
     """Type-check the Metal configuration of ec_core.h and the real kernel.
 
     Clang's C++ for OpenCL enforces address spaces on references the way the
@@ -162,6 +179,7 @@ def test_metal_kernel_respects_address_spaces(tmp_path, fast):
                     kernel_source("fast_kernel_source" if fast else "kernel_source"))
     kernel = kernel.replace("kernel void", "void")
     fast_header = (
+        ('#define F131_SOFT_MUL32 1\n' if soft else '') +
         '#include "fast131.h"\n#define FAST_K 4\n' if fast else "")
     source = tmp_path / "metal_emulation.clcpp"
     source.write_text(
@@ -176,7 +194,8 @@ def test_metal_kernel_respects_address_spaces(tmp_path, fast):
     assert checked.returncode == 0, checked.stderr
 
 
-@pytest.mark.parametrize("option", ("--emit-metal-source", "--emit-metal-fast-source"))
+@pytest.mark.parametrize("option", ("--emit-metal-source", "--emit-metal-fast-source",
+                                    "--emit-metal-soft32-source"))
 def test_emitted_metal_source_compiles(engine, probe, tmp_path, option):
     """On a Mac with the Metal toolchain, compile the exact embedded shader."""
     if "metal" not in probe.get("backends", ()):
