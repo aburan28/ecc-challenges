@@ -210,7 +210,7 @@ class Service:
         table = "batches" if protocol == "v1" else "dp_batches"
         state = "audit_state" if protocol == "v1" else "state"
         finished = "audit_finished_at" if protocol == "v1" else "verified_counted_at"
-        pending = ("(audit_state IN ('pending','unverified') OR "
+        pending = ("(audit_state='pending' OR "
                    "(audit_state IN ('sampled','not_selected') AND indexed_at IS NULL))"
                    if protocol == "v1" else "state IN ('admitted','verified')")
         good = "'sampled'" if protocol == "v1" else "'verified','indexed'"
@@ -219,6 +219,7 @@ class Service:
             summary = conn.execute(f"""
                 SELECT count(*) AS batches,
                   count(*) FILTER (WHERE {pending}) AS pending,
+                  count(*) FILTER (WHERE {state}='unverified') AS unresolved,
                   count(*) FILTER (WHERE {state} IN ('failed','quarantined')) AS failed,
                   count(*) FILTER (WHERE {state} IN ({good})) AS checked,
                   count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed,
@@ -232,7 +233,7 @@ class Service:
             """, (identity,)).fetchall()
         run.update(summary)
         run["batches_recent"] = batches
-        run["verification_state"] = ("Needs attention" if run["failed"] else
+        run["verification_state"] = ("Needs attention" if run["failed"] or run["unresolved"] else
             "Waiting for checks" if run["pending"] else "Up to date" if run["batches"] else "No submissions yet")
         return run
 

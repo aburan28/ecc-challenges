@@ -17,7 +17,7 @@
     busy = true;
     button.disabled = true;
     try {
-      const response = await fetch(location.pathname + location.search, {
+      const response = await fetch(button.dataset.liveUrl || location.pathname + location.search, {
         cache: 'no-store', credentials: 'same-origin', redirect: 'error',
         signal: AbortSignal.timeout(15000)
       });

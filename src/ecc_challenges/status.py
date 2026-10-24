@@ -87,7 +87,7 @@ class StatusReader:
                       count(*) FILTER (WHERE audit_state IN ('failed','quarantined')) AS failed_batches,
                       count(*) FILTER (WHERE audit_state='unverified') AS unverified_batches,
                       count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed_batches,
-                      min(created_at) FILTER (WHERE audit_state IN ('pending','unverified')
+                      min(created_at) FILTER (WHERE audit_state='pending'
                         OR (audit_state IN ('sampled','not_selected') AND indexed_at IS NULL)) AS oldest_pending_at,
                       max(audit_finished_at) FILTER (WHERE audit_state='sampled') AS last_checked_at
                     FROM ecc_public.batches

@@ -383,6 +383,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             campaign_status = None
         return TEMPLATES.TemplateResponse(request, "dashboard.html",
             {"campaign_status": campaign_status, "live_as_of": datetime.now(timezone.utc).isoformat(),
+             "live_url": f"/dashboard?campaign={campaign}&dp_weight={dp_weight}",
              "login": request.session.get("login"), "keys": keys,
              "csrf": request.session["csrf"], "issued": issued, "activity": activity,
              "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
