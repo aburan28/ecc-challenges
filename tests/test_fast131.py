@@ -217,6 +217,38 @@ def test_metal_split_word_product_boundaries(tmp_path):
     subprocess.run([str(binary)], check=True, timeout=60)
 
 
+def test_prime_gpu_limb_carry_and_borrow_boundaries(tmp_path):
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if compiler is None:
+        pytest.fail("a C++17 compiler is required")
+    values = (0, 1, 2, 2**16 - 1, 2**16, 2**31 - 1,
+              2**31, 2**32 - 2, 2**32 - 1)
+    add_cases = "\n".join(
+        "{%dU, %dU, %dU, %dU, %dU}," %
+        (a, b, cin, (a + b + cin) % 2**32, (a + b + cin) >> 32)
+        for a in values for b in values for cin in (0, 1))
+    sub_cases = "\n".join(
+        "{%dU, %dU, %dU, %dU, %dU}," %
+        (a, b, bin, (a - b - bin) % 2**32, int(a < b + bin))
+        for a in values for b in values for bin in (0, 1))
+    source = tmp_path / "limb32.cpp"
+    source.write_text(
+        '#include "fast131.h"\nint main() {\n'
+        'using ecc::f131::u32; const u32 adds[][5] = {\n' + add_cases +
+        '\n}; for (const auto& c : adds) { u32 carry; '
+        'u32 out = ecc::f131::addc(c[0], c[1], c[2], carry); '
+        'if (out != c[3] || carry != c[4]) return 1; }\n'
+        'const u32 subs[][5] = {\n' + sub_cases +
+        '\n}; for (const auto& c : subs) { u32 borrow; '
+        'u32 out = ecc::f131::subb(c[0], c[1], c[2], borrow); '
+        'if (out != c[3] || borrow != c[4]) return 2; } return 0; }\n')
+    binary = tmp_path / "limb32"
+    subprocess.run([compiler, "-std=c++17", "-O2", "-DF131_SOFT_MUL32",
+                    "-I", str(ROOT / "worker/generic"), str(source), "-o", str(binary)],
+                   check=True, capture_output=True, text=True, timeout=120)
+    subprocess.run([str(binary)], check=True, timeout=60)
+
+
 def test_new_walks_are_refused_on_other_curves(engine):
     with pytest.raises(ValueError):
         Namespace("eccp-109", walk_version=WALK_V4)
