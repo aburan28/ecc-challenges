@@ -117,6 +117,7 @@ mkdir -p ~/.config/ecc-challenges
 
 <section class="section">
   <div class="section-head"><h2>2. Run the worker</h2><p class="muted">Pick your system. Each worker keeps its progress in its own directory and resumes from it after a restart.</p></div>
+  <p class="note">Using a coding agent? Give it the <a href="/skill.md">worker skill</a> or follow <a href="/docs/agents">agent setup</a>. Enter your API key locally when prompted.</p>
   {% if multicurve_enabled %}
   <form method="get" action="/dashboard" style="margin-bottom:18px">
     <label for="campaign">Challenge</label>
@@ -151,9 +152,11 @@ mkdir -p ~/.config/ecc-challenges
 GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
 {% if sigma_worker %}DP_WEIGHT={{ selected_dp_weight }}
-{% endif %}mkdir -p "$PWD/ecc-data-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID"
+{% endif %}WORKER="ecc-gpu-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID"
+mkdir -p "$PWD/ecc-data-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID"
 
-docker run --gpus all --restart unless-stopped \
+docker run -d --name "$WORKER" --stop-timeout 120 \
+  --gpus all --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_GPU="$GPU_ID" \
   -e ECC_CAMPAIGN="$CAMPAIGN" \
@@ -162,7 +165,9 @@ docker run --gpus all --restart unless-stopped \
 {% endif %}  -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-data-$CAMPAIGN{% if sigma_worker %}-dp$DP_WEIGHT{% endif %}-$GPU_ID:/data" \
-  {{ worker_image }}</pre>
+  {{ worker_image }}
+
+docker logs --tail 100 -f "$WORKER"</pre>
       <ul class="plain note">
         <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
         {% if multicurve_enabled and not sigma_worker %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
@@ -171,16 +176,19 @@ docker run --gpus all --restart unless-stopped \
       <h3>CPU, with Docker (x86-64 or ARM64)</h3>
       <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key as shown in step 1 first.</p>
 <pre>CAMPAIGN={{ selected_campaign }}
+WORKER="ecc-cpu-$CAMPAIGN"
 mkdir -p "$PWD/ecc-cpu-$CAMPAIGN"
 
-docker run --restart unless-stopped \
+docker run -d --name "$WORKER" --stop-timeout 120 --restart unless-stopped \
   --user "$(id -u):$(id -g)" \
   -e ECC_BACKEND=cpu -e ECC_PROTOCOL=2 \
   -e ECC_CAMPAIGN="$CAMPAIGN" \
   -e ECC_API_URL=https://ecc-challenges.com \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
   -v "$PWD/ecc-cpu-$CAMPAIGN:/data" \
-  {{ cpu_worker_image }}</pre>
+  {{ cpu_worker_image }}
+
+docker logs --tail 100 -f "$WORKER"</pre>
       {% endif %}
       <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
       <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
@@ -228,7 +236,7 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
       </ul>
     </div>
   </div>
-  <p class="note" style="margin-top:18px">If the server answers 429 or 503, the worker waits and retries. It keeps unsent points on disk.</p>
+  <p class="note" style="margin-top:18px">Docker workers run in the background. Ctrl-C stops following the logs. Pause with <code>docker stop "$WORKER"</code> and resume the same container with <code>docker start "$WORKER"</code>; keep its data directory. If the container name already exists, resume it instead of running the creation command again. For native workers, Ctrl-C stops the worker; use the installer's printed command to resume. A 429 or 503 response makes the worker wait and retry with unsent points kept on disk.</p>
 </section>
 
 <section class="section">
