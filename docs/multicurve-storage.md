@@ -39,8 +39,36 @@ ECCp-131 about 2^31.4). The DP bit count is part of the namespace, so changing
 the rule starts new namespaces; existing runs keep the setting pinned in their
 manifest.
 
-Every trail keeps the `b` of its start, because jumps add only multiples of G.
-Verification therefore also checks that each DP's `b` equals the start derived
+### Walk versions
+
+A namespace names its walk, so records of different walks never meet. Walk 2
+(`certicom-affine-radding32-v2`, the SHA-256 walk above) is defined for every
+curve and stays valid: runs registered under it keep their namespace, manifest
+and verification. ECC2-131 and ECCp-131 register new runs under walk 4 by
+default (`DEFAULT_WALKS` in `multicurve/codec.py`); `Namespace(campaign,
+walk_version=2)` still builds the old namespace.
+
+| Walk | Partition | DP test | Group |
+| --- | --- | --- | --- |
+| 2 | first SHA-256 byte of x‖y, low 5 bits | trailing DP bits of the digest | points |
+| 3 `…-xonly-v3` | `((x mod 2^64) * 0x9e3779b97f4a7c15 mod 2^64) >> 59` | bits 64..64+d-1 of x are zero | points |
+| 4 `…-negmap-v4` | as walk 3 | as walk 3 | classes {P, -P} |
+
+Walk 4 stores the canonical point of each class (prime: `y <= (p-1)/2`; binary:
+`y <= x XOR y`, since -(x, y) = (x, x + y)) and negates `a` and `b` together with
+the point, so a stored record still satisfies `R = aG + bQ` exactly. The
+collision rule, the scalar recovery `(a1-a2)/(b2-b1)` and the DP codec are
+unchanged; a collision of P with -P is the same stored point. A trail's `b` is
+its start's `b` or `n - b`, which `check_trail` accepts for walk 4 only. Because
+the group is halved, the ideal birthday model predicts sqrt(pi*n/4) steps;
+cycle handling adds work whose cost must be measured. A canonical walk
+can fall into short cycles; the engine detects 2-cycles and cycles that return to
+a periodic anchor and leaves them through a 33rd jump (the escape jump) at the
+cycle's smallest low 64-bit x word, so walks that share a cycle also share its exit. Cycle state
+is local to one engine call and does not enter any record.
+
+Walks 2 and 3 keep the `b` of their start, because jumps add only multiples of G.
+Walk 4 may negate it. Verification checks that each DP's `b` matches the permitted sign of the start derived
 from its run ID and trail ID, which ties the DP to a server-assigned trail
 without replaying the walk. It does not check the trail's `a` or step count.
 

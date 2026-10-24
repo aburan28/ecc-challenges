@@ -99,7 +99,7 @@ def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
     monkeypatch.setattr(heartbeat, 'HEARTBEAT_SECONDS', 0.02)
     monkeypatch.setattr(heartbeat, 'build_opener', lambda *_: type('Opener', (), {'open': open_ping})())
     seen=[]
-    def run_round(engine,backend,ns_,states,steps,temporary,timeout):
+    def run_round(engine,backend,ns_,states,steps,temporary,timeout,session=None):
         seen.append(len(states))
         assert pinged.wait(2), "heartbeat must run during a round without points"
         raise Stop

@@ -20,7 +20,7 @@ with the worker log. Never paste your API key.
 | --- | --- |
 | `src/ecc_challenges/` | FastAPI website and worker API (`app.py`), templates, status page |
 | `src/ecc_challenges/multicurve/` | v2 protocol for all 24 curves: codec, admission, verification, index |
-| `worker/` | Contributor client and generic CPU/CUDA/Metal engine (`generic/ec_core.h` is the shared core; `CMakeLists.txt` builds it on Linux, macOS and Windows); `Dockerfile` (GPU), `Dockerfile.cpu` (CPU, amd64/arm64); `tests/` runs on every platform with only pytest |
+| `worker/` | Contributor client and generic CPU/CUDA/Metal engine (`generic/ec_core.h` is the shared reference core and `generic/fast131.h` the specialised 131-bit arithmetic and batched walks; `CMakeLists.txt` builds them on Linux, macOS and Windows); `Dockerfile` (GPU), `Dockerfile.cpu` (CPU, amd64/arm64); `tests/` runs on every platform with only pytest |
 | `deploy/` | Ways to run workers (Compose, Kubernetes, systemd, Podman, Slurm) and the local stack |
 | `verifier/` | Replay and verification code used by the audit image |
 | `sql/` | PostgreSQL migrations, applied in order |
