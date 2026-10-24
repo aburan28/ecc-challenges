@@ -1,0 +1,30 @@
+{
+  "backend": "metal",
+  "curve": "ecc2-131",
+  "dp_bits": 40,
+  "engine_sha256": "a2eb5a519b10b6bc5cb8e5d3f11c6c83ea553fd4e40a621b82e50e1581185eac",
+  "format": "rho131-local-matched-v1",
+  "host": {
+    "machine": "arm64",
+    "processor": "arm",
+    "release": "25.6.0",
+    "system": "Darwin",
+    "version": "Darwin Kernel Version 25.6.0: Sat Jul 11 15:27:27 PDT 2026; root:xnu-12377.161.13~4/RELEASE_ARM64_T6041"
+  },
+  "lanes": 2048,
+  "namespace_id": "6063c9d03bc3a35b464c84eff66e454c3ed0b7a3ccb8264847d2e8d7e2976a2e",
+  "publication_redactions": [
+    "host.node"
+  ],
+  "repeats": 3,
+  "run_id": "18c3053b-96df-4879-a49d-18a52b8fdf8b",
+  "source_sha256": {
+    "ec_core.h": "b20f3ae4e47ba25576a4353d374a131333f1b8584c42ca39925baf24c381999a",
+    "engine.cu": "30ea42815eee7cbdf6d45abbe706adfd4871a3a2484a60000418de127d93e3b2",
+    "fast131.h": "5944b62feb40e09328e17ad64171fa91c190ad32977728c426be9f215a5aa836",
+    "fast131_host.h": "df15cbbd440867dbe3d21d1aa6e9bb6666102d8ebd82f4d0b462c0069f6ef924"
+  },
+  "steps_per_round": 256,
+  "timing_boundary": "Python run_round with one engine process invocation, native work, and output checks",
+  "walk_version": 2
+}

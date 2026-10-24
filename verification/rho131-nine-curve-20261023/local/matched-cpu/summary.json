@@ -1,0 +1,35 @@
+{
+  "comparisons": [
+    {
+      "aa_over_bracket": 0.8084250917887571,
+      "actual_steps": 65536,
+      "baseline_bracket_ns": [
+        131880958,
+        165132542
+      ],
+      "fast_over_bracket": 0.307098559493087,
+      "repeat": 1
+    },
+    {
+      "aa_over_bracket": 0.9313727898176866,
+      "actual_steps": 65536,
+      "baseline_bracket_ns": [
+        139842417,
+        107578292
+      ],
+      "fast_over_bracket": 0.34439113987018766,
+      "repeat": 2
+    },
+    {
+      "aa_over_bracket": 1.0135844146852693,
+      "actual_steps": 65536,
+      "baseline_bracket_ns": [
+        116240000,
+        112895084
+      ],
+      "fast_over_bracket": 0.33534803426261867,
+      "repeat": 3
+    }
+  ],
+  "format": "rho131-local-matched-v1"
+}

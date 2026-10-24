@@ -195,6 +195,28 @@ def test_portable_multiplication_carry_cases(tmp_path):
     subprocess.run([str(binary)], check=True, timeout=60)
 
 
+def test_metal_split_word_product_boundaries(tmp_path):
+    compiler = shutil.which("g++") or shutil.which("clang++")
+    if compiler is None:
+        pytest.fail("a C++17 compiler is required")
+    values = (0, 1, 2, 2**16 - 1, 2**16, 2**16 + 1,
+              2**31 - 1, 2**31, 2**32 - 2, 2**32 - 1)
+    cases = "\n".join(
+        "{%dU, %dU, %dU, %dU}," % (a, b, (a * b) % 2**32, (a * b) >> 32)
+        for a in values for b in values)
+    source = tmp_path / "mul32.cpp"
+    source.write_text('#include "fast131.h"\nint main() {\n'
+                      'using ecc::f131::u32; const u32 cases[][4] = {\n' + cases +
+                      '\n}; for (const auto& c : cases) { u32 lo, hi; '
+                      'ecc::f131::mulw(c[0], c[1], lo, hi); '
+                      'if (lo != c[2] || hi != c[3]) return 1; } return 0; }\n')
+    binary = tmp_path / "mul32"
+    subprocess.run([compiler, "-std=c++17", "-O2", "-DF131_SOFT_MUL32",
+                    "-I", str(ROOT / "worker/generic"), str(source), "-o", str(binary)],
+                   check=True, capture_output=True, text=True, timeout=120)
+    subprocess.run([str(binary)], check=True, timeout=60)
+
+
 def test_new_walks_are_refused_on_other_curves(engine):
     with pytest.raises(ValueError):
         Namespace("eccp-109", walk_version=WALK_V4)

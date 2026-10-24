@@ -98,8 +98,10 @@ std::string metal_source() {
     return std::string(core_source) + kernel_source;
 }
 
-std::string fast_metal_source() {
-    return std::string(core_source) + fast_source + "\n#define FAST_K " +
+std::string fast_metal_source(bool soft_mul32) {
+    return std::string(core_source) +
+           (soft_mul32 ? "\n#define F131_SOFT_MUL32 1\n" : "\n") +
+           fast_source + "\n#define FAST_K " +
            std::to_string(FAST_LANES_PER_THREAD) + "\n" + fast_kernel_source;
 }
 
@@ -109,15 +111,20 @@ constexpr std::uint32_t FAST_CHUNK_STEPS = 64;
 
 template <class FD>
 void run_metal_fast_field(const Job& job, const JobExt& ext, const char* entry,
-                          std::vector<State>& states, std::vector<int>& errors) {
+                          std::vector<State>& states, std::vector<int>& errors,
+                          bool& soft_mul32) {
     @autoreleasepool {
         f131::Prepared<FD> walk = f131::prepare<FD>(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape);
         std::vector<f131::Lane<FD>> lanes(job.lanes);
         for (std::uint32_t i = 0; i < job.lanes; ++i) lanes[i] = f131::lane_in(states[i], walk);
 
         id<MTLDevice> device = select_device();
+        // GitHub's Apple Paravirtual device produced an invalid prime walk-4
+        // state. The split product tests whether its 64-bit multiply lowering
+        // is involved; retain the native product on other Metal devices.
+        soft_mul32 = std::string(device.name.UTF8String).find("Paravirtual") != std::string::npos;
         NSError* error = nil;
-        const std::string source = fast_metal_source();
+        const std::string source = fast_metal_source(soft_mul32);
         id<MTLLibrary> library = [device
             newLibraryWithSource:[NSString stringWithUTF8String:source.c_str()]
                          options:[MTLCompileOptions new]
@@ -185,13 +192,14 @@ void run_metal_fast_field(const Job& job, const JobExt& ext, const char* entry,
 } // namespace
 
 bool run_metal_fast(const Job& job, const JobExt& ext, std::vector<State>& states,
-                    std::vector<int>& errors) {
+                    std::vector<int>& errors, bool& soft_mul32) {
     if (!f131::fast_curve(job.kind, job.field_bits, job.modulus)) return false;
     if (job.kind)
-        run_metal_fast_field<f131::BinaryField<true>>(job, ext, "fast_binary", states, errors);
+        run_metal_fast_field<f131::BinaryField<true>>(job, ext, "fast_binary", states,
+                                                     errors, soft_mul32);
     else
         run_metal_fast_field<f131::PrimeField<std::uint32_t, 5>>(job, ext, "fast_prime5",
-                                                                  states, errors);
+                                                                  states, errors, soft_mul32);
     return true;
 }
 
