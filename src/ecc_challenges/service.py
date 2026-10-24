@@ -246,12 +246,6 @@ class Service:
                                    (account_id,)).fetchone()
             if not account or account["suspended_at"]:
                 raise Rejected(403, "account is unavailable")
-            row = conn.execute("""
-                SELECT count(*) AS active, max(created_at) AS newest
-                FROM ecc_public.api_keys WHERE account_id=%s AND revoked_at IS NULL
-            """, (account_id,)).fetchone()
-            if row["active"] >= 3:
-                raise Rejected(429, "revoke an existing key before creating another")
             recent = conn.execute("""
                 SELECT EXISTS(SELECT 1 FROM ecc_public.api_keys
                               WHERE account_id=%s AND created_at > now()-interval '1 minute') AS recent
@@ -393,6 +387,19 @@ class Service:
                     "campaign": CAMPAIGN, "walk_id": WALK_ID}
 
     def _charge_daily_bytes(self, conn, key: dict, length: int) -> None:
+        # The former three-key cap bounded total account uploads indirectly.
+        # Keep that same aggregate ceiling when accounts can issue more keys.
+        account_quota = conn.execute("""
+            INSERT INTO ecc_public.account_usage_day(account_id,day,bytes)
+            SELECT %s,current_date,%s WHERE %s<=%s
+            ON CONFLICT(account_id,day) DO UPDATE
+              SET bytes=ecc_public.account_usage_day.bytes+excluded.bytes
+            WHERE ecc_public.account_usage_day.bytes+excluded.bytes<=%s
+            RETURNING bytes
+        """, (key["account_id"], length, length, 3 * self.settings.max_key_bytes_per_day,
+              3 * self.settings.max_key_bytes_per_day)).fetchone()
+        if not account_quota:
+            raise Rejected(429, "account daily upload quota reached", 3600)
         quota = conn.execute("""
             INSERT INTO ecc_public.key_usage_day(key_id,day,bytes)
             SELECT %s,current_date,%s WHERE %s<=%s

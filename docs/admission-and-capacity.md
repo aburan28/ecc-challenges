@@ -64,7 +64,7 @@ than 300 per 5 minutes for authentication or key routes. Both rate rules return
 HTTP 429 with Retry-After 60, so shared-provider throttling is retryable rather
 than a permanent permission error. The application has
 a 240-token per-key burst bucket refilling 4 tokens/s; a 1 MiB DP upload costs 16
-tokens. A key is limited to 5 GiB/day across DP batches and checkpoints, and an account to three active keys, eight active runs, and 64 lifetime run IDs. The pending batch counter is sharded 16 ways and admission
+tokens. A key is limited to 5 GiB/day across DP batches and checkpoints. An account may have any number of active keys, with a combined 15 GiB/day upload limit, eight active runs, and 64 lifetime run IDs. Keys can be created at most once per minute per account. The pending batch counter is sharded 16 ways and admission
 returns `503` with `Retry-After` when the configured backlog bound is hit.
 The contributor sends a remote checkpoint at most every 15 minutes by default
 and pauses its GPU when the local spool fills rather than discarding unsent

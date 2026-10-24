@@ -90,7 +90,7 @@ mkdir -p ~/.config/ecc-challenges
 </section>
 
 <section class="section" style="margin-top:36px">
-  <div class="section-head"><h2>1. API keys</h2><p class="muted">Up to three active keys per account. Revoking a key stops uploads from every run that uses it.</p></div>
+  <div class="section-head"><h2>1. API keys</h2><p class="muted">Create a separate key for each worker if useful. Revoking a key stops uploads from every run that uses it.</p></div>
     <form class="panel" method="post" action="/keys" style="max-width:560px;margin-bottom:24px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="campaign" value="{{ selected_campaign }}">
