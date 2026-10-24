@@ -1,0 +1,157 @@
+{
+  "archive": "local-logs.tar.zst",
+  "archive_sha256": "706ab911b982974222a30c69fc43a78b47e2d4abf09c921bb6b7132ff413e542",
+  "entries": [
+    {
+      "bytes": 163,
+      "path": "local/cmake-build.log",
+      "sha256": "ef2268067c8f4e51bb1357e93c70ea55d86a4c3a694c79fd7dc6112408becd40"
+    },
+    {
+      "bytes": 705,
+      "path": "local/cmake-configure.log",
+      "sha256": "1e6963bbaf0b12ddad864042f74ddcf19597570b600d80dd2fe572023d62d46d"
+    },
+    {
+      "bytes": 474,
+      "path": "local/cmake-metal-selective-build.log",
+      "sha256": "f93452e20a99e01a423740725a9cca9dac4a70b786e76e853126a0ce398d6e84"
+    },
+    {
+      "bytes": 474,
+      "path": "local/cmake-metal-soft32-build.log",
+      "sha256": "f93452e20a99e01a423740725a9cca9dac4a70b786e76e853126a0ce398d6e84"
+    },
+    {
+      "bytes": 163,
+      "path": "local/cmake-x86-build.log",
+      "sha256": "ef2268067c8f4e51bb1357e93c70ea55d86a4c3a694c79fd7dc6112408becd40"
+    },
+    {
+      "bytes": 709,
+      "path": "local/cmake-x86-configure.log",
+      "sha256": "86adb98386e697e4c2b60b7d8d3987d0eeb72db32de1b82e5b579e39511889ff"
+    },
+    {
+      "bytes": 478,
+      "path": "local/cmake-x86-selective-build.log",
+      "sha256": "eca7f6ac8886aed916ee3b2cfe2f8452103beb8a1ccbabc1ec858a8afaed6980"
+    },
+    {
+      "bytes": 478,
+      "path": "local/cmake-x86-soft32-build.log",
+      "sha256": "d6a5342f4f1e9260454975af64f7d8b59e4f800ab0801d93cf28d2efcb3d9ce2"
+    },
+    {
+      "bytes": 57594,
+      "path": "local/docker-build-amd64.log",
+      "sha256": "d92dfcab2b4acb53610861e8f140dfaacb60dd5f119c0c9d2f7424befa1c826e"
+    },
+    {
+      "bytes": 9578,
+      "path": "local/docker-build-selective-amd64.log",
+      "sha256": "ea7cceaec6619fdb8f50f01e982489627500cdb5e9b87c80bba8e2c7d30acadd"
+    },
+    {
+      "bytes": 62442,
+      "path": "local/docker-build.log",
+      "sha256": "f9b11032fbb1cf1f386d9a758f1e4c9b5210d6a557a883de024607a8ad8484f9"
+    },
+    {
+      "bytes": 190,
+      "path": "local/docker-check-amd64.log",
+      "sha256": "5f5d32bdb7426234de59d702d66f06ea6e180a8e849a1af457ff6cda1a422a14"
+    },
+    {
+      "bytes": 190,
+      "path": "local/docker-check-selective-amd64.log",
+      "sha256": "a0035df6276897b90b8c29c6fd1eb8a526c1a7ffaba50a724782ba0e6e8007f6"
+    },
+    {
+      "bytes": 257,
+      "path": "local/docker-check.log",
+      "sha256": "3cb1975838576af7230c3f0e463437d1e6dd64d4888dcdbaa49a05fa0c0c7d13"
+    },
+    {
+      "bytes": 100,
+      "path": "local/fast131-soft32-pytest.log",
+      "sha256": "298d0d53e54f18324877b4c042406544ab5c066b60e43ba0f2550194555a80bf"
+    },
+    {
+      "bytes": 493,
+      "path": "local/matched-cpu.log",
+      "sha256": "d442595a8ee7b552e52f563bc9b98914d11d9668dda9ad910c479d6e062cb8cb"
+    },
+    {
+      "bytes": 744,
+      "path": "local/matched-metal-selective-sandbox-unavailable.log",
+      "redactions": [
+        "local worktree path replaced with <WORKTREE> (3 occurrences)"
+      ],
+      "sha256": "6fe23f46a24bfe586dd8446620c814a467e7255432c8e2eac9c203df24387385",
+      "source_sha256": "0d018b4ae916fce70b539290c6df014827f266324a3e9569a35c1b82e754c9a1"
+    },
+    {
+      "bytes": 494,
+      "path": "local/matched-metal-selective.log",
+      "sha256": "b5bd4e0a2e3c0b5d4705d371dd6fd236028ed861e6bda43b93c7da65f6880ec5"
+    },
+    {
+      "bytes": 493,
+      "path": "local/matched-metal.log",
+      "sha256": "1a2c7025117aec16e340d6f5784ebd99fbfc2f3c5b53aa9aa05f4c2a57e68da7"
+    },
+    {
+      "bytes": 136,
+      "path": "local/metal-hardware-pytest.log",
+      "sha256": "b270bd85d2d21fc0712e6f52887283fcf1964794cd830a6869a6afb406bee1d7"
+    },
+    {
+      "bytes": 112,
+      "path": "local/metal-pytest.log",
+      "sha256": "57c2da3c4c58c4e78c392c1f4468af3884ee95a98cf792d09e4b6a4f4347d3f4"
+    },
+    {
+      "bytes": 114,
+      "path": "local/metal-selective-pytest.log",
+      "sha256": "0fc23ccc8f98ac7f95ec5b5a7f6677a2c9649953d500ebc5dad8068d2d5ccc87"
+    },
+    {
+      "bytes": 137,
+      "path": "local/metal-soft32-pytest.log",
+      "sha256": "5ae129c6938abbb474cffd649790767c9e3380a2dff7c7e18f541762d99e9a58"
+    },
+    {
+      "bytes": 227,
+      "path": "local/native-controls.log",
+      "sha256": "dd9565f4c643a8161c59a23d27439177b1ca5fdd8a1ecbef3ea17dbdff471daa"
+    },
+    {
+      "bytes": 111,
+      "path": "local/pytest.log",
+      "sha256": "04598d6bd1ab074fca9208f48b1ec97f87040b8e84d3f35904df608fb158783f"
+    },
+    {
+      "bytes": 113,
+      "path": "local/soft-mul-tests.log",
+      "sha256": "3a0c48c190553690fe9b0ba9898380a6f4d091a50562555be6d50965bad7b762"
+    },
+    {
+      "bytes": 113,
+      "path": "local/x86-metal-selective-repeat.log",
+      "sha256": "68c2a9da676770a4b1affe1dad4bd2e4931b4b605764dbc8b85f6bf2d4245d5a"
+    },
+    {
+      "bytes": 113,
+      "path": "local/x86-metal-soft32-target.log",
+      "sha256": "53e4a323521d0b47577ccc6133e634f54c481b83ea5cc5dcf98c659130612173"
+    },
+    {
+      "bytes": 113,
+      "path": "local/x86-metal-target.log",
+      "sha256": "22365186739caf2df6b443b01d613eb48988675e456cb2ac46f1fa1ceeef7d08"
+    }
+  ],
+  "format": "local-run-logs-archive-v1",
+  "tar_headers": "normalized for public archive"
+}

@@ -1,0 +1,22 @@
+{
+  "archive_headers": "all regular files normalized",
+  "format": "rho131-publication-audit-v1",
+  "matches_by_category": {
+    "api_key_prefix": 0,
+    "authorization_header": 0,
+    "aws_access_key": 0,
+    "aws_secret_assignment": 0,
+    "ecc_contributor_key": 0,
+    "email": 0,
+    "github_pat": 0,
+    "modal_token": 0,
+    "private_key_header": 0,
+    "recorded_host_node": 0,
+    "user_home": 0,
+    "workspace_path": 0
+  },
+  "note": "Pattern scan and selected metadata checks; not a guarantee against every possible secret format",
+  "repository": "aburan28/ecc-challenges",
+  "repository_visibility": "public",
+  "scanned_file_payloads": 2028
+}

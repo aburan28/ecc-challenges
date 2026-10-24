@@ -57,10 +57,11 @@ void run_metal(const Job& job, std::vector<State>& states,
                std::vector<int>& errors);
 // False when the curve has no specialised arithmetic.
 bool run_metal_fast(const Job& job, const JobExt& ext,
-                    std::vector<State>& states, std::vector<int>& errors);
+                    std::vector<State>& states, std::vector<int>& errors,
+                    bool& soft_mul32);
 std::vector<std::string> metal_devices();
 std::string metal_source();
-std::string fast_metal_source();
+std::string fast_metal_source(bool soft_mul32 = false);
 #endif
 
 #ifdef __CUDACC__
@@ -634,6 +635,7 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
     for (std::uint32_t i = 0; i < job.lanes; ++i) was_active[i] = states[i].active;
     std::vector<int> errors(job.lanes, 0);
     bool done = false;
+    bool metal_soft_mul32 = false;
     const char* engine = "reference";
     if (backend == "cpu" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
         done = f131::run_cpu_fast_job(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape, states,
@@ -648,7 +650,7 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
 #endif
 #ifdef ECC_METAL
     if (!done && backend == "metal" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
-        done = run_metal_fast(job, ext, states, errors);
+        done = run_metal_fast(job, ext, states, errors, metal_soft_mul32);
         if (done) engine = "fast131";
     }
 #endif
@@ -681,7 +683,8 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
     const double cpu = process_cpu_seconds() - cpu_start;
     require(cpu >= 0, "process CPU clock moved backwards");
     return "{\"backend\":\"" + backend + "\",\"engine\":\"" + engine +
-           "\",\"cpu_seconds\":" + std::to_string(cpu) + ",\"lanes\":" +
+           "\",\"metal_soft_mul32\":" + (metal_soft_mul32 ? "true" : "false") +
+           ",\"cpu_seconds\":" + std::to_string(cpu) + ",\"lanes\":" +
            std::to_string(job.lanes) + ",\"distinguished_points\":" +
            std::to_string(dps.size() / STATE_BYTES) + "}";
 }
@@ -710,6 +713,9 @@ int run(int argc, char** argv) {
     }
     if (argc == 2 && std::string(argv[1]) == "--emit-metal-fast-source") {
         std::cout << fast_metal_source(); return 0;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--emit-metal-soft32-source") {
+        std::cout << fast_metal_source(true); return 0;
     }
 #endif
     const bool serve = argc == 4 && std::string(argv[1]) == "--serve";
