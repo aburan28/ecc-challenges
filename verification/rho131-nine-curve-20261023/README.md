@@ -38,6 +38,7 @@ manifest. The raw source archives remain local and were not published.
 | `local/docker-build-selective-amd64.log`, `local/docker-check-selective-amd64.log` | Candidate `linux/amd64` local image built and passed 168 network-disabled packaged CPU checks. It has not run on L4 CUDA or been published. |
 | `local/matched-metal-selective-sandbox-unavailable.log` | First candidate timing attempt could not access a Metal device under the default shell sandbox; it produced no performance result. |
 | `canary-plan-published/plan.json` | Dry run for nine sequential L4 canaries against the still-published immutable image. No contributor key was used. |
+| `cuda-head-plan/plan.json` | Key-free dry run that checked the archived all-curve controls and bound the current CUDA source hashes. |
 | `gates.svg`, `report.typ`, `report.pdf` | Editable gate diagram and one-page visual report. |
 
 The current-head [Worker platforms run](https://github.com/aburan28/ecc-challenges/actions/runs/40066130516)
@@ -63,8 +64,21 @@ Those timings include the Python `run_round` call and one engine process;
 they exclude gateway and verifier costs. They do not establish a full
 campaign rate or a new public performance claim.
 
-The bounded live run, after newly rotated provider credentials are configured,
-uses:
+The current-head key-free L4 check, after a newly rotated provider token is
+configured, uses:
+
+```sh
+python3 verification/rho131-nine-curve-20261023/run_cuda_head.py \
+  --out /absolute/path/to/new-cuda-control-receipts --apply
+```
+
+This key-free L4 gate compiles the current source, replays all 168 archived
+controls, and checks that the returned engine and four source hashes match the
+local inputs. It needs a newly rotated Modal token configured outside the
+repository. The dry-run command without `--apply` verifies the archive and
+produces a plan without contacting Modal.
+
+The authenticated contributor canaries use:
 
 ```sh
 python3 verification/rho131-nine-curve-20261023/run_nine_canaries.py \

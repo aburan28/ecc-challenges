@@ -53,7 +53,8 @@ useful-step equality. Its Apple Paravirtual variant remains unmeasured.
 
 == Open gates
 
-Current-head hosted CI and current-head L4 CUDA parity remain open. The
+Current-head hosted CI and L4 CUDA parity remain open; a key-free 168-case L4
+launcher is prepared. The
 authenticated nine-curve canary needs a newly rotated provider token and a
 fresh dedicated contributor key stored in a local mode-0600 file. Its planned
 launcher uses one L4 sandbox at a time, a fresh volume per curve, immutable
