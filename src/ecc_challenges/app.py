@@ -260,6 +260,11 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         return Response((Path(__file__).parent / "assets/live.js").read_text(),
                         media_type="text/javascript", headers={"Cache-Control": "public, max-age=300"})
 
+    @app.get("/assets/ui.js")
+    async def ui_script():
+        return Response((Path(__file__).parent / "assets/ui.js").read_text(),
+                        media_type="text/javascript", headers={"Cache-Control": "public, max-age=300"})
+
     @app.get("/assets/{name}")
     async def asset(name: str):
         if name not in ASSETS:
