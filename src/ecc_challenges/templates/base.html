@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Google Tag Manager -->
+  <script nonce="{{ request.state.csp_nonce }}">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelector('[nonce]');
+  n&&j.setAttribute('nonce',n.nonce||n.getAttribute('nonce'));f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KTWXXVPF');</script>
+  <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
@@ -117,7 +125,7 @@
     .links{list-style:none;padding:0;margin:0;display:grid;gap:10px}
     .links a{font-weight:600}
 
-    /* setup tabs: radio buttons, no script (the CSP allows none) */
+    /* setup tabs: radio buttons, no script */
     .os-tabs{display:flex;flex-wrap:wrap;gap:6px}
     .os-tabs>input{position:absolute;opacity:0;pointer-events:none}
     .os-tabs>label{margin:0;padding:8px 14px;border:1px solid var(--line);border-radius:6px;font:600 .9rem var(--sans);color:var(--muted);cursor:pointer}
@@ -300,6 +308,10 @@
   </style>
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KTWXXVPF"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
   <a class="skip" href="#main">Skip to content</a>
   {% set signed_in_nav = request.session.get('github_id') %}
   <header class="site-header"><div class="wrap">
