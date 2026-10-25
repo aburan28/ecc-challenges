@@ -33,7 +33,7 @@
       {% for label, est, points in (([("Including imported points", both, row.received_points + row.historical_points)] if both else []) + [("Public uploads only", row, row.received_points)]) %}
       <div class="progress-line{% if loop.first %} primary{% else %} secondary{% endif %}">
         <div class="top"><span>{{ label }}<small>{{ est.estimated_work_log2|pow2 }} operations · {{ "{:,}".format(points) }} points</small></span><span class="pct">{{ est.expected_work_percent|percent }}</span></div>
-        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [est.expected_work_percent or 0, 100]|min }}" aria-label="{{ label }}: share of expected work"><span style="width:{{ [est.expected_work_percent or 0, 100]|min }}%"></span></div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ "%.10f"|format([est.expected_work_percent or 0, 100]|min) }}" aria-valuetext="{{ (est.expected_work_percent or 0)|percent }} of expected work" aria-label="{{ label }}: share of expected work"><span style="width:{{ [est.expected_work_percent or 0, 100]|min }}%"></span></div>
       </div>
       {% endfor %}
       <dl>
@@ -51,7 +51,7 @@
 <section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
   {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
-  <div class="table-wrap"><table class="challenge-status">
+  <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Individually checked points</th>{% endif %}<th class="num">Queued</th></tr></thead>
     {% set rows = snapshot.campaigns if snapshot else challenges %}
     {% for solved, group in rows|sort(attribute="field_bits")|groupby("solved_in_2009") %}
@@ -66,7 +66,7 @@
         <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a></td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ work.expected(challenge) }}</td>
-        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">Solved {{ solved_dates[row.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="Solved {{ solved_dates[row.id] }}. {{ row.name }} published result">Solved {{ solved_dates[row.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
         <td>{% if row.solved_in_2009 %}{{ work.solved(row) }}{% elif is_open %}<span class="bar mini" aria-hidden="true"><span style="width:{{ [primary.expected_work_percent or 0, 100]|min }}%"></span></span><span class="mono">{{ primary.expected_work_percent|percent }}</span>{% if row.including_historical %}<br><small class="muted">{{ row.expected_work_percent|percent }} public uploads only</small>{% endif %}{% else %}—{% endif %}</td>
         <td class="num">{{ "{:,.0f}".format(row.points_per_hour) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
@@ -84,7 +84,7 @@
 
 <section class="section" id="verification">
   <div class="section-head"><h2>Verification and queue health</h2><p class="muted">Individual point checks and sampled replay are different checks. Imported points are reported separately.</p></div>
-  <div class="table-wrap"><table>
+  <div class="table-wrap" tabindex="0"><table>
     <thead><tr><th>Challenge</th><th>Individual checks / indexed points</th><th>Original-worker sampled / indexed batches</th><th>Failed or quarantined batches</th><th>Oldest awaiting processing</th><th>Last successful check</th></tr></thead>
     <tbody>{% for row in open_rows %}{% set check = row.verification %}
       <tr><th><a href="/challenges/{{ row.id }}">{{ row.name }}</a></th>

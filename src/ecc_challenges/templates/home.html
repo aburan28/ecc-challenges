@@ -70,7 +70,7 @@
 
 <section class="section" id="campaigns">
   <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>. Work so far is estimated from stored points.</p></div>
-  <div class="table-wrap"><table class="challenge-status">
+  <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
     {% for solved, group in challenges|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody>
@@ -86,7 +86,7 @@
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num">{{ work.expected(challenge) }}</td>
         <td class="num">{% if solved %}{{ work.solved(challenge) }}{% else %}{{ work.done(row) }}{% endif %}</td>
-        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="{{ challenge.public().name }} published result">Solved {{ solved_dates[challenge.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="Solved {{ solved_dates[challenge.id] }}. {{ challenge.public().name }} published result">Solved {{ solved_dates[challenge.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>

@@ -28,7 +28,7 @@
     {% if run.unresolved %}<p class="pending">{{ run.unresolved }} batch{{ '' if run.unresolved == 1 else 'es' }} unresolved after a replay timeout or error. These batches are archived but not indexed, and are not queued for automatic retry. Operator review is needed; keep the worker's state directory.</p>{% endif %}
     {% if run.failed %}<p class="pending">Keep the state directory and run ID. Review the worker logs and <a href="/help">get help</a> before starting a replacement run.</p>{% endif %}
     <h3>Latest 20 submissions</h3>
-    <div class="table-wrap"><table>
+    <div class="table-wrap" tabindex="0"><table>
       <thead><tr><th>Batch</th><th>Received</th><th class="num">Points</th><th>Check</th><th>Indexed</th></tr></thead>
       <tbody>{% for batch in run.batches_recent %}<tr>
         <td><code title="{{ batch.id }}">{{ batch.id[:12] }}</code></td>
@@ -39,7 +39,7 @@
   </section>
   <section class="section">
     <h2>Worker identity</h2>
-    <div class="table-wrap"><table class="parameter-table"><tbody>
+    <div class="table-wrap" tabindex="0"><table class="parameter-table"><tbody>
       <tr><th>Run ID</th><td class="mono" style="overflow-wrap:anywhere">{{ run.id }}</td></tr>
       <tr><th>Challenge</th><td><a href="/challenges/{{ run.campaign }}">{{ name }}</a></td></tr>
       <tr><th>Key label</th><td>{{ run.key_label }}</td></tr>

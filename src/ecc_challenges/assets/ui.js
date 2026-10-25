@@ -24,6 +24,7 @@
       try {
         await navigator.clipboard.writeText(pre.textContent);
         button.textContent = "Copied";
+        button.setAttribute("aria-label", "Copied code");
         status.textContent = "Code copied to clipboard.";
       } catch {
         const range = document.createRange();
@@ -34,9 +35,13 @@
           selection.addRange(range);
         }
         button.textContent = "Copy";
+        button.setAttribute("aria-label", "Copy code");
         status.textContent = "Clipboard unavailable. Code selected; copy it manually.";
       }
-      reset = setTimeout(() => { button.textContent = "Copy"; }, 2500);
+      reset = setTimeout(() => {
+        button.textContent = "Copy";
+        button.setAttribute("aria-label", "Copy code");
+      }, 2500);
     });
 
     tools.append(status, button);

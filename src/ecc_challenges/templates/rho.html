@@ -36,7 +36,7 @@
     <section id="rho">
       <h2>Pollard's rho</h2>
       <p>Pick a function <var>f</var> that maps points to points and looks random, but where every point it produces is a known combination <var>a</var><var>G</var> + <var>b</var><var>Q</var>. Start somewhere and iterate: <var>R</var><sub>i+1</sub> = <var>f</var>(<var>R</var><sub>i</sub>). The group is finite, so the walk must eventually repeat a point. From then on it loops, and the path traced out looks like the Greek letter ρ.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="narrow" viewBox="0 0 420 290" role="img" aria-label="A rho-shaped walk: a tail of points leads into a cycle; the first repeated point closes the loop.">
           <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 0 8 4 0 8z"/></marker></defs>
           <polyline class="walk" points="36,262 78,240 120,218 163,192 205,167" marker-end="url(#arrow)"/>
@@ -63,7 +63,7 @@
       <h2>Many walks at once</h2>
       <p>One walk cannot be split across machines, but many walks can share one search. If two walks ever land on the same point they stay together from then on, because <var>f</var> is deterministic. A collision between any two walks is as useful as a walk meeting itself, so <var>m</var> machines finish about <var>m</var> times faster.</p>
       <p>The trick, from van Oorschot and Wiener, is to report only rare <em>distinguished points</em>: points with an easily tested property, such as a run of zero bits. Each walk runs until it hits one, uploads it with its coefficients, and carries on. When two walks merge, they reach the same distinguished point soon after, and the server sees the same point arrive twice.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="wide" viewBox="0 0 640 262" role="img" aria-label="Three walks run left to right. Walks 1 and 2 merge partway, travel together, and report the same distinguished point. Walk 3 never meets them.">
           <polyline class="walk" points="24,48 88,40 152,56 216,46 280,62 344,84 408,108"/>
           <polyline class="walk" points="24,180 88,172 152,182 216,164 280,148 344,126 408,108"/>
@@ -116,7 +116,7 @@
       <h3>Work and odds</h3>
       <p>With <var>k</var> = <var>D</var>/<var>p</var> steps done and an expected <var>E</var>, the share of expected work is <var>k</var>/<var>E</var>, and the chance that rho would have produced a collision by now is</p>
       <p class="formula"><var>P</var>(<var>k</var>) ≈ 1 − exp(−(π/4)·(<var>k</var>/<var>E</var>)²)</p>
-      <div class="table-wrap"><table class="odds">
+      <div class="table-wrap" tabindex="0"><table class="odds">
         <thead><tr><th>Work done</th><th class="num">Share of <var>E</var></th><th class="num">Chance of a collision</th></tr></thead>
         <tbody>
           <tr><td>2<sup>57.5</sup></td><td class="num">10%</td><td class="num">0.8%</td></tr>
@@ -144,7 +144,7 @@
     <section id="kernels">
       <h2>Inside the kernels</h2>
       <p>Across the whole search the GPU client performs the same step about 2<sup>61</sup> times, so the work is all in making that step short. Each step costs five field multiplications, one squaring, a Frobenius map, a Hamming weight, and a sixteenth of an inversion. The techniques below come from the client's source, vendored at a pinned commit in <code>vendor/cryptanalysis/ecc2k130</code>, and the figures from its comments and benchmarks.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="wide" viewBox="0 0 640 190" role="img" aria-label="One launch per thread: a forward pass over 16 walks, one shared inversion, then a reverse pass over the same 16 walks.">
           <defs><marker id="arrow2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 8 4 0 8z"/></marker></defs>
           <rect class="cell" x="8" y="30" width="236" height="150" rx="8"/>

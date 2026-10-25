@@ -12,7 +12,7 @@
 <section class="section">
   <div class="section-head"><h2>The result</h2></div>
   <p class="muted">The recovered private key is the scalar <code>k</code> below. Multiplying the generator <code>P</code> by this value gives the challenge's public key <code>Q</code>: <code>k × P = Q</code>.</p>
-  <div class="table-wrap"><table class="result-values" aria-label="Published solution">
+  <div class="table-wrap" tabindex="0"><table class="result-values" aria-label="Published solution">
     <tbody>
       <tr><th scope="row">Private key k · hex</th><td><code id="scalar-hex">{{ result.scalar_hex }}</code></td></tr>
       <tr><th scope="row">Private key k · decimal</th><td><code id="scalar-decimal">{{ result.scalar_decimal }}</code></td></tr>
@@ -30,7 +30,7 @@
   {% else %}
   <p class="muted">The curve is <code>y² = x³ + ax + b</code> over GF(p), using residues modulo the prime p.</p>
   {% endif %}
-  <div class="table-wrap"><table class="result-values" aria-label="Curve parameters">
+  <div class="table-wrap" tabindex="0"><table class="result-values" aria-label="Curve parameters">
     <tbody>
       <tr><th scope="row">Generator P · x</th><td><code>{{ curve.G[0] }}</code></td></tr>
       <tr><th scope="row">Generator P · y</th><td><code>{{ curve.G[1] }}</code></td></tr>

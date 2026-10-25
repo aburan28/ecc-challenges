@@ -21,7 +21,7 @@
   <h3>Copy your new key now</h3>
   <p class="muted">This is the only time it is shown. Save it to a file only you can read:</p>
   <div class="code secret">{{ issued }}</div>
-  <pre><span class="c"># paste the key when prompted, then press Ctrl-D</span>
+  <pre tabindex="0"><span class="c"># paste the key when prompted, then press Ctrl-D</span>
 mkdir -p ~/.config/ecc-challenges
 (umask 077; cat > ~/.config/ecc-challenges/api-key)</pre>
   <p class="note">The one-line installers in step 2 ask for the key and save it for you.</p>
@@ -52,7 +52,7 @@ mkdir -p ~/.config/ecc-challenges
   </dl>
   {% if activity.runs %}
   {% if activity.total_runs > activity.runs|length %}<p class="table-note">Showing {{ activity.runs|length }} recent runs of {{ activity.total_runs }}. Totals include every run.</p>{% endif %}
-  <div class="table-wrap" style="margin-top:22px"><table>
+  <div class="table-wrap" tabindex="0" style="margin-top:22px"><table>
     <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>Worker health</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Est. iterations/s<br><small>24 h average</small></th><th>Last upload</th><th>Last seen</th></tr></thead>
     <tbody>
     {% for run in activity.runs %}
@@ -77,7 +77,7 @@ mkdir -p ~/.config/ecc-challenges
 
   {% if activity.recent %}
   <h3 style="margin-top:36px">Latest submissions</h3>
-  <div class="table-wrap"><table>
+  <div class="table-wrap" tabindex="0"><table>
     <thead><tr><th>Received</th><th>Run</th><th>Challenge</th><th class="num">Points</th><th>Check</th></tr></thead>
     <tbody>
     {% for batch in activity.recent %}
@@ -104,8 +104,8 @@ mkdir -p ~/.config/ecc-challenges
       <label for="label">Name for the new key</label>
       <div class="row"><input id="label" name="label" type="text" maxlength="80" required placeholder="e.g. home RTX 4090" style="flex:1 1 200px"><button class="button" type="submit">Create key</button></div>
     </form>
-    <div class="table-wrap"><table aria-label="Your API keys and worker activity" aria-describedby="key-activity-note">
-      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th>Worker</th><th title="Latest one-minute worker heartbeat">Last ping</th><th title="Latest authenticated API request, excluding heartbeats">Last used</th><th class="num">Points received</th><th></th></tr></thead>
+    <div class="table-wrap" tabindex="0"><table aria-label="Your API keys and worker activity" aria-describedby="key-activity-note">
+      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th>Worker</th><th title="Latest one-minute worker heartbeat">Last ping</th><th title="Latest authenticated API request, excluding heartbeats">Last used</th><th class="num">Points received</th><th>Actions</th></tr></thead>
       <tbody>
       {% for key in keys %}
         <tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
@@ -155,7 +155,7 @@ mkdir -p ~/.config/ecc-challenges
       <p class="muted">DP34 is recommended for new NVIDIA workers and reports points more frequently. DP32 and DP30 are also accepted. All three can match compatible points from the earlier ECC2K-130 search.</p>
       <p class="note">Use a separate directory for each threshold. Resume an existing run with its original command and directory. CPU and Mac workers below use a separate search and do not use this setting.</p>
       {% endif %}
-<pre><span class="c"># one directory per GPU; keep it between restarts</span>
+<pre tabindex="0"><span class="c"># one directory per GPU; keep it between restarts</span>
 GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
 {% if sigma_worker %}DP_WEIGHT={{ selected_dp_weight }}
@@ -182,7 +182,7 @@ docker logs --tail 100 -f "$WORKER"</pre>
       {% if multicurve_enabled and cpu_worker_image %}
       <h3>CPU, with Docker (x86-64 or ARM64)</h3>
       <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key as shown in step 1 first.</p>
-<pre>CAMPAIGN={{ selected_campaign }}
+<pre tabindex="0">CAMPAIGN={{ selected_campaign }}
 WORKER="ecc-cpu-$CAMPAIGN"
 mkdir -p "$PWD/ecc-cpu-$CAMPAIGN"
 
@@ -199,13 +199,13 @@ docker logs --tail 100 -f "$WORKER"</pre>
       {% endif %}
       <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
       <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
-      <pre>curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
+      <pre tabindex="0">curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
       {{ native_off }}
     </div>
 
     <div class="os-panel macos">
       <p class="muted">Apple silicon or Intel. The worker uses the Mac's GPU through Metal. In Terminal:</p>
-<pre><span class="c"># once, if you don't have the developer tools yet</span>
+<pre tabindex="0"><span class="c"># once, if you don't have the developer tools yet</span>
 xcode-select --install
 
 curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
@@ -220,7 +220,7 @@ curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
     <div class="os-panel windows">
       <h3>Native worker</h3>
       <p class="muted">Windows 10 or 11, x64 or ARM64. Runs on the CPU, or on an NVIDIA GPU if the CUDA toolkit is installed. In PowerShell:</p>
-<pre><span class="c"># once: Python, CMake and the C++ build tools</span>
+<pre tabindex="0"><span class="c"># once: Python, CMake and the C++ build tools</span>
 winget install -e --id Python.Python.3.12
 winget install -e --id Kitware.CMake
 winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"

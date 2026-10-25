@@ -159,3 +159,25 @@ echo '<img src=x onerror=alert(1)>'
     assert all(not href.startswith(("javascript:", "https://github.com/")) for href in parsed.hrefs)
     assert "GitHub issue" in html
     assert {"repeat", "repeat-1"} <= parsed.ids
+
+
+def test_small_progress_is_a_valid_accessible_number():
+    from decimal import Decimal
+
+    class ProgressValues(HTMLParser):
+        def __init__(self, html):
+            super().__init__()
+            self.values = []
+            self.feed(html)
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if attrs.get("role") == "progressbar":
+                self.values.append(attrs)
+
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        values = ProgressValues(client.get("/status").text).values
+    public = next(value for value in values if "Public uploads" in value["aria-label"])
+    assert re.fullmatch(r"\d+(\.\d+)?", public["aria-valuenow"])
+    assert 0 < Decimal(public["aria-valuenow"]) < Decimal("0.01")
+    assert public["aria-valuetext"] == "<0.01% of expected work"
