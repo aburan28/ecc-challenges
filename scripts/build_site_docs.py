@@ -22,6 +22,7 @@ OUTPUT = ROOT / "src/ecc_challenges/site_docs.json"
 DOCUMENTS = {
     "README.md": "project",
     "CONTRIBUTING.md": "contributing",
+    "skills/ecc-challenges-worker/references/prerequisites.md": "worker-prerequisites",
     **{f"docs/{name}.md": name for name in (
         "running-a-worker", "agents", "modal-workers", "local-stack", "campaigns",
         "admission-and-capacity", "multicurve-storage", "operations",

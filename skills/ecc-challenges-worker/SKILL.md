@@ -1,6 +1,6 @@
 ---
 name: ecc-challenges-worker
-description: Set up, inspect, resume, or troubleshoot an ECC Challenges contributor worker on CPU, NVIDIA CUDA, or macOS Metal. Use for contributing compute to ecc-challenges.com with Docker or the native Linux, macOS, and Windows installers.
+description: Install prerequisites and set up, inspect, resume, or troubleshoot an ECC Challenges contributor worker on CPU, NVIDIA CUDA, or macOS Metal. Use for contributing compute to ecc-challenges.com with Docker or the native Linux, macOS, and Windows installers.
 ---
 
 # ECC Challenges worker
@@ -36,6 +36,43 @@ useful for a deliberate pipeline check; select an open challenge for ongoing
 contributions. Native installers default to `eccp-131`; set `ECC_CAMPAIGN`
 explicitly to preserve the user's choice.
 
+## Install missing prerequisites
+
+Carry setup through dependency installation. Read the bundled
+[prerequisite guide](references/prerequisites.md) for commands and current
+vendor sources. When reading this skill at `/skill.md`, use the
+[web copy](https://ecc-challenges.com/docs/worker-prerequisites). Inspect the actual target host's OS,
+architecture, privileges, existing workers and Docker context first. Reuse
+working tools; install only what the selected path needs:
+
+- **Linux Docker:** install a supported Docker Engine, start its daemon and
+  verify access as the worker's user. Add Compose only for a Compose recipe.
+  A Docker CLI without a reachable daemon is incomplete setup.
+- **NVIDIA Docker:** also check the host driver and install/configure the NVIDIA
+  Container Toolkit. A host CUDA compiler is unnecessary for prebuilt images.
+  Verify the allocated GPU inside the pinned worker image with
+  `ECC_BACKEND=cuda` and `--check`; keep failures visible instead of silently
+  switching to CPU.
+- **Native Linux/macOS:** install Python 3.10+, a C++17 compiler, and the
+  download/extraction tools. On macOS, complete Xcode command-line tools setup;
+  on native CUDA hosts also install the compatible CUDA toolkit.
+- **Native Windows:** install Python 3.10+, CMake 3.21+, and Visual Studio 2022
+  C++ Build Tools for the machine's architecture. Finish any installer, reopen
+  the terminal when needed and verify the tools before running the worker installer.
+
+A request to set up the worker includes its normal prerequisite installation
+on the designated machine, within that session's permissions. Preserve daemon
+settings and existing workloads. A reboot, driver replacement or Docker restart
+that interrupts unrelated jobs needs the corresponding maintenance scope; if
+it is unavailable, report that specific unfinished step. Do not weaken Docker
+socket permissions or discard state to bypass setup failures.
+
+Docker is optional for native workers. Node/npm is optional for the Skills CLI;
+an agent can read this URL directly. Once the tools are ready, continue through
+worker installation, offline checks and connection verification below. Report
+missing privileges, unfinished interactive installers and unavailable backends
+accurately; a dependency list alone does not complete setup.
+
 ## Credentials and installation
 
 The user signs in with GitHub at [the dashboard](https://ecc-challenges.com/dashboard)
@@ -59,9 +96,7 @@ $env:ECC_CAMPAIGN = 'eccp-131'
 irm https://ecc-challenges.com/install.ps1 | iex
 ```
 
-Check prerequisites first. Linux/macOS need Python 3.10+ and a C++17 compiler;
-macOS also needs Xcode command-line tools for Metal. Windows needs Python,
-CMake, and Visual Studio C++ build tools. The installer reports missing tools.
+Complete the prerequisite setup above before invoking these installers.
 Use `ECC_START=no` to install without starting a worker. For an unattended
 agent session, use the printed start command after the user has saved the key;
 an absent interactive terminal is not permission to request the key in chat.
