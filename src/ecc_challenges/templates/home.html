@@ -5,12 +5,13 @@
 <section class="hero">
   <div>
     <div class="kicker">Certicom ECC Challenge</div>
-    <h1>{% if multicurve_enabled %}Run a worker on the open Certicom elliptic-curve challenges.{% else %}Run a GPU worker on the open Certicom elliptic-curve challenges.{% endif %}</h1>
-    <p class="lead">In 1997 Certicom published 24 elliptic-curve discrete logarithm problems, from 79 to 359 bits. Its 2009 update lists ten as solved. This project runs a public Pollard rho search on {% if multicurve_enabled %}all of them{% else %}ECC2K-130, the open challenge with the lowest estimated cost in that update{% endif %}. {% if multicurve_enabled %}Run a Linux container or a native Windows or macOS worker to join the search.{% else %}Run one Linux container on an NVIDIA GPU, local or rented, to join the search.{% endif %}</p>
+    <h1>Join the search on the Certicom curves.</h1>
+    <p class="lead">{% if multicurve_enabled %}Contribute CPU or GPU time to a public Pollard rho search.{% else %}Contribute NVIDIA GPU time to the public ECC2K-130 search.{% endif %} Certicom published 24 elliptic-curve discrete logarithm challenges, from 79 to 359 bits. Its 2009 update lists ten as solved.</p>
     <div class="actions">
       <a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
-      <a class="button ghost" href="/status">Live status</a>
+      <a class="button ghost" href="#how">Choose your setup</a>
     </div>
+    <p class="note hero-help"><a href="/docs/agents">Set up with a coding agent</a> or <a href="/status">view live status</a>.</p>
   </div>
   <figure class="figure">
     {% include "_curve.html" %}
@@ -31,9 +32,16 @@
 
 <section class="section" id="how">
   <div class="section-head"><h2>How to take part</h2><p class="muted">{% if multicurve_enabled %}Choose the setup for your machine.{% else %}About ten minutes if Docker and the NVIDIA Container Toolkit are already installed.{% endif %}</p></div>
+  {% if multicurve_enabled %}
+  <ul class="setup-options" aria-label="Worker setup guides">
+    <li><a href="/docs/running-a-worker#docker"><strong>Linux</strong><span>Docker on a CPU or NVIDIA GPU</span></a></li>
+    <li><a href="/docs/running-a-worker#macos"><strong>macOS</strong><span>Native worker with Metal GPU support</span></a></li>
+    <li><a href="/docs/running-a-worker#windows"><strong>Windows</strong><span>Native worker on x64 or ARM64</span></a></li>
+  </ul>
+  {% endif %}
   <ol class="steps">
     <li><h3>Get a key</h3><p>Sign in with GitHub and create an API key. You can revoke it at any time.</p></li>
-    <li><h3>Start the worker</h3><p>{% if multicurve_enabled %}Use the dashboard's Docker command or the native Windows and macOS steps in the worker guide.{% else %}Use the <code>docker run</code> command shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.{% endif %}</p></li>
+    <li><h3>Start the worker</h3><p>{% if multicurve_enabled %}Choose a guide above, or let your coding agent use the worker skill to help you set up.{% else %}Use the <code>docker run</code> command shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.{% endif %}</p></li>
     <li><h3>Points come back</h3><p>The worker uploads distinguished points. The server checks them, stores them and compares them with every other worker's points.</p></li>
   </ol>
 </section>
