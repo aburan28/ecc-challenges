@@ -1,0 +1,4 @@
+interface:
+  display_name: "Launch ECC runners"
+  short_description: "Launch and manage ECC workers on local or SSH hosts"
+  default_prompt: "Use $ecc-launch-runners to launch or resume ECC Challenges workers on my box."
