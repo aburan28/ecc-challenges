@@ -205,6 +205,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
+        request.state.csp_nonce = secrets.token_urlsafe(32)
         response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -212,8 +213,11 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
-            "frame-ancestors 'none'; base-uri 'none'; img-src 'self' data:; "
-            "script-src 'self'; connect-src 'self'"
+            "frame-ancestors 'none'; base-uri 'none'; "
+            "img-src 'self' data: https://www.googletagmanager.com; "
+            f"script-src 'self' 'nonce-{request.state.csp_nonce}' https://www.googletagmanager.com; "
+            "connect-src 'self' https://www.googletagmanager.com; "
+            "frame-src https://www.googletagmanager.com"
         )
         return response
 
