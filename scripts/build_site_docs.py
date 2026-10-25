@@ -94,7 +94,7 @@ def render_document(source: str, markdown: str) -> dict:
                 toc.append({"title": label, "id": anchor})
         if token.type == "table_open":
             token.type = "html_block"
-            token.content = '<div class="table-wrap"><table>\n'
+            token.content = '<div class="table-wrap" tabindex="0"><table>\n'
         elif token.type == "table_close":
             token.type = "html_block"
             token.content = "</table></div>\n"
@@ -112,7 +112,8 @@ def render_document(source: str, markdown: str) -> dict:
                     child.hidden = True
     return {"title": title, "source": source, "account_placeholders": public_markdown != markdown,
             "source_sha256": source_sha256,
-            "toc": toc, "html": parser.renderer.render(tokens, parser.options, {})}
+            "toc": toc, "html": parser.renderer.render(tokens, parser.options, {}).replace(
+                "<pre>", '<pre tabindex="0">')}
 
 
 def build_bundle() -> str:

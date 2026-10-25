@@ -1,0 +1,31 @@
+{
+  "axe_version": "4.14.0",
+  "pages": [
+    {
+      "path": "/",
+      "state": "menu-open",
+      "width": 320,
+      "scheme": "light",
+      "violations": [],
+      "incomplete_rules": [
+        "color-contrast",
+        "th-has-data-cells"
+      ]
+    },
+    {
+      "path": "/dashboard",
+      "state": "copied-command",
+      "width": 320,
+      "scheme": "light",
+      "violations": [],
+      "incomplete_rules": []
+    }
+  ],
+  "interactions": [
+    "Long code examples scroll with keyboard arrows",
+    "Focused command has a high-contrast inset keyboard outline",
+    "Empty API-key table scrolls with keyboard arrows",
+    "Keyboard scrolling remains available after live refresh",
+    "Command keyboard scrolling works without JavaScript"
+  ]
+}
