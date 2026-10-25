@@ -1,0 +1,189 @@
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____________ test_gateway_redirect_does_not_forward_key[301-GET] ______________
+
+sigma_client = <module 'client' from '/Volumes/SSD990-2/ecc-launch-review/worker/client.py'>
+status = 301, method = 'GET'
+
+    @pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                              (307, "GET"), (308, "GET")])
+    def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+        received = []
+    
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                received.append((self.path, self.headers.get("Authorization")))
+                if self.path == "/start":
+                    self.send_response(status)
+                    # A different hostname models a redirect outside the configured origin.
+                    self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+                else:
+                    self.send_response(200)
+                self.end_headers()
+    
+            do_POST = do_GET
+    
+            def log_message(self, *_):
+                pass
+    
+        with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+>               with pytest.raises(RuntimeError, match="redirect"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               Failed: DID NOT RAISE RuntimeError
+
+tests/test_sigma_client.py:36: Failed
+_____________ test_gateway_redirect_does_not_forward_key[302-GET] ______________
+
+sigma_client = <module 'client' from '/Volumes/SSD990-2/ecc-launch-review/worker/client.py'>
+status = 302, method = 'GET'
+
+    @pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                              (307, "GET"), (308, "GET")])
+    def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+        received = []
+    
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                received.append((self.path, self.headers.get("Authorization")))
+                if self.path == "/start":
+                    self.send_response(status)
+                    # A different hostname models a redirect outside the configured origin.
+                    self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+                else:
+                    self.send_response(200)
+                self.end_headers()
+    
+            do_POST = do_GET
+    
+            def log_message(self, *_):
+                pass
+    
+        with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+>               with pytest.raises(RuntimeError, match="redirect"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               Failed: DID NOT RAISE RuntimeError
+
+tests/test_sigma_client.py:36: Failed
+_____________ test_gateway_redirect_does_not_forward_key[303-POST] _____________
+
+sigma_client = <module 'client' from '/Volumes/SSD990-2/ecc-launch-review/worker/client.py'>
+status = 303, method = 'POST'
+
+    @pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                              (307, "GET"), (308, "GET")])
+    def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+        received = []
+    
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                received.append((self.path, self.headers.get("Authorization")))
+                if self.path == "/start":
+                    self.send_response(status)
+                    # A different hostname models a redirect outside the configured origin.
+                    self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+                else:
+                    self.send_response(200)
+                self.end_headers()
+    
+            do_POST = do_GET
+    
+            def log_message(self, *_):
+                pass
+    
+        with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+>               with pytest.raises(RuntimeError, match="redirect"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               Failed: DID NOT RAISE RuntimeError
+
+tests/test_sigma_client.py:36: Failed
+_____________ test_gateway_redirect_does_not_forward_key[307-GET] ______________
+
+sigma_client = <module 'client' from '/Volumes/SSD990-2/ecc-launch-review/worker/client.py'>
+status = 307, method = 'GET'
+
+    @pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                              (307, "GET"), (308, "GET")])
+    def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+        received = []
+    
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                received.append((self.path, self.headers.get("Authorization")))
+                if self.path == "/start":
+                    self.send_response(status)
+                    # A different hostname models a redirect outside the configured origin.
+                    self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+                else:
+                    self.send_response(200)
+                self.end_headers()
+    
+            do_POST = do_GET
+    
+            def log_message(self, *_):
+                pass
+    
+        with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+>               with pytest.raises(RuntimeError, match="redirect"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               Failed: DID NOT RAISE RuntimeError
+
+tests/test_sigma_client.py:36: Failed
+_____________ test_gateway_redirect_does_not_forward_key[308-GET] ______________
+
+sigma_client = <module 'client' from '/Volumes/SSD990-2/ecc-launch-review/worker/client.py'>
+status = 308, method = 'GET'
+
+    @pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                              (307, "GET"), (308, "GET")])
+    def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+        received = []
+    
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                received.append((self.path, self.headers.get("Authorization")))
+                if self.path == "/start":
+                    self.send_response(status)
+                    # A different hostname models a redirect outside the configured origin.
+                    self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+                else:
+                    self.send_response(200)
+                self.end_headers()
+    
+            do_POST = do_GET
+    
+            def log_message(self, *_):
+                pass
+    
+        with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+>               with pytest.raises(RuntimeError, match="redirect"):
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               Failed: DID NOT RAISE RuntimeError
+
+tests/test_sigma_client.py:36: Failed
+=========================== short test summary info ============================
+FAILED tests/test_sigma_client.py::test_gateway_redirect_does_not_forward_key[301-GET]
+FAILED tests/test_sigma_client.py::test_gateway_redirect_does_not_forward_key[302-GET]
+FAILED tests/test_sigma_client.py::test_gateway_redirect_does_not_forward_key[303-POST]
+FAILED tests/test_sigma_client.py::test_gateway_redirect_does_not_forward_key[307-GET]
+FAILED tests/test_sigma_client.py::test_gateway_redirect_does_not_forward_key[308-GET]
+5 failed, 13 deselected in 2.62s

@@ -1,5 +1,5 @@
 <div class="row live-controls" style="margin:20px 0">
-  <button class="button ghost small" type="button" data-live-refresh hidden>Refresh now</button>
+  <button class="button ghost small" type="button" data-live-refresh{% if live_url %} data-live-url="{{ live_url }}"{% endif %} hidden>Refresh now</button>
   <span class="muted" role="status" data-live-message>Last updated {{ live_as_of[:19].replace("T", " ") if live_as_of else "unavailable" }} UTC.</span>
 </div>
 <noscript><p class="note">Reload this page to update the figures. Automatic updates require JavaScript.</p></noscript>

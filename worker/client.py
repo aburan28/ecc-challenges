@@ -16,10 +16,18 @@ import time
 import uuid
 from urllib.error import HTTPError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from protocol import CAMPAIGN, DP_WEIGHT, DP_WEIGHTS, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
 from generic.heartbeat import Heartbeat
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError("unexpected gateway redirect; preserve local contributor state")
+
+
+OPENER = build_opener(NoRedirect)
 
 
 def log(message: str) -> None:
@@ -79,7 +87,7 @@ class API:
             headers["Content-Type"] = "application/octet-stream"
         req = Request(self.url + path, data=data, headers=headers, method=method)
         try:
-            with urlopen(req, timeout=600 if "/checkpoint" in path else 90) as response:
+            with OPENER.open(req, timeout=600 if "/checkpoint" in path else 90) as response:
                 body = response.read()
                 if response.headers.get("Content-Type", "").startswith("application/json"):
                     return json.loads(body)

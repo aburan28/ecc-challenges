@@ -95,7 +95,7 @@
         <td>{{ check.last_checked_at|isoago if check.last_checked_at else "No successful check recorded" }}</td>
       </tr>{% endfor %}</tbody>
   </table></div>
-  <p class="table-note">Individual checks cover new-worker points only. Original-worker sampling replays selected records; it does not verify every point or every iteration. {% if imported %}The {{ "{:,}".format(imported) }} imported points are stored separately; archive audit counts are unavailable here.{% endif %} Reserved uploads have not reached verification yet. Queue age includes checks and indexing still waiting; it is not a failure diagnosis.</p>
+  <p class="table-note">Individual checks cover new-worker points only. Original-worker sampling replays selected records; it does not verify every point or every iteration. Unresolved batches reached a replay timeout or error: they remain archived but are not indexed or queued for automatic retry and need operator review. {% if imported %}The {{ "{:,}".format(imported) }} imported points are stored separately; archive audit counts are unavailable here.{% endif %} Reserved uploads have not reached verification yet. Queue age includes checks and indexing still waiting, excludes unresolved batches, and is not a failure diagnosis.</p>
 </section>
 <section class="section two">
   <div>
