@@ -4,6 +4,9 @@ Run commands on the selected Linux host, as the account that will own its
 runner state. Read `docs/running-a-worker.md` in the repository first. This
 recipe starts one new **protocol-2** runner; preserve the original configuration
 when resuming. For legacy sigma use the dashboard's protocol-1 command instead.
+Complete [host setup](host-setup.md) first if Docker/toolkit components are
+missing. For requested isolation, complete [sandbox setup](sandbox-setup.md)
+before starting an uploading worker.
 
 ## Prepare
 
@@ -13,6 +16,7 @@ Resolve these non-secret variables from host inspection and the user's request:
 | --- | --- |
 | `ECC_CAMPAIGN` | Admitted curve ID, usually `eccp-131` when unspecified |
 | `ECC_WORKER_IMAGE` | Current CPU-only or combined image pinned by digest |
+| `ECC_CONTAINER_RUNTIME` | Explicit registered runtime: normally `runc` for CPU, `nvidia` for ordinary CUDA, or the requested `runsc`/`kata` sandbox |
 | `ECC_KEY_FILE` | Absolute path to the existing protected API-key file |
 | `ECC_STATE_DIR` | Absolute durable path dedicated to this runner |
 | `ECC_RUNNER_NAME` | Unique Docker name, e.g. `ecc-eccp-131-cpu` or `ecc-eccp-131-gpu0` |
@@ -26,6 +30,8 @@ before creating a new one:
 
 ```sh
 test -n "${ECC_RUNNER_NAME:?set a runner name}"
+test -n "${ECC_CONTAINER_RUNTIME:?select the requested registered runtime}"
+docker info --format '{{json .Runtimes}}'
 docker ps -a --filter "name=^/${ECC_RUNNER_NAME}$" \
   --format '{{.Names}} {{.Status}} {{.Image}}'
 ```
@@ -59,7 +65,7 @@ the engine thread count; do not consume more cores than allocated.
 
 ```sh
 test "${ECC_CPU_THREADS:?set allocated CPU threads}" -gt 0
-docker run --rm --network none --cpus "$ECC_CPU_THREADS" \
+docker run --rm --runtime "$ECC_CONTAINER_RUNTIME" --network none --cpus "$ECC_CPU_THREADS" \
   -e ECC_BACKEND=cpu -e OMP_NUM_THREADS="$ECC_CPU_THREADS" \
   "$ECC_WORKER_IMAGE" --check
 ```
@@ -68,6 +74,7 @@ After the check succeeds:
 
 ```sh
 docker run -d --restart unless-stopped --name "$ECC_RUNNER_NAME" \
+  --runtime "$ECC_CONTAINER_RUNTIME" \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
   --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true \
   --cpus "$ECC_CPU_THREADS" \
@@ -85,10 +92,13 @@ docker run -d --restart unless-stopped --name "$ECC_RUNNER_NAME" \
 Use the combined amd64 image, a compatible NVIDIA driver, and NVIDIA Container
 Toolkit. Restrict the container to one allocated device. Inside that container
 the single visible CUDA device is index `0`, irrespective of its host index.
+These commands cover ordinary CUDA and a separately configured compatible
+gVisor nvproxy runtime. Kata GPU passthrough needs its own device/VMM setup;
+follow the sandbox reference rather than assuming `--gpus` enables it.
 
 ```sh
 test -n "${ECC_DEVICE_ID:?set an allocated host GPU}"
-docker run --rm --network none --gpus "device=$ECC_DEVICE_ID" \
+docker run --rm --runtime "$ECC_CONTAINER_RUNTIME" --network none --gpus "device=$ECC_DEVICE_ID" \
   -e ECC_BACKEND=cuda -e ECC_GPU=0 "$ECC_WORKER_IMAGE" --check
 ```
 
@@ -96,6 +106,7 @@ After the check succeeds:
 
 ```sh
 docker run -d --restart unless-stopped --name "$ECC_RUNNER_NAME" \
+  --runtime "$ECC_CONTAINER_RUNTIME" \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
   --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges:true \
   --gpus "device=$ECC_DEVICE_ID" \
@@ -111,6 +122,10 @@ Repeat for each requested card with a different host device, container name,
 and state directory, within the account's active-run capacity. Alternatively use
 `deploy/docker/compose.yaml`, setting the actual UID/GID, pinned image, campaign,
 device IDs, and per-service state paths; run only the requested profile/services.
+Set `runtime` explicitly for each selected Compose service in its launch override;
+the repository's base Compose file does not choose gVisor or Kata. For the Docker
+systemd template, retain `--runtime=NAME` in `ECC_DOCKER_ARGS` as well as any GPU
+arguments. Do not claim isolation merely because another smoke container used it.
 Do not use `docker compose down -v` or erase bind-mounted data to restart.
 
 ## Observe and manage
@@ -120,6 +135,7 @@ docker ps -a --filter "name=^/${ECC_RUNNER_NAME}$" \
   --format '{{.Names}} {{.Status}} {{.Image}}'
 docker logs --tail 80 "$ECC_RUNNER_NAME"
 docker stats --no-stream "$ECC_RUNNER_NAME"
+docker inspect --format '{{.HostConfig.Runtime}}' "$ECC_RUNNER_NAME"
 ```
 
 Inspect safe checkpoint metadata on the host as described in the [skill](../SKILL.md), then
@@ -137,6 +153,7 @@ docker start "$ECC_RUNNER_NAME"
 
 For an image update, stop gracefully and inspect the exit before recreating the
 container with the new pinned image and **the same** mounts and run settings.
+Retain the selected isolation runtime and its required options.
 Keep the old launch definition/digest for recovery. Never use `docker kill` as a
 routine stop. If a round exceeds the grace period, diagnose it and allow a
 longer graceful stop rather than repeatedly forcing termination.

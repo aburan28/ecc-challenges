@@ -1,11 +1,11 @@
 ---
 name: ecc-launch-runners
-description: Launch, resume, inspect, or stop ECC Challenges contributor runners on a specified local or SSH box using aburan28/ecc-challenges. Use for CPU, NVIDIA CUDA, or macOS Metal workers, persistent services, checkpoints, and runner health. These are ECC compute workers, not GitHub Actions runners. Excludes deploying the gateway and provisioning cloud capacity.
+description: Bootstrap a box and launch, resume, inspect, or stop ECC Challenges contributor runners using aburan28/ecc-challenges. Install missing dependencies, Docker Engine/Compose, NVIDIA Container Toolkit, and requested gVisor or Kata runtimes on supported Linux hosts; configure persistent CPU/CUDA/Metal workers and verify checkpoints and health. Use for local or SSH machines. These are ECC compute workers, not GitHub Actions runners. Excludes deploying the gateway and provisioning cloud capacity.
 ---
 
 # Launch ECC Challenges runners
 
-Take a runner request through host inspection, installation, startup, and verified
+Take a runner request through host inspection, dependency/runtime installation, startup, and verified
 handoff. Use [aburan28/ecc-challenges](https://github.com/aburan28/ecc-challenges)
 and its existing deployment recipes; do not invent a worker client or protocol.
 If asked only to create or install this skill, do not start compute jobs.
@@ -29,6 +29,9 @@ Collect only the facts needed to choose a recipe:
 - Docker/Compose availability, or Python 3.10+ and a C++17 compiler for native
   builds. For NVIDIA, inspect GPU IDs, driver, and toolkit/container support.
   Current CUDA images need a CUDA 13-compatible driver (Linux R580+).
+- Requested isolation runtime, Docker daemon/context, and existing daemon
+  configuration. For Kata, check hardware/nested virtualization and usable KVM;
+  do not infer availability from the machine or cloud instance name.
 - Existing `ecc-*` containers, `ecc-worker@*`/`ecc-worker-docker@*` services,
   launchd agents, installs, and state mounts. Inspect selected fields rather than
   dumping container environments or process environments, which may hold keys.
@@ -38,7 +41,10 @@ Collect only the facts needed to choose a recipe:
 A launch request on a named existing machine covers the normal bounded install
 and start. Continue without an extra confirmation for those steps. Ask only for
 missing inputs or materially different scope, such as buying another machine.
-Do not provision instances, alter drivers, or replace other jobs by inference.
+Do not provision instances or replace other jobs by inference. Installing a
+requested stack on an unused host includes its required packages. A driver
+replacement, reboot, or daemon restart that interrupts unrelated jobs needs
+the corresponding maintenance scope; prepare the change before escalating it.
 
 ## 2. Resolve campaign, build, credentials, and state
 
@@ -78,13 +84,36 @@ copy it into two simultaneously running workers, or change its bindings to make
 startup succeed. `generic-state.json` is protocol 2; `state.json`/`state.ck` are
 legacy sigma state. Preserve pending registration files as well.
 
-## 3. Choose and execute the recipe
+## 3. Bootstrap the selected host stack
+
+Read [host setup](references/host-setup.md). Install missing prerequisites and,
+when the container path is selected, Docker Engine, containerd, Buildx, and
+Compose. Do not stop at reporting that Docker is missing. Set up NVIDIA Container
+Toolkit when CUDA containers need it, or native build prerequisites for the
+native path. Reuse compatible installed software rather than replacing it.
+
+If gVisor or Kata was requested, read [sandbox setup](references/sandbox-setup.md)
+and install/configure it as well. If both were requested, install and check both
+independently, then select one explicitly for each runner. They are alternative
+runtimes, not a stack to nest together. Do not install them on every host by
+default or change Docker's global default runtime.
+
+Keep existing daemon settings and backups. Validate a merged configuration,
+reload it when supported, and verify runtime registration and execution. Keep
+the selected runtime in the offline check, live launch, supervisor definition,
+and restart/upgrade commands. Never fall back silently to runc/native when a
+requested sandbox fails. Missing root/sudo, KVM, nested virtualization, or a
+supported GPU/driver is a concrete host constraint to report, not something a
+package install can bypass.
+
+## 4. Choose and execute the recipe
 
 | Machine | Recipe |
 | --- | --- |
-| Linux amd64 with NVIDIA and Docker | Combined worker image, explicit CUDA backend and selected GPU |
-| Linux amd64/arm64 CPU with Docker | CPU-only image matching the host, explicit CPU backend |
-| Linux without Docker | Native installer and systemd when available |
+| Linux amd64 with NVIDIA, container path | Install missing Docker/NVIDIA tools; combined image, explicit CUDA backend and selected GPU |
+| Linux amd64/arm64 CPU, container path | Install missing Docker; CPU-only image matching the host, explicit CPU backend |
+| Linux CPU with requested gVisor/Kata | Install the chosen runtime; runtime-specific smoke, then explicit-runtime Docker launch |
+| Linux with native path requested | Native prerequisites, installer, and systemd when available |
 | macOS with Metal | Native installer and launchd; Docker does not expose Metal |
 | Windows | Native PowerShell installer; use the requested supervision method |
 | AMD/Intel GPU or FPGA host | CPU backend only; those accelerator backends are not implemented |
@@ -114,12 +143,14 @@ to finish a round and save (the supplied systemd/launchd templates use 150).
 If a matching container/service already exists, inspect it and resume it; do not
 launch a duplicate or remove it merely to resolve a name conflict.
 
-## 4. Verify and hand off
+## 5. Verify and hand off
 
 Do not equate a successful start command with a working contributor. Check:
 
 1. The intended container/service remains running after initial startup, uses
-   the expected image/build and device, and has no repeated startup failures.
+   the expected image/build, isolation runtime and device, and has no repeated
+   startup failures. For containers inspect `HostConfig.Runtime`; installed
+   runtime binaries alone do not establish sandbox use.
 2. State is on the intended durable mount. Read only safe metadata such as run
    ID, protocol, namespace, cursor, file size, and modification time; do not dump
    the full checkpoint. Observe checkpoint advancement when a round completes.
@@ -148,9 +179,11 @@ necessary, then run the same build/key/state once with `ECC_ACTION=close`.
 That action is implemented by the generic client, not the legacy sigma client;
 do not present it as a legacy close command.
 
-Finish with the host, runner names, campaign/protocol/backend/device, pinned
+Finish with the host, installed package/runtime versions, runner names,
+campaign/protocol/backend/device/isolation runtime, pinned
 image or source commit, durable paths (never key contents), run IDs, checks
-actually observed, and exact log/stop/resume commands. Record any unverified
+actually observed, retained runtime-check receipts/config backup locations,
+and exact log/stop/resume commands. Record any unverified
 heartbeat/upload condition and a user-specified end time or resource limit.
 
 Example invocation: `$ecc-launch-runners launch one eccp-131 CPU runner on
