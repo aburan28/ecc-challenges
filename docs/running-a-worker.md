@@ -26,7 +26,9 @@ that matches what you have:
 
 If a coding agent is helping you, use [agent setup](agents.md) and give it
 the [worker skill](https://ecc-challenges.com/skill.md). It covers machine
-selection, private key entry, persistent state and checking worker health.
+selection, prerequisite installation, private key entry, persistent state and
+checking worker health. If Docker, Python or build tools are missing, start
+with [installing prerequisites](../skills/ecc-challenges-worker/references/prerequisites.md).
 
 On a Mac or a Linux machine without Docker, one command downloads the source,
 builds the native worker into `~/.local/ecc-challenges`, asks for your API key

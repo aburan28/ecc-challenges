@@ -2,9 +2,10 @@
 
 Give your agent the [ECC Challenges worker skill](https://ecc-challenges.com/skill.md)
 and tell it which machine, challenge and resource limits to use. The skill
-covers installation, safe restarts, health checks and troubleshooting on Linux,
-macOS and Windows. Your agent helps run the contributor program that searches
-the curve.
+installs missing prerequisites, including Docker and NVIDIA container support
+when needed, then covers worker installation, safe restarts, health checks and
+troubleshooting on Linux, macOS and Windows. Your agent helps run the
+contributor program that searches the curve.
 
 ## Use the skill
 
@@ -13,8 +14,9 @@ machine:
 
 ```text
 Read https://ecc-challenges.com/skill.md and help me run one ECC Challenges
-worker on this machine for eccp-131. Inspect existing workers first, use a
-persistent state directory, and give me the stop, resume and log commands.
+worker on this machine for eccp-131. Inspect existing workers first, install
+missing prerequisites for the selected setup, use a persistent state directory,
+and give me the stop, resume and log commands.
 Use my existing hardware; ask before renting anything. Have me enter my API
 key locally. Check the worker's heartbeat and explain what is still pending.
 ```
@@ -29,6 +31,9 @@ Agents that support the Skills CLI can install the skill from this repository:
 npx skills add aburan28/ecc-challenges --skill ecc-challenges-worker
 ```
 
+The Skills CLI uses Node.js/npm. It is optional: reading `/skill.md` directly
+needs neither Node.js nor the CLI.
+
 Then ask the agent to use `ecc-challenges-worker`. Agents that accept a plain
 instruction file can read `/skill.md` directly without installing anything.
 In a repository checkout, the source is
@@ -38,13 +43,15 @@ In a repository checkout, the source is
 
 | Your machine | Start here |
 | --- | --- |
-| Linux CPU or NVIDIA GPU with Docker | Sign in, create a key, and copy the matching command from your dashboard |
+| Linux CPU or NVIDIA GPU | The skill installs missing Docker/runtime tools, then uses your dashboard command |
 | Mac | Use the native installer in the worker guide; it builds the Metal backend |
 | Linux without Docker | Use the native installer in the worker guide |
-| Windows | Use the PowerShell installer; the guide lists Python and C++ tool prerequisites |
+| Windows | The skill installs Python, CMake and C++ build tools before the PowerShell worker installer |
 | Existing cloud or cluster allocation | Use the matching cloud, Compose, Kubernetes, systemd or Slurm recipe |
 
-The [worker guide](running-a-worker.md) has commands for each system, and the
+The [prerequisite guide](../skills/ecc-challenges-worker/references/prerequisites.md) covers Docker, GPU support and
+native build tools, including installation commands and readiness checks. The
+[worker guide](running-a-worker.md) has launch commands for each system, and the
 [help page](https://ecc-challenges.com/help) covers common errors. Start with
 one worker. Extra API keys share the account's run limits.
 
