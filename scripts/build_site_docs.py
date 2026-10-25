@@ -23,7 +23,7 @@ DOCUMENTS = {
     "README.md": "project",
     "CONTRIBUTING.md": "contributing",
     **{f"docs/{name}.md": name for name in (
-        "running-a-worker", "modal-workers", "local-stack", "campaigns",
+        "running-a-worker", "agents", "modal-workers", "local-stack", "campaigns",
         "admission-and-capacity", "multicurve-storage", "operations",
     )},
     "problems/README.md": "problems",
@@ -117,6 +117,8 @@ def render_document(source: str, markdown: str) -> dict:
 def build_bundle() -> str:
     pages = {slug: render_document(source, (ROOT / source).read_text())
              for source, slug in DOCUMENTS.items()}
+    # Ship the canonical contributor skill in the existing package/image asset.
+    pages["agents"]["skill_markdown"] = (ROOT / "skills/ecc-challenges-worker/SKILL.md").read_text()
     return json.dumps(pages, ensure_ascii=False, indent=2) + "\n"
 
 
