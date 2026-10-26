@@ -38,6 +38,22 @@ class Service:
                 ON CONFLICT(github_id) DO UPDATE SET login=excluded.login, updated_at=now()
             """, (github_id, login))
 
+    def leaderboard_visible(self, account_id: int) -> bool | None:
+        """Whether the account is named on the leaderboard; None before migration 012."""
+        with self.db.connection() as conn:
+            row = conn.execute("""
+                SELECT (to_jsonb(a)->>'leaderboard_visible')::boolean AS visible
+                FROM ecc_public.accounts a WHERE github_id=%s
+            """, (account_id,)).fetchone()
+        return None if row is None else row["visible"]
+
+    def set_leaderboard_visible(self, account_id: int, visible: bool) -> None:
+        if self.leaderboard_visible(account_id) is None:
+            raise Rejected(503, "leaderboard settings are not available yet")
+        with self.db.connection() as conn:
+            conn.execute("UPDATE ecc_public.accounts SET leaderboard_visible=%s, updated_at=now() "
+                         "WHERE github_id=%s", (visible, account_id))
+
     def account_keys(self, account_id: int) -> list[dict]:
         with self.db.connection() as conn:
             keys = conn.execute("""

@@ -33,6 +33,7 @@ from .settings import Settings
 from .storage import Storage
 from .status import StatusReader
 from .results import PUBLISHED_RESULTS, SOLVED_DATES, create_results_router
+from .leaderboard import LeaderboardReader
 from .pages import create_pages_router
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -73,7 +74,10 @@ def ago(moment: datetime | None) -> str:
     seconds = max(0, (datetime.now(timezone.utc) - moment).total_seconds())
     if seconds < 60:
         return "just now"
-    return duration(seconds / 3600).replace(".0 ", " ") + " ago"
+    text = duration(seconds / 3600).replace(".0 ", " ")
+    if text.startswith("1 "):
+        text = text[:-1]  # "1 minute", "1 hour", "1 day", "1 year"
+    return text + " ago"
 
 
 TEMPLATES.env.filters["pow2"] = pow2
@@ -176,6 +180,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     service = Service(database, storage, settings)
     multicurve_enabled = getattr(settings, "multicurve_enabled", False)
     status_reader = StatusReader(database, multicurve_enabled=multicurve_enabled)
+    leaderboard_reader = LeaderboardReader(database, multicurve_enabled=multicurve_enabled)
     oauth = OAuth()
     oauth.register(
         name="github", client_id=settings.github_client_id,
@@ -305,6 +310,18 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                                            "catalog_source": SOURCE_URL},
                                           headers={"Cache-Control": "public, max-age=30"})
 
+    @app.get("/leaderboard", response_class=HTMLResponse)
+    async def leaderboard_page(request: Request):
+        try:
+            board = await run_in_threadpool(leaderboard_reader.read)
+        except Exception:
+            LOG.exception("leaderboard failed")
+            board = None
+        return TEMPLATES.TemplateResponse(request, "leaderboard.html",
+                                          {"board": board, "names": {challenge.id: challenge.public()["name"]
+                                                                     for challenge in CHALLENGES}},
+                                          headers={"Cache-Control": "public, max-age=60"})
+
     @app.get("/pollard-rho", response_class=HTMLResponse)
     async def rho_page(request: Request):
         try:
@@ -381,6 +398,11 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
                              campaign: str, dp_weight: int):
         keys = await run_in_threadpool(service.account_keys, account_id)
         try:
+            leaderboard_visible = await run_in_threadpool(service.leaderboard_visible, account_id)
+        except Exception:
+            LOG.exception("dashboard leaderboard setting failed")
+            leaderboard_visible = None
+        try:
             activity = await run_in_threadpool(service.account_runs, account_id,
                                                include_generic=multicurve_enabled)
         except Exception:
@@ -396,6 +418,7 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
             {"campaign_status": campaign_status, "live_as_of": datetime.now(timezone.utc).isoformat(),
              "live_url": f"/dashboard?campaign={campaign}&dp_weight={dp_weight}",
              "login": request.session.get("login"), "keys": keys,
+             "leaderboard_visible": leaderboard_visible,
              "csrf": request.session["csrf"], "issued": issued, "activity": activity,
              "names": {challenge.id: challenge.public()["name"] for challenge in CHALLENGES},
              "worker_image": settings.public_worker_image, "challenges": CHALLENGES,
@@ -436,6 +459,15 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         campaign = values.get("campaign", CAMPAIGN)
         campaign = campaign if multicurve_enabled and campaign in BY_ID else CAMPAIGN
         return await dashboard_page(request, account_id, issued, campaign, RECOMMENDED_DP_WEIGHT)
+
+    @app.post("/account/leaderboard")
+    async def leaderboard_setting(request: Request):
+        account_id = require_session(request)
+        values = await form_values(request)
+        require_csrf(request, values.get("csrf"))
+        await run_in_threadpool(service.set_leaderboard_visible, account_id, values.get("visible") == "1")
+        leaderboard_reader.invalidate()
+        return RedirectResponse("/dashboard#leaderboard", status_code=303)
 
     @app.post("/keys/{key_id}/revoke")
     async def revoke_key(request: Request, key_id: str):

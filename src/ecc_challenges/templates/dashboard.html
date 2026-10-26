@@ -267,4 +267,15 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
 {% endset %}
 
 {% if setup_first %}{{ setup_sections }}{{ runners_section }}{{ progress_section }}{% else %}{{ progress_section }}{{ runners_section }}{{ setup_sections }}{% endif %}
+
+{% if leaderboard_visible is not none %}
+<section class="section" id="leaderboard">
+  <div class="section-head"><h2>Leaderboard</h2><p class="muted">The <a href="/leaderboard">leaderboard</a> ranks contributors by the estimated operations their workers report. You are {{ "listed under your GitHub login, " ~ login if leaderboard_visible else "not listed; your work counts in the unlisted total" }}.</p></div>
+  <form method="post" action="/account/leaderboard">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <input type="hidden" name="visible" value="{{ '0' if leaderboard_visible else '1' }}">
+    <button class="button{{ ' ghost' if leaderboard_visible }}" type="submit">{{ "Remove me from the leaderboard" if leaderboard_visible else "List me on the leaderboard" }}</button>
+  </form>
+</section>
+{% endif %}
 {% endblock %}
