@@ -87,6 +87,8 @@ TEMPLATES.env.filters["isoago"] = lambda value: ago(datetime.fromisoformat(value
 TEMPLATES.env.filters["percent"] = percent
 TEMPLATES.env.filters["longdate"] = lambda value: date.fromisoformat(value).strftime("%d %B %Y").lstrip("0")
 TEMPLATES.env.filters["duration"] = duration
+GTM = "https://www.googletagmanager.com https://*.googletagmanager.com"
+GOOGLE_ANALYTICS = "https://*.google-analytics.com"
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.
 ASSETS = {p.name: p.read_bytes() for p in (Path(__file__).parent / "assets").glob("*.png")}
@@ -218,13 +220,16 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # Google Tag Manager with GA4, plus Tag Manager preview mode, as listed in
+        # Google's CSP guide (developers.google.com/tag-platform/security/guides/csp).
         response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
-            "frame-ancestors 'none'; base-uri 'none'; "
-            "img-src 'self' data: https://www.googletagmanager.com; "
-            f"script-src 'self' 'nonce-{request.state.csp_nonce}' https://www.googletagmanager.com; "
-            "connect-src 'self' https://www.googletagmanager.com; "
-            "frame-src https://www.googletagmanager.com"
+            "default-src 'none'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; "
+            f"script-src 'self' 'nonce-{request.state.csp_nonce}' {GTM} https://tagmanager.google.com; "
+            f"style-src 'unsafe-inline' {GTM} https://tagmanager.google.com https://fonts.googleapis.com; "
+            f"img-src 'self' data: {GTM} {GOOGLE_ANALYTICS} https://ssl.gstatic.com https://www.gstatic.com; "
+            f"connect-src 'self' {GTM} {GOOGLE_ANALYTICS} https://*.analytics.google.com; "
+            "font-src https://fonts.gstatic.com data:; "
+            f"frame-src {GTM}"
         )
         return response
 
