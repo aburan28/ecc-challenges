@@ -229,7 +229,7 @@ For hosts without containers. This needs Python 3.10+, `g++` or `clang++` with
 OpenMP, and optionally `nvcc` for a CUDA build.
 
 ```sh
-git clone https://github.com/aburan28/ecc-challenges && cd ecc-challenges
+git clone https://github.com/isogeny-labs/ecc-challenges && cd ecc-challenges
 sudo deploy/native/install.sh
 sudo install -m 0600 ~/.config/ecc-challenges/api-key /etc/ecc-challenges/api-key
 sudoedit /etc/ecc-challenges/gpu0.env        # curve, backend, GPU index
@@ -255,7 +255,7 @@ when the engine sees a Metal device. This needs the Xcode command line tools
 `/usr/bin/python3` that ships with macOS can be older.
 
 ```sh
-git clone https://github.com/aburan28/ecc-challenges && cd ecc-challenges
+git clone https://github.com/isogeny-labs/ecc-challenges && cd ecc-challenges
 deploy/native/install.sh --prefix "$HOME/.local/ecc-challenges"
 ECC_CAMPAIGN=eccp-131 ECC_STATE_DIR="$HOME/ecc-data/eccp-131" \
   ECC_API_KEY_FILE="$HOME/.config/ecc-challenges/api-key" \
@@ -283,7 +283,7 @@ from python.org and Visual Studio 2022 or its Build Tools with the "Desktop
 development with C++" workload (which includes CMake). In PowerShell:
 
 ```powershell
-git clone https://github.com/aburan28/ecc-challenges; cd ecc-challenges
+git clone https://github.com/isogeny-labs/ecc-challenges; cd ecc-challenges
 powershell -ExecutionPolicy Bypass -File deploy\native\install.ps1
 mkdir $env:USERPROFILE\.config\ecc-challenges
 notepad $env:USERPROFILE\.config\ecc-challenges\api-key    # paste the key, save

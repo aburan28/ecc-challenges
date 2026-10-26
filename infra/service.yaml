@@ -8,8 +8,8 @@ Parameters:
   CertificateArn: {Type: String}
   WebImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
   AuditImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
-  PublicWorkerImage: {Type: String, AllowedPattern: '^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
-  PublicCpuWorkerImage: {Type: String, Default: '', AllowedPattern: '^$|^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}$'}
+  PublicWorkerImage: {Type: String, AllowedPattern: '^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
+  PublicCpuWorkerImage: {Type: String, Default: '', AllowedPattern: '^$|^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}$'}
   GithubSecretArn: {Type: String}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}

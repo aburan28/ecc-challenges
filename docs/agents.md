@@ -27,7 +27,7 @@ hidden prompt. Do not paste it into your agent's chat.
 Agents that support the Skills CLI can install the skill from this repository:
 
 ```sh
-npx skills add aburan28/ecc-challenges --skill ecc-challenges-worker
+npx skills add isogeny-labs/ecc-challenges --skill ecc-challenges-worker
 ```
 
 The Skills CLI needs Node.js and npm, but it is optional: an agent can read

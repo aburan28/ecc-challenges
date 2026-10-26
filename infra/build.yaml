@@ -69,7 +69,7 @@ Resources:
             build:
               commands:
                 - git init .
-                - git remote add origin https://github.com/aburan28/ecc-challenges.git
+                - git remote add origin https://github.com/isogeny-labs/ecc-challenges.git
                 - git fetch --depth 1 origin "$RELEASE_COMMIT"
                 - git checkout --detach FETCH_HEAD
                 - bash scripts/build_release.sh

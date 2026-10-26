@@ -103,8 +103,8 @@ verify container execution below. A prebuilt CUDA image needs no `nvcc` on the
 host. `nvidia-smi` on the host does not show that a container can use the GPU.
 
 If the user asked for a gVisor or Kata runtime, use the repository's
-[runner setup skill](https://github.com/aburan28/ecc-challenges/tree/main/.agents/skills/ecc-launch-runners)
-and the [sandbox guide](https://github.com/aburan28/ecc-challenges/blob/main/docs/sandbox-runtimes.md).
+[runner setup skill](https://github.com/isogeny-labs/ecc-challenges/tree/main/.agents/skills/ecc-launch-runners)
+and the [sandbox guide](https://github.com/isogeny-labs/ecc-challenges/blob/main/docs/sandbox-runtimes.md).
 Those runtimes have extra virtualization and GPU requirements, and ordinary
 NVIDIA container support does not show that they work.
 
