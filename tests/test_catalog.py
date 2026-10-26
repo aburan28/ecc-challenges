@@ -60,7 +60,7 @@ def application(db=None, multicurve_enabled=False):
                                session_secret="s" * 48,
                                public_origin="https://ecc-challenges.com",
                                public_worker_image="example.invalid/image@sha256:" + "a" * 64,
-                               public_cpu_worker_image="ghcr.io/aburan28/ecc-challenges-worker-cpu@sha256:" + "b" * 64)
+                               public_cpu_worker_image="ghcr.io/isogeny-labs/ecc-challenges-worker-cpu@sha256:" + "b" * 64)
     return create_app(settings, db=db or FakeDB(),
                       storage=SimpleNamespace(s3=None, bucket="unused", stream_id="test"))
 
@@ -505,3 +505,21 @@ def test_dashboard_progress_uses_selected_challenge_and_preserves_private_activi
         else:
             assert 'Progress unavailable' in progress
         assert 'Your runs' in page.text and 'Run the worker' in page.text
+
+
+@pytest.mark.parametrize("owner, accepted", [("aburan28", True), ("isogeny-labs", True), ("someone-else", False)])
+def test_worker_image_allowlist_keeps_the_old_ghcr_owner(monkeypatch, owner, accepted):
+    from ecc_challenges.settings import Settings
+
+    env = {"DATABASE_URL": "postgresql://unused", "ECC_BUCKET": "b", "AUDIT_QUEUE_URL": "a", "INDEX_QUEUE_URL": "i",
+           "GITHUB_CLIENT_ID": "id", "GITHUB_CLIENT_SECRET": "secret", "KEY_PEPPER": "p" * 32,
+           "SESSION_SECRET": "s" * 32,
+           "PUBLIC_WORKER_IMAGE": f"ghcr.io/{owner}/ecc-challenges-worker@sha256:" + "a" * 64,
+           "PUBLIC_CPU_WORKER_IMAGE": f"ghcr.io/{owner}/ecc-challenges-worker-cpu@sha256:" + "b" * 64}
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+    if accepted:
+        assert Settings.from_env().public_worker_image == env["PUBLIC_WORKER_IMAGE"]
+    else:
+        with pytest.raises(ValueError, match="PUBLIC_WORKER_IMAGE"):
+            Settings.from_env()

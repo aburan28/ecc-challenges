@@ -90,14 +90,14 @@ class Settings:
         if not 10 <= result.point_index_merge_seconds <= 86400:
             raise ValueError("POINT_INDEX_MERGE_SECONDS must be between 10 and 86400")
         if web and not re.fullmatch(
-            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}",
             result.public_worker_image,
         ):
             raise ValueError("PUBLIC_WORKER_IMAGE must be a pinned public worker digest")
         if result.max_account_runs_lifetime < 1:
             raise ValueError("MAX_ACCOUNT_RUNS_LIFETIME must be positive")
         if result.public_cpu_worker_image and not re.fullmatch(
-            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
+            r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
             result.public_cpu_worker_image,
         ):
             raise ValueError("PUBLIC_CPU_WORKER_IMAGE must be a pinned public CPU worker digest")

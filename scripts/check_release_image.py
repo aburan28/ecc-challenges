@@ -21,7 +21,7 @@ receipt={'format':'published-worker-cuda-correctness-v1','release_image':image,
          'provider_initial_uid':provider_uid,
          'rows':[],'errors':[]}
 engine=Path('/opt/ecc/generic-engine')
-url='https://raw.githubusercontent.com/aburan28/ecc-challenges/ca45bd1a4555386a59f9b27d89b36569dd43f085/verification/all-curves-20261016/job03-controls.tar.gz'
+url='https://raw.githubusercontent.com/isogeny-labs/ecc-challenges/ca45bd1a4555386a59f9b27d89b36569dd43f085/verification/all-curves-20261016/job03-controls.tar.gz'
 expected='b0807a28e8757993103ffb20b117e9d8b155517beb738089d3ab8285160e6cdb'
 def run(command,timeout=120):
     before=time.monotonic()
@@ -100,7 +100,7 @@ raise SystemExit(0 if receipt['ok'] else 1)
 @app.local_entrypoint()
 def main(out:str):
     uri=os.environ.get('ECC_RELEASE_IMAGE','')
-    if not re.fullmatch(r'(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}',uri):
+    if not re.fullmatch(r'(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}',uri):
         raise ValueError('ECC_RELEASE_IMAGE must be an immutable public worker digest')
     destination=Path(out)
     if destination.exists():raise FileExistsError(destination)

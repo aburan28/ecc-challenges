@@ -41,8 +41,9 @@ def site_link(href: str, source: str) -> str | None:
         return urlunsplit(("", "", url.path or "/", url.query, url.fragment))
     if host == "github.com" or host.endswith(".github.com") or host == "raw.githubusercontent.com":
         path = unquote(url.path)
-        for prefix in ("/aburan28/ecc-challenges/blob/main/", "/aburan28/ecc-challenges/tree/main/",
-                       "/aburan28/ecc-challenges/main/"):
+        # The repository moved to isogeny-labs; links to the old owner still redirect.
+        for prefix in (f"/{owner}/ecc-challenges/{ref}" for owner in ("isogeny-labs", "aburan28")
+                       for ref in ("blob/main/", "tree/main/", "main/")):
             if path.startswith(prefix):
                 document = path.removeprefix(prefix).rstrip("/")
                 if document == "problems":
@@ -51,7 +52,7 @@ def site_link(href: str, source: str) -> str | None:
                 if slug is None:
                     return None
                 return f"/docs/{slug}" + (f"#{quote(unquote(url.fragment))}" if url.fragment else "")
-        if path.rstrip("/") == "/aburan28/ecc-challenges":
+        if path.rstrip("/") in ("/isogeny-labs/ecc-challenges", "/aburan28/ecc-challenges"):
             return "/docs/project"
         return None
     if url.scheme or url.netloc or not url.path or url.path.startswith("/"):

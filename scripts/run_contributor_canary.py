@@ -25,7 +25,7 @@ def main():
     s=boto3.Session(profile_name=args.profile,region_name='us-west-2')
     assert s.client('sts').get_caller_identity()['Account']==args.account_id
     assert args.key_secret_arn.startswith('arn:aws:secretsmanager:us-west-2:'+args.account_id+':secret:ecc-challenges/contributor-canary-')
-    assert re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/aburan28)/ecc-challenges-worker(?:-cpu)?@sha256:[0-9a-f]{64}',args.image)
+    assert re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker(?:-cpu)?@sha256:[0-9a-f]{64}',args.image)
     digest=args.image.rsplit('@sha256:',1)[1]
     assert len(digest)==64 and all(c in '0123456789abcdef' for c in digest)
     boot=Path(__file__).with_name('contributor_canary_boot.py').read_text()

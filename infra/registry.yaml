@@ -26,6 +26,8 @@ Resources:
                 token.actions.githubusercontent.com:sub:
                   - 'repo:aburan28@1086874/ecc-challenges@1419397974:ref:refs/heads/main'
                   - 'repo:aburan28@1086874/ecc-challenges@1419397974:ref:refs/heads/codex/ecc-all-curves-v2'
+                  - 'repo:isogeny-labs@347052081/ecc-challenges@1419397974:ref:refs/heads/main'
+                  - 'repo:isogeny-labs@347052081/ecc-challenges@1419397974:ref:refs/heads/codex/ecc-all-curves-v2'
       Policies:
         - PolicyName: public-image-authentication-only
           PolicyDocument:

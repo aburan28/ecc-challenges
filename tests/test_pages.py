@@ -140,8 +140,9 @@ def test_document_renderer_escapes_html_and_preserves_readable_content():
 <script>alert("unsafe")</script>
 
 [Worker](running-a-worker.md#macos)
-[GitHub](https://github.com/aburan28/ecc-challenges)
-[GitHub issue](https://github.com/aburan28/ecc-challenges/issues/123)
+[GitHub](https://github.com/isogeny-labs/ecc-challenges)
+[GitHub issue](https://github.com/isogeny-labs/ecc-challenges/issues/123)
+[Old owner](https://github.com/aburan28/ecc-challenges/blob/main/docs/agents.md)
 [Unsafe](javascript:alert(1))
 
 ```sh
@@ -156,6 +157,7 @@ echo '<img src=x onerror=alert(1)>'
     assert "script" not in parsed.tags and "img" not in parsed.tags
     assert '/docs/running-a-worker#macos' in parsed.hrefs
     assert '/docs/project' in parsed.hrefs
+    assert '/docs/agents' in parsed.hrefs
     assert all(not href.startswith(("javascript:", "https://github.com/")) for href in parsed.hrefs)
     assert "GitHub issue" in html
     assert {"repeat", "repeat-1"} <= parsed.ids
