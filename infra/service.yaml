@@ -71,7 +71,10 @@ Resources:
       AlarmActions: [!Ref AlertTopic]
   Cluster:
     Type: AWS::ECS::Cluster
-    Properties: {ClusterName: ecc-challenges}
+    Properties:
+      ClusterName: ecc-challenges
+      CapacityProviders: [FARGATE, FARGATE_SPOT]
+      DefaultCapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
   AlbSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
