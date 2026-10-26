@@ -88,13 +88,14 @@ above at desktop and 375 px, light and dark, from synthetic data.
 
 ## Follow-ups
 
-- **Production build.** The live HTML has neither the Google Tag Manager
-  snippet (added in `de29bbe`, 24 October) nor the `/skill.md` route, and its
-  home page text matches `752b49c` (24 October 13:55) best of the commits
-  checked. Production is therefore about a day behind `main`, not on
-  `12eb82e` as this note first said. `Dockerfile.web` copies all of `src/`,
-  so a web image built from current `main` serves `/skill.md`, `/docs/agents`
-  and `/docs/worker-prerequisites`; deploying it is the fix.
+- **Production build.** The running web task pins
+  `ecc-challenges-web@sha256:3f706a75…`, which ECR tags `health-002d057538b4`:
+  a build of `002d057` from 20 October. The `git-12eb82e9cac9` image was pushed
+  on 25 October, but all three stack updates that tried to deploy it rolled
+  back: ECS could not place the extra Fargate Spot tasks a rolling deployment
+  needs. This note first named `12eb82e`, then `752b49c` from comparing page
+  text; both were wrong. The fix is the stop-before-start deployment change in
+  #67, then a deploy of `main`.
 - **Worker campaign default.** With no `ECC_CAMPAIGN`, a fresh state directory
   now starts on `eccp-131`, the challenge every installer and dashboard command
   uses. A directory that already holds worker state keeps `ecc2k-130`, the
