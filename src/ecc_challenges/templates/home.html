@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_work.html" as work %}
+{% import "_names.html" as names %}
 {% block title %}ECC Challenges · A distributed search on the Certicom curves{% endblock %}
 {% block content %}
 <section class="hero">
@@ -71,24 +72,27 @@
 
 <section class="section" id="campaigns">
   <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date|longdate }} document</a>. Work so far is estimated from stored points.</p></div>
+  {{ names.key() }}
   <div class="table-wrap" tabindex="0"><table class="challenge-status">
-    <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
-    {% for solved, group in challenges|sort(attribute="field_bits")|groupby("solved_in_2009") %}
+    <thead><tr><th>Challenge</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
+    {% for solved, group in challenges|sort(attribute="family_order")|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody class="{{ 'solved' if solved else 'open' }}">
-    <tr><th scope="rowgroup" colspan="7">{% if solved %}Solved<small>{{ group|length }} challenges, closed between 1997 and 2004</small>{% else %}Open<small>{{ group|length }} unsolved challenges, smallest first</small>{% endif %}</th></tr>
-    {% for challenge in group %}
+    <tr><th scope="rowgroup" colspan="6">{% if solved %}Solved<small>{{ group|length }} challenges, closed between 1997 and 2004</small>{% else %}Open<small>{{ group|length }} unsolved challenges, smallest first</small>{% endif %}</th></tr>
+    {% for bits, sized in group|groupby("field_bits") %}
+    {{ names.size_row(bits, sized|map(attribute="id")|map("upper")|map("replace", "ECCP-", "ECCp-")|list, 6) }}
+    {% for challenge in sized %}
       {% set row = snapshot.campaigns|selectattr("id", "equalto", challenge.id)|first if snapshot else none %}
       {% set is_open = row and row.received_points is not none %}
       {% set state = "solved" if solved else "open" if is_open else "not-started" %}
       <tr class="{{ state }}">
-        <td><a class="name" href="/{{ 'results' if solved else 'challenges' }}/{{ challenge.id }}">{{ challenge.public().name }}</a></td>
-        <td>{% if challenge.field == "binary" %}GF(2<sup>m</sup>){% else %}GF(p){% endif %}</td>
+        <td><a class="name" href="/{{ 'results' if solved else 'challenges' }}/{{ challenge.id }}">{{ challenge.public().name }}</a>{{ names.kind(challenge) }}</td>
         <td class="num">{{ challenge.field_bits }}</td>
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num">{{ work.expected(challenge) }}</td>
         <td class="num">{% if solved %}{{ work.solved(challenge) }}{% else %}{{ work.done(row) }}{% endif %}</td>
         <td>{% if solved %}{{ work.solved_status(challenge, challenge.public().name) }}{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Accepting work</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
+    {% endfor %}
     {% endfor %}
     </tbody>
     {% endfor %}
