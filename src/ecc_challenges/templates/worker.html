@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Run {{ run.id[:8] }} · ECC Challenges{% endblock %}
 {% block content %}
-<p><a href="/dashboard?campaign={{ run.campaign }}">← Your workers</a></p>
-<div class="kicker">{{ name }}</div>
+<p class="crumbs"><a href="/dashboard?campaign={{ run.campaign }}">Your workers</a> / {{ name }}</p>
 <h1>Run {{ run.id[:8] }}</h1>
 {% include "_live.html" %}
 <div id="worker-live" data-live-region data-live-as-of="{{ live_as_of }}">
   <dl class="stats" aria-label="Worker health">
-    <div class="stat"><dt>Worker health</dt><dd style="font-size:1.25rem">{{ run.health_state }}<small>{% if run.last_ping_at %}Last heartbeat {{ run.last_ping_at|ago }}{% else %}Update and restart the worker to see its health{% endif %}</small></dd></div>
+    <div class="stat"><dt>Worker health</dt><dd class="word">{{ run.health_state }}<small>{% if run.last_ping_at %}Last heartbeat {{ run.last_ping_at|ago }}{% else %}Update and restart the worker to see its health{% endif %}</small></dd></div>
     <div class="stat"><dt>Estimated iterations/s</dt><dd>{{ run.operations_per_second_log2|pow2 }}<small>24 h average from accepted uploads</small></dd></div>
     <div class="stat"><dt>Points received</dt><dd>{{ "{:,}".format(run.points) }}<small>includes points awaiting checks</small></dd></div>
-    <div class="stat"><dt>Last upload</dt><dd style="font-size:1.25rem">{{ run.last_batch_at|ago }}<small>{{ "{:,.1f}".format(run.points_per_hour) }} points/h · 24 h average</small></dd></div>
+    <div class="stat"><dt>Last upload</dt><dd class="word">{{ run.last_batch_at|ago }}<small>{{ "{:,.1f}".format(run.points_per_hour) }} points/h · 24 h average</small></dd></div>
   </dl>
   {% if run.health_state == 'Disconnected' %}<div class="panel alert"><p>No heartbeat in the last three minutes. Check that the worker process is running and can reach ecc-challenges.com. Restart it with the same state directory.</p></div>
   {% elif run.health_state in ('Upload trouble', 'Upload backlog') %}<div class="panel alert"><p>The worker has uploads waiting. Its log shows why: a network error, or a 429 or 503 response asking it to back off. It retries on its own; keep its state directory.</p></div>
@@ -22,7 +21,7 @@
       <div class="stat"><dt>{{ 'Sampled batches' if run.protocol == 'v1' else 'Checked batches' }}</dt><dd>{{ run.checked }}<small>{{ run.indexed }} batches indexed</small></dd></div>
       <div class="stat"><dt>Waiting for processing</dt><dd>{{ run.pending }}<small>{% if run.oldest_pending_at %}Oldest received {{ run.oldest_pending_at|ago }}{% else %}No batches waiting{% endif %}</small></dd></div>
       <div class="stat"><dt>Failed or quarantined</dt><dd>{{ run.failed }}<small>{% if run.failed %}Check the worker log, then see Help{% else %}None recorded{% endif %}</small></dd></div>
-      <div class="stat"><dt>Last successful check</dt><dd style="font-size:1.25rem">{{ run.last_checked_at|ago }}</dd></div>
+      <div class="stat"><dt>Last successful check</dt><dd class="word">{{ run.last_checked_at|ago }}</dd></div>
     </dl>
     <p class="note">An old waiting batch does not by itself mean the verifier has stalled. Uploads rejected before storage do not appear in the batch history.</p>
     {% if run.unresolved %}<p class="pending">{{ run.unresolved }} batch{{ '' if run.unresolved == 1 else 'es' }} unresolved after a replay timeout or error. These batches are archived but not indexed, and are not queued for automatic retry. An operator has to review them; keep the worker's state directory.</p>{% endif %}
@@ -40,7 +39,7 @@
   <section class="section">
     <h2>Run details</h2>
     <div class="table-wrap" tabindex="0"><table class="parameter-table"><tbody>
-      <tr><th>Run ID</th><td class="mono" style="overflow-wrap:anywhere">{{ run.id }}</td></tr>
+      <tr><th>Run ID</th><td class="mono wrap-any">{{ run.id }}</td></tr>
       <tr><th>Challenge</th><td><a href="/challenges/{{ run.campaign }}">{{ name }}</a></td></tr>
       <tr><th>API key</th><td>{{ run.key_label }}</td></tr>
       <tr><th>Protocol</th><td>{{ 'Protocol 1 (ECC2K-130 sigma)' if run.protocol == 'v1' else 'Protocol 2 (all curves)' }} · DP{{ run.dp_bits }}</td></tr>

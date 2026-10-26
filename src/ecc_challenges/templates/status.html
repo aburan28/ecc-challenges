@@ -36,7 +36,7 @@
   {% for row in racing|sort(attribute="estimated_work_operations", reverse=true) %}
     {% set both = row.including_historical %}
     <article class="panel progress-card" aria-label="{{ row.name }} progress">
-      <div class="top"><h3 style="margin:0"><span class="name mono">{{ row.name }}</span></h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
+      <div class="top"><h3><span class="name mono">{{ row.name }}</span></h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
       {% for label, est, points in (([("Including imported points", both, row.received_points + row.historical_points)] if both else []) + [("Public uploads only", row, row.received_points)]) %}
       <div class="progress-line{% if loop.first %} primary{% else %} secondary{% endif %}">
         <div class="top"><span>{{ label }}<small>{{ est.estimated_work_log2|pow2 }} operations · {{ "{:,}".format(points) }} points</small></span><span class="pct">{{ est.expected_work_percent|percent }}</span></div>
@@ -58,7 +58,7 @@
 
 <section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
-  {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
+  {% if not snapshot %}<div class="panel alert gap-bottom"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
   <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Individually checked points</th>{% endif %}<th class="num">Queued</th></tr></thead>
     {% set rows = snapshot.campaigns if snapshot else challenges %}

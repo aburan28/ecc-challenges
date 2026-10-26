@@ -12,6 +12,7 @@
   <div class="stat"><dt>Estimated operations</dt><dd>{{ board.total_operations_log2|pow2 if board.total_operations_log2 is not none else "—" }}<small>all contributors, open challenges</small></dd></div>
 </dl>
 <section class="section" id="ranking">
+  <div class="section-head"><h2>Ranking</h2><p class="muted">Estimated curve operations on open challenges, highest first.</p></div>
   {% if board.entries %}
   <div class="table-wrap" tabindex="0"><table aria-label="Contributors by estimated operations">
     <thead><tr><th class="num">Rank</th><th>Contributor</th><th class="num">Estimated operations</th><th class="num">Points</th><th class="num">Runs</th><th>Challenges</th><th>Last active</th></tr></thead>

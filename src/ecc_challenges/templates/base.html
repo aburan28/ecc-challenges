@@ -100,6 +100,23 @@
     .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap;margin-bottom:22px}
     .section-head h2{margin:0}
     .section-head p{margin:0;max-width:34em}
+    /* Shared page and section rhythm: every page uses these instead of inline spacing. */
+    .page-head{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+    .page-head h1{margin:0}
+    .page-head .lead{margin:12px 0 0}
+    .crumbs{font-size:.88rem;color:var(--muted);margin-bottom:14px}
+    .section.first{margin-top:36px}
+    .gap-top{margin-top:24px}
+    .gap-bottom{margin-bottom:20px}
+    .subhead{margin-top:36px}
+    .stats.flush{margin-top:0}
+    .stat dd.word{font-size:1.25rem}
+    .grow{flex:1 1 200px}
+    .fixed{flex:0 1 280px}
+    .narrow{max-width:560px}
+    .wrap-any{overflow-wrap:anywhere}
+    .live-controls{margin:20px 0}
+    .top h3{margin:0}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:48px}
     .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px;align-items:center}
     .hero h1{max-width:18ch}
@@ -123,7 +140,7 @@
     .curve text.eq{font:13px var(--mono);fill:var(--faint)}
 
     /* figures */
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
+    .stats{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
     .stat{min-width:0;padding:18px 20px;border-left:1px solid var(--line)}
     .stat:first-child{border-left:0}
     .stat dt{font-size:.8rem;color:var(--muted)}
@@ -324,7 +341,7 @@
       .hero .figure{max-width:420px}
       .steps{grid-template-columns:1fr;gap:22px}
       .setup-options{gap:16px}
-      .stats{grid-template-columns:repeat(2,1fr)}
+      .stats{grid-auto-flow:row;grid-template-columns:repeat(2,1fr)}
       .stat:nth-child(3){border-left:0}
       .stat:nth-child(n+3){border-top:1px solid var(--line)}
     }

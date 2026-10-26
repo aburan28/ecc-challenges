@@ -3,7 +3,7 @@
 {% block description %}Published solution for {{ result.challenge.name }}: the recovered private scalar, public point, curve parameters and Certicom's original source.{% endblock %}
 {% block content %}
 {% set curve = result.instance %}
-<p class="note"><a href="/status#challenges">All challenges</a> / {{ result.challenge.name }}</p>
+<p class="crumbs"><a href="/status#challenges">All challenges</a> / {{ result.challenge.name }}</p>
 <h1>{{ result.challenge.name }}</h1>
 <p class="lead">The solution to this {{ result.challenge.field_bits }}-bit challenge, as recorded by Certicom.</p>
 <p><span class="tag result-solved">Solved</span> <span class="muted">on <time datetime="{{ result.solved_on }}">{{ result.solved_date }}</time>, reported by {{ result.communicated_by }}</span></p>
