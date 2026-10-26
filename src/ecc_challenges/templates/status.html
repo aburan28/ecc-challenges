@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_work.html" as work %}
+{% import "_names.html" as names %}
 {% block title %}Status · ECC Challenges{% endblock %}
 {% block description %}Live progress of the public ECC Challenges search: estimated work against each Certicom challenge, points per hour, active runs and queue depth.{% endblock %}
 {% block content %}
@@ -36,7 +37,7 @@
   {% for row in racing|sort(attribute="estimated_work_operations", reverse=true) %}
     {% set both = row.including_historical %}
     <article class="panel progress-card" aria-label="{{ row.name }} progress">
-      <div class="top"><h3><span class="name mono">{{ row.name }}</span></h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
+      <div class="top"><h3><span class="name mono">{{ row.name }}</span>{{ names.kind(row) }}</h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
       {% for label, est, points in (([("Including imported points", both, row.received_points + row.historical_points)] if both else []) + [("Public uploads only", row, row.received_points)]) %}
       <div class="progress-line{% if loop.first %} primary{% else %} secondary{% endif %}">
         <div class="top"><span>{{ label }}<small>{{ est.estimated_work_log2|pow2 }} operations · {{ "{:,}".format(points) }} points</small></span><span class="pct">{{ est.expected_work_percent|percent }}</span></div>
@@ -58,20 +59,23 @@
 
 <section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
+  {{ names.key() }}
   {% if not snapshot %}<div class="panel alert gap-bottom"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
   <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Individually checked points</th>{% endif %}<th class="num">Queued</th></tr></thead>
     {% set rows = snapshot.campaigns if snapshot else challenges %}
-    {% for solved, group in rows|sort(attribute="field_bits")|groupby("solved_in_2009") %}
+    {% for solved, group in rows|sort(attribute="family_order")|sort(attribute="field_bits")|groupby("solved_in_2009") %}
     <tbody class="{{ 'solved' if solved else 'open' }}">
     <tr><th scope="rowgroup" colspan="{{ 11 if v2 else 10 }}">{% if solved %}Solved<small>{{ group|length }} challenges, closed between 1997 and 2004</small>{% else %}Open<small>{{ group|length }} unsolved challenges, smallest first</small>{% endif %}</th></tr>
-    {% for challenge in group %}
+    {% for bits, sized in group|groupby("field_bits") %}
+    {{ names.size_row(bits, sized|map(attribute="id")|map("upper")|map("replace", "ECCP-", "ECCp-")|list, 11 if v2 else 10) }}
+    {% for challenge in sized %}
       {% set row = challenge if snapshot else challenge.public() %}
       {% set is_open = row.received_points is defined and row.received_points is not none %}
       {% set state = "solved" if row.solved_in_2009 else "open" if is_open else "not-started" %}
       {% set primary = row.including_historical or row if is_open else row %}
       <tr class="{{ state }}">
-        <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a></td>
+        <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a>{{ names.kind(row) }}</td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ work.expected(challenge) }}</td>
         <td>{% if row.solved_in_2009 %}{{ work.solved_status(row, row.name) }}{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Accepting work</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
@@ -83,6 +87,7 @@
         {% if v2 %}<td class="num">{{ "{:,}".format(row.generic_verified_points) if row.generic_verified_points is not none else "—" }}</td>{% endif %}
         <td class="num">{{ "{:,}".format(row.pending_batches) if is_open else "—" }}</td>
       </tr>
+    {% endfor %}
     {% endfor %}
     </tbody>
     {% endfor %}

@@ -8,7 +8,7 @@
 {% set est = (status.including_historical or status) if status else none %}
 <p class="crumbs"><a href="/status#challenges">All challenges</a> / {{ challenge_name }}</p>
 <h1>{{ challenge_name }}</h1>
-<p class="lead">{{ parameters.bits }}-bit {{ "binary field" if parameters.field_kind == "binary" else "prime field" }} discrete-log challenge, listed in Certicom's {{ catalog_date|longdate }} challenge document.</p>
+<p class="lead">{% if challenge.curve_type == "koblitz" %}A discrete-log challenge on a Koblitz curve, also called an anomalous binary curve, over GF(2<sup>{{ challenge.field_bits }}</sup>). Its coefficients are 0 or 1, so the Frobenius map lets rho skip work, about a factor of √{{ challenge.field_bits }}.{% elif challenge.curve_type == "binary" %}A discrete-log challenge on a randomly chosen curve over the binary field GF(2<sup>{{ challenge.field_bits }}</sup>).{% else %}A discrete-log challenge on a randomly chosen curve over a {{ challenge.field_bits }}-bit prime field GF(p).{% endif %} Listed in Certicom's {{ catalog_date|longdate }} challenge document.</p>
 
 {% if challenge.solved_in_2009 %}
 <dl class="stats" aria-label="Challenge summary">

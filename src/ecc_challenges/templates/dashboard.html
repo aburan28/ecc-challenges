@@ -142,7 +142,7 @@ mkdir -p ~/.config/ecc-challenges
   {% if multicurve_enabled %}
   <form class="gap-bottom" method="get" action="/dashboard">
     <label for="campaign">Challenge</label>
-    <div class="row"><select id="campaign" name="campaign" class="fixed">{% for solved, group in challenges|groupby("solved_in_2009") %}<optgroup label="{{ "Solved by 2004, test runs only" if solved else "Open challenges" }}">{% for challenge in group %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</optgroup>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
+    <div class="row"><select id="campaign" name="campaign" class="fixed">{% for solved, group in challenges|sort(attribute="family_order")|sort(attribute="field_bits")|groupby("solved_in_2009") %}<optgroup label="{{ "Solved by 2004, test runs only" if solved else "Open challenges" }}">{% for challenge in group %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }} · {{ challenge.field_bits }}-bit {{ challenge.curve_label[:1]|lower if challenge.curve_type != "koblitz" else "K" }}{{ challenge.curve_label[1:] }}</option>{% endfor %}</optgroup>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
   </form>
   {% set sh_env = "ECC_CAMPAIGN=" ~ selected_campaign ~ " " %}
   {% set ps_env = "$env:ECC_CAMPAIGN = '" ~ selected_campaign ~ "'; " %}

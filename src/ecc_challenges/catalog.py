@@ -15,6 +15,14 @@ SOURCE_URL = "https://www.certicom.com/content/dam/certicom/images/pdfs/challeng
 SOURCE_DATE = "2009-11-10"
 
 
+# Certicom's three challenge families: ECC2K, ECC2 and ECCp.
+CURVE_TYPES = {
+    "koblitz": {"label": "Koblitz curve, binary field"},
+    "binary": {"label": "Random curve, binary field"},
+    "prime": {"label": "Random curve, prime field"},
+}
+
+
 @dataclass(frozen=True)
 class Challenge:
     id: str
@@ -27,6 +35,22 @@ class Challenge:
     walk_id: str | None = None
 
     @property
+    def curve_type(self) -> str:
+        """Certicom's naming: ECC2K = Koblitz, ECC2 = random binary, ECCp = random prime."""
+        if self.field == "prime":
+            return "prime"
+        return "koblitz" if self.id.startswith("ecc2k-") else "binary"
+
+    @property
+    def family_order(self) -> int:
+        """Within one size: Koblitz, then random binary, then prime, as Certicom lists them."""
+        return ("koblitz", "binary", "prime").index(self.curve_type)
+
+    @property
+    def curve_label(self) -> str:
+        return CURVE_TYPES[self.curve_type]["label"]
+
+    @property
     def estimated_operations_log2(self) -> float | None:
         """Certicom's estimate as a power of two, which is how the site shows it."""
         return round(log2(float(self.estimated_operations_2009)), 2) if self.estimated_operations_2009 else None
@@ -35,6 +59,8 @@ class Challenge:
         value = {**asdict(self), "name": self.id.upper() if self.field != "prime" else
                 "ECCp-" + self.id.rsplit("-", 1)[1],
                 "estimated_operations_2009_log2": self.estimated_operations_log2,
+                "curve_type": self.curve_type, "curve_label": self.curve_label,
+                "family_order": self.family_order,
                 "source_url": SOURCE_URL, "source_date": SOURCE_DATE}
         if multicurve_enabled:
             from .multicurve.codec import namespace
