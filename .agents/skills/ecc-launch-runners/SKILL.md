@@ -1,12 +1,12 @@
 ---
 name: ecc-launch-runners
-description: Bootstrap a box and launch, resume, inspect, or stop ECC Challenges contributor runners using aburan28/ecc-challenges. Install missing dependencies, Docker Engine/Compose, NVIDIA Container Toolkit, and requested gVisor or Kata runtimes on supported Linux hosts; configure persistent CPU/CUDA/Metal workers and verify checkpoints and health. Use for local or SSH machines. These are ECC compute workers, not GitHub Actions runners. Excludes deploying the gateway and provisioning cloud capacity.
+description: Bootstrap a box and launch, resume, inspect, or stop ECC Challenges contributor runners using isogeny-labs/ecc-challenges. Install missing dependencies, Docker Engine/Compose, NVIDIA Container Toolkit, and requested gVisor or Kata runtimes on supported Linux hosts; configure persistent CPU/CUDA/Metal workers and verify checkpoints and health. Use for local or SSH machines. These are ECC compute workers, not GitHub Actions runners. Excludes deploying the gateway and provisioning cloud capacity.
 ---
 
 # Launch ECC Challenges runners
 
 Take a runner request through host inspection, dependency/runtime installation, startup, and verified
-handoff. Use [aburan28/ecc-challenges](https://github.com/aburan28/ecc-challenges)
+handoff. Use [isogeny-labs/ecc-challenges](https://github.com/isogeny-labs/ecc-challenges)
 and its existing deployment recipes; do not invent a worker client or protocol.
 If asked only to create or install this skill, do not start compute jobs.
 

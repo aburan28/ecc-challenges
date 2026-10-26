@@ -21,7 +21,7 @@ def main(key_file:str,out:str,image:str,campaign:str,
     if destination.exists():raise FileExistsError(destination)
     if not re.fullmatch(r'ecc(?:2k?|p)-[0-9]+',campaign):
         raise ValueError('invalid campaign ID')
-    if not re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}',image):
+    if not re.fullmatch(r'(?:public\.ecr\.aws/o1a3z1g6|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}',image):
         raise ValueError('worker image must be an approved immutable public digest')
     if backend not in ('cpu','cuda') or not 1<=lanes<=4096:
         raise ValueError('invalid backend or lane count')

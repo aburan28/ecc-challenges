@@ -106,7 +106,7 @@ def main() -> None:
             except ValueError as exc:
                 parser.error(str(exc))
         image_uri=args.image or catalog["worker_image"]
-        if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",image_uri):
+        if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}",image_uri):
             parser.error("worker image must be pinned by digest in an approved public registry")
         app = modal.App.lookup(args.app, create_if_missing=True)
         image = modal.Image.from_registry(image_uri).dockerfile_commands("ENTRYPOINT []")

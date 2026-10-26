@@ -8,8 +8,8 @@ Parameters:
   CertificateArn: {Type: String}
   WebImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
   AuditImageUri: {Type: String, AllowedPattern: '^.+@sha256:[0-9a-f]{64}$'}
-  PublicWorkerImage: {Type: String, AllowedPattern: '^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
-  PublicCpuWorkerImage: {Type: String, Default: '', AllowedPattern: '^$|^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}$'}
+  PublicWorkerImage: {Type: String, AllowedPattern: '^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}$'}
+  PublicCpuWorkerImage: {Type: String, Default: '', AllowedPattern: '^$|^(public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}$'}
   GithubSecretArn: {Type: String}
   WebPasswordArn: {Type: String}
   WorkerPasswordArn: {Type: String}
@@ -458,7 +458,11 @@ Resources:
       ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref WebTask
       DesiredCount: !Ref WebTasks
-      DeploymentConfiguration: {MaximumPercent: 200, MinimumHealthyPercent: 100}
+      # The live Spot quota has no spare task capacity during a rolling update.
+      # Keep one web task healthy while replacing the other. ECS rejects a
+      # MaximumPercent of 100 while Availability Zone rebalancing is enabled.
+      DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 50}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -474,6 +478,8 @@ Resources:
       ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref WorkerTask
       DesiredCount: !Ref AuditTasks
+      DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 50}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -488,6 +494,8 @@ Resources:
       ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref IndexTask
       DesiredCount: !Ref IndexTasks
+      DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -502,6 +510,8 @@ Resources:
       ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref ReconcileTask
       DesiredCount: !Ref ReconcileTasks
+      DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -516,6 +526,8 @@ Resources:
       ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref ResolveTask
       DesiredCount: !Ref ResolveTasks
+      DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard · ECC Challenges{% endblock %}
+{% block description %}Contributors to the public ECC Challenges search, ranked by the estimated curve operations their workers have reported.{% endblock %}
+{% block content %}
+<h1>Leaderboard</h1>
+<p class="lead">Contributors ranked by the estimated curve operations their workers have reported on open challenges. Only contributors who chose to be listed appear by name.</p>
+{% if not board %}
+<div class="panel alert"><p>The leaderboard is unavailable right now. Live totals are on the <a href="/status">status page</a>.</p></div>
+{% else %}
+<dl class="stats" aria-label="Totals">
+  <div class="stat"><dt>Listed contributors</dt><dd>{{ "{:,}".format(board.named_total) }}<small>{% if board.hidden.accounts %}and {{ "{:,}".format(board.hidden.accounts) }} not listed{% else %}everyone with work so far{% endif %}</small></dd></div>
+  <div class="stat"><dt>Estimated operations</dt><dd>{{ board.total_operations_log2|pow2 if board.total_operations_log2 is not none else "—" }}<small>all contributors, open challenges</small></dd></div>
+</dl>
+<section class="section" id="ranking">
+  {% if board.entries %}
+  <div class="table-wrap" tabindex="0"><table aria-label="Contributors by estimated operations">
+    <thead><tr><th class="num">Rank</th><th>Contributor</th><th class="num">Estimated operations</th><th class="num">Points</th><th class="num">Runs</th><th>Challenges</th><th>Last active</th></tr></thead>
+    <tbody>
+    {% for entry in board.entries %}
+      <tr><td class="num">{{ entry.rank }}</td><td><a href="https://github.com/{{ entry.login }}" rel="nofollow noopener">{{ entry.login }}</a></td><td class="num">{{ entry.operations_log2|pow2 }}</td><td class="num">{{ "{:,}".format(entry.points) }}</td><td class="num">{{ entry.runs }}</td><td>{% for challenge in entry.challenges %}<a href="/challenges/{{ challenge }}">{{ names[challenge] }}</a>{% if not loop.last %}, {% endif %}{% endfor %}</td><td>{{ entry.last_seen_at|ago if entry.last_seen_at else "—" }}</td></tr>
+    {% endfor %}
+    {% if board.hidden.accounts %}
+      <tr class="muted"><td></td><td>{{ "{:,}".format(board.hidden.accounts) }} contributor{{ "s" if board.hidden.accounts != 1 }} not listed</td><td class="num">{{ board.hidden.operations_log2|pow2 }}</td><td class="num">{{ "{:,}".format(board.hidden.points) }}</td><td></td><td></td><td></td></tr>
+    {% endif %}
+    </tbody>
+  </table></div>
+  {% else %}
+  <div class="panel"><p class="muted">No one is listed yet.{% if board.hidden.accounts %} {{ "{:,}".format(board.hidden.accounts) }} contributor{{ "s have" if board.hidden.accounts != 1 else " has" }} reported work without choosing to be listed.{% endif %}</p></div>
+  {% endif %}
+  <p class="table-note">A point's worth depends on its curve and threshold, so the ranking converts points to estimated rho steps, as the <a href="/pollard-rho#estimate">work estimate</a> on the status page does. An operation on a larger curve also costs more hardware time. Work on solved challenges, suspended runs and batches that failed their checks is left out. The table updates every few minutes.</p>
+  <p class="table-note">To appear here, open your <a href="/dashboard#leaderboard">dashboard</a> and choose to be listed. You can remove yourself at any time.</p>
+</section>
+{% endif %}
+{% endblock %}

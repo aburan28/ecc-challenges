@@ -361,6 +361,7 @@
       <a href="/#how">Take part</a>
       <a href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
+      <a href="/leaderboard"{% if request.url.path == '/leaderboard' %} aria-current="page"{% endif %}>Leaderboard</a>
       <a href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
     </nav>
@@ -371,6 +372,7 @@
         <a href="/docs/agents">Set up with an agent</a>
         <a href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
         <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
+      <a href="/leaderboard"{% if request.url.path == '/leaderboard' %} aria-current="page"{% endif %}>Leaderboard</a>
         <a href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
         {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in with GitHub</a>{% endif %}
       </nav>

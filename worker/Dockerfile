@@ -13,7 +13,7 @@ RUN nvcc -std=c++17 -O2 -gencode arch=compute_75,code=sm_75 \
   && /build/generic-engine-cpu --self-test
 
 FROM ghcr.io/aburan28/ecc2k130-worker@sha256:25299db686c6b73bb59edc1b5f6591d917ada4e5d933172a4eca7274a71e9421
-LABEL org.opencontainers.image.source="https://github.com/aburan28/ecc-challenges" \
+LABEL org.opencontainers.image.source="https://github.com/isogeny-labs/ecc-challenges" \
       org.opencontainers.image.description="ECC Challenges CPU and CUDA worker for all 24 Certicom curves"
 # Refresh Ubuntu security packages while retaining the reviewed CUDA and NCCL stack.
 USER root

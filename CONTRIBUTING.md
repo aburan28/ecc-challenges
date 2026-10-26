@@ -9,7 +9,7 @@ and run the command your dashboard shows.
 [Running a worker](docs/running-a-worker.md) covers every other setup:
 CPU-only, Compose, Kubernetes, systemd, Podman, Slurm and Modal. If something
 looks wrong, such as rejected uploads, a crash or a number on the status page
-that does not add up, [open an issue](https://github.com/aburan28/ecc-challenges/issues/new/choose)
+that does not add up, [open an issue](https://github.com/isogeny-labs/ecc-challenges/issues/new/choose)
 with the worker log. Never paste your API key.
 
 ## Work on the code
@@ -77,5 +77,5 @@ quickest way to try a gateway or worker change end to end.
 
 If you find a way to forge accepted work, read other contributors' data or
 get around key revocation, do not open a public issue. Use
-[GitHub private vulnerability reporting](https://github.com/aburan28/ecc-challenges/security/advisories/new)
+[GitHub private vulnerability reporting](https://github.com/isogeny-labs/ecc-challenges/security/advisories/new)
 instead.
