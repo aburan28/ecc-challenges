@@ -67,7 +67,7 @@ that interrupts unrelated jobs needs maintenance approval; without it, report
 that step as unfinished. Do not weaken Docker socket permissions or discard
 state to get past a setup failure.
 
-Native workers do not need Docker. Node and npm are needed only for the Skills
+Native workers do not need Docker. Node.js and npm are needed only for the Skills
 CLI; an agent can read this URL directly. Once the tools are ready, continue
 through worker installation, offline checks and connection verification below.
 Report missing privileges, unfinished interactive installers and unavailable

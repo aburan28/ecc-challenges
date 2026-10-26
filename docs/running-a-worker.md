@@ -81,10 +81,14 @@ and print the command that starts the worker again. They wrap the
 
 | Image | For | Architectures |
 | --- | --- | --- |
-| `ghcr.io/aburan28/ecc-challenges-worker` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
-| `ghcr.io/aburan28/ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
+| `ecc-challenges-worker` | All 24 curves on CPU or NVIDIA GPUs (Turing through Blackwell); ECC2K-130 protocol 1 resume | amd64 |
+| `ecc-challenges-worker-cpu` | Smaller CPU-only build of the same generic 24-curve worker | amd64, arm64 |
 
-Both public packages are linked to the [ecc-challenges repository](https://github.com/aburan28/ecc-challenges/packages).
+Images are published to ECR Public under `public.ecr.aws/o1a3z1g6/`; that is
+the registry the dashboard and [`/v1/campaigns`](https://ecc-challenges.com/v1/campaigns)
+name. Both are also on GitHub Packages under `ghcr.io/aburan28/`, which avoids
+ECR Public's anonymous pull allowance; use a digest from the registry you pull
+from.
 The combined image includes the CUDA engine and a parallel CPU engine, so its
 pinned digest works on an amd64 machine with or without a GPU. The CPU-only
 image is smaller and also runs on arm64. Use the digest shown on your dashboard
@@ -150,21 +154,26 @@ CPU host, use that same digest without `--gpus all` and `ECC_GPU`:
 
 ```sh
 ECC_WORKER_IMAGE='public.ecr.aws/o1a3z1g6/ecc-challenges-worker@sha256:a347a784935a7713b204335e8316f780a5c3209d64cc372980c1b35bee9f81ba'
-mkdir -p "$PWD/ecc-data-eccp-131"
-docker run -d --restart unless-stopped --name ecc-eccp-131 \
+mkdir -p "$PWD/ecc-cpu-eccp-131"
+docker run -d --restart unless-stopped --name ecc-cpu-eccp-131 \
   --user "$(id -u):$(id -g)" --stop-timeout 120 \
-  -e ECC_CAMPAIGN=eccp-131 \
+  -e ECC_BACKEND=cpu -e ECC_PROTOCOL=2 -e ECC_CAMPAIGN=eccp-131 \
   -v "$HOME/.config/ecc-challenges/api-key:/run/secrets/ecc_api_key:ro" \
-  -v "$PWD/ecc-data-eccp-131:/data" \
+  -v "$PWD/ecc-cpu-eccp-131:/data" \
   "$ECC_WORKER_IMAGE"
-docker logs -f ecc-eccp-131
+docker logs -f ecc-cpu-eccp-131
 ```
 
 The worker runs in the background; Ctrl-C stops following its logs. Pause with
-`docker stop ecc-eccp-131` and resume with `docker start ecc-eccp-131`, keeping
-the same container and data directory. If the name already exists, run
-`docker start` instead of repeating `docker run`. The dashboard's GPU and CPU
-commands also assign stable names and allow two minutes for shutdown.
+`docker stop ecc-cpu-eccp-131` and resume with `docker start ecc-cpu-eccp-131`,
+keeping the same container and state directory. If the name already exists, run
+`docker start` instead of repeating `docker run`. These match the dashboard's
+names. CPU workers use container and directory `ecc-cpu-<challenge>`. GPU
+workers use container `ecc-gpu-<challenge>-<GPU_ID>` and directory
+`ecc-data-<challenge>-<GPU_ID>`; protocol 1 runs add `-dp<weight>` before the
+GPU ID. If you started from an earlier version of this guide, keep the
+`ecc-eccp-131` container and `ecc-data-eccp-131` directory it created: a new
+directory registers a new run.
 
 The digest above supports all 24 curves on CPU and CUDA and includes the OpenMP
 CPU engine. For the CPU-only image, including arm64, use
@@ -331,7 +340,7 @@ cluster's policy on long-running jobs and outbound HTTPS first.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `ECC_CAMPAIGN` | `ecc2k-130` (the installers and recipes use `eccp-131`) | Curve ID from the catalog |
+| `ECC_CAMPAIGN` | set by the installers, dashboard commands and recipes, usually `eccp-131`; if unset, current images use `ecc2k-130` | Curve ID from the catalog |
 | `ECC_BACKEND` | `auto` (CPU-only image: `cpu`) | `cuda`, `metal`, `cpu`, or `auto` (Metal on a Mac whose engine sees a Metal device, CUDA when `nvidia-smi` sees a GPU, else CPU) |
 | `ECC_GPU` | unset | GPU index for this worker (CUDA device, or Metal device from `generic-engine --probe`) |
 | `OMP_NUM_THREADS` | all available cores | CPU engine threads (also honored by builds without OpenMP) |
@@ -360,7 +369,7 @@ server:
 | Podman Quadlet | Quadlet generator output checked; the same `podman run` uploaded eccp-109 points |
 | Apptainer and Slurm | Not run: no Slurm cluster available. Reviewed only |
 | GPU paths | Not run here (no GPU). The GPU image has its own L4 release checks in `verification/` |
-| macOS (arm64, x86_64) | CI `Worker platforms`: `install.sh` and CMake builds with Metal, self-test, all-24-curve CPU walk against a Python reference, Metal-vs-CPU parity on all 24 curves where the runner exposes a Metal device, universal binary, `plutil -lint` on the launchd agent, installed wrapper start-up |
+| macOS (arm64, x86-64) | CI `Worker platforms`: `install.sh` and CMake builds with Metal, self-test, all-24-curve CPU walk against a Python reference, Metal-vs-CPU parity on all 24 curves where the runner exposes a Metal device, universal binary, `plutil -lint` on the launchd agent, installed wrapper start-up |
 | Windows (x64, ARM64) | CI `Worker platforms`: `install.ps1` under Windows PowerShell 5.1, self-test, all-24-curve CPU walk against a Python reference, file lock and atomic checkpoint, installed wrapper start-up |
 | Linux arm64 native | CI `Worker platforms`: as Windows, plus CMake and `install.sh` builds |
 | Metal kernel source | Type-checked on every CI host with clang's C++ for OpenCL, which enforces address spaces as Metal does; compiled with `xcrun metal` where the Metal toolchain is installed |
