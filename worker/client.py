@@ -253,8 +253,9 @@ def main() -> int:
     root = Path(os.environ.get("ECC_STATE_DIR", "/data"))
     root.mkdir(parents=True, exist_ok=True)
     key = read_api_key()
-    campaign = (os.environ.get("ECC_CAMPAIGN") or default_campaign(root)).lower()
     protocol = os.environ.get("ECC_PROTOCOL")
+    fallback = CAMPAIGN if protocol == "1" else default_campaign(root)
+    campaign = (os.environ.get("ECC_CAMPAIGN") or fallback).lower()
     if protocol not in (None, "1", "2"):
         raise ValueError("ECC_PROTOCOL must be 1 or 2")
     legacy_resume = (root / "state.json").exists()

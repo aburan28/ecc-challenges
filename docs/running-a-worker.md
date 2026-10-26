@@ -167,9 +167,13 @@ docker logs -f ecc-cpu-eccp-131
 The worker runs in the background; Ctrl-C stops following its logs. Pause with
 `docker stop ecc-cpu-eccp-131` and resume with `docker start ecc-cpu-eccp-131`,
 keeping the same container and state directory. If the name already exists, run
-`docker start` instead of repeating `docker run`. These are the names the
-dashboard uses: `ecc-cpu-<challenge>` for CPU workers and
-`ecc-gpu-<challenge>-<GPU_ID>` for GPU workers, each with a matching directory.
+`docker start` instead of repeating `docker run`. These match the dashboard's
+names. CPU workers use container and directory `ecc-cpu-<challenge>`. GPU
+workers use container `ecc-gpu-<challenge>-<GPU_ID>` and directory
+`ecc-data-<challenge>-<GPU_ID>`; protocol 1 runs add `-dp<weight>` before the
+GPU ID. If you started from an earlier version of this guide, keep the
+`ecc-eccp-131` container and `ecc-data-eccp-131` directory it created: a new
+directory registers a new run.
 
 The digest above supports all 24 curves on CPU and CUDA and includes the OpenMP
 CPU engine. For the CPU-only image, including arm64, use
