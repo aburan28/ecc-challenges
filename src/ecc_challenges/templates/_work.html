@@ -11,9 +11,14 @@
 {%- else -%}—{%- endif %}
 {%- endmacro %}
 
-{# A challenge Certicom lists as solved: the search is complete, whatever this gateway has stored. #}
+{# A challenge Certicom lists as solved: the search is over, whatever test runs have stored here. #}
 {% macro solved(challenge) -%}
-<span class="work"><span class="pct progress-primary">100%</span><span class="bar mini done" role="img" aria-label="Solved: the published result closes this challenge"><span style="width:100%"></span></span></span><small class="work-detail">Search complete</small>
+<span class="work"><span class="pct done"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</span><span class="bar mini done" role="img" aria-label="Solved: the published result closes this challenge"><span style="width:100%"></span></span></span><small class="work-detail">{{ solved_dates[challenge.id] }}</small>
+{%- endmacro %}
+
+{# The status cell for a solved row: who closed it, linking to the published result. #}
+{% macro solved_status(challenge, name) -%}
+<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="Solved {{ solved_dates[challenge.id] }}. {{ name }} published result">Solved</a><small class="work-detail">reported by {{ solved_by[challenge.id] }}</small>
 {%- endmacro %}
 
 {# Shared summary: combined progress first, then the public-only contribution. #}

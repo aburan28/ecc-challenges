@@ -5,40 +5,42 @@
 This service has two isolated protocols. The sections below describe the legacy
 ECC2K-130 DP32 path. The generic v2 path supports all 24 published Certicom
 instances using 56–196-byte affine coefficient records; see
-[v2 storage and recovery](multicurve-storage.md).
+[all-curve storage](multicurve-storage.md).
 
 V2 uses tiny authenticated JSON control messages at
-`https://ecc-challenges.com/v2/`. Checksum/length/type/encryption-bound S3 PUT
-capabilities carry the raw bytes directly, so large uploads do not occupy web
-tasks. Every record must satisfy the namespace's DP predicate, curve equation
-and `R=aG+bQ` relation before any DynamoDB index write. UUID runs and hashed
+`https://ecc-challenges.com/v2/`. S3 PUT capabilities bound to checksum, length,
+content type and encryption carry the raw bytes directly, so large uploads do
+not occupy web tasks. Every record must satisfy the namespace's distinguished-point
+(DP) predicate, curve equation and `R=aG+bQ` relation before any DynamoDB index
+write. UUID runs and hashed
 curve/target/walk/codec namespaces isolate the campaigns. Claimed step counts
 are not credited as verified work.
 
-V2 admission limits include eight outstanding reservations and 32 pending batches
+V2 admission limits are eight outstanding reservations and 32 pending batches
 per account, eight active runs across both protocols, the shared daily byte
-quota, and a sharded global cap initially 512 pending v2 batches. Rejected new
+quota, and a sharded global cap, initially 512 pending v2 batches. Rejected new
 intents receive 429 (account) or 503 (global shard) with `Retry-After`; they do not
 obtain an upload capability. Admitted batches remain recoverable from immutable
 S3 objects, PostgreSQL state and receipts even if SQS delivery or a worker fails.
 The reconciler repairs stale unfinished work. Completed runs can be explicitly
 closed without recycling identity or discarding admitted data.
 
-The **audit** service performs v2 verification, conditional DynamoDB indexing
-and collision resolution. Increasing the legacy index or resolver pools adds
+The audit service performs v2 verification, conditional DynamoDB indexing
+and collision resolution. Scaling the legacy index or resolver pools adds
 no v2 drain capacity. V2 capacity planning must measure complete verification
 and indexing per curve/record width, source-object and receipt requests,
 PostgreSQL coordination, DynamoDB writes and duplicates, queue age, autoscaling,
 and total cost. `scripts/capacity.py` only models legacy sampled replay and must
 not be used to estimate v2 capacity.
 
-The live all 24 single-point canaries establish contribution correctness. A
-bounded duplicate-record backlog/recovery check establishes only its stated
-admission and restart behavior. Neither defines a sustained fresh-point rate or
-a global GPU fleet size. The configured 32-auditor maximum also depends on the
-account's effective Fargate vCPU quota; it is 30 before the pending 256 request.
-Public opening must name the measured operating envelope and retain admission
-caps rather than treating autoscaling as unlimited capacity.
+The live single-point canaries on all 24 instances establish contribution
+correctness. A bounded duplicate-record backlog and recovery check establishes
+only its stated admission and restart behavior. Neither defines a sustained
+fresh-point rate or a global GPU fleet size. The configured 32-auditor maximum
+also depends on the account's effective Fargate vCPU quota, which is 30 until
+the pending request for 256 is granted. A public opening must name the measured
+operating envelope and keep the admission caps; autoscaling is not unlimited
+capacity.
 
 ## Legacy protocol
 
@@ -61,30 +63,39 @@ public candidates, while the new account's S3 bucket holds raw batches.
 
 The WAF blocks more than 10,000 requests per 5 minutes from one IP, and more
 than 300 per 5 minutes for authentication or key routes. Both rate rules return
-HTTP 429 with Retry-After 60, so shared-provider throttling is retryable rather
-than a permanent permission error. The application has
-a 240-token per-key burst bucket refilling 4 tokens/s; a 1 MiB DP upload costs 16
-tokens. A key is limited to 5 GiB/day across DP batches and checkpoints. An account may have any number of active keys, with a combined 15 GiB/day upload limit, eight active runs, and 64 lifetime run IDs. Keys can be created at most once per minute per account. The pending batch counter is sharded 16 ways and admission
-returns `503` with `Retry-After` when the configured backlog bound is hit.
+HTTP 429 with `Retry-After: 60`, so shared-provider throttling is retryable
+rather than a permanent permission error.
+
+The application adds these limits:
+
+- A 240-token per-key burst bucket refilling 4 tokens/s. A 1 MiB DP upload costs
+  16 tokens.
+- 5 GiB/day per key across DP batches and checkpoints.
+- Per account: any number of active keys, a combined 15 GiB/day upload limit,
+  eight active runs and 64 lifetime run IDs.
+- One key creation per minute per account.
+- A pending-batch counter sharded 16 ways. Admission returns `503` with
+  `Retry-After` when the configured backlog bound is hit.
+
 The contributor sends a remote checkpoint at most every 15 minutes by default
 and pauses its GPU when the local spool fills rather than discarding unsent
 records.
 
-These limits make abuse bounded per key and IP, but they do not prevent an
-attacker from acquiring many GitHub accounts or using many networks. WAF and
-per-key quotas are cost controls; the independent replay and candidate
-quarantine protect result integrity. A determined attacker can still consume
-storage and verifier capacity. Operators must watch WAF blocks, account
-enrollment, S3 growth, queue age, and daily AWS spend, and lower quotas or
-temporarily close admission if those diverge from the measured plan.
+These limits bound abuse per key and IP. They do not stop an attacker who
+acquires many GitHub accounts or uses many networks. WAF and per-key quotas are
+cost controls; the independent replay and candidate quarantine protect result
+integrity. A determined attacker can still consume storage and verifier
+capacity. Operators must watch WAF blocks, account enrollment, S3 growth, queue
+age, and daily AWS spend, and lower quotas or temporarily close admission if
+those diverge from the measured plan.
 
 The current public run allocation is `50000..65534`, or 15,535 unique run
 IDs over the lifetime of this campaign. IDs are never recycled because the
-seed is `(run_id << 48) | local_counter`. The lifetime account cap limits one
-account's ability to consume that finite namespace; operators can adjust it
-after reviewing contributor needs and remaining IDs. A larger contributor population
-needs a registry audit for additional unused IDs or a new campaign/seed
-format; autoscaling HTTP tasks cannot expand this namespace.
+seed is `(run_id << 48) | local_counter`. The lifetime account cap limits how
+much of that finite namespace one account can consume; operators can adjust it
+after reviewing contributor needs and remaining IDs. A larger contributor
+population needs a registry audit for additional unused IDs or a new
+campaign and seed format. Autoscaling HTTP tasks cannot expand the namespace.
 
 ## Queue and database design
 
@@ -94,8 +105,8 @@ the same byte offset and digest is idempotent; a different digest gets `409`.
 An outbox reconciler repairs a lost SQS send after the database commit. SQS
 delivery may repeat, so audit, index, and resolve workers use durable status
 rows and unique constraints. Audit, index, and collision each have their own
-queue and dead-letter queue. Audit and indexing scale independently, avoiding
-large DP joins on the HTTP request path.
+queue and dead-letter queue. Audit and indexing scale independently, which keeps
+large DP joins off the HTTP request path.
 
 Admission checks whether a pressure shard is full before the S3 write, then
 atomically increments its count after the bounded write. The shard row is not
@@ -128,10 +139,10 @@ audit task need    = ceil(headroom · audit selections/s · T)
 ```
 
 Use `scripts/capacity.py` with measured values and at least 2× headroom.
-Autoscaling targets are capped at eight index tasks and 32 audit tasks. Those
-caps protect the private RDS instance and cost; exceeding them requires a
-deliberate measured change, not a larger queue. The service returns backpressure
-before the pending bound is exceeded. A queue that grows continuously at the
+Autoscaling targets are capped at eight index tasks and 32 audit tasks. The caps
+protect the private RDS instance and cost; raising them needs a deliberate,
+measured change, not a larger queue. The service returns backpressure before the
+pending bound is exceeded. A queue that grows continuously at the
 projected peak is an admission failure even if HTTP uploads still return 201.
 
 Before a global opening, run a sustained, production-shaped load on the
@@ -144,7 +155,9 @@ SQS send failure. Require the queues to return to baseline after traffic
 stops and every acknowledged object to be indexed or explicitly retained as
 unverified/quarantined. Compare the measured peak to the intended GPU fleet;
 record the largest fleet that passed. The current DP32 replay throughput and
-this sustained gate are tracked in the linked problem record.
+this sustained gate are tracked in the
+[DP32 verifier and ingest capacity](../problems/dp32-verifier-and-ingest-capacity.md)
+problem record.
 
 ## Database network boundary
 
@@ -152,6 +165,6 @@ The public service uses a private RDS instance in its dedicated AWS account
 and VPC. PostgreSQL ingress is limited to that VPC's CIDR, and both service
 roles use verified TLS and limited SQL privileges. The original campaign's
 `rho-dp` security group is outside this platform and remains a separate
-legacy exposure; it should be narrowed through a coordinated inventory of
+legacy exposure; it should be narrowed after a coordinated inventory of
 its existing ingesters. The public service has no network route or credential
 to that owner database.

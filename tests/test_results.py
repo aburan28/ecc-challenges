@@ -97,9 +97,10 @@ def test_solved_challenges_show_a_complete_search_instead_of_live_progress(monke
             solved = [html for state, html in rows if state == "solved"]
             assert len(solved) == len(SOLVED)
             for html in solved:
-                assert '<span class="pct progress-primary">100%</span>' in html
-                assert 'class="bar mini done"' in html and "Search complete" in html
+                assert '<span class="pct done">' in html and ">Done</span>" in html
+                assert 'class="bar mini done"' in html and 'style="width:100%"' in html
                 assert "operations</small>" not in html and "public uploads only" not in html
+            assert any("Solved 16 December 1997" in html and "by Robert J. Harley" in html for html in solved)
             assert all('bar mini done' not in html for state, html in rows if state != "solved")
         page = client.get("/challenges/ecc2-79").text
         assert "<dt>Progress</dt><dd><span class=\"progress-primary\">100%</span>" in page
@@ -116,4 +117,4 @@ def test_solved_challenges_show_a_complete_search_instead_of_live_progress(monke
         assert "Solved 16 December 1997" in progress and 'href="/results/ecc2-79"' in progress
         assert "Already solved" in progress and "expected operations" not in progress
         assert '<optgroup label="Open challenges">' in dashboard
-        assert '<optgroup label="Solved 1997–2004 · test runs only">' in dashboard
+        assert '<optgroup label="Solved by 2004, test runs only">' in dashboard

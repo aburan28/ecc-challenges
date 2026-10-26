@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import logging
 import json
 from pathlib import Path
@@ -32,12 +32,13 @@ from .service import Service, Rejected
 from .settings import Settings
 from .storage import Storage
 from .status import StatusReader
-from .results import SOLVED_DATES, create_results_router
+from .results import PUBLISHED_RESULTS, SOLVED_DATES, create_results_router
 from .pages import create_pages_router
 
 TEMPLATES = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 TEMPLATES.env.globals["level_labels"] = {"exercise": "Exercise", "level_i": "Level I", "level_ii": "Level II"}
 TEMPLATES.env.globals["solved_dates"] = SOLVED_DATES
+TEMPLATES.env.globals["solved_by"] = {campaign: who for campaign, (_, who, _) in PUBLISHED_RESULTS.items()}
 
 
 def pow2(log2: float | None, places: int = 1, title: str | None = None) -> Markup | str:
@@ -80,6 +81,7 @@ TEMPLATES.env.filters["ago"] = ago
 TEMPLATES.env.filters["utcstamp"] = lambda value: value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 TEMPLATES.env.filters["isoago"] = lambda value: ago(datetime.fromisoformat(value))
 TEMPLATES.env.filters["percent"] = percent
+TEMPLATES.env.filters["longdate"] = lambda value: date.fromisoformat(value).strftime("%d %B %Y").lstrip("0")
 TEMPLATES.env.filters["duration"] = duration
 ERROR_TITLES = {401: "Sign in required", 403: "Not allowed", 404: "Page not found", 429: "Slow down"}
 # Images the templates reference, served from the package by name only.

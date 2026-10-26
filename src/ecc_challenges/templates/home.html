@@ -4,8 +4,7 @@
 {% block content %}
 <section class="hero">
   <div>
-    <div class="kicker">Certicom ECC Challenge</div>
-    <h1>Join the search on the Certicom curves.</h1>
+    <h1>Join the search on the Certicom curves</h1>
     <p class="lead">{% if multicurve_enabled %}Contribute CPU or GPU time to a public Pollard rho search.{% else %}Contribute NVIDIA GPU time to the public ECC2K-130 search.{% endif %} Certicom published 24 elliptic-curve discrete logarithm challenges, from 79 to 359 bits. Its 2009 update lists ten as solved.</p>
     <div class="actions">
       <a class="button" href="{% if signed_in %}/dashboard{% else %}/auth/github{% endif %}">{% if signed_in %}Open your dashboard{% else %}Sign in with GitHub{% endif %}</a>
@@ -15,7 +14,7 @@
   </div>
   <figure class="figure">
     {% include "_curve.html" %}
-    <figcaption>Point addition: the line through P and Q meets the curve once more; reflect it to get P + Q. A discrete logarithm asks how many additions of G give Q.</figcaption>
+    <figcaption>Point addition: the line through P and Q meets the curve once more; reflect it to get P + Q. The discrete logarithm problem asks how many copies of a base point add up to a given target.</figcaption>
   </figure>
 </section>
 
@@ -23,10 +22,12 @@
 {% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
 {% set k130_row = snapshot.campaigns|selectattr("id", "equalto", "ecc2k-130")|first if snapshot else none %}
 {% set flagship = (k130_row.including_historical or k130_row) if k130_row else none %}
+{% set unsolved = challenges|rejectattr("solved_in_2009")|list|length %}
+{% set accepting = open_rows|rejectattr("solved_in_2009")|list|length %}
 <dl class="stats" aria-label="Current figures">
-  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of Certicom's 24 challenges</small></dd></div>
+  <div class="stat"><dt>Open challenges</dt><dd>{{ accepting if snapshot else unsolved }}<small>{% if snapshot and accepting < unsolved %}of {{ unsolved }} unsolved; {% endif %}{{ 24 - unsolved }} of 24 were solved by 2004</small></dd></div>
   <div class="stat progress-summary"><dt>ECC2K-130 progress</dt><dd>{{ work.summary(k130_row) }}</dd></div>
-  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}incl. {{ "{:,}".format(imported) }} from the earlier run{% else %}distinguished points stored{% endif %}</small></dd></div>
+  <div class="stat"><dt>Archived points</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}incl. {{ "{:,}".format(imported) }} from the earlier run{% else %}distinguished points stored{% endif %}</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
 
@@ -36,13 +37,13 @@
   <ul class="setup-options" aria-label="Worker setup guides">
     <li><a href="/docs/running-a-worker#docker"><strong>Linux</strong><span>Docker on a CPU or NVIDIA GPU</span></a></li>
     <li><a href="/docs/running-a-worker#macos"><strong>macOS</strong><span>Native worker with Metal GPU support</span></a></li>
-    <li><a href="/docs/running-a-worker#windows"><strong>Windows</strong><span>Native worker on x64 or ARM64</span></a></li>
+    <li><a href="/docs/running-a-worker#windows"><strong>Windows</strong><span>Native worker on x86-64 or arm64</span></a></li>
   </ul>
   {% endif %}
   <ol class="steps">
     <li><h3>Get a key</h3><p>Sign in with GitHub and create an API key. You can revoke it at any time.</p></li>
-    <li><h3>Start the worker</h3><p>{% if multicurve_enabled %}Choose a guide above, or let your coding agent use the worker skill to help you set up.{% else %}Use the <code>docker run</code> command shown on your dashboard. It works on a local card, Modal, RunPod or any host with persistent storage.{% endif %}</p></li>
-    <li><h3>Points come back</h3><p>The worker uploads distinguished points. The server checks them, stores them and compares them with every other worker's points.</p></li>
+    <li><h3>Start the worker</h3><p>{% if multicurve_enabled %}Follow a guide above, or have a coding agent set it up with the worker skill.{% else %}Use the <code>docker run</code> command shown on your dashboard. It runs on a local GPU, Modal, RunPod or any host with persistent storage.{% endif %}</p></li>
+    <li><h3>Points are checked</h3><p>The worker uploads distinguished points. The server checks them, stores them and compares them with every other worker's points.</p></li>
   </ol>
 </section>
 
@@ -50,17 +51,17 @@
   <div>
     <div class="kicker">The method</div>
     <h2>How the search works</h2>
-    <p>Each challenge gives a curve, a base point G and a target point Q. The goal is the integer d with Q = dG. Pollard's rho method takes a pseudo-random walk on the curve where every point is a known combination aG + bQ. When two walks reach the same point, the two combinations give d.</p>
-    <p>Keeping every step is impossible, so workers report only <em>distinguished points</em>, ones whose encoding starts with a fixed run of zero bits. Two walks that meet stay together until the next distinguished point, so the server only has to compare those.</p>
+    <p>Each challenge gives a curve, a base point G and a target point Q. The goal is the integer d with Q = dG. The Pollard rho method takes a pseudo-random walk on the curve where every point is a known combination aG + bQ. When two walks reach the same point, the two combinations give d.</p>
+    <p>Storing every step is impossible, so workers report only <em>distinguished points</em>: points with a rare property that is cheap to test, such as a low Hamming weight on ECC2K-130. Two walks that meet stay together and reach the same next distinguished point, so the server only has to compare those.</p>
     {% set k130 = challenges|selectattr("id", "equalto", "ecc2k-130")|first %}
-    <p class="note">Expected work for ECC2K-130 is about {{ k130.estimated_operations_log2|pow2 }} curve operations ({{ k130.estimated_operations_2009 }}, Certicom's 2009 estimate).{% if flagship and flagship.estimated_work_log2 is not none %} The points stored so far, the earlier private run's included, stand for about {{ flagship.estimated_work_log2|pow2 }} of them.{% endif %} That is a lot of GPU time spread across many people.</p>
-    <p><a href="/pollard-rho">How rho works, and how the GPU kernels make each step cheap &rarr;</a></p>
+    <p class="note">Expected work for ECC2K-130 is about {{ k130.estimated_operations_log2|pow2 }} curve operations ({{ k130.estimated_operations_2009 }}, Certicom's 2009 estimate).{% if flagship and flagship.estimated_work_log2 is not none %} The points stored so far, including the earlier private run's, represent about {{ flagship.estimated_work_log2|pow2 }} of them.{% endif %} At the 15.4 billion steps a second recorded for one RTX PRO 6000, that is about four GPU-years.</p>
+    <p><a href="/pollard-rho">How rho works, and how the GPU kernels make each step cheap</a></p>
   </div>
   <div class="panel">
     <h3>What gets checked</h3>
     <ul class="plain">
       {% if multicurve_enabled %}<li>Every uploaded point is checked against the curve equation and its stated relation R = aG + bQ before it is indexed.</li>{% endif %}
-      <li>{% if multicurve_enabled %}ECC2K-130 workers on the original walk: the{% else %}The{% endif %} first batch of every run is replayed independently. Later batches are replayed at random, 1 in 128.</li>
+      <li>{% if multicurve_enabled %}ECC2K-130 workers on the original walk: one record from the{% else %}One record from the{% endif %} first batch of every run is replayed independently. Later batches are sampled at random, 1 in 128.</li>
       <li>A failed replay suspends the run, revokes its key and removes its points from collision search.</li>
       <li>Any collision is recomputed from both trails, and the resulting d is checked against the published Q before it is reported.</li>
     </ul>
@@ -69,12 +70,12 @@
 </section>
 
 <section class="section" id="campaigns">
-  <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date }} document</a>. Work so far is estimated from stored points.</p></div>
+  <div class="section-head"><h2>The 24 challenges</h2><p class="muted">Names, sizes and expected work are from <a href="{{ catalog_source }}">Certicom's {{ catalog_date|longdate }} document</a>. Work so far is estimated from stored points.</p></div>
   <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th>Field</th><th class="num">Bits</th><th>Level</th><th class="num">Expected ops</th><th class="num">Work so far</th><th>Status</th></tr></thead>
     {% for solved, group in challenges|sort(attribute="field_bits")|groupby("solved_in_2009") %}
-    <tbody>
-    <tr><th scope="rowgroup" colspan="7">{{ "Solved 1997–2004" if solved else "Unsolved challenges" }} · smallest to largest bit size</th></tr>
+    <tbody class="{{ 'solved' if solved else 'open' }}">
+    <tr><th scope="rowgroup" colspan="7">{% if solved %}Solved<small>{{ group|length }} challenges, closed between 1997 and 2004</small>{% else %}Open<small>{{ group|length }} unsolved challenges, smallest first</small>{% endif %}</th></tr>
     {% for challenge in group %}
       {% set row = snapshot.campaigns|selectattr("id", "equalto", challenge.id)|first if snapshot else none %}
       {% set is_open = row and row.received_points is not none %}
@@ -86,13 +87,13 @@
         <td>{{ level_labels[challenge.level] }}</td>
         <td class="num">{{ work.expected(challenge) }}</td>
         <td class="num">{% if solved %}{{ work.solved(challenge) }}{% else %}{{ work.done(row) }}{% endif %}</td>
-        <td>{% if challenge.solved_in_2009 %}<a class="tag solved" href="/results/{{ challenge.id }}" aria-label="Solved {{ solved_dates[challenge.id] }}. {{ challenge.public().name }} published result">Solved {{ solved_dates[challenge.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if solved %}{{ work.solved_status(challenge, challenge.public().name) }}{% elif is_open %}<a class="tag open" href="/challenges/{{ challenge.id }}">Accepting work</a>{% else %}<a class="tag" href="/challenges/{{ challenge.id }}">Not open yet</a>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
     {% endfor %}
   </table></div>
-  <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. Solved challenges show 100%: their published result closes them, whatever test runs have stored here. Solve dates are from section 6.1 of Certicom's 2009 report. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
+  <p class="table-note">Expected ops is Certicom's estimate of the curve operations rho needs, as a power of two. Work so far multiplies the stored distinguished points by the average walk length between them; the bar is that work as a share of what this project's walk expects. A solved challenge is done: its published result closes it, whatever test runs have stored here. Solve dates and names are from section 6.1 of Certicom's 2009 challenge document. {% if not multicurve_enabled %}Other challenges open once a worker and an independent verifier for them pass live checks.{% endif %}</p>
 </section>
 
 <section class="section two" id="code">
@@ -100,12 +101,12 @@
     <div class="kicker">Open source</div>
     <h2>Work on the code</h2>
     <p>The website, worker, verifier and infrastructure are in one public repository. Faster kernels, independent checks of the verifier and reviews of the protocol are all useful.</p>
-    <div class="actions"><a class="button ghost" href="/docs/project">Explore the project</a></div>
+    <div class="actions"><a class="button ghost" href="/docs/project">Project overview</a></div>
   </div>
   <ul class="links">
     <li><a href="/docs/contributing">Contributing guide</a><br><span class="note">Local setup, tests and what a good pull request looks like.</span></li>
     <li><a href="/docs/problems">Open problems</a><br><span class="note">Known gaps before the search can scale up.</span></li>
-    <li><a href="/docs/running-a-worker">Running a worker</a><br><span class="note">Linux containers, native Windows, native macOS Metal, Kubernetes, systemd, Podman, Slurm or Modal.</span></li>
+    <li><a href="/docs/running-a-worker">Running a worker</a><br><span class="note">Docker on Linux, native Windows, native macOS with Metal, Kubernetes, systemd, Podman, Slurm or Modal.</span></li>
     <li><a href="/docs/agents">Set up with a coding agent</a><br><span class="note">Give your agent the worker skill and keep control of keys and resources.</span></li>
     <li><a href="/help">Help</a><br><span class="note">Worker setup, common errors, keys and checkpoints.</span></li>
   </ul>
