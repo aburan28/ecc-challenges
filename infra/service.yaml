@@ -459,8 +459,10 @@ Resources:
       TaskDefinition: !Ref WebTask
       DesiredCount: !Ref WebTasks
       # The live Spot quota has no spare task capacity during a rolling update.
-      # Keep one web task healthy while replacing the other.
+      # Keep one web task healthy while replacing the other. ECS rejects a
+      # MaximumPercent of 100 while Availability Zone rebalancing is enabled.
       DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 50}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -477,6 +479,7 @@ Resources:
       TaskDefinition: !Ref WorkerTask
       DesiredCount: !Ref AuditTasks
       DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 50}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -492,6 +495,7 @@ Resources:
       TaskDefinition: !Ref IndexTask
       DesiredCount: !Ref IndexTasks
       DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -507,6 +511,7 @@ Resources:
       TaskDefinition: !Ref ReconcileTask
       DesiredCount: !Ref ReconcileTasks
       DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
@@ -522,6 +527,7 @@ Resources:
       TaskDefinition: !Ref ResolveTask
       DesiredCount: !Ref ResolveTasks
       DeploymentConfiguration: {MaximumPercent: 100, MinimumHealthyPercent: 0}
+      AvailabilityZoneRebalancing: DISABLED
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: ENABLED
