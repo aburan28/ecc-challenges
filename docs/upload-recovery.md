@@ -28,7 +28,7 @@ archive. Do not substitute the public worker binary or rewrite the checkpoint
 header to make it pass admission. The original upload route can remain active
 while the companion catches up.
 
-During the October 21 recovery, the production reconciler was deployed as ECS
+During the recovery on 21 October 2026, the production reconciler was deployed as ECS
 revision `ecc-challenges-reconcile:14`, using the existing immutable image and
 an embedded, hashed bootstrap applying the tested pressure-release method.
 Its bootstrap SHA-256 is

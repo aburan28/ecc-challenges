@@ -376,7 +376,7 @@ def test_dashboard_shows_setup_for_each_system():
         assert "irm https://ecc-challenges.com/install.ps1 | iex" in page
         assert ("Not accepting work yet" in page) is not enabled
         assert ("ECC_CAMPAIGN=eccp-131 sh" in page) is enabled
-        assert ("CPU, with Docker (x86-64 or ARM64)" in page) is enabled
+        assert ("CPU, with Docker (x86-64 or arm64)" in page) is enabled
         assert ("ecc-challenges-worker-cpu@sha256:" in page) is enabled
 
 
@@ -445,12 +445,12 @@ def test_dashboard_threshold_selector_generates_isolated_compatible_commands(mon
             page = client.get(path)
             assert page.status_code == 200
             assert f'<option value="{weight or 34}" selected>' in page.text
-            assert "DP34 — recommended" in page.text
+            assert "DP34 (recommended)" in page.text
             assert f"DP_WEIGHT={weight or 34}\n" in page.text
             assert "-e ECC_PROTOCOL=1" in page.text
             assert '-e ECC_DP_WEIGHT="$DP_WEIGHT"' in page.text
             assert 'ecc-data-$CAMPAIGN-dp$DP_WEIGHT-$GPU_ID:/data' in page.text
-            assert "Your runners" in page.text
+            assert "Your runs" in page.text
             assert "Run activity is unavailable right now" in page.text
         assert run_queries and all(item == (1, enabled) for item in run_queries)
         assert client.get("/dashboard?dp_weight=36").status_code == 400
@@ -504,4 +504,4 @@ def test_dashboard_progress_uses_selected_challenge_and_preserves_private_activi
             assert 'Including imported points' not in progress and 'progress-public' not in progress
         else:
             assert 'Progress unavailable' in progress
-        assert 'Your runners' in page.text and 'Run the worker' in page.text
+        assert 'Your runs' in page.text and 'Run the worker' in page.text

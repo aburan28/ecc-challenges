@@ -1,8 +1,10 @@
 name: CI
 
+# Superseded pull-request pushes are cancelled; every merge to main runs to the
+# end so main's history shows a result for each commit.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 on:
   pull_request:

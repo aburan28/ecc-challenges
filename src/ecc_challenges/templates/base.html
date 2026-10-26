@@ -14,7 +14,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f4f7fc" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#101b2b" media="(prefers-color-scheme: dark)">
-  {% set page_description %}{% block description %}A distributed Pollard rho search on the Certicom ECC challenges. Run a worker on your GPU and help find the next discrete logarithm.{% endblock %}{% endset %}
+  {% set page_description %}{% block description %}A distributed Pollard rho search on the 24 Certicom ECC challenges. Run a worker on a CPU or GPU and upload distinguished points.{% endblock %}{% endset %}
   <title>{% block title %}ECC Challenges{% endblock %}</title>
   <meta name="description" content="{{ page_description|trim }}">
   <meta property="og:type" content="website">
@@ -151,6 +151,7 @@
 
     .command{min-width:0;margin-bottom:1em;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--code-bg)}
     .command pre{margin:0;border-radius:0}
+    pre:focus-visible{outline:2px solid var(--code-ink);outline-offset:-3px}
     .command-tools{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:7px 12px;border-bottom:1px solid #ffffff24;color:var(--code-ink);font-size:.8rem}
     .command-tools [role=status]{flex:1;font-size:.8rem}
     .copy-code{flex:none;border:1px solid var(--code-dim);border-radius:4px;color:var(--code-ink);background:transparent;font:600 .8rem var(--sans);padding:6px 12px;min-height:44px;cursor:pointer}
@@ -186,12 +187,18 @@
     .tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.76rem;font-weight:600;border:1px solid var(--line);color:var(--muted)}
     .tag.open{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     .tag.solved{color:var(--faint)}
-    .challenge-status tr.open{--state:var(--warn);--state-soft:var(--warn-soft)}
+    .challenge-status tr.open{--state:var(--accent);--state-soft:var(--accent-soft)}
     .challenge-status tr.solved{--state:var(--ok);--state-soft:var(--ok-soft)}
     .challenge-status tr.not-started{--state:var(--danger);--state-soft:var(--danger-soft)}
     .challenge-status tr td{background:var(--state-soft)}
     .challenge-status .name,.challenge-status .tag{color:var(--state)}
     .challenge-status .tag{border-color:currentColor;background:var(--state-soft)}
+    .challenge-status th[scope=rowgroup]{font-size:.8rem;letter-spacing:0;color:var(--ink);background:var(--sunk)}
+    .challenge-status th[scope=rowgroup] small{font-weight:400;color:var(--muted);margin-left:8px}
+    .challenge-status tr.solved td{color:var(--muted)}
+    .challenge-status tr.solved .name{font-weight:500}
+    .done{display:inline-flex;align-items:center;gap:6px;color:var(--ok);font-weight:600;white-space:nowrap}
+    .done svg{width:14px;height:14px;flex:none}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
     .result-values{table-layout:fixed}
     .result-values th{width:30%;white-space:normal;letter-spacing:0;text-transform:none;vertical-align:top}
@@ -351,10 +358,10 @@
   <header class="site-header"><div class="wrap">
     <a class="brand" href="/" aria-label="ECC Challenges home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" style="fill:var(--accent)"/><path d="M24 5c-3 4-7 6-9 9s-2 6 0 7 7 2 9 6" style="fill:none;stroke:var(--accent-ink);stroke-width:2.4;stroke-linecap:round"/><circle cx="9" cy="16" r="2.6" style="fill:var(--accent-ink)"/></svg>ECC Challenges</a>
     <nav class="desktop-nav" aria-label="Main">
-      <a class="wide" href="/#how">Take part</a>
-      <a class="wide" href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
+      <a href="/#how">Take part</a>
+      <a href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
-      <a class="wide" href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
+      <a href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
     </nav>
     <details class="mobile-nav">

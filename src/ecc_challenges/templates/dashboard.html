@@ -2,16 +2,26 @@
 {% import "_work.html" as work %}
 {% block title %}Dashboard · ECC Challenges{% endblock %}
 {% block content %}
+{% set selected_solved = (challenges|selectattr("id", "equalto", selected_campaign)|first).solved_in_2009 %}
+{# An account with nothing running sees the three setup steps first; one with runs sees them last. #}
+{% set setup_first = not keys or (activity is not none and activity.total_runs == 0) %}
 <div class="section-head" style="align-items:center">
-  <div><div class="kicker">Dashboard</div><h1 style="margin:0">Your workers</h1></div>
+  <div><h1 style="margin:0">Your workers</h1>{% if setup_first %}<p class="muted" style="margin:10px 0 0;max-width:40em">Three steps: create a key, start a worker on your machine, then watch it report here.</p>{% endif %}</div>
   <form method="post" action="/logout"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button ghost small" type="submit">Sign out {{ login }}</button></form>
 </div>
 
 <nav class="page-shortcuts" aria-label="Dashboard sections">
+  {% if setup_first %}
   <a href="#worker-keys">API keys</a>
   <a href="#worker-setup">Run a worker</a>
-  <a href="#runners">Your runners</a>
+  <a href="#runners">Your runs</a>
   <a href="#challenge-progress">Challenge progress</a>
+  {% else %}
+  <a href="#challenge-progress">Challenge progress</a>
+  <a href="#runners">Your runs</a>
+  <a href="#worker-keys">API keys</a>
+  <a href="#worker-setup">Run a worker</a>
+  {% endif %}
 </nav>
 
 {% include "_live.html" %}
@@ -19,30 +29,32 @@
 {% if issued %}
 <div class="panel alert" role="alert" style="margin-top:28px">
   <h3>Copy your new key now</h3>
-  <p class="muted">This is the only time it is shown. Save it to a file only you can read:</p>
+  <p class="muted">It is shown only once. Save it to a file only you can read:</p>
   <div class="code secret">{{ issued }}</div>
-  <pre><span class="c"># paste the key when prompted, then press Ctrl-D</span>
+  <pre tabindex="0"><span class="c"># paste the key when prompted, then press Ctrl-D</span>
 mkdir -p ~/.config/ecc-challenges
 (umask 077; cat > ~/.config/ecc-challenges/api-key)</pre>
   <p class="note">The one-line installers in step 2 ask for the key and save it for you.</p>
 </div>
 {% endif %}
 
+{% set progress_section %}
 <section id="dashboard-progress" data-live-region data-live-as-of="{{ live_as_of }}" class="section" style="margin-top:36px" aria-labelledby="challenge-progress">
-  {% set selected_solved = (challenges|selectattr("id", "equalto", selected_campaign)|first).solved_in_2009 %}
-  <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">{% if selected_solved %}Already solved. Points for it only exercise your worker and the pipeline; they do not count towards a search. {% else %}Across all contributors. {% endif %}<a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
+  <div class="section-head"><h2 id="challenge-progress">{{ names.get(selected_campaign, selected_campaign) }} progress</h2><p class="muted">{% if selected_solved %}Already solved. Points for it only exercise your worker and the pipeline; they do not count toward a search. {% else %}Across all contributors. {% endif %}<a href="/challenges/{{ selected_campaign }}">Challenge details</a>.</p></div>
   <dl class="stats" aria-label="Challenge progress" style="margin-top:0">
     <div class="stat progress-summary"><dt>Progress</dt><dd>{% if selected_solved %}<span class="progress-primary">100%</span><small>Solved {{ solved_dates[selected_campaign] }}; <a href="/results/{{ selected_campaign }}">published result</a></small>{% else %}{{ work.summary(campaign_status) }}{% endif %}</dd></div>
     <div class="stat iteration-rate"><dt>Iterations per second</dt><dd>{{ campaign_status.operations_per_second_log2|pow2 if campaign_status and campaign_status.operations_per_second_log2 is defined else "—" }}<small>estimated from public uploads, 24 h average</small></dd></div>
-    <div class="stat"><dt>Points archived</dt><dd>{{ "{:,}".format((campaign_status.received_points or 0) + (campaign_status.historical_points or 0)) if campaign_status and campaign_status.received_points is not none else "—" }}<small>all contributors{% if campaign_status and campaign_status.including_historical %}, including imported points{% endif %}</small></dd></div>
+    <div class="stat"><dt>Archived points</dt><dd>{{ "{:,}".format((campaign_status.received_points or 0) + (campaign_status.historical_points or 0)) if campaign_status and campaign_status.received_points is not none else "—" }}<small>all contributors{% if campaign_status and campaign_status.including_historical %}, including imported points{% endif %}</small></dd></div>
     <div class="stat"><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(campaign_status.points_per_hour) if campaign_status and campaign_status.points_per_hour is defined else "—" }}<small>public uploads, 24 h average</small></dd></div>
   </dl>
 </section>
+{% endset %}
 
+{% set runners_section %}
 <section id="dashboard-runners" data-live-region class="section" style="margin-top:36px" aria-labelledby="runners">
-  <div class="section-head"><h2 id="runners">Your runners</h2><p class="muted">Open a run for worker health, upload history and verification details. Updates arrive every minute.</p></div>
+  <div class="section-head"><h2 id="runners">Your runs</h2><p class="muted">Open a run for its health, upload history and verification details. This section updates every minute.</p></div>
   {% if activity is none %}
-  <div class="panel alert"><p>Run activity is unavailable right now. Your keys and worker command below still work.</p></div>
+  <div class="panel alert"><p>Run activity is unavailable right now. Your keys and worker command still work.</p></div>
   {% else %}
   <dl class="stats" aria-label="Your totals" style="margin-top:0">
     <div class="stat"><dt>Active runs</dt><dd>{{ activity.active_runs }}<small>seen in the last 15 minutes</small></dd></div>
@@ -52,8 +64,8 @@ mkdir -p ~/.config/ecc-challenges
   </dl>
   {% if activity.runs %}
   {% if activity.total_runs > activity.runs|length %}<p class="table-note">Showing {{ activity.runs|length }} recent runs of {{ activity.total_runs }}. Totals include every run.</p>{% endif %}
-  <div class="table-wrap" style="margin-top:22px"><table>
-    <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>Worker health</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Est. iterations/s<br><small>24 h average</small></th><th>Last upload</th><th>Last seen</th></tr></thead>
+  <div class="table-wrap" tabindex="0" style="margin-top:22px"><table>
+    <thead><tr><th>Run</th><th>Challenge</th><th>Key</th><th>Worker health</th><th class="num">Points</th><th class="num">Last hour</th><th class="num">Points/h</th><th class="num">Iterations/s (est.)<br><small>24 h average</small></th><th>Last upload</th><th>Last seen</th></tr></thead>
     <tbody>
     {% for run in activity.runs %}
       <tr{% if run.state == "active" %} class="open"{% endif %}>
@@ -64,7 +76,7 @@ mkdir -p ~/.config/ecc-challenges
         <td class="num">{{ "{:,}".format(run.points) }}</td>
         <td class="num">{{ "{:,}".format(run.last_hour) }}</td>
         <td class="num">{{ "{:,.1f}".format(run.points_per_hour) }}</td>
-        <td class="num" title="Estimated iterations per second, using this run’s DP{{ run.dp_bits }} rule; 24-hour average">{{ run.operations_per_second_log2|pow2 }}{% if run.operations_per_second_log2 is not none %}/s{% endif %}</td>
+        <td class="num" title="Estimated iterations per second from this run’s distinguished-point rate (DP{{ run.dp_bits }}), 24-hour average">{{ run.operations_per_second_log2|pow2 }}{% if run.operations_per_second_log2 is not none %}/s{% endif %}</td>
         <td>{{ run.last_batch_at|ago }}</td>
         <td>{{ run.last_seen_at|ago }}</td>
       </tr>
@@ -72,12 +84,12 @@ mkdir -p ~/.config/ecc-challenges
     </tbody>
   </table></div>
   {% else %}
-  <div class="panel" style="margin-top:22px"><p class="muted">No runs yet. <a href="#worker-keys">Create a key</a>, then <a href="#worker-setup">start a worker</a>. It appears here once it registers.</p></div>
+  <div class="panel" style="margin-top:22px"><p class="muted">No runs yet. <a href="#worker-keys">Create a key</a>, then <a href="#worker-setup">start a worker</a>. It appears here within a few minutes of registering.</p></div>
   {% endif %}
 
   {% if activity.recent %}
   <h3 style="margin-top:36px">Latest submissions</h3>
-  <div class="table-wrap"><table>
+  <div class="table-wrap" tabindex="0"><table>
     <thead><tr><th>Received</th><th>Run</th><th>Challenge</th><th class="num">Points</th><th>Check</th></tr></thead>
     <tbody>
     {% for batch in activity.recent %}
@@ -91,21 +103,23 @@ mkdir -p ~/.config/ecc-challenges
     {% endfor %}
     </tbody>
   </table></div>
-  <p class="table-note">Original-worker batches are checked by replaying a sample; "Not selected" means this batch was not in the sample. New-worker points are each checked against the curve.</p>
+  <p class="table-note">Protocol 1 (ECC2K-130 sigma) batches are checked by replaying a sample; "Not selected" means the batch was not in the sample. Protocol 2 points are each checked against the curve.</p>
   {% endif %}
   {% endif %}
 </section>
+{% endset %}
 
+{% set setup_sections %}
 <section class="section" id="worker-keys" style="margin-top:36px">
-  <div class="section-head"><h2>1. API keys</h2><p class="muted">Create a separate key for each worker if useful. Revoking a key stops uploads from every run that uses it.</p></div>
+  <div class="section-head"><h2>1. Create an API key</h2><p class="muted">Use one key per machine. Revoking a key stops uploads from every run that uses it.</p></div>
     <form class="panel" method="post" action="/keys" style="max-width:560px;margin-bottom:24px">
       <input type="hidden" name="csrf" value="{{ csrf }}">
       <input type="hidden" name="campaign" value="{{ selected_campaign }}">
       <label for="label">Name for the new key</label>
       <div class="row"><input id="label" name="label" type="text" maxlength="80" required placeholder="e.g. home RTX 4090" style="flex:1 1 200px"><button class="button" type="submit">Create key</button></div>
     </form>
-    <div class="table-wrap"><table aria-label="Your API keys and worker activity" aria-describedby="key-activity-note">
-      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th>Worker</th><th title="Latest one-minute worker heartbeat">Last ping</th><th title="Latest authenticated API request, excluding heartbeats">Last used</th><th class="num">Points received</th><th></th></tr></thead>
+    <div class="table-wrap" tabindex="0"><table aria-label="Your API keys and worker activity" aria-describedby="key-activity-note">
+      <thead><tr><th>Name</th><th>ID</th><th>Created</th><th>Worker</th><th title="Latest one-minute worker heartbeat">Last ping</th><th title="Latest authenticated API request, excluding heartbeats">Last used</th><th class="num">Points received</th><th>Actions</th></tr></thead>
       <tbody>
       {% for key in keys %}
         <tr><td>{{ key.label }}</td><td><code>{{ key.id }}</code></td><td>{{ key.created_at.strftime('%Y-%m-%d') }}</td>
@@ -115,27 +129,27 @@ mkdir -p ~/.config/ecc-challenges
           <td class="num">{{ "{:,}".format(key.points_received) }}</td>
           <td class="num">{% if key.revoked_at %}<span class="tag">Revoked</span>{% else %}<form class="inline" method="post" action="/keys/{{ key.id }}/revoke"><input type="hidden" name="csrf" value="{{ csrf }}"><button class="button danger" type="submit">Revoke</button></form>{% endif %}</td></tr>
       {% else %}
-        <tr><td colspan="8" class="muted">No keys yet.</td></tr>
+        <tr><td colspan="8" class="muted">No keys yet. Name one above and create it; the key is shown once.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
-    <p class="table-note" id="key-activity-note">Active means at least one worker pinged in the past three minutes. Workers ping every minute, even without points; older workers need an update and restart. Status is current when this page loads. <a href="/dashboard?campaign={{ selected_campaign }}&amp;dp_weight={{ selected_dp_weight }}">Refresh status</a>. Times are UTC. Last ping records heartbeats; last used records other authenticated API requests. Points received counts uploaded records across all runs using a key, including records awaiting verification. Retried uploads count once; points still on a worker appear after upload.</p>
+    <p class="table-note" id="key-activity-note">Active means a worker using the key pinged in the past three minutes; workers ping every minute, even without points. Times are UTC. Last ping records heartbeats; last used records other authenticated API requests. Points received counts uploaded records across all runs using a key, including records awaiting verification. Retried uploads count once; points still on a worker appear after upload.</p>
 </section>
 
 <section class="section" id="worker-setup">
-  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">Pick your system. Each worker keeps its progress in its own directory and resumes from it after a restart.</p></div>
-  <p class="note">Using a coding agent? Give it the <a href="/skill.md">worker skill</a> or follow <a href="/docs/agents">agent setup</a>. Enter your API key locally when prompted.</p>
+  <div class="section-head"><h2>2. Run the worker</h2><p class="muted">Pick your system. Each worker keeps its run ID and checkpoint in its own state directory and resumes from it after a restart.</p></div>
+  <p class="note">With a coding agent, give it the <a href="/skill.md">worker skill</a> or follow <a href="/docs/agents">agent setup</a>. Type your API key into the installer yourself; do not paste it into the agent.</p>
   {% if multicurve_enabled %}
   <form method="get" action="/dashboard" style="margin-bottom:18px">
     <label for="campaign">Challenge</label>
-    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for solved, group in challenges|groupby("solved_in_2009") %}<optgroup label="{{ "Solved 1997–2004 · test runs only" if solved else "Open challenges" }}">{% for challenge in group %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</optgroup>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
+    <div class="row"><select id="campaign" name="campaign" style="flex:0 1 280px">{% for solved, group in challenges|groupby("solved_in_2009") %}<optgroup label="{{ "Solved by 2004, test runs only" if solved else "Open challenges" }}">{% for challenge in group %}<option value="{{ challenge.id }}"{% if challenge.id == selected_campaign %} selected{% endif %}>{{ challenge.public().name }}</option>{% endfor %}</optgroup>{% endfor %}</select><button class="button ghost" type="submit">Update commands</button></div>
   </form>
   {% set sh_env = "ECC_CAMPAIGN=" ~ selected_campaign ~ " " %}
   {% set ps_env = "$env:ECC_CAMPAIGN = '" ~ selected_campaign ~ "'; " %}
   {% else %}
   {% set sh_env = "" %}{% set ps_env = "" %}
   {% endif %}
-  {% set native_off %}{% if not multicurve_enabled %}<p class="note pending"><strong>Not accepting work yet.</strong> Native workers run the all-curves release, which is not switched on (<a href="/v1/campaigns">/v1/campaigns</a>). You can install now; until it is on, only the NVIDIA Docker worker is accepted.</p>{% endif %}{% endset %}
+  {% set native_off %}{% if not multicurve_enabled %}<p class="note pending">Not accepting work yet. Native workers run protocol 2 (all curves), which is not switched on (<a href="/v1/campaigns">/v1/campaigns</a>). You can install now; until it is on, only the NVIDIA Docker worker is accepted.</p>{% endif %}{% endset %}
   {% set sigma_worker = selected_campaign == "ecc2k-130" or not multicurve_enabled %}
 
   <div class="os-tabs">
@@ -145,17 +159,17 @@ mkdir -p ~/.config/ecc-challenges
 
     <div class="os-panel linux">
       <h3>NVIDIA GPU, with Docker</h3>
-      <p class="muted">Needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>. Save your key as shown in step 1 first.</p>
+      <p class="muted">Needs Docker and the <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html">NVIDIA Container Toolkit</a>. Save your key to <code>~/.config/ecc-challenges/api-key</code> (mode <code>0600</code>) first.</p>
       {% if sigma_worker %}
       <form method="get" action="/dashboard" style="margin-bottom:18px">
         <input type="hidden" name="campaign" value="ecc2k-130">
-        <label for="dp-weight">Distinguished points</label>
-        <div class="row"><select id="dp-weight" name="dp_weight">{% for weight in sigma_dp_weights %}<option value="{{ weight }}"{% if weight == selected_dp_weight %} selected{% endif %}>DP{{ weight }}{% if weight == recommended_dp_weight %} — recommended{% endif %}</option>{% endfor %}</select><button class="button ghost" type="submit">Update command</button></div>
+        <label for="dp-weight">Distinguished-point threshold</label>
+        <div class="row"><select id="dp-weight" name="dp_weight">{% for weight in sigma_dp_weights %}<option value="{{ weight }}"{% if weight == selected_dp_weight %} selected{% endif %}>DP{{ weight }}{% if weight == recommended_dp_weight %} (recommended){% endif %}</option>{% endfor %}</select><button class="button ghost" type="submit">Update command</button></div>
       </form>
-      <p class="muted">DP34 is recommended for new NVIDIA workers and reports points more frequently. DP32 and DP30 are also accepted. All three can match compatible points from the earlier ECC2K-130 search.</p>
-      <p class="note">Use a separate directory for each threshold. Resume an existing run with its original command and directory. CPU and Mac workers below use a separate search and do not use this setting.</p>
+      <p class="muted">DP30, DP32 and DP34 are Hamming-weight thresholds for distinguished points. DP34 is recommended for new NVIDIA workers and reports points more often. All three can match compatible points from the earlier ECC2K-130 search.</p>
+      <p class="note">Use a separate state directory for each threshold. Resume an existing run with its original command and directory. The CPU and Mac workers below run protocol 2 and ignore this setting.</p>
       {% endif %}
-<pre><span class="c"># one directory per GPU; keep it between restarts</span>
+<pre tabindex="0"><span class="c"># one directory per GPU; keep it between restarts</span>
 GPU_ID=0
 CAMPAIGN={{ selected_campaign|default("ecc2k-130") }}
 {% if sigma_worker %}DP_WEIGHT={{ selected_dp_weight }}
@@ -176,13 +190,13 @@ docker run -d --name "$WORKER" --stop-timeout 120 \
 
 docker logs --tail 100 -f "$WORKER"</pre>
       <ul class="plain note">
-        <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own data directory. Never reuse or wipe a directory while its run is active.</li>
+        <li>For more GPUs, start one container per card with a different <code>GPU_ID</code> and its own state directory. Never reuse or wipe a directory while its run is active.</li>
         {% if multicurve_enabled and not sigma_worker %}<li>On an x86-64 machine without a GPU, use this same command without <code>--gpus all</code> and <code>-e ECC_GPU</code>; it runs on the CPU. <code>OMP_NUM_THREADS</code> limits the threads.</li>{% endif %}
       </ul>
       {% if multicurve_enabled and cpu_worker_image %}
-      <h3>CPU, with Docker (x86-64 or ARM64)</h3>
-      <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key as shown in step 1 first.</p>
-<pre>CAMPAIGN={{ selected_campaign }}
+      <h3>CPU, with Docker (x86-64 or arm64)</h3>
+      <p class="muted">The smaller CPU image runs all 24 curves on either architecture, including Graviton instances. Save your key to <code>~/.config/ecc-challenges/api-key</code> first.</p>
+<pre tabindex="0">CAMPAIGN={{ selected_campaign }}
 WORKER="ecc-cpu-$CAMPAIGN"
 mkdir -p "$PWD/ecc-cpu-$CAMPAIGN"
 
@@ -197,20 +211,20 @@ docker run -d --name "$WORKER" --stop-timeout 120 --restart unless-stopped \
 
 docker logs --tail 100 -f "$WORKER"</pre>
       {% endif %}
-      <h3>Without Docker (any CPU, x86-64 or Arm)</h3>
-      <p class="muted">One command downloads and builds the worker, asks for your key and starts it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
-      <pre>curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
+      <h3>Without Docker (x86-64 or arm64)</h3>
+      <p class="muted">One command downloads and builds the worker, asks for your key and offers to start it. It uses CUDA if <code>nvcc</code> is installed. Needs <code>python3</code> 3.10+ and a C++ compiler (<code>sudo apt install python3 g++</code> or <code>sudo dnf install python3 gcc-c++</code>).</p>
+      <pre tabindex="0">curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
       {{ native_off }}
     </div>
 
     <div class="os-panel macos">
       <p class="muted">Apple silicon or Intel. The worker uses the Mac's GPU through Metal. In Terminal:</p>
-<pre><span class="c"># once, if you don't have the developer tools yet</span>
+<pre tabindex="0"><span class="c"># once, if you don't have the developer tools yet</span>
 xcode-select --install
 
 curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
       <ul class="plain note">
-        <li>Needs Python 3.10 or newer from <a href="https://www.python.org/downloads/macos/">python.org</a> or <code>brew install python</code>; the one that ships with macOS can be too old.</li>
+        <li>Needs Python 3.10 or newer from <a href="https://www.python.org/downloads/macos/">python.org</a> or <code>brew install python</code>; the <code>/usr/bin/python3</code> that ships with macOS can be older.</li>
         <li>The installer asks for your key, saves it to <code>~/.config/ecc-challenges/api-key</code> and offers to start the worker. Stop it with Ctrl-C; run the printed command to start it again.</li>
         <li>To keep it running in the background, load the launchd agent the installer writes: see <a href="/docs/running-a-worker#macos">macOS setup</a>.</li>
       </ul>
@@ -219,8 +233,8 @@ curl -fsSL https://ecc-challenges.com/install.sh | {{ sh_env }}sh</pre>
 
     <div class="os-panel windows">
       <h3>Native worker</h3>
-      <p class="muted">Windows 10 or 11, x64 or ARM64. Runs on the CPU, or on an NVIDIA GPU if the CUDA toolkit is installed. In PowerShell:</p>
-<pre><span class="c"># once: Python, CMake and the C++ build tools</span>
+      <p class="muted">Windows 10 or 11, x64 or ARM64. Runs on the CPU, or on an NVIDIA GPU (x64 only) if the CUDA toolkit is installed. In PowerShell:</p>
+<pre tabindex="0"><span class="c"># once: Python, CMake and the C++ build tools</span>
 winget install -e --id Python.Python.3.12
 winget install -e --id Kitware.CMake
 winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
@@ -230,11 +244,11 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
       <p class="note">The installer asks for your key, saves it where only you can read it and offers to start the worker. Stop it with Ctrl-C.</p>
       {{ native_off }}
       <h3>NVIDIA GPU, with Docker Desktop</h3>
-      <p class="muted">Install <a href="https://docs.docker.com/desktop/features/gpu/">Docker Desktop with the WSL 2 backend</a> and a current NVIDIA driver. Then open an Ubuntu (WSL) terminal, save your key as shown in step 1 and run the Docker command from the Linux tab.</p>
+      <p class="muted">Install <a href="https://docs.docker.com/desktop/features/gpu/">Docker Desktop with the WSL 2 backend</a> and a current NVIDIA driver. Then open an Ubuntu (WSL) terminal, save your key to <code>~/.config/ecc-challenges/api-key</code> and run the Docker command from the Linux tab.</p>
     </div>
 
     <div class="os-panel other">
-      <p class="muted">The same worker, packaged for longer-running setups. Each recipe is in <a href="/docs/running-a-worker">Running a worker</a>.</p>
+      <p class="muted">The same worker, packaged for long-running setups. <a href="/docs/running-a-worker">Running a worker</a> has each recipe.</p>
       <ul class="plain">
         <li><a href="/docs/running-a-worker#docker-compose">Docker Compose</a>: several workers on one machine.</li>
         <li><a href="/docs/running-a-worker#native-install-and-systemd">systemd</a>: a Linux server, started at boot, no containers.</li>
@@ -243,11 +257,14 @@ winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--quie
       </ul>
     </div>
   </div>
-  <p class="note" style="margin-top:18px">Docker workers run in the background. Ctrl-C stops following the logs. Pause with <code>docker stop "$WORKER"</code> and resume the same container with <code>docker start "$WORKER"</code>; keep its data directory. If the container name already exists, resume it instead of running the creation command again. For native workers, Ctrl-C stops the worker; use the installer's printed command to resume. A 429 or 503 response makes the worker wait and retry with unsent points kept on disk.</p>
+  <p class="note" style="margin-top:18px">Docker workers run in the background. Ctrl-C stops following the logs. Pause with <code>docker stop "$WORKER"</code> and resume the same container with <code>docker start "$WORKER"</code>; keep its state directory. If the container name already exists, resume it instead of running the creation command again. For native workers, Ctrl-C stops the worker; use the installer's printed command to resume. A 429 or 503 response makes the worker wait and retry with unsent points kept on disk.</p>
 </section>
 
 <section class="section">
-  <h2>3. Check it's working</h2>
-  <p class="muted">Within a few minutes your run should appear under <a href="#runners">Your runners</a> above and in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. Problems or odd results: <a href="/help">read the troubleshooting guide</a>.</p>
+  <h2>3. Check that it reports</h2>
+  <p class="muted">Within a few minutes your run should appear under <a href="#runners">Your runs</a> and in the active count on the <a href="/status">status page</a>. The worker logs its run ID and each accepted upload. If it does not, see <a href="/help">Help</a>.</p>
 </section>
+{% endset %}
+
+{% if setup_first %}{{ setup_sections }}{{ runners_section }}{{ progress_section }}{% else %}{{ progress_section }}{{ runners_section }}{{ setup_sections }}{% endif %}
 {% endblock %}

@@ -117,10 +117,11 @@ def main():
             page.locator('.os-panel.macos').scroll_into_view_if_needed()
             page.screenshot(path=str(args.out / 'after-setup-320-light.png'))
             expected = command.text_content()
-            copy = command.locator('..').get_by_role('button', name='Copy code', exact=True)
+            copy = command.locator('..').locator('.copy-code')
             copy.click()
             assert page.evaluate('window.copiedCode') == expected
             assert copy.inner_text() == 'Copied'
+            assert copy.get_attribute('aria-label') == 'Copied code'
             report['controls'].append('Copied command is byte-for-byte the displayed command')
             page.evaluate("Object.defineProperty(navigator, 'clipboard', {value: {writeText: async () => { throw new Error('denied'); }}, configurable: true})")
             copy.click()

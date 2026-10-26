@@ -5,9 +5,8 @@
 {% set k130_row = snapshot.campaigns|selectattr("id", "equalto", "ecc2k-130")|first if snapshot else none %}
 {% set flagship = (k130_row.including_historical or k130_row) if k130_row else none %}
 <header class="doc-head">
-  <div class="kicker">How it works</div>
   <h1>Pollard rho, and making each step cheap</h1>
-  <p class="lead">The search is one idea from 1978, spread over many machines, with the arithmetic tuned down to the bit. This page explains the method, how the site estimates work done, and what the kernels do to keep every step short.</p>
+  <p class="lead">The search is Pollard's 1978 rho method, run as many parallel walks. This page covers the method, how the site estimates the work done so far, and how the GPU kernels make each step cheap.</p>
 </header>
 
 <div class="doc">
@@ -15,7 +14,7 @@
     <p class="toc-title">On this page</p>
     <ol>
       <li><a href="#problem">The problem</a></li>
-      <li><a href="#rho">Pollard's rho</a></li>
+      <li><a href="#rho">Pollard rho</a></li>
       <li><a href="#parallel">Many walks at once</a></li>
       <li><a href="#automorphisms">Fewer points to search</a></li>
       <li><a href="#walk">The ECC2K-130 walk</a></li>
@@ -34,9 +33,9 @@
     </section>
 
     <section id="rho">
-      <h2>Pollard's rho</h2>
+      <h2>Pollard rho</h2>
       <p>Pick a function <var>f</var> that maps points to points and looks random, but where every point it produces is a known combination <var>a</var><var>G</var> + <var>b</var><var>Q</var>. Start somewhere and iterate: <var>R</var><sub>i+1</sub> = <var>f</var>(<var>R</var><sub>i</sub>). The group is finite, so the walk must eventually repeat a point. From then on it loops, and the path traced out looks like the Greek letter ρ.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="narrow" viewBox="0 0 420 290" role="img" aria-label="A rho-shaped walk: a tail of points leads into a cycle; the first repeated point closes the loop.">
           <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 0 8 4 0 8z"/></marker></defs>
           <polyline class="walk" points="36,262 78,240 120,218 163,192 205,167" marker-end="url(#arrow)"/>
@@ -55,7 +54,7 @@
       <p>At the repeat, two different combinations name the same point: <var>a</var><var>G</var> + <var>b</var><var>Q</var> = <var>a′</var><var>G</var> + <var>b′</var><var>Q</var>. Since <var>Q</var> = <var>d</var><var>G</var>, that gives <var>d</var> ≡ (<var>a</var> − <var>a′</var>) / (<var>b′</var> − <var>b</var>) mod <var>n</var>, unless <var>b</var> = <var>b′</var>, which is vanishingly unlikely.</p>
       <p>How long until the first repeat? It is the birthday problem. If <var>f</var> behaves like a random function on a set of size <var>N</var>, the expected number of steps is</p>
       <p class="formula"><var>E</var> = √(π<var>N</var>/2)</p>
-      <p>and the chance of having seen a repeat after <var>k</var> steps is about 1 − exp(−<var>k</var>²/2<var>N</var>). Rho needs almost no memory, which matters as much as the step count: baby-step giant-step has the same running time but would have to store about √<var>n</var> ≈ 2<sup>64</sup> points.</p>
+      <p>and the chance of having seen a repeat after <var>k</var> steps is about 1 − exp(−<var>k</var>²/2<var>N</var>). Rho needs almost no memory, which matters as much as the step count: baby-step giant-step has the same running time but would have to store about √<var>n</var> points, 2<sup>65</sup> for a 130-bit <var>n</var>.</p>
       <p>Real walks are not truly random. The usual choice, an <em>r-adding walk</em>, splits the curve into <var>r</var> classes by a hash of the point and adds a fixed precomputed point for each class. With enough classes it behaves close to random; the all-curve worker here uses 32.</p>
     </section>
 
@@ -63,7 +62,7 @@
       <h2>Many walks at once</h2>
       <p>One walk cannot be split across machines, but many walks can share one search. If two walks ever land on the same point they stay together from then on, because <var>f</var> is deterministic. A collision between any two walks is as useful as a walk meeting itself, so <var>m</var> machines finish about <var>m</var> times faster.</p>
       <p>The trick, from van Oorschot and Wiener, is to report only rare <em>distinguished points</em>: points with an easily tested property, such as a run of zero bits. Each walk runs until it hits one, uploads it with its coefficients, and carries on. When two walks merge, they reach the same distinguished point soon after, and the server sees the same point arrive twice.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="wide" viewBox="0 0 640 262" role="img" aria-label="Three walks run left to right. Walks 1 and 2 merge partway, travel together, and report the same distinguished point. Walk 3 never meets them.">
           <polyline class="walk" points="24,48 88,40 152,56 216,46 280,62 344,84 408,108"/>
           <polyline class="walk" points="24,180 88,172 152,182 216,164 280,148 344,126 408,108"/>
@@ -87,7 +86,7 @@
       <h2>Fewer points to search</h2>
       <p>Rho's cost depends on the size of the set it walks on, so any way to make the walk treat several points as one helps. Every curve has the negation map: <var>P</var> and −<var>P</var> share an x-coordinate. A walk on the pairs {<var>P</var>, −<var>P</var>} searches a set half the size, which saves a factor of √2.</p>
       <p>Koblitz curves such as ECC2K-130 have more. Their equation has coefficients in GF(2), so the Frobenius map σ(<var>x</var>, <var>y</var>) = (<var>x</var>², <var>y</var>²) sends curve points to curve points, and on the prime-order subgroup it acts as multiplication by a fixed scalar. Applying σ 131 times returns to the start, so each point has 131 Frobenius images and 262 once negation is included. A walk on those classes saves a further factor of √131 ≈ 11.4.</p>
-      <p>These savings are exactly what separates Certicom's estimates from the plain √(π<var>n</var>/2). For ordinary curves Certicom uses √(π<var>n</var>/4), with negation; for Koblitz curves over GF(2<sup><var>m</var></sup>) it uses √(π<var>n</var>/4<var>m</var>), with negation and Frobenius. For ECC2K-130, with <var>n</var> ≈ 2<sup>129</sup>, that is 2<sup>60.81</sup> ≈ 2.0 × 10<sup>18</sup>, the figure in its table.</p>
+      <p>These savings are exactly what separates Certicom's estimates from the plain √(π<var>n</var>/2). For ordinary curves Certicom uses √(π<var>n</var>/4), with negation; for Koblitz curves over GF(2<sup><var>m</var></sup>) it uses √(π<var>n</var>/(4<var>m</var>)), with negation and Frobenius. For ECC2K-130, with <var>n</var> ≈ 2<sup>129</sup>, that is 2<sup>60.81</sup> ≈ 2.0 × 10<sup>18</sup>, the figure in its table.</p>
       <div class="callout">
         <p><strong>On this site.</strong> The ECC2K-130 GPU worker walks on the 262-point classes, so its expected work is Certicom's 2<sup>60.8</sup>. The newer all-curve worker uses a plain 32-way adding walk with no automorphism quotient yet, so its expectation is √(π<var>n</var>/2), a factor of √2 (or √(2<var>m</var>) on Koblitz curves) above Certicom's figure. Each challenge page shows both numbers. Folding the negation map into that walk without falling into short <em>fruitless cycles</em> is known, fiddly work, and a good place to contribute.</p>
       </div>
@@ -99,7 +98,7 @@
       <p class="formula"><var>R</var>′ = <var>R</var> + σ<sup><var>j</var></sup>(<var>R</var>), &nbsp; <var>j</var> = 3 + (HW(<var>x</var>)/2 mod 8)</p>
       <p>Here HW(<var>x</var>) is the Hamming weight of the x-coordinate written in a normal basis, so <var>j</var> runs from 3 to 10. In that basis σ only permutes the bits of <var>x</var>, and negation leaves <var>x</var> alone, so all 262 points of a class have the same weight and take the same step. The walk is therefore well defined on classes without ever computing a canonical representative inside the loop. That is where the √262 saving comes from, at the cost of one Frobenius map per step.</p>
       <ul class="plain">
-        <li><strong>Start points.</strong> A walk starts at <var>Q</var> plus a sum of σ<sup><var>i</var></sup>(<var>P</var>) chosen by 128 pseudo-random bits of its 64-bit seed. The seed packs a 16-bit run ID, a 32-bit lane number and a 16-bit restart counter.</li>
+        <li><strong>Start points.</strong> A walk starts at <var>Q</var> plus a sum of σ<sup><var>i</var></sup>(<var>G</var>) chosen by 128 pseudo-random bits of its 64-bit seed. The seed packs a 16-bit run ID, a 32-bit lane number and a 16-bit restart counter.</li>
         <li><strong>No coefficients on the GPU.</strong> σ acts on the subgroup as multiplication by a fixed scalar <var>s</var>, so each step multiplies the point's logarithm by 1 + <var>s</var><sup><var>j</var></sup>. The GPU carries nothing but the point. When two seeds reach the same distinguished point, the server replays both walks, counts how often each <var>j</var> was taken, and solves for <var>d</var>.</li>
         <li><strong>Distinguished points.</strong> A point is distinguished when HW(<var>x</var>) ≤ 32, about one point in 2<sup>28.41</sup>. The worker uploads 32 bytes: the seed, and <var>x</var> replaced by the smallest of its 131 Frobenius conjugates so that every member of a class gives the same key.</li>
         <li><strong>No cycle detection.</strong> A lane that walks 2<sup>32</sup> steps, about twelve average trails, without reaching a distinguished point restarts from a new seed. That cuts about 0.0006% of honest trails.</li>
@@ -112,11 +111,11 @@
       <h3>The distinguishing probability</h3>
       <p>On the ECC2K-130 walk, a point is distinguished when its normal-basis x-coordinate has Hamming weight 32 or less. For points in the subgroup that weight is always even, so the x-coordinates are spread over the 2<sup>130</sup> even-weight 131-bit strings, and</p>
       <p class="formula"><var>p</var> = ( C(131, 0) + C(131, 2) + … + C(131, 32) ) / 2<sup>130</sup> ≈ 2<sup>−28.41</sup></p>
-      <p>so each stored point stands for about 2<sup>28.41</sup> ≈ 356 million steps. On the all-curve walk a point is distinguished when <var>d</var> chosen bits of a SHA-256 hash of the point are zero, so <var>p</var> = 2<sup>−<var>d</var></sup>; <var>d</var> is set per curve and recorded with every batch.</p>
+      <p>so each stored point stands for about 2<sup>28.41</sup> ≈ 356 million steps. On the all-curve walk a point is distinguished when <var>t</var> chosen bits of a SHA-256 hash of the point are zero, so <var>p</var> = 2<sup>−<var>t</var></sup>; <var>t</var> is set per curve and recorded with every batch.</p>
       <h3>Work and odds</h3>
       <p>With <var>k</var> = <var>D</var>/<var>p</var> steps done and an expected <var>E</var>, the share of expected work is <var>k</var>/<var>E</var>, and the chance that rho would have produced a collision by now is</p>
       <p class="formula"><var>P</var>(<var>k</var>) ≈ 1 − exp(−(π/4)·(<var>k</var>/<var>E</var>)²)</p>
-      <div class="table-wrap"><table class="odds">
+      <div class="table-wrap" tabindex="0"><table class="odds">
         <thead><tr><th>Work done</th><th class="num">Share of <var>E</var></th><th class="num">Chance of a collision</th></tr></thead>
         <tbody>
           <tr><td>2<sup>57.5</sup></td><td class="num">10%</td><td class="num">0.8%</td></tr>
@@ -126,10 +125,10 @@
           <tr><td>2<sup>62.1</sup></td><td class="num">242%</td><td class="num">99%</td></tr>
         </tbody>
       </table></div>
-      <p class="table-note">For ECC2K-130's sigma walk, <var>E</var> = 2<sup>60.81</sup>. The expected work is close to the median, since half of all searches finish within 94% of it. It is not a deadline: about one search in ten needs 1.7 times as much.</p>
+      <p class="table-note">For the ECC2K-130 walk, <var>E</var> = 2<sup>60.81</sup>. The expected work is close to the median, since half of all searches finish within 94% of it. It is not a deadline: about one search in ten needs 1.7 times as much.</p>
       {% if flagship and flagship.estimated_work_log2 is not none %}
       <div class="callout">
-        <p><strong>Today, for ECC2K-130.</strong> {{ "{:,}".format((k130_row.received_points or 0) + (k130_row.historical_points or 0)) }} stored points, the earlier private run's included, at 2<sup>28.41</sup> steps each come to about {{ flagship.estimated_work_log2|pow2(2) }} steps, {{ flagship.expected_work_percent|percent }} of 2<sup>60.81</sup>. A collision would have turned up by now with probability {{ flagship.estimated_completion_probability_percent|percent }}. Live figures are on the <a href="/status">status page</a>.</p>
+        <p><strong>Today, for ECC2K-130.</strong> {{ "{:,}".format((k130_row.received_points or 0) + (k130_row.historical_points or 0)) }} stored points, including the earlier private run's, at 2<sup>28.41</sup> steps each come to about {{ flagship.estimated_work_log2|pow2(2) }} steps, {{ flagship.expected_work_percent|percent }} of 2<sup>60.81</sup>. A collision would have turned up by now with probability {{ flagship.estimated_completion_probability_percent|percent }}. Live figures are on the <a href="/status">status page</a>.</p>
       </div>
       {% endif %}
       <h3>What the estimate assumes</h3>
@@ -144,7 +143,7 @@
     <section id="kernels">
       <h2>Inside the kernels</h2>
       <p>Across the whole search the GPU client performs the same step about 2<sup>61</sup> times, so the work is all in making that step short. Each step costs five field multiplications, one squaring, a Frobenius map, a Hamming weight, and a sixteenth of an inversion. The techniques below come from the client's source, vendored at a pinned commit in <code>vendor/cryptanalysis/ecc2k130</code>, and the figures from its comments and benchmarks.</p>
-      <figure class="diagram">
+      <figure class="diagram" tabindex="0">
         <svg class="wide" viewBox="0 0 640 190" role="img" aria-label="One launch per thread: a forward pass over 16 walks, one shared inversion, then a reverse pass over the same 16 walks.">
           <defs><marker id="arrow2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 8 4 0 8z"/></marker></defs>
           <rect class="cell" x="8" y="30" width="236" height="150" rx="8"/>
@@ -155,15 +154,15 @@
           <text x="22" y="58">weight: popcount of x</text>
           <text x="22" y="82">distinguished? report it</text>
           <text x="22" y="106">σʲ(R): permutation network</text>
-          <text x="22" y="130">dᵢ = x + σʲ(x)</text>
-          <text x="22" y="154">prefix product of the dᵢ</text>
+          <text x="22" y="130">Dᵢ = x + σʲ(x)</text>
+          <text x="22" y="154">prefix product of the Dᵢ</text>
           <text x="292" y="98">one</text>
           <text x="292" y="118">inverse</text>
           <text x="414" y="58">λᵢ from the inverse</text>
           <text x="414" y="82">and the stored prefix</text>
-          <text x="414" y="110">x′ = λ² + λ + dᵢ</text>
+          <text x="414" y="110">x′ = λ² + λ + Dᵢ</text>
           <text x="414" y="134">y′ = λ(x + x′) + x′ + y</text>
-          <text x="414" y="158">peel dᵢ off the inverse</text>
+          <text x="414" y="158">peel Dᵢ off the inverse</text>
           <line class="walk" x1="244" y1="105" x2="272" y2="105" marker-end="url(#arrow2)"/>
           <line class="walk" x1="368" y1="105" x2="396" y2="105" marker-end="url(#arrow2)"/>
         </svg>
@@ -194,7 +193,7 @@
         </div>
         <div class="technique">
           <h3>Sixteen walks per inversion</h3>
-          <p>Adding two affine points needs an inversion, which costs as much as several multiplications. Montgomery's trick inverts the product of sixteen denominators once and recovers each one's inverse from it, for about three extra multiplications per walk. The kernel's weighted variant stores <var>E</var><sub><var>i</var></sub> · ∏<sub><var>k</var>&lt;<var>i</var></sub> <var>D</var><sub><var>k</var></sub> on the way forward, so the reverse pass gets each slope λ<sub><var>i</var></sub> in one product.</p>
+          <p>Adding two affine points needs an inversion, which costs as much as several multiplications. Montgomery's trick inverts the product of sixteen denominators once and recovers each one's inverse from it, for about three extra multiplications per walk. With slope λ<sub><var>i</var></sub> = <var>E</var><sub><var>i</var></sub>/<var>D</var><sub><var>i</var></sub>, where <var>D</var><sub><var>i</var></sub> = <var>x</var> + σ<sup><var>j</var></sup>(<var>x</var>) and <var>E</var><sub><var>i</var></sub> = <var>y</var> + σ<sup><var>j</var></sup>(<var>y</var>), the kernel's weighted variant stores <var>E</var><sub><var>i</var></sub> · ∏<sub><var>k</var>&lt;<var>i</var></sub> <var>D</var><sub><var>k</var></sub> on the way forward, so the reverse pass gets each slope λ<sub><var>i</var></sub> in one product.</p>
           <span class="src">packedkernels.cuh · kernel.h (ECC_BATCH = 16)</span>
         </div>
         <div class="technique">
@@ -209,7 +208,7 @@
         </div>
         <div class="technique">
           <h3>Keeping the working set in L2</h3>
-          <p><var>x</var>, <var>y</var>, the prefix chain and the denominators share one allocation, so a single <code>cudaAccessPolicyWindow</code> can mark it persisting in L2, an 80 MiB window on an RTX PRO 6000. The 128 precomputed σ<sup><var>i</var></sup>(<var>P</var>) used for start points, and <var>Q</var>, sit in constant memory.</p>
+          <p><var>x</var>, <var>y</var>, the prefix chain and the denominators share one allocation, so a single <code>cudaAccessPolicyWindow</code> can mark it persisting in L2, an 80 MiB window on an RTX PRO 6000. The 128 precomputed σ<sup><var>i</var></sup>(<var>G</var>) used for start points, and <var>Q</var>, sit in constant memory.</p>
           <span class="src">ec2k_gpu.cu</span>
         </div>
         <div class="technique">
@@ -224,7 +223,7 @@
         </div>
         <div class="technique">
           <h3>Losing at most a minute</h3>
-          <p>Every 60 seconds, and on <code>SIGTERM</code>, the client fsyncs its points, writes the walk state to a temporary file, fsyncs it, renames it into place and fsyncs the directory. A preempted cloud GPU resumes where it stopped. A separate health mode runs at weight 42 and checks every report against the curve; a single flipped bit leaves the rest of the trail off the curve, so a bad card is caught quickly.</p>
+          <p>Every 60 seconds, and on <code>SIGTERM</code>, the client fsyncs its points, writes the walk state to a temporary file, fsyncs it, renames it into place and fsyncs the directory. A preempted cloud GPU resumes where it stopped. A separate health mode walks with a distinguishing weight of 42, so reports come often, and checks every report against the curve. A single flipped bit leaves the rest of the trail off the curve, so a faulty GPU is caught quickly.</p>
           <span class="src">ec2k_gpu.cu · healthcheck.h</span>
         </div>
       </div>
@@ -237,7 +236,7 @@
 
     <section id="checks">
       <h2>Checking the work</h2>
-      <p>Fast code is only useful if its output is right, and a distributed search has to assume some workers are faulty or dishonest.</p>
+      <p>A distributed search has to assume some workers are faulty or dishonest.</p>
       <ul class="plain">
         <li><strong>ECC2K-130 points</strong> are checked for shape on upload: the seed must belong to the run, and <var>x</var> must be under 2<sup>131</sup> with even weight of at most 32. The first batch of every run, and 1 in 128 later batches, is sent to an audit pool that replays one record from its seed on an independent reference implementation of the walk and compares the 32 bytes exactly.</li>
         <li><strong>All-curve points</strong> are each checked: the point is on the curve, it is distinguished, <var>R</var> = <var>a</var><var>G</var> + <var>b</var><var>Q</var> holds, and <var>b</var> matches the walk's start. Workers run the same checks before uploading.</li>
@@ -254,7 +253,7 @@
         <li>E. Teske, <cite>On random walks for Pollard's rho method</cite>, Mathematics of Computation, 2001. Why adding walks with about 20 classes behave close to random.</li>
         <li>D. V. Bailey et al., <cite>Breaking ECC2K-130</cite>, IACR ePrint 2009/541. The Frobenius walk, normal-basis arithmetic and bitsliced kernels this worker builds on.</li>
         <li>D. J. Bernstein, T. Lange and P. Schwabe, <cite>On the correct use of the negation map in the Pollard rho method</cite>, PKC 2011. Fruitless cycles and how to escape them.</li>
-        <li>Certicom, <cite><a href="{{ catalog_source }}">ECC Challenge, 2009-11-10 update</a></cite>. The curves, the solved list and the operation estimates.</li>
+        <li>Certicom, <cite><a href="{{ catalog_source }}">ECC Challenge, 10 November 2009 update</a></cite>. The curves, the solved list and the operation estimates.</li>
       </ul>
     </section>
   </div>

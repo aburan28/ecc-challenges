@@ -1,55 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Worker {{ run.id[:8] }} · ECC Challenges{% endblock %}
+{% block title %}Run {{ run.id[:8] }} · ECC Challenges{% endblock %}
 {% block content %}
 <p><a href="/dashboard?campaign={{ run.campaign }}">← Your workers</a></p>
-<div class="kicker">Worker details · {{ name }}</div>
+<div class="kicker">{{ name }}</div>
 <h1>Run {{ run.id[:8] }}</h1>
 {% include "_live.html" %}
 <div id="worker-live" data-live-region data-live-as-of="{{ live_as_of }}">
   <dl class="stats" aria-label="Worker health">
-    <div class="stat"><dt>Worker health</dt><dd style="font-size:1.25rem">{{ run.health_state }}<small>{% if run.last_ping_at %}Last heartbeat {{ run.last_ping_at|ago }}{% else %}Update and restart the worker to report health{% endif %}</small></dd></div>
+    <div class="stat"><dt>Worker health</dt><dd style="font-size:1.25rem">{{ run.health_state }}<small>{% if run.last_ping_at %}Last heartbeat {{ run.last_ping_at|ago }}{% else %}Update and restart the worker to see its health{% endif %}</small></dd></div>
     <div class="stat"><dt>Estimated iterations/s</dt><dd>{{ run.operations_per_second_log2|pow2 }}<small>24 h average from accepted uploads</small></dd></div>
     <div class="stat"><dt>Points received</dt><dd>{{ "{:,}".format(run.points) }}<small>includes points awaiting checks</small></dd></div>
     <div class="stat"><dt>Last upload</dt><dd style="font-size:1.25rem">{{ run.last_batch_at|ago }}<small>{{ "{:,.1f}".format(run.points_per_hour) }} points/h · 24 h average</small></dd></div>
   </dl>
-  {% if run.health_state == 'Disconnected' %}<div class="panel alert"><p>No heartbeat in the last three minutes. Check that the worker process is running and can reach this gateway. Preserve its state directory when restarting.</p></div>
-  {% elif run.health_state in ('Upload trouble', 'Upload backlog') %}<div class="panel alert"><p>The worker reports pending uploads. Check its logs for connectivity, quota or retry instructions. Keep its state directory; the worker retries pending uploads.</p></div>
-  {% elif run.health_state == 'Reporting unavailable' %}<div class="panel"><p>This worker has not sent a run-specific health report. Its uploads remain visible, but connectivity cannot be inferred from a shared API key. Update and restart the worker using the same state directory.</p></div>{% endif %}
+  {% if run.health_state == 'Disconnected' %}<div class="panel alert"><p>No heartbeat in the last three minutes. Check that the worker process is running and can reach ecc-challenges.com. Restart it with the same state directory.</p></div>
+  {% elif run.health_state in ('Upload trouble', 'Upload backlog') %}<div class="panel alert"><p>The worker has uploads waiting. Its log shows why: a network error, or a 429 or 503 response asking it to back off. It retries on its own; keep its state directory.</p></div>
+  {% elif run.health_state == 'Reporting unavailable' %}<div class="panel"><p>This worker does not send per-run health reports, and a shared API key cannot show which worker is connected. Its uploads still appear below. Update the worker and restart it with the same state directory.</p></div>{% endif %}
   <section class="section">
     <h2>Verification</h2>
-    <p><strong>{{ run.verification_state }}</strong>. {% if run.protocol == 'v1' %}Original-worker batches are checked by replaying selected records. “Not selected” is not a failed check.{% else %}New-worker points are checked individually before indexing. This does not verify every walk iteration.{% endif %}</p>
+    <p><strong>{{ run.verification_state }}</strong>. {% if run.protocol == 'v1' %}Protocol 1 batches are checked by replaying a sample of records. “Not selected” means the batch was not sampled; it is not a failed check.{% else %}Protocol 2 points are each checked against the curve before indexing. The walk iterations between them are not rechecked.{% endif %}</p>
     <dl class="stats">
       <div class="stat"><dt>{{ 'Sampled batches' if run.protocol == 'v1' else 'Checked batches' }}</dt><dd>{{ run.checked }}<small>{{ run.indexed }} batches indexed</small></dd></div>
       <div class="stat"><dt>Waiting for processing</dt><dd>{{ run.pending }}<small>{% if run.oldest_pending_at %}Oldest received {{ run.oldest_pending_at|ago }}{% else %}No batches waiting{% endif %}</small></dd></div>
-      <div class="stat"><dt>Failed or quarantined</dt><dd>{{ run.failed }}<small>{% if run.failed %}Inspect worker logs and contact support{% else %}No failed batches recorded{% endif %}</small></dd></div>
+      <div class="stat"><dt>Failed or quarantined</dt><dd>{{ run.failed }}<small>{% if run.failed %}Check the worker log, then see Help{% else %}None recorded{% endif %}</small></dd></div>
       <div class="stat"><dt>Last successful check</dt><dd style="font-size:1.25rem">{{ run.last_checked_at|ago }}</dd></div>
     </dl>
-    <p class="note">Waiting age does not by itself indicate a stalled verifier. Upload attempts rejected before storage are not included in the batch history.</p>
-    {% if run.unresolved %}<p class="pending">{{ run.unresolved }} batch{{ '' if run.unresolved == 1 else 'es' }} unresolved after a replay timeout or error. These batches are archived but not indexed, and are not queued for automatic retry. Operator review is needed; keep the worker's state directory.</p>{% endif %}
-    {% if run.failed %}<p class="pending">Keep the state directory and run ID. Review the worker logs and <a href="/help">get help</a> before starting a replacement run.</p>{% endif %}
+    <p class="note">An old waiting batch does not by itself mean the verifier has stalled. Uploads rejected before storage do not appear in the batch history.</p>
+    {% if run.unresolved %}<p class="pending">{{ run.unresolved }} batch{{ '' if run.unresolved == 1 else 'es' }} unresolved after a replay timeout or error. These batches are archived but not indexed, and are not queued for automatic retry. An operator has to review them; keep the worker's state directory.</p>{% endif %}
+    {% if run.failed %}<p class="pending">Keep the state directory and note the run ID. Check the worker log and <a href="/help">Help</a> before starting a replacement run.</p>{% endif %}
     <h3>Latest 20 submissions</h3>
-    <div class="table-wrap"><table>
+    <div class="table-wrap" tabindex="0"><table>
       <thead><tr><th>Batch</th><th>Received</th><th class="num">Points</th><th>Check</th><th>Indexed</th></tr></thead>
       <tbody>{% for batch in run.batches_recent %}<tr>
         <td><code title="{{ batch.id }}">{{ batch.id[:12] }}</code></td>
         <td>{{ batch.created_at|ago }}</td><td class="num">{{ "{:,}".format(batch.records) }}</td>
         <td>{{ batch.state|replace('_', ' ')|capitalize }}</td><td>{{ batch.indexed_at|ago }}</td>
-      </tr>{% else %}<tr><td colspan="5">No batches received yet. A connected worker can take time to find and upload distinguished points.</td></tr>{% endfor %}</tbody>
+      </tr>{% else %}<tr><td colspan="5">No batches received yet. A connected worker uploads once it has found distinguished points, which takes longer on larger curves.</td></tr>{% endfor %}</tbody>
     </table></div>
   </section>
   <section class="section">
-    <h2>Worker identity</h2>
-    <div class="table-wrap"><table class="parameter-table"><tbody>
+    <h2>Run details</h2>
+    <div class="table-wrap" tabindex="0"><table class="parameter-table"><tbody>
       <tr><th>Run ID</th><td class="mono" style="overflow-wrap:anywhere">{{ run.id }}</td></tr>
       <tr><th>Challenge</th><td><a href="/challenges/{{ run.campaign }}">{{ name }}</a></td></tr>
-      <tr><th>Key label</th><td>{{ run.key_label }}</td></tr>
-      <tr><th>Protocol</th><td>{{ 'Original sigma worker' if run.protocol == 'v1' else 'All-curve worker' }} · DP{{ run.dp_bits }}</td></tr>
+      <tr><th>API key</th><td>{{ run.key_label }}</td></tr>
+      <tr><th>Protocol</th><td>{{ 'Protocol 1 (ECC2K-130 sigma)' if run.protocol == 'v1' else 'Protocol 2 (all curves)' }} · DP{{ run.dp_bits }}</td></tr>
       <tr><th>Registered</th><td>{{ run.created_at|utcstamp }}</td></tr>
       <tr><th>Worker version</th><td>{{ run.health.get('version', 'Not reported') }}</td></tr>
       <tr><th>Platform</th><td>{{ run.health.get('platform', 'Not reported') }}</td></tr>
       <tr><th>Backend</th><td>{{ run.health.get('backend', 'Not reported') }}</td></tr>
     </tbody></table></div>
-    <p class="note">Version, platform, backend and computing state are reported by the worker. They are separate from the gateway’s upload and verification records. A run retains its identity when resumed from the same state directory.</p>
+    <p class="note">The worker reports its version, platform, backend and health state; the gateway records uploads and verification separately. A run keeps its identity when resumed from the same state directory.</p>
   </section>
 </div>
 {% endblock %}

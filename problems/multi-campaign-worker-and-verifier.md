@@ -64,24 +64,24 @@ this performance requirement remains open.
 
 ## Current release boundary, 2026-10-16
 
-All 24 published instances now have implemented CPU/CUDA workers and the v2
-archive/verifier/index path. The selected published image passed 168 checks on
-a real L4 as UID/GID10001. All 24 production-predicate CPU contribution checks
+As of 2026-10-16, all 24 published instances have CPU and CUDA workers and the
+v2 archive, verifier and index path. The selected published image passed 168 checks on
+a real L4 as UID/GID 10001. All 24 production-predicate CPU contribution checks
 also passed against the deployed gateway: upload, index, checkpoint resume,
 and explicit run closure. Exact image/source/S3-version bindings and failed
 attempts are retained in [release evidence](../verification/all-curves-20261016/README.md).
 
 The remaining obstruction is release validation: a real GPU contribution with a
-persistent volume, current-head required CI, and a sustained fresh-point capacity
-envelope. Anonymous GHCR import and all 168 L4 checks passed, and the bounded
-account-backlog/refusal/restart/drain check passed. The AWS account currently has 30 Fargate
+persistent volume, required CI passing on the current head, and a sustained
+fresh-point capacity envelope. Anonymous GHCR import and all 168 L4 checks passed, and the bounded
+account-backlog/refusal/restart/drain check passed. The AWS account then had 30 Fargate
 vCPUs; request `6b9319d443fe49b882919fe6ebcfeef4QPzCozkp` asks for 256. Until
-effective, the configured 32-auditor ceiling is not available in full.
+it takes effect, the configured 32-auditor ceiling is not available in full.
 
-At the 2026-10-16 checkpoint, V2 remained restricted to the designated canary
+On 2026-10-16, v2 was still restricted to the designated canary
 key while those gates were checked. The 2026-10-21 live catalog snapshot linked
-above reports `multicurve_enabled: true`; this later operational state does not
-by itself satisfy the outstanding per-curve performance measurements.
+above reports `multicurve_enabled: true`. That later operational state does not
+satisfy the outstanding per-curve performance measurements.
 Completion probability remains unavailable because coefficient validity does
 not verify the claimed number of trail operations. The historical database
 import ran on 2026-10-17; see docs/operations.md, "Historical point import".
@@ -89,11 +89,11 @@ import ran on 2026-10-17; see docs/operations.md, "Historical point import".
 ### Modal checkpoint access obstruction
 
 After the release PR merged, a CPU-only probe of the selected public image on
-Modal failed to create `/data/probe.tmp` as UID/GID10001 after a successful
+Modal failed to create `/data/probe.tmp` as UID/GID 10001 after a successful
 root bootstrap `chown('/data', 10001, 10001)`. No contributor key was supplied.
 The failure log and receipt are preserved as the first volume-readiness attempt.
 The local harness reported IndexError while parsing empty stdout; the remote
-stderr identifies PermissionError13 as the actual checkpoint-write failure.
+stderr identifies PermissionError (errno 13) as the actual checkpoint-write failure.
 
 Modal documents that it ignores Docker USER. Its public Volume documentation
 does not specify whether mount ownership changes permit another UID to access
@@ -103,16 +103,16 @@ guarantee and the real GPU contributor canary; it does not invalidate the
 completed GPU arithmetic or Fargate contribution checks.
 
 The next bounded diagnostic creates a private child directory as root, records
-ownership and modes before/after changes, and attempts atomic writes as10001.
+ownership and modes before/after changes, and attempts atomic writes as UID/GID 10001.
 Acceptance requires two fresh CPU sandboxes to read and advance the same
-mode0600 checkpoint as UID/GID10001, plus an external committed-volume hash
+mode 0600 checkpoint as UID/GID 10001, plus an external committed-volume hash
 match. An access failure requires a different verified persistence mechanism;
 repeating chmod/chown without changed evidence is insufficient. A passing
 probe permits a launcher repair and the separately authorized GPU canary.
 Sustained fresh-point capacity remains a separate outstanding gate.
 
-The final shared-bootstrap attempt5 met this filesystem acceptance criterion:
-two fresh CPU sandboxes advanced the same mode0600 file as UID/GID10001, both
+The final shared-bootstrap attempt 5 met this filesystem acceptance criterion:
+two fresh CPU sandboxes advanced the same mode 0600 file as UID/GID 10001, both
 external committed-volume hashes matched, and the original mount-root file
 migrated successfully. Its frozen setup SHA is
 `9211407a376609a5789aa62b2d2dd5ca1d41730d41ad0dd52e92fb8b55f3704a`.
@@ -238,11 +238,11 @@ fleet rate remain outstanding. Full algebraic verification does not attest
 claimed trail lengths; the site's completion figures are point-count estimates
 under an explicit model, and verified work counts remain outstanding.
 
-Local image builds failed because Docker Desktop could not start. The system
-volume also reached 100% utilization. Completed failed test artifacts were moved
-intact to the project SSD, and subsequent isolated tests use `.tmp/` there.
-Linux release builds are provided through `infra/build.yaml`; they must produce
-pinned image digests before deployment. No failed receipt was overwritten.
+Local image builds failed because Docker Desktop could not start, and the system
+volume reached 100% utilization. The failed test artifacts were moved intact to
+the project SSD, and later isolated tests use `.tmp/` there. Linux release
+builds run through `infra/build.yaml` and must produce pinned image digests
+before deployment. No failed receipt was overwritten.
 
 ### DP predicate correction
 
@@ -280,7 +280,7 @@ which quota-accounting identity reached the limit.
 
 This blocks a provider-neutral anonymous-pull release, not the arithmetic check.
 The next steps are a temporary pull-only registry identity for the internal
-canary and an independently accessible public mirror. Acceptance requires an
+canary and an independent public mirror. Acceptance requires an
 anonymous hosted-provider pull of the exact published digest, all 168 final-image
 controls, and the normal entrypoint contribution check. Publishing an image or
 successfully pulling it inside AWS does not meet that exit condition.
