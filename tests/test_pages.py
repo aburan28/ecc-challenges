@@ -76,7 +76,15 @@ def test_tag_manager_is_rendered_with_a_matching_csp_nonce(path, status):
         '  height="0" width="0" style="display:none;visibility:hidden">')
     for name in ("script-src", "img-src", "connect-src", "frame-src"):
         assert "https://www.googletagmanager.com" in directives[name].split()
+    sources = {name: set(value.split()) for name, value in directives.items()}
+    # A GA4 tag published in the container can send hits, including to regional endpoints.
+    assert {"https://*.google-analytics.com"} <= sources["img-src"]
+    assert {"https://*.google-analytics.com", "https://*.analytics.google.com"} <= sources["connect-src"]
+    # Tag Manager preview mode loads its badge, styles and fonts from Google hosts.
+    assert {"https://tagmanager.google.com"} <= sources["script-src"]
+    assert {"https://fonts.gstatic.com"} <= sources["font-src"]
     assert directives["default-src"] == "'none'"
+    assert "'unsafe-eval'" not in policy and "*;" not in policy
     assert directives["frame-ancestors"] == "'none'"
 
 
