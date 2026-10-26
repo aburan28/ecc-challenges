@@ -120,7 +120,9 @@ existing marker.
 
 ## 2. Configure GitHub login and TLS
 
-Use a public GitHub App for contributor sign-in, with homepage
+Use the public [ECDLP Challenges](https://github.com/apps/ecdlp-challenges)
+GitHub App (slug `ecdlp-challenges`, owned by the isogeny-labs organization,
+client ID `Iv23lidHKj83gpKEi74i`) for contributor sign-in, with homepage
 https://ecc-challenges.com and callback
 https://ecc-challenges.com/auth/callback. The site needs only the authenticated
 user's numeric ID and login from `GET /user`; this endpoint requires no GitHub
