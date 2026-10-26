@@ -454,7 +454,8 @@ Resources:
     Properties:
       ServiceName: ecc-challenges-web
       Cluster: !Ref Cluster
-      LaunchType: FARGATE
+      CapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
+      ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref WebTask
       DesiredCount: !Ref WebTasks
       DeploymentConfiguration: {MaximumPercent: 200, MinimumHealthyPercent: 100}
@@ -469,7 +470,8 @@ Resources:
     Properties:
       ServiceName: ecc-challenges-audit
       Cluster: !Ref Cluster
-      LaunchType: FARGATE
+      CapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
+      ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref WorkerTask
       DesiredCount: !Ref AuditTasks
       NetworkConfiguration:
@@ -482,7 +484,8 @@ Resources:
     Properties:
       ServiceName: ecc-challenges-index
       Cluster: !Ref Cluster
-      LaunchType: FARGATE
+      CapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
+      ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref IndexTask
       DesiredCount: !Ref IndexTasks
       NetworkConfiguration:
@@ -495,7 +498,8 @@ Resources:
     Properties:
       ServiceName: ecc-challenges-reconcile
       Cluster: !Ref Cluster
-      LaunchType: FARGATE
+      CapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
+      ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref ReconcileTask
       DesiredCount: !Ref ReconcileTasks
       NetworkConfiguration:
@@ -508,7 +512,8 @@ Resources:
     Properties:
       ServiceName: ecc-challenges-resolve
       Cluster: !Ref Cluster
-      LaunchType: FARGATE
+      CapacityProviderStrategy: [{CapacityProvider: FARGATE_SPOT, Weight: 1}]
+      ForceNewDeployment: {EnableForceNewDeployment: true}
       TaskDefinition: !Ref ResolveTask
       DesiredCount: !Ref ResolveTasks
       NetworkConfiguration:
