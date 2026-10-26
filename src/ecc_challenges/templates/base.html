@@ -140,9 +140,16 @@
     .curve text.eq{font:13px var(--mono);fill:var(--faint)}
 
     /* figures */
-    .stats{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
     .stat{min-width:0;padding:18px 20px;border-left:1px solid var(--line)}
     .stat:first-child{border-left:0}
+    /* Four cards per row; a row of two or three cards spans the full width on wide screens. */
+    .stat:nth-child(4n+1){border-left:0}
+    .stat:nth-child(n+5){border-top:1px solid var(--line)}
+    @media (min-width:861px){
+      .stats:has(>.stat:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
+      .stats:has(>.stat:nth-child(3):last-child){grid-template-columns:repeat(3,1fr)}
+    }
     .stat dt{font-size:.8rem;color:var(--muted)}
     .stat dd{margin:6px 0 0;font:600 1.65rem/1.25 var(--sans);font-variant-numeric:tabular-nums}
     .stat dd small{display:block;font:400 .78rem var(--sans);color:var(--faint);margin-top:2px}
@@ -341,8 +348,9 @@
       .hero .figure{max-width:420px}
       .steps{grid-template-columns:1fr;gap:22px}
       .setup-options{gap:16px}
-      .stats{grid-auto-flow:row;grid-template-columns:repeat(2,1fr)}
-      .stat:nth-child(3){border-left:0}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .stat:nth-child(odd){border-left:0}
+      .stat:nth-child(even){border-left:1px solid var(--line)}
       .stat:nth-child(n+3){border-top:1px solid var(--line)}
     }
     @media (max-width:560px){
@@ -360,7 +368,7 @@
     }
     @media (max-width:360px){
       .stat{padding:14px 12px}
-      .stat dd{font-size:1.2rem;overflow-wrap:anywhere}
+      .stat dd{font-size:1.08rem;overflow-wrap:anywhere}
       .stat:nth-child(2) dd{font-size:1.05rem}
     }
   </style>
