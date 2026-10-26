@@ -409,7 +409,8 @@ def create_app(settings: Settings | None = None, *, db=None, storage=None) -> Fa
     async def dashboard(request: Request, dp_weight: int = RECOMMENDED_DP_WEIGHT):
         account_id = require_session(request)
         if dp_weight not in DP_WEIGHTS:
-            raise Rejected(400, "unsupported sigma reporting threshold")
+            choices = ", ".join(f"DP{weight}" for weight in sorted(DP_WEIGHTS))
+            raise Rejected(400, f"that distinguished-point threshold is not offered; choose {choices}")
         if "csrf" not in request.session:
             request.session["csrf"] = new_csrf()
         requested = request.query_params.get("campaign", CAMPAIGN)

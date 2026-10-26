@@ -236,11 +236,24 @@ def upload_checkpoint(api: API, root: Path, state: dict, *, force: bool = False)
     log(f"run {api.run_id}: checkpoint saved at DP cursor {state['remote_cursor']}")
 
 
+# A new state directory with no ECC_CAMPAIGN starts on the same challenge as
+# the installers and dashboard commands. Directories created before that
+# default changed ran ecc2k-130, so they keep resuming it.
+NEW_RUN_CAMPAIGN = "eccp-131"
+STATE_FILES = ("state.json", "generic-state.json", "generic-registration.json")
+
+
+def default_campaign(root: Path) -> str:
+    if any((root / name).exists() for name in STATE_FILES):
+        return CAMPAIGN
+    return NEW_RUN_CAMPAIGN
+
+
 def main() -> int:
     root = Path(os.environ.get("ECC_STATE_DIR", "/data"))
     root.mkdir(parents=True, exist_ok=True)
     key = read_api_key()
-    campaign = os.environ.get("ECC_CAMPAIGN", CAMPAIGN).lower()
+    campaign = (os.environ.get("ECC_CAMPAIGN") or default_campaign(root)).lower()
     protocol = os.environ.get("ECC_PROTOCOL")
     if protocol not in (None, "1", "2"):
         raise ValueError("ECC_PROTOCOL must be 1 or 2")

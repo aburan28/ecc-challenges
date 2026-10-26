@@ -46,8 +46,8 @@ Base: `main` at `0f416ee` (PR #65 merged), plus the draft PR #64 commit
   `/docs/running-a-worker`, `/help` and `/pollard-rho` at desktop and 375 px
   widths in light and dark mode, served locally from synthetic data with no
   database, AWS or GitHub access.
-- The public site at review time served `git-12eb82e9cac9`, deployed while this
-  pass was in progress; none of these changes are live until the next deploy.
+- None of these changes are live until the next deploy. The public site's
+  build is identified under "Follow-ups" below.
 
 ## Second pass: copy and consistency
 
@@ -86,9 +86,27 @@ fails 50 tests, which is the environment, not the code);
 `scripts/build_site_docs.py --check`; browser review of the same routes as
 above at desktop and 375 px, light and dark, from synthetic data.
 
-Known and left alone: the worker binary's own `ECC_CAMPAIGN` default is
-`ecc2k-130` (`worker/protocol.py`) while the installers, Compose file and
-dashboard commands all set `eccp-131`; the docs state both. The live site at
-review time returned 404 for `/skill.md`, `/docs/agents` and
-`/docs/worker-prerequisites`, so production is running a build older than
-`main`; the next deploy fixes that.
+## Follow-ups
+
+- **Production build.** The live HTML has neither the Google Tag Manager
+  snippet (added in `de29bbe`, 24 October) nor the `/skill.md` route, and its
+  home page text matches `752b49c` (24 October 13:55) best of the commits
+  checked. Production is therefore about a day behind `main`, not on
+  `12eb82e` as this note first said. `Dockerfile.web` copies all of `src/`,
+  so a web image built from current `main` serves `/skill.md`, `/docs/agents`
+  and `/docs/worker-prerequisites`; deploying it is the fix.
+- **Worker campaign default.** With no `ECC_CAMPAIGN`, a fresh state directory
+  now starts on `eccp-131`, the challenge every installer and dashboard command
+  uses. A directory that already holds worker state keeps `ecc2k-130`, the
+  default it was created under. This reaches contributors only once a new
+  worker image is published and pinned through the canary gate.
+- **Docs.** The Docker recipe uses the dashboard's container and directory
+  names and sets `ECC_PROTOCOL=2`; the Images table names ECR Public as the
+  registry the dashboard pins and GitHub Packages as the alternative; the
+  Kata and gVisor guide is published at `/docs/sandbox-runtimes`, so the
+  prerequisites page's link to it resolves on the site.
+- **Dashboard.** An unsupported threshold in the URL now explains which
+  thresholds exist instead of "unsupported sigma reporting threshold".
+- **Checked, no change needed.** The error page lowercases only Starlette's own
+  messages and "Challenge not found"; gateway errors such as "API key" keep
+  their case, so nothing is mangled.
