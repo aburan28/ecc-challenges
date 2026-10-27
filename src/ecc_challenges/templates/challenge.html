@@ -6,9 +6,9 @@
 {% block description %}Challenge parameters and live contribution status for {{ challenge_name }}, from Certicom's {{ catalog_date|longdate }} ECC challenge document.{% endblock %}
 {% block content %}
 {% set est = (status.including_historical or status) if status else none %}
-<p class="note"><a href="/status#challenges">All challenges</a> / {{ challenge_name }}</p>
+<p class="crumbs"><a href="/status#challenges">All challenges</a> / {{ challenge_name }}</p>
 <h1>{{ challenge_name }}</h1>
-<p class="lead">{{ parameters.bits }}-bit {{ "binary field" if parameters.field_kind == "binary" else "prime field" }} discrete-log challenge, listed in Certicom's {{ catalog_date|longdate }} challenge document.</p>
+<p class="lead">{% if challenge.curve_type == "koblitz" %}A discrete-log challenge on a Koblitz curve, also called an anomalous binary curve, over GF(2<sup>{{ challenge.field_bits }}</sup>). Its coefficients are 0 or 1, so the Frobenius map lets rho skip work, about a factor of √{{ challenge.field_bits }}.{% elif challenge.curve_type == "binary" %}A discrete-log challenge on a randomly chosen curve over the binary field GF(2<sup>{{ challenge.field_bits }}</sup>).{% else %}A discrete-log challenge on a randomly chosen curve over a {{ challenge.field_bits }}-bit prime field GF(p).{% endif %} Listed in Certicom's {{ catalog_date|longdate }} challenge document.</p>
 
 {% if challenge.solved_in_2009 %}
 <dl class="stats" aria-label="Challenge summary">
@@ -17,7 +17,7 @@
   <div class="stat progress-summary"><dt>Progress</dt><dd><span class="progress-primary">100%</span><small>Closed by the published result</small></dd></div>
   <div class="stat"><dt>Result</dt><dd><a href="/results/{{ challenge.id }}">Private key</a><small>as recorded by Certicom</small></dd></div>
 </dl>
-<div class="panel" style="margin-top:24px">
+<div class="panel gap-top">
   <h2>Already solved</h2>
   <p class="muted">Certicom records this challenge as solved on {{ solved_dates[challenge.id] }}. The recovered key, the public point and the original report are on the <a href="/results/{{ challenge.id }}">result page</a>.</p>
   <p class="muted">{% if is_open %}The gateway still accepts points for it, so a worker can use it as a quick end-to-end check, but that work does not count toward anything.{% else %}Points cannot be submitted for it.{% endif %} The open challenges are listed <a href="/status#challenges">on the status page</a>.</p>
@@ -38,14 +38,14 @@
 <p class="table-note">This project's walk for {{ challenge_name }} expects {{ status.expected_operations_log2|pow2(2) }} operations rather than Certicom's {{ challenge.estimated_operations_log2|pow2(2) }}, because it does not yet fold in the {% if challenge.id.startswith("ecc2k") %}negation and Frobenius maps{% else %}negation map{% endif %}. <a href="/pollard-rho#automorphisms">Why that matters</a>.</p>
 {% endif %}
 {% endif %}
-{% if not status %}<div class="panel alert" style="margin-top:24px"><p>Live status is unavailable right now. The published challenge parameters remain available below.</p></div>{% endif %}
+{% if not status %}<div class="panel alert gap-top"><p>Live status is unavailable right now. The published challenge parameters remain available below.</p></div>{% endif %}
 {% if not challenge.solved_in_2009 and not is_open %}
-<div class="panel" style="margin-top:24px">
+<div class="panel gap-top">
   <h2>Contribution is not open yet</h2>
   <p class="muted">This challenge is listed for reference, but its worker and independent verifier are not enabled on the public gateway. Points from another campaign cannot be submitted here.</p>
 </div>
 {% elif is_open and not challenge.solved_in_2009 %}
-<div class="panel" style="margin-top:24px">
+<div class="panel gap-top">
   <h2>Join the search</h2>
   <p class="muted">The worker dashboard gives the command to run and an API key to contribute distinguished points for this challenge.</p>
   {% if challenge.id == "ecc2k-130" %}<p class="muted">The NVIDIA GPU worker reports distinguished points (DPs) by Hamming weight. DP34 is recommended for new workers and preselected on the dashboard; DP32 and DP30 are also accepted. All three thresholds can match points from the earlier DP30 and DP32 archive.</p>{% endif %}

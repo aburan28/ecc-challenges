@@ -1,4 +1,4 @@
-<div class="row live-controls" style="margin:20px 0">
+<div class="row live-controls">
   <button class="button ghost small" type="button" data-live-refresh{% if live_url %} data-live-url="{{ live_url }}"{% endif %} hidden>Refresh now</button>
   <span class="muted" role="status" data-live-message>Last updated {{ live_as_of[:19].replace("T", " ") if live_as_of else "unavailable" }} UTC.</span>
 </div>
