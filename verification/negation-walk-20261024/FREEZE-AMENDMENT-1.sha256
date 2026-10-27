@@ -1,0 +1,12 @@
+0686915eba6e4546025aa2c582eeeaee21017398ca05ee93d0f41118dfac80b9  PROTOCOL-AMENDMENT-1.md
+3081b380e81be33f40fd44080c56f8e9458747b460b2a727a486f41bb46e5ff5  results/reproduction_gate.json
+62c09388d702a2c7921ffc87af79e422a5912e87d6691ebb12b73f53827d3f20  frozen-sources/SHA256SUMS
+9317a461015bbc3ae326d53efe415955508508b00cb0527e0f138931ca7aed63  ../../worker/generic/ec_core.h
+4788cc043b86675e5f83657de525def0f12a6ad487721fc4e710cfded029688b  ../../src/ecc_challenges/multicurve/negation_walk.py
+352a93898d1ff728dd3e6298e973ccc290484b81bed24daab9458a0f3e8b08f8  ../../src/ecc_challenges/multicurve/codec.py
+Sat Oct 24 06:12:44 UTC 2026
+65ed4a33aef191de3412892d938e0b8257521c7a88882f3c267c6fc664ebbaf4  verification/negation-walk-20261024/run_study.py
+f228994686fde1ccadb217a6c6617122736ae4f115791fd566997fec8b7cd741  verification/negation-walk-20261024/analyze.py
+b091f7466223e9be47f0529aff5634d0bc1168f9ba6e887b40f898a0f21a4a95  verification/negation-walk-20261024/reproduction_gate.py
+f15cabaa921767d844dcfe767d7a5b3b6b44678a690d86b8214268129d30fcf7  worker/generic/solve_bench.cpp
+3a48cf6b0d9d612aca0f4108b3c25ab950b022d2fefd93f471871752719f433c  worker/generic/engine.cu

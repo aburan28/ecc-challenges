@@ -596,26 +596,9 @@ class Pipeline:
         try:
             for a, b in pairs:
                 ns.verify(Record(0, 1, point, a, b))
-            (a1, b1), (a2, b2) = pairs
-            denominator = (b2 - b1) % ns.instance.n
-            if not denominator:
-                state = "degenerate"
-                reason = "coefficient difference has zero target denominator"
-            else:
-                try:
-                    candidate = (
-                        (a1 - a2) * pow(denominator, -1, ns.instance.n)
-                    ) % ns.instance.n
-                except ValueError:
-                    state = "degenerate"
-                    reason = "coefficient difference has a noninvertible denominator"
-                else:
-                    if ns.instance.mul(candidate, ns.instance.G) == ns.instance.Q:
-                        state = "verified"
-                        reason = "recovered scalar independently satisfies dG = Q"
-                        scalar = hex(candidate)
-                    else:
-                        reason = "recovered scalar does not satisfy dG = Q"
+            state, reason, value, sign = ns.solve_collision(point, pairs)
+            if value is not None:
+                scalar = hex(value)
         except ValueError:
             pass
 
@@ -634,6 +617,9 @@ class Pipeline:
             "verifier_id": VERIFIER_ID,
             "verifier_sha256": self.verifier_sha256,
         }
+        if ns.negation and state == "verified":
+            # Which of R1 = R2 (+1) and R1 = -R2 (-1) produced dG = Q.
+            receipt["sign"] = sign
         result_key = self.archive.put_receipt(
             ns.id, "collisions", lead_id, receipt
         )

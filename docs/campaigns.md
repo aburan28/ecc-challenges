@@ -34,7 +34,8 @@ pinned v2 namespace) is counted separately. Each open row carries:
   the stored points.
 - `expected_operations_log2`: expected steps for the campaign's default walk,
   sqrt(pi*n/(4*131)) for the sigma walk and sqrt(pi*n/2) for the v2 walk, which
-  has no automorphism quotient yet.
+  has no automorphism quotient. A namespace pinned to the opt-in
+  [negation-class walk](negation-walk.md) is counted against sqrt(pi*n/4).
 - `expected_work_percent` and `estimated_completion_probability_percent`: work as
   a share of that expectation, and 1 - exp(-(pi/4)*(k/E)^2), the chance rho would
   have produced a collision by now. Separate walks on one curve add their

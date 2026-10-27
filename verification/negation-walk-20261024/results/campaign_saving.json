@@ -1,0 +1,341 @@
+{
+ "constant_v2_over_sqrt_n": 1.3406458574170885,
+ "constant_negation_over_sqrt_n": 0.9390685598118936,
+ "constant_frozen_arm_B_over_sqrt_n": 0.9638740823010755,
+ "steps_ratio_frozen_arm_B": 0.7189624888395896,
+ "constant_arm_B2_over_sqrt_n": 0.9400919719882592,
+ "steps_ratio_arm_B2": 0.7012231953630593,
+ "steps_ratio": 0.7004598228656145,
+ "time_per_step_ratio_real_fields": {
+  "eccp-79": 1.0245077292487905,
+  "ecc2-79": 1.0088426786192726
+ },
+ "time_per_step_ratio_real_fields_mean": 1.0166752039340317,
+ "time_ratio_used": 1.0624514014462736,
+ "net_time_ratio": 0.7442045204603807,
+ "break_even_fraction_steps": 0.39677006270942544,
+ "break_even_fraction_time": 0.3229188419784246,
+ "progress_table": [
+  {
+   "fraction_of_E_v2_done": 0.0,
+   "v2_remaining_over_E_v2": 1.0,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 0.05,
+   "v2_remaining_over_E_v2": 0.9518999230478818,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 0.1,
+   "v2_remaining_over_E_v2": 0.9073596576446927,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 0.2,
+   "v2_remaining_over_E_v2": 0.8276727114232475,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 0.3,
+   "v2_remaining_over_E_v2": 0.7586989098038852,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 0.5,
+   "v2_remaining_over_E_v2": 0.6460605168183949,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  },
+  {
+   "fraction_of_E_v2_done": 1.0,
+   "v2_remaining_over_E_v2": 0.46078928839169975,
+   "negation_remaining_over_E_v2_steps": 0.7004598228656145,
+   "negation_remaining_over_E_v2_time": 0.7442045204603807
+  }
+ ],
+ "campaigns": [
+  {
+   "campaign": "ecc2-79",
+   "log2_n": 78.00000000000142,
+   "log2_E_v2_theory": 39.32574806473687,
+   "log2_E_neg_theory": 38.82574806473687,
+   "log2_E_v2_measured_constant": 39.32574806473687,
+   "log2_E_neg_measured_constant": 38.8121222724473,
+   "log2_E_neg_time_equivalent": 38.89951912358377,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2-89",
+   "log2_n": 88.00000000000006,
+   "log2_E_v2_theory": 44.32574806473619,
+   "log2_E_neg_theory": 43.82574806473619,
+   "log2_E_v2_measured_constant": 44.32574806473619,
+   "log2_E_neg_measured_constant": 43.812122272446615,
+   "log2_E_neg_time_equivalent": 43.89951912358309,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2-97",
+   "log2_n": 96.0,
+   "log2_E_v2_theory": 48.32574806473616,
+   "log2_E_neg_theory": 47.82574806473616,
+   "log2_E_v2_measured_constant": 48.32574806473616,
+   "log2_E_neg_measured_constant": 47.81212227244659,
+   "log2_E_neg_time_equivalent": 47.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-95",
+   "log2_n": 95.0,
+   "log2_E_v2_theory": 47.82574806473616,
+   "log2_E_neg_theory": 47.32574806473616,
+   "log2_E_v2_measured_constant": 47.82574806473616,
+   "log2_E_neg_measured_constant": 47.31212227244659,
+   "log2_E_neg_time_equivalent": 47.39951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 44.02579164364259,
+   "frobenius_extra_factor_sqrt_m": 9.848857801796104
+  },
+  {
+   "campaign": "ecc2-109",
+   "log2_n": 108.0,
+   "log2_E_v2_theory": 54.32574806473616,
+   "log2_E_neg_theory": 53.82574806473616,
+   "log2_E_v2_measured_constant": 54.32574806473616,
+   "log2_E_neg_measured_constant": 53.81212227244659,
+   "log2_E_neg_time_equivalent": 53.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-108",
+   "log2_n": 108.0,
+   "log2_E_v2_theory": 54.32574806473616,
+   "log2_E_neg_theory": 53.82574806473616,
+   "log2_E_v2_measured_constant": 54.32574806473616,
+   "log2_E_neg_measured_constant": 53.81212227244659,
+   "log2_E_neg_time_equivalent": 53.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 50.4416559023477,
+   "frobenius_extra_factor_sqrt_m": 10.44030650891055
+  },
+  {
+   "campaign": "ecc2-131",
+   "log2_n": 130.0,
+   "log2_E_v2_theory": 65.32574806473616,
+   "log2_E_neg_theory": 64.82574806473616,
+   "log2_E_v2_measured_constant": 65.32574806473616,
+   "log2_E_neg_measured_constant": 64.81212227244659,
+   "log2_E_neg_time_equivalent": 64.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-130",
+   "log2_n": 129.0,
+   "log2_E_v2_theory": 64.82574806473616,
+   "log2_E_neg_theory": 64.32574806473616,
+   "log2_E_v2_measured_constant": 64.82574806473616,
+   "log2_E_neg_measured_constant": 64.31212227244659,
+   "log2_E_neg_time_equivalent": 64.39951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 60.80903656396743,
+   "frobenius_extra_factor_sqrt_m": 11.445523142259598,
+   "production_v1_sigma_log2_E": 60.80903656396743
+  },
+  {
+   "campaign": "ecc2-163",
+   "log2_n": 162.0,
+   "log2_E_v2_theory": 81.32574806473616,
+   "log2_E_neg_theory": 80.82574806473616,
+   "log2_E_v2_measured_constant": 81.32574806473616,
+   "log2_E_neg_measured_constant": 80.81212227244659,
+   "log2_E_neg_time_equivalent": 80.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-163",
+   "log2_n": 162.0,
+   "log2_E_v2_theory": 81.32574806473616,
+   "log2_E_neg_theory": 80.82574806473616,
+   "log2_E_v2_measured_constant": 81.32574806473616,
+   "log2_E_neg_measured_constant": 80.81212227244659,
+   "log2_E_neg_time_equivalent": 80.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 77.15138398762062,
+   "frobenius_extra_factor_sqrt_m": 12.767145334803704
+  },
+  {
+   "campaign": "ecc2-191",
+   "log2_n": 190.0,
+   "log2_E_v2_theory": 95.32574806473616,
+   "log2_E_neg_theory": 94.82574806473616,
+   "log2_E_v2_measured_constant": 95.32574806473616,
+   "log2_E_neg_measured_constant": 94.81212227244659,
+   "log2_E_neg_time_equivalent": 94.89951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2-238",
+   "log2_n": 237.0,
+   "log2_E_v2_theory": 118.82574806473616,
+   "log2_E_neg_theory": 118.32574806473616,
+   "log2_E_v2_measured_constant": 118.82574806473616,
+   "log2_E_neg_measured_constant": 118.31212227244659,
+   "log2_E_neg_time_equivalent": 118.39951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-238",
+   "log2_n": 237.0,
+   "log2_E_v2_theory": 118.82574806473616,
+   "log2_E_neg_theory": 118.32574806473616,
+   "log2_E_v2_measured_constant": 118.82574806473616,
+   "log2_E_neg_measured_constant": 118.31212227244659,
+   "log2_E_neg_time_equivalent": 118.39951912358306,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 114.37531466074579,
+   "frobenius_extra_factor_sqrt_m": 15.459624833740307
+  },
+  {
+   "campaign": "ecc2-353",
+   "log2_n": 352.7520724865564,
+   "log2_E_v2_theory": 176.70178430801437,
+   "log2_E_neg_theory": 176.20178430801437,
+   "log2_E_v2_measured_constant": 176.70178430801437,
+   "log2_E_neg_measured_constant": 176.1881585157248,
+   "log2_E_neg_time_equivalent": 176.27555536686128,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "ecc2k-358",
+   "log2_n": 358.0,
+   "log2_E_v2_theory": 179.32574806473616,
+   "log2_E_neg_theory": 178.82574806473616,
+   "log2_E_v2_measured_constant": 179.32574806473616,
+   "log2_E_neg_measured_constant": 178.8121222724466,
+   "log2_E_neg_time_equivalent": 178.89951912358308,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807,
+   "log2_E_frobenius_follow_up_theory": 174.58182804782464,
+   "frobenius_extra_factor_sqrt_m": 18.947295321496416
+  },
+  {
+   "campaign": "eccp-79",
+   "log2_n": 78.62652573332662,
+   "log2_E_v2_theory": 39.63901093139947,
+   "log2_E_neg_theory": 39.13901093139947,
+   "log2_E_v2_measured_constant": 39.63901093139947,
+   "log2_E_neg_measured_constant": 39.125385139109895,
+   "log2_E_neg_time_equivalent": 39.21278199024637,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-89",
+   "log2_n": 88.42797343004906,
+   "log2_E_v2_theory": 44.53973477976069,
+   "log2_E_neg_theory": 44.03973477976069,
+   "log2_E_v2_measured_constant": 44.53973477976069,
+   "log2_E_neg_measured_constant": 44.026108987471126,
+   "log2_E_neg_time_equivalent": 44.1135058386076,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-97",
+   "log2_n": 96.51818209316706,
+   "log2_E_v2_theory": 48.58483911131969,
+   "log2_E_neg_theory": 48.08483911131969,
+   "log2_E_v2_measured_constant": 48.58483911131969,
+   "log2_E_neg_measured_constant": 48.071213319030115,
+   "log2_E_neg_time_equivalent": 48.1586101701666,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-109",
+   "log2_n": 108.79877037509597,
+   "log2_E_v2_theory": 54.72513325228414,
+   "log2_E_neg_theory": 54.22513325228414,
+   "log2_E_v2_measured_constant": 54.72513325228414,
+   "log2_E_neg_measured_constant": 54.21150745999457,
+   "log2_E_neg_time_equivalent": 54.29890431113105,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-131",
+   "log2_n": 130.18749351230494,
+   "log2_E_v2_theory": 65.41949482088863,
+   "log2_E_neg_theory": 64.91949482088863,
+   "log2_E_v2_measured_constant": 65.41949482088863,
+   "log2_E_neg_measured_constant": 64.90586902859907,
+   "log2_E_neg_time_equivalent": 64.99326587973555,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-163",
+   "log2_n": 162.34815558384778,
+   "log2_E_v2_theory": 81.49982585666005,
+   "log2_E_neg_theory": 80.99982585666005,
+   "log2_E_v2_measured_constant": 81.49982585666005,
+   "log2_E_neg_measured_constant": 80.98620006437048,
+   "log2_E_neg_time_equivalent": 81.07359691550695,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-191",
+   "log2_n": 190.9768206157464,
+   "log2_E_v2_theory": 95.81415837260936,
+   "log2_E_neg_theory": 95.31415837260936,
+   "log2_E_v2_measured_constant": 95.81415837260936,
+   "log2_E_neg_measured_constant": 95.30053258031978,
+   "log2_E_neg_time_equivalent": 95.38792943145626,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-239",
+   "log2_n": 238.96557233640652,
+   "log2_E_v2_theory": 119.80853423293942,
+   "log2_E_neg_theory": 119.30853423293942,
+   "log2_E_v2_measured_constant": 119.80853423293942,
+   "log2_E_neg_measured_constant": 119.29490844064985,
+   "log2_E_neg_time_equivalent": 119.38230529178632,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  },
+  {
+   "campaign": "eccp-359",
+   "log2_n": 358.47321475063063,
+   "log2_E_v2_theory": 179.56235544005148,
+   "log2_E_neg_theory": 179.06235544005148,
+   "log2_E_v2_measured_constant": 179.56235544005148,
+   "log2_E_neg_measured_constant": 179.04872964776192,
+   "log2_E_neg_time_equivalent": 179.1361264988984,
+   "steps_factor": 0.7004598228656145,
+   "time_factor": 0.7442045204603807
+  }
+ ]
+}

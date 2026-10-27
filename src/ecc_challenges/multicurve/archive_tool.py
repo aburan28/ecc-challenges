@@ -36,14 +36,11 @@ def resolve_candidate(archive,ns,candidate):
         ns.verify(Record(0,1,point,*pair))
         coefficients.append(pair)
     lead_key=archive.put_receipt(ns.id,'collisions',candidate['lead_id'],candidate)
-    (a1,b1),(a2,b2)=coefficients
-    denominator=(b2-b1)%ns.instance.n
     scalar=None
-    state='degenerate'
-    if denominator:
-        value=(a1-a2)*pow(denominator,-1,ns.instance.n)%ns.instance.n
-        if ns.instance.mul(value,ns.instance.G)!=ns.instance.Q:
-            raise ValueError('archive collision scalar fails dG=Q')
+    state,_,value,_=ns.solve_collision(point,coefficients)
+    if state=='rejected':
+        raise ValueError('archive collision scalar fails dG=Q')
+    if value is not None:
         scalar,state=hex(value),'verified'
     archive.put_receipt(ns.id,'collisions',candidate['lead_id'],{
         'protocol':2,'kind':'archive-collision-result','namespace_id':ns.id,

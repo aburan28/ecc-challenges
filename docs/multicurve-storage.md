@@ -43,6 +43,19 @@ ECCp-131 about 2^31.4). The DP bit count is part of the namespace, so changing
 the rule starts new namespaces; existing runs keep the setting pinned in their
 manifest.
 
+A second walk family, the [negation-class walk](negation-walk.md), runs on the
+classes {P, -P} and needs about E = sqrt(pi*n/4) steps (`dp_bits_for(n, walk)`
+applies the same rule to that E). It is opt-in and disabled by default
+(`MULTICURVE_NEGATION_ENABLED`, `ECC_WALK=negation`), has its own namespaces
+(`walk.id`, `ECCJOB04`), uploads the same record format with the class
+representative as the point, and never mixes its points with v2's.
+The generic walk uses the 6,568-byte `ECCJOB04` body with `reserved=1`; the
+131-bit V3/V4 fast walks use the 6,776-byte extended body with `reserved=0`.
+
+Every trail keeps the `b` of its start, because jumps add only multiples of G.
+Verification therefore also checks that each DP's `b` equals the start derived
+from its run ID and trail ID, which ties the DP to a server-assigned trail
+without replaying the walk. It does not check the trail's `a` or step count.
 ### Walk versions
 
 A namespace names its walk, so records of different walks never meet. Walk 2

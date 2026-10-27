@@ -36,6 +36,9 @@ class Settings:
     point_index_mode: str = "dynamodb"
     point_index_merge_seconds: int = 3600
     multicurve_canary_keys: tuple[str, ...] = ()
+    # The negation-class walk is a separate, default-off release gate.
+    multicurve_negation_enabled: bool = False
+    multicurve_negation_canary_keys: tuple[str, ...] = ()
     compatibility_binary: str = "/opt/ecc/sigma-compatibility"
 
     @classmethod
@@ -73,6 +76,8 @@ class Settings:
             point_index_mode=get("POINT_INDEX_MODE", "dynamodb"),
             point_index_merge_seconds=int(get("POINT_INDEX_MERGE_SECONDS", "3600")),
             multicurve_canary_keys=tuple(v.strip() for v in get("MULTICURVE_CANARY_KEYS", "").split(",") if v.strip()),
+            multicurve_negation_enabled=get("MULTICURVE_NEGATION_ENABLED", "false").lower() == "true",
+            multicurve_negation_canary_keys=tuple(v.strip() for v in get("MULTICURVE_NEGATION_CANARY_KEYS", "").split(",") if v.strip()),
             compatibility_binary=get("COMPATIBILITY_BINARY", "/opt/ecc/sigma-compatibility"),
         )
         required = ["database_url", "bucket", "audit_queue_url", "index_queue_url"]
@@ -103,6 +108,8 @@ class Settings:
             raise ValueError("PUBLIC_CPU_WORKER_IMAGE must be a pinned public CPU worker digest")
         if any(not re.fullmatch(r"[0-9a-f]{24}", value) for value in result.multicurve_canary_keys):
             raise ValueError("MULTICURVE_CANARY_KEYS must contain key IDs, never bearer values")
+        if any(not re.fullmatch(r"[0-9a-f]{24}", value) for value in result.multicurve_negation_canary_keys):
+            raise ValueError("MULTICURVE_NEGATION_CANARY_KEYS must contain key IDs, never bearer values")
         parsed = urlparse(result.public_origin)
         if parsed.scheme != "https" or parsed.path not in ("", "/") or parsed.query:
             raise ValueError("PUBLIC_ORIGIN must be an HTTPS origin")

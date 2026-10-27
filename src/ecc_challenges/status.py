@@ -11,7 +11,7 @@ from time import monotonic
 from psycopg import errors
 
 from .catalog import CHALLENGES
-from .multicurve.codec import DEFAULT_WALKS, WALK_IDS, WALK_V2, WALK_V4, expected_steps_log2
+from .multicurve.codec import DEFAULT_WALKS, WALK_IDS, WALK_V2, expected_steps_log2
 from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
 from .work import SIGMA_DP_LOG2, Walk, progress, sigma_dp_log2, sigma_expected_log2
@@ -125,7 +125,7 @@ class StatusReader:
                     # so each namespace counts as its own walk with its own weight.
                     for row in conn.execute("""
                         SELECT n.campaign_id, (n.manifest->'walk'->>'dp_bits')::int AS dp_bits,
-                          n.manifest->'walk'->>'id' AS walk_id,
+                          coalesce(n.manifest->'walk'->>'id', %s) AS walk_id,
                           coalesce(sum(s.admitted_records),0) AS points,
                           (SELECT coalesce(sum(b.records),0) FROM ecc_public.dp_batches b
                            WHERE b.namespace_id=n.id AND b.state IN ('admitted','verified','indexed')
@@ -133,7 +133,7 @@ class StatusReader:
                         FROM ecc_public.dp_namespaces n
                         LEFT JOIN ecc_public.dp_namespace_stats s ON s.namespace_id=n.id
                         GROUP BY n.id
-                    """, (RATE_WINDOW_HOURS,)).fetchall():
+                    """, (WALK_IDS[WALK_V2], RATE_WINDOW_HOURS)).fetchall():
                         work.setdefault(row["campaign_id"], []).append(
                             (int(row["dp_bits"]), int(row["points"]), int(row["recent"]), row["walk_id"]))
                     for row in conn.execute("""
@@ -167,7 +167,8 @@ class StatusReader:
                 # each stored namespace retains its own collision expectation.
                 generic_walk = expected_steps_log2(order, DEFAULT_WALKS.get(challenge.id, WALK_V2))
                 walks = [Walk(bits, points, recent, -bits, expected_steps_log2(
-                            order, WALK_V4 if walk_id == WALK_IDS[WALK_V4] else WALK_V2))
+                            order, next((version for version, identity in WALK_IDS.items()
+                                         if identity == walk_id), WALK_V2)))
                          for bits, points, recent, walk_id in work.get(challenge.id, ())]
                 # Imported from the earlier private run (same DP32 walk); not in received_points.
                 historical_points = int(historical["points"]) if legacy and historical else 0

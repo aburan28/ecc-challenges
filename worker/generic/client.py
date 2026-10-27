@@ -17,7 +17,8 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from ecc_challenges.multicurve.codec import (
-    MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_IDS, WALK_V2, canonical, namespace,
+    DEFAULT_WALKS, MAX_BATCH_BYTES, MAX_TRAIL_STEPS, WALK_IDS, WALK_NEGATION, WALK_V2,
+    WALK_V3, WALK_V4, WALK_V5, canonical, namespace,
 )
 from .runtime import BACKENDS, EngineSession, NativeState, pack_state, run_round, unpack_states
 from .heartbeat import Heartbeat
@@ -241,20 +242,37 @@ def namespace_for_state(campaign: str, namespace_id: str):
     return None
 
 
+def selected_walk() -> str:
+    """ECC_WALK selects the legacy adding walk or opt-in generic negation walk."""
+    value = os.environ.get("ECC_WALK", "v2")
+    aliases = {"v2": WALK_IDS[WALK_V2], "negation": WALK_NEGATION}
+    walk = aliases.get(value, value)
+    if walk not in (WALK_IDS[WALK_V2], WALK_NEGATION):
+        raise ValueError("ECC_WALK must be v2 or negation")
+    return walk
+
+
 def main(root: Path, key: str, campaign: str) -> int:
     root.mkdir(parents=True, exist_ok=True)
     lock = lock_state_directory(root)  # held until the process exits
-    ns = namespace(campaign)
+    walk = selected_walk()
+    # Keep main's per-campaign V4 default when the operator did not override it.
+    explicit_walk = "ECC_WALK" in os.environ
+    ns = namespace(campaign) if not explicit_walk else namespace(campaign, None, walk)
     path = root / "generic-state.json"
     pinned = False
     if path.exists():
         saved_id = json.loads(path.read_text()).get("namespace_id")
-        older = namespace_for_state(campaign, saved_id) if saved_id != ns.id else None
+        # Preserve old campaign defaults only when the operator did not
+        # explicitly select a walk. An explicit override must not silently
+        # pin a state directory to a different protocol.
+        older = namespace_for_state(campaign, saved_id) if saved_id != ns.id and not explicit_walk else None
         if older is not None:
             ns, pinned = older, True
     api = API(os.environ.get("ECC_API_URL", "https://ecc-challenges.com"), key)
     if not pinned:
-        remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}")
+        query_walk = f"&walk={walk}" if explicit_walk else ""
+        remote_config = api.request("GET", f"/v2/config?campaign={ns.campaign}{query_walk}")
         if canonical(remote_config) != canonical(ns.public()):
             raise RuntimeError("worker and gateway namespaces differ; update the pinned image")
     action = os.environ.get("ECC_ACTION", "work")
@@ -271,12 +289,13 @@ def main(root: Path, key: str, campaign: str) -> int:
         raise ValueError("ECC_ACTION must be work or close")
     backend = select_backend()
     saved = json.loads(path.read_text()) if path.exists() else {}
-    # Walks 3 and 4 run on the specialised engine; the published walk keeps its
-    # original sizes so existing state directories resume unchanged.
-    fast = ns.walk_version != WALK_V2
+    if ns.walk_version == WALK_V5 and backend == "metal":
+        raise RuntimeError("the generic negation walk is not implemented for Metal")
+    # Walks 3 and 4 use the specialised engine; generic walks retain v2 sizing.
+    fast = ns.walk_version in (WALK_V3, WALK_V4)
     lanes = int(os.environ.get("ECC_LANES") or saved.get("lanes") or default_lanes(backend, fast))
     steps = int(os.environ.get("ECC_STEPS_PER_ROUND") or saved.get("round_steps")
-                or (4096 if ns.walk_version != WALK_V2 else 256))
+                or (4096 if fast else 256))
     if not 1 <= lanes <= 4096 or not 1 <= steps <= 1048576:
         raise ValueError("invalid lane or round size")
     if (root / "state.json").exists():
@@ -301,7 +320,10 @@ def main(root: Path, key: str, campaign: str) -> int:
         nonce_record = json.loads(nonce_path.read_text())
         if nonce_record["namespace_id"] != ns.id:
             raise RuntimeError("registration belongs to another namespace")
-        assigned = api.request("POST", "/v2/register", {"campaign": ns.campaign, "registration_id": nonce})
+        registration = {"campaign": ns.campaign, "registration_id": nonce}
+        if ns.walk_version in (WALK_V2, WALK_V5) and ns.walk_version != DEFAULT_WALKS.get(ns.campaign, WALK_V2):
+            registration["walk"] = ns.walk["id"]
+        assigned = api.request("POST", "/v2/register", registration)
         if assigned["namespace_id"] != ns.id or assigned["cursor"] != 0:
             raise RuntimeError("existing registration lacks local checkpoint; preserve it for recovery")
         state = {"protocol": 2, "namespace_id": ns.id, "run_id": assigned["run_id"],

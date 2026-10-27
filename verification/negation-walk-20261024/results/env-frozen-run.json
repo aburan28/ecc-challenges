@@ -1,0 +1,29 @@
+{
+ "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+ "cores": 4,
+ "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+ "date_utc": "2026-10-24T05:07:28Z",
+ "driver_sha256": "d173d08695c3de6757bf869c955613a3226dd09b2e007ab9272f72aa97638b10",
+ "flags": "g++ -std=c++17 -O2 -x c++ solve_bench.cpp (single thread, no OpenMP)",
+ "note": "L0 shared cloud VM, no hardware PMU, 4 vCPU shared by four agents; runs under heavy.lock",
+ "protocol_sha256": "4e8dc288eac7b7e0b88d938faf3ff8f75018483988b3e2da465c196e65cc5922",
+ "source_sha256": {
+  "src/ecc_challenges/multicurve/codec.py": "318f68fae8c0f6d43c8ec346c7dd8cc92906dca3afc0881139dbe3674737dd49",
+  "tests/fixtures/toy_instances.json": "a3a7b0eff414185fd7676de4d9e58df069ac6fe03084733489a9ba59539395a9",
+  "worker/generic/ec_core.h": "d673c2dc3bef8a08f0cf289d8900d40233484b10b1648ddbd9d670a73a5dc498",
+  "worker/generic/engine.cu": "3a48cf6b0d9d612aca0f4108b3c25ab950b022d2fefd93f471871752719f433c",
+  "worker/generic/solve_bench.cpp": "f15cabaa921767d844dcfe767d7a5b3b6b44678a690d86b8214268129d30fcf7"
+ },
+ "study_scripts_sha256": {
+  "analyze.py": "e0118c81cbd6e8311805b0e2470abf66bb808c8eec2e2248fa0996466748b6c7",
+  "run_study.py": "b69294de4d58a3e6bbc1a113b7bd014e4ebfaa59ffc2fdf319379f8cffa948a7"
+ },
+ "uname": {
+  "machine": "x86_64",
+  "node": "vm",
+  "processor": "x86_64",
+  "release": "6.18.44-fc-v153",
+  "system": "Linux",
+  "version": "#1 SMP PREEMPT_DYNAMIC @0"
+ }
+}

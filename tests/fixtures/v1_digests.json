@@ -1,0 +1,10 @@
+{
+ "src/ecc_challenges/protocol.py": "b4957a7156ca96ed2d0979fbf6289982906f73c5ea9aeebe38e06432b8e78a8a",
+ "verifier/replay.cpp": "1005da1a1c7f7f77f55e8de7fe7b0ef6bc036686f658af7cd7c4f864243421af",
+ "verifier/sigma_compatibility.cpp": "d0de662105ed7dae1851d618af3b5ff23af4f4ac3b2c50569ab755b31bda0aad",
+ "verifier/sigma_compatibility.h": "b60d207a40c1fcc5abf51cdc38697294b48ba6bc5c0e1cf47bd706573d8a60f7",
+ "verifier/test_sigma_compatibility.cpp": "5f32b91fac4c00a7860a37cc21f7ec4ec784cdbb9a6b2ce1d1af336203d547ba",
+ "worker/client.py": "d8b1ecc5cfbe06de33d0e15ee9374cb01129d32fbb489f282527a283f88d3db2",
+ "worker/legacy_relay.py": "daac012e86adcffb31d8e970f68fa7ff583a7557e94474349b519b023dc0a910",
+ "worker/protocol.py": "13a7044c27960abd0e0c2f4aa4bbd64793034e7758ce086b5ca1f96253e05bc7"
+}

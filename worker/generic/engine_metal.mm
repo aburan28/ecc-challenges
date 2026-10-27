@@ -214,6 +214,8 @@ std::vector<std::string> metal_devices() {
 
 void run_metal(const Job& job, std::vector<State>& states,
                std::vector<int>& errors) {
+    require(job.reserved == 0,
+            "the negation-class walk is not implemented for the Metal backend");
     @autoreleasepool {
         id<MTLDevice> device = select_device();
         NSError* error = nil;

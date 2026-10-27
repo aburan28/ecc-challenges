@@ -81,7 +81,9 @@ The server verifies every point relation and conditionally indexes exact
 points in DynamoDB.
 PostgreSQL holds identity, quotas, admission cursors and processing metadata.
 See the [all-curve storage design](docs/multicurve-storage.md) for namespace
-binding, sizing, collision safety, compaction and archive reconstruction.
+binding, sizing, collision safety, compaction and archive reconstruction. An
+opt-in, default-off [negation-class walk](docs/negation-walk.md) (about
+sqrt(pi n/4) steps instead of sqrt(pi n/2)) has its own namespaces.
 
 ```mermaid
 flowchart LR

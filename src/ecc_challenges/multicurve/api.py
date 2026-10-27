@@ -56,7 +56,7 @@ def _constant(_value):
     raise ValueError("nonfinite JSON number")
 
 
-async def _json(request: Request, fields: set[str]) -> dict:
+async def _json(request: Request, fields: set[str], optional: frozenset = frozenset()) -> dict:
     if request.headers.get("content-type", "").split(";")[0].strip() != "application/json":
         raise Rejected(415, "JSON content type required")
     raw = await _body(request)
@@ -64,7 +64,7 @@ async def _json(request: Request, fields: set[str]) -> dict:
         value = json.loads(raw, object_pairs_hook=_pairs, parse_constant=_constant)
     except (ValueError, UnicodeDecodeError, RecursionError):
         raise Rejected(400, "invalid JSON body") from None
-    if type(value) is not dict or set(value) != fields:
+    if type(value) is not dict or not fields <= set(value) <= fields | optional:
         raise Rejected(400, "body contains missing or unexpected fields")
     return value
 
@@ -84,17 +84,19 @@ def create_router(legacy, database, storage, settings) -> APIRouter:
         return key
 
     @router.get("/config")
-    async def config(request: Request, campaign: str):
-        await authenticate(request)
-        result = await run_in_threadpool(service.config, campaign)
+    async def config(request: Request, campaign: str, walk: str | None = None):
+        key = await authenticate(request)
+        result = await run_in_threadpool(service.config, campaign, walk, key)
         return _response(result)
 
     @router.post("/register")
     async def register(request: Request):
         key = await authenticate(request)
-        value = await _json(request, {"campaign", "registration_id"})
+        # "walk" is optional: absent selects the v2 adding walk, as before.
+        value = await _json(request, {"campaign", "registration_id"}, frozenset({"walk"}))
         result = await run_in_threadpool(
-            service.register, key, value["campaign"], value["registration_id"]
+            service.register, key, value["campaign"], value["registration_id"],
+            value.get("walk"),
         )
         return _response(result, 201)
 

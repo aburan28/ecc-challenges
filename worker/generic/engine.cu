@@ -68,7 +68,7 @@ std::string fast_metal_source(bool soft_mul32 = false);
 __global__ void walk_kernel(const Job* job, State* states, int* errors) {
     const std::uint32_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index < job->lanes)
-        errors[index] = walk_lane(*job, states[index], job->steps_per_round);
+        errors[index] = walk_lane_any(*job, states[index], job->steps_per_round);
 }
 #endif
 
@@ -146,8 +146,10 @@ Job load_job(const std::string& path, JobExt& ext) {
     const auto bytes = read_file(path, JOB4_BYTES);
     require(bytes.size() == JOB_BYTES || bytes.size() == JOB4_BYTES,
             "job must contain exactly 6568 or 6776 bytes");
-    const bool v4 = bytes.size() == JOB4_BYTES;
-    require(std::memcmp(bytes.data(), v4 ? "ECCJOB04" : "ECCJOB03", 8) == 0,
+    const bool fast_walk = bytes.size() == JOB4_BYTES;
+    const bool negation_walk = bytes.size() == JOB_BYTES
+        && std::memcmp(bytes.data(), "ECCJOB04", 8) == 0;
+    require(std::memcmp(bytes.data(), (fast_walk || negation_walk) ? "ECCJOB04" : "ECCJOB03", 8) == 0,
             "invalid job magic");
     Reader r{bytes, 8}; Job job{};
     job.kind = r.u32(); job.field_bits = r.u32(); job.scalar_bits = r.u32();
@@ -162,7 +164,7 @@ Job load_job(const std::string& path, JobExt& ext) {
     require(job.lanes >= 1 && job.lanes <= MAX_LANES, "lanes must be 1..4096");
     require(job.steps_per_round >= 1 && job.steps_per_round <= MAX_ROUND_STEPS,
             "steps_per_round must be 1..1048576");
-    require(job.table_size == 32 && job.reserved == 0,
+    require(job.table_size == 32 && job.reserved == (negation_walk ? 1U : 0U),
             "unsupported table size or reserved field");
     job.modulus = r.integer(); job.a = r.integer(); job.b = r.integer();
     job.n = r.integer(); job.gx = r.integer(); job.gy = r.integer();
@@ -198,11 +200,12 @@ Job load_job(const std::string& path, JobExt& ext) {
                 "jump coefficients must be reduced");
         validate_point(Point{j.x, j.y, 0}, job, "jump " + std::to_string(i));
     }
-    if (v4) {
+    if (fast_walk) {
         ext.walk = r.u32(); ext.table_log2 = r.u32(); ext.anchor_log2 = r.u32();
         ext.dp_shift = r.u32();
         ext.escape.x = r.integer(); ext.escape.y = r.integer();
         ext.escape.da = r.integer(); ext.escape.db = r.integer();
+        require(job.reserved == 0, "fast walk reserved field must be zero");
         require(ext.walk == f131::WALK_V3 || ext.walk == f131::WALK_V4,
                 "unsupported walk");
         require(ext.table_log2 == 5, "unsupported partition table size");
@@ -213,6 +216,8 @@ Job load_job(const std::string& path, JobExt& ext) {
         validate_point(Point{ext.escape.x, ext.escape.y, 0}, job, "escape jump");
         require(f131::fast_curve(job.kind, job.field_bits, job.modulus),
                 "walks 3 and 4 need a 131-bit Certicom field");
+    } else if (negation_walk) {
+        ext.walk = f131::WALK_V2;  // dispatch to walk_lane_any via job.reserved
     }
     require(r.pos == bytes.size(), "job parser length mismatch");
     return job;
@@ -232,6 +237,10 @@ std::vector<State> load_states(const std::string& path, const Job& job) {
                 "noncanonical scalar in state " + std::to_string(i));
         validate_point(Point{s.x, s.y, s.infinity}, job,
                        "state " + std::to_string(i));
+        if (job.reserved && !s.infinity)
+            require(is_class_representative(s.x, s.y, job),
+                    "state " + std::to_string(i) +
+                    ": not the canonical class representative");
     }
     return states;
 }
@@ -512,6 +521,25 @@ void self_test() {
             }
         }
     }
+    // Negation classes: exactly one of P and -P is the representative.
+    for (int field = 0; field < 2; ++field) {
+        const Job& group = field ? binary : curve;
+        for (std::uint32_t x = 0; x < 17; ++x)
+            for (std::uint32_t y = 0; y < 17; ++y) {
+                const Point p{small(x), small(y), 0};
+                if (!on_curve(p, group)) continue;
+                Point n = p;
+                n.y = negated_y(p.x, p.y, group);
+                require(on_curve(n, group), "negative stays on the curve");
+                require(equal(negated_y(n.x, n.y, group), p.y),
+                        "negation is an involution");
+                const bool self_inverse = equal(p.y, n.y);
+                require(self_inverse ||
+                        is_class_representative(p.x, p.y, group) !=
+                        is_class_representative(n.x, n.y, group),
+                        "exactly one representative per negation class");
+            }
+    }
     std::cout << "{\"self_test\":\"passed\",\"wide_modulus_bits\":127,"
                  "\"prime_control_order\":19,\"binary_field_bits\":4}\n";
 }
@@ -539,12 +567,12 @@ void run_cpu(const Job& job, std::vector<State>& states,
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
     for (int i = 0; i < lanes; ++i)
-        errors[i] = walk_lane(job, states[i], job.steps_per_round);
+        errors[i] = walk_lane_any(job, states[i], job.steps_per_round);
 #else
     std::atomic<int> next{0};
     auto worker = [&]() {
         for (int i = next++; i < lanes; i = next++)
-            errors[i] = walk_lane(job, states[i], job.steps_per_round);
+            errors[i] = walk_lane_any(job, states[i], job.steps_per_round);
     };
     const unsigned wanted = std::min(cpu_threads(), unsigned(lanes));
     std::vector<std::thread> pool;
@@ -637,24 +665,26 @@ std::string execute_round(const std::string& backend, Job job, const JobExt& ext
     bool done = false;
     bool metal_soft_mul32 = false;
     const char* engine = "reference";
-    if (backend == "cpu" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+    require(backend != "metal" || job.reserved == 0,
+            "generic negation walk is not implemented for Metal");
+    if (job.reserved == 0 && backend == "cpu" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
         done = f131::run_cpu_fast_job(job, ext.walk, ext.anchor_log2, ext.dp_shift, ext.escape, states,
                                       errors, cpu_threads());
         if (done) engine = "fast131";
     }
 #ifdef __CUDACC__
-    if (!done && backend == "cuda" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+    if (!done && job.reserved == 0 && backend == "cuda" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
         done = run_cuda_fast(job, ext, states, errors);
         if (done) engine = "fast131";
     }
 #endif
 #ifdef ECC_METAL
-    if (!done && backend == "metal" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
+    if (!done && job.reserved == 0 && backend == "metal" && (fast_enabled() || ext.walk != f131::WALK_V2)) {
         done = run_metal_fast(job, ext, states, errors, metal_soft_mul32);
         if (done) engine = "fast131";
     }
 #endif
-    require(done || ext.walk == f131::WALK_V2,
+    require(done || job.reserved != 0 || ext.walk == f131::WALK_V2,
             "walks 3 and 4 need a specialised engine backend");
     if (!done) {
         if (backend == "cpu") run_cpu(job, states, errors);

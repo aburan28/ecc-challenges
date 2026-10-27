@@ -1,0 +1,145 @@
+{
+ "pass": true,
+ "checks": [
+  {
+   "instance": "toy-prime-24-0",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-24-0",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-24-0",
+   "frozen_arm": "A2",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-24-0",
+   "frozen_arm": "C",
+   "amended_mode": 2,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-28-1",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-28-1",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-28-1",
+   "frozen_arm": "A2",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-28-1",
+   "frozen_arm": "C",
+   "amended_mode": 2,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-31-2",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-31-2",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-31-2",
+   "frozen_arm": "A2",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-35-3",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-35-3",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-prime-35-3",
+   "frozen_arm": "A2",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-25-0",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-25-0",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-28-1",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-28-1",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-33-2",
+   "frozen_arm": "A",
+   "amended_mode": 0,
+   "solves": 5,
+   "identical": true
+  },
+  {
+   "instance": "toy-binary-33-2",
+   "frozen_arm": "B",
+   "amended_mode": 3,
+   "solves": 5,
+   "identical": true
+  }
+ ]
+}

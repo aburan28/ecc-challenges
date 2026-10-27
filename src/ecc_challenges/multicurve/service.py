@@ -11,7 +11,8 @@ from uuid import UUID, uuid4
 from psycopg.types.json import Jsonb
 
 from ..service import Rejected
-from .codec import MAX_BATCH_BYTES, canonical, namespace, pinned_namespace
+from .codec import (MAX_BATCH_BYTES, WALK_NEGATION, WALK_V2_ID, canonical,
+                    namespace, pinned_namespace)
 
 LOG = logging.getLogger(__name__)
 HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -40,17 +41,26 @@ class Service:
         self.archive = archive
         self.settings = settings
 
-    @staticmethod
-    def _namespace(campaign: str):
+    def _namespace(self, campaign: str, walk: str | None = None, key: dict | None = None):
         if not isinstance(campaign, str) or len(campaign) > 80:
             raise Rejected(400, "invalid campaign")
+        if walk is not None and walk not in (WALK_V2_ID, WALK_NEGATION):
+            raise Rejected(400, "unknown walk")
+        if walk == WALK_NEGATION:
+            # A separate release gate, default off, like MULTICURVE_ENABLED.
+            if not (self.settings.multicurve_negation_enabled
+                    or (key is not None and key["id"] in self.settings.multicurve_negation_canary_keys)):
+                raise Rejected(503, "negation-class walk is not enabled for this key", 60)
         try:
-            return namespace(campaign)
+            # The v2 call is exactly the one that predates the negation walk.
+            if walk in (None, WALK_V2_ID):
+                return namespace(campaign)
+            return namespace(campaign, None, walk)
         except (KeyError, ValueError):
             raise Rejected(404, "unknown campaign") from None
 
-    def config(self, campaign: str) -> dict:
-        return self._namespace(campaign).public()
+    def config(self, campaign: str, walk: str | None = None, key: dict | None = None) -> dict:
+        return self._namespace(campaign, walk, key).public()
 
     def _run(self, conn, run_id: UUID, key: dict, *, lock=False, allow_closed=False) -> dict:
         suffix = " FOR UPDATE OF r" if lock else ""
@@ -87,8 +97,9 @@ class Service:
             "closed_at": run["closed_at"].isoformat() if run["closed_at"] else None,
         }
 
-    def register(self, key: dict, campaign: str, registration_id: str) -> dict:
-        ns = self._namespace(campaign)
+    def register(self, key: dict, campaign: str, registration_id: str,
+                 walk: str | None = None) -> dict:
+        ns = self._namespace(campaign, walk, key)
         campaign = ns.campaign
         nonce = uuid_value(registration_id, "registration_id")
         with self.db.connection() as conn:

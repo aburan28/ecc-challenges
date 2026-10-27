@@ -109,3 +109,35 @@ def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
     except Stop:
         pass
     assert seen==[5]
+
+
+def test_negation_walk_is_opt_in_and_v2_requests_are_unchanged(tmp_path,monkeypatch):
+    import pytest
+    import generic.client as client
+    from ecc_challenges.multicurve.codec import WALK_IDS,WALK_NEGATION,WALK_V2
+    monkeypatch.delenv('ECC_WALK',raising=False)
+    assert client.selected_walk()==WALK_IDS[WALK_V2]
+    monkeypatch.setenv('ECC_WALK','negation')
+    assert client.selected_walk()==WALK_NEGATION
+    monkeypatch.setenv('ECC_WALK','bogus')
+    with pytest.raises(ValueError):
+        client.selected_walk()
+    # With ECC_WALK set the worker asks for, and checks, the negation namespace.
+    ns=namespace('eccp-79',None,WALK_NEGATION)
+    monkeypatch.setenv('ECC_WALK','negation')
+    monkeypatch.setenv('ECC_ACTION','close')
+    (tmp_path/'generic-state.json').write_text(json.dumps(
+        {'protocol':2,'namespace_id':ns.id,'run_id':'saved-run','pending':''}))
+    calls=[]
+    def request(self,method,path,body=None):
+        calls.append((method,path))
+        return ns.public() if method=='GET' else {'run_id':'saved-run','closed_at':'now'}
+    monkeypatch.setattr(client.API,'request',request)
+    assert client.main(tmp_path,'private-runtime-key','eccp-79')==0
+    assert calls[0]==('GET',f'/v2/config?campaign=eccp-79&walk={WALK_NEGATION}')
+    # A v2 state directory is never silently reused for the negation walk.
+    v2=namespace('eccp-79')
+    (tmp_path/'generic-state.json').write_text(json.dumps(
+        {'protocol':2,'namespace_id':v2.id,'run_id':'saved-run','pending':''}))
+    with pytest.raises(RuntimeError):
+        client.main(tmp_path,'private-runtime-key','eccp-79')

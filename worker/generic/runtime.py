@@ -16,12 +16,13 @@ import tempfile
 from typing import Sequence
 
 from ecc_challenges.multicurve.codec import (
-    ANCHOR_LOG2, MAX_TRAIL_STEPS, TABLE_LOG2, WALK_V2, Namespace, Record,
+    ANCHOR_LOG2, MAX_TRAIL_STEPS, TABLE_LOG2, WALK_V2, WALK_V3, WALK_V4,
+    WALK_V5, Namespace, Record,
 )
 
 INTEGER_BYTES = 48
 JOB_BYTES = 6568
-# ECCJOB04 (walks 3 and 4): the ECCJOB03 body, then walk, table_log2,
+# ECCJOB04 fast jobs (walks 3 and 4): the ECCJOB03 body, then walk, table_log2,
 # anchor_log2, dp_shift and the escape jump.
 JOB4_BYTES = JOB_BYTES + 16 + 4 * INTEGER_BYTES
 STATE_BYTES = 216
@@ -105,10 +106,12 @@ def pack_job(ns: Namespace, lanes: int, steps: int) -> bytes:
         raise ValueError("instance exceeds the native engine width")
     if type(ns.dp_bits) is not int or not 1 <= ns.dp_bits <= 40:
         raise ValueError("DP bits must be between one and forty")
-    fast_walk = ns.walk_version != WALK_V2
+    fast_walk = ns.walk_version in (WALK_V3, WALK_V4)
+    generic_negation = ns.walk_version == WALK_V5
     encoded = bytearray(JOB_HEADER.pack(
-        b"ECCJOB04" if fast_walk else b"ECCJOB03", int(instance.field_kind == "binary"), instance.bits,
-        instance.n.bit_length(), ns.dp_bits, lanes, steps, 32, 0,
+        b"ECCJOB04" if fast_walk or generic_negation else b"ECCJOB03",
+        int(instance.field_kind == "binary"), instance.bits,
+        instance.n.bit_length(), ns.dp_bits, lanes, steps, 32, int(generic_negation),
     ))
     for name, value in (
         ("modulus", instance.modulus), ("a", instance.a), ("b", instance.b),
@@ -221,6 +224,9 @@ def _check_state(ns: Namespace, state: NativeState) -> None:
         raise ValueError(
             "state is not a canonical point on the assigned curve"
         )
+    if ns.walk_version == WALK_V5 and record.point is not None \
+            and ns.canonical_point(record.point)[1]:
+        raise ValueError("state is not the canonical class representative")
 
 
 class EngineSession:
