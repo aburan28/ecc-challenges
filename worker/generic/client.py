@@ -263,7 +263,10 @@ def main(root: Path, key: str, campaign: str) -> int:
     pinned = False
     if path.exists():
         saved_id = json.loads(path.read_text()).get("namespace_id")
-        older = namespace_for_state(campaign, saved_id) if saved_id != ns.id else None
+        # Preserve old campaign defaults only when the operator did not
+        # explicitly select a walk. An explicit override must not silently
+        # pin a state directory to a different protocol.
+        older = namespace_for_state(campaign, saved_id) if saved_id != ns.id and not explicit_walk else None
         if older is not None:
             ns, pinned = older, True
     api = API(os.environ.get("ECC_API_URL", "https://ecc-challenges.com"), key)
