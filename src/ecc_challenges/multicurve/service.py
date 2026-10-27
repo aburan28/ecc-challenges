@@ -11,7 +11,8 @@ from uuid import UUID, uuid4
 from psycopg.types.json import Jsonb
 
 from ..service import Rejected
-from .codec import MAX_BATCH_BYTES, WALK_NEGATION, WALK_V2, canonical, namespace, pinned_namespace
+from .codec import (MAX_BATCH_BYTES, WALK_NEGATION, WALK_V2_ID, canonical,
+                    namespace, pinned_namespace)
 
 LOG = logging.getLogger(__name__)
 HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -43,7 +44,7 @@ class Service:
     def _namespace(self, campaign: str, walk: str | None = None, key: dict | None = None):
         if not isinstance(campaign, str) or len(campaign) > 80:
             raise Rejected(400, "invalid campaign")
-        if walk is not None and walk not in (WALK_V2, WALK_NEGATION):
+        if walk is not None and walk not in (WALK_V2_ID, WALK_NEGATION):
             raise Rejected(400, "unknown walk")
         if walk == WALK_NEGATION:
             # A separate release gate, default off, like MULTICURVE_ENABLED.
@@ -52,7 +53,7 @@ class Service:
                 raise Rejected(503, "negation-class walk is not enabled for this key", 60)
         try:
             # The v2 call is exactly the one that predates the negation walk.
-            if walk in (None, WALK_V2):
+            if walk in (None, WALK_V2_ID):
                 return namespace(campaign)
             return namespace(campaign, None, walk)
         except (KeyError, ValueError):

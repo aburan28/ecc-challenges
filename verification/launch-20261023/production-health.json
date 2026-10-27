@@ -1,0 +1,123 @@
+{
+  "as_of": "2026-10-24T02:36:25.625005+00:00",
+  "services": [
+    {
+      "name": "ecc-challenges-reconcile",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollouts": [
+        "COMPLETED"
+      ],
+      "images": [
+        "ecc-challenges-audit@sha256:1a60abc044e492e766a28b24bd762858a61aeb5dd309cb1b2a1f7887e4aa0e0d"
+      ]
+    },
+    {
+      "name": "ecc-challenges-resolve",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollouts": [
+        "COMPLETED"
+      ],
+      "images": [
+        "ecc-challenges-audit@sha256:1a60abc044e492e766a28b24bd762858a61aeb5dd309cb1b2a1f7887e4aa0e0d"
+      ]
+    },
+    {
+      "name": "ecc-challenges-audit",
+      "desired": 12,
+      "running": 12,
+      "pending": 0,
+      "rollouts": [
+        "COMPLETED"
+      ],
+      "images": [
+        "ecc-challenges-audit@sha256:1a60abc044e492e766a28b24bd762858a61aeb5dd309cb1b2a1f7887e4aa0e0d"
+      ]
+    },
+    {
+      "name": "ecc-challenges-index",
+      "desired": 1,
+      "running": 1,
+      "pending": 0,
+      "rollouts": [
+        "COMPLETED"
+      ],
+      "images": [
+        "ecc-challenges-audit@sha256:1a60abc044e492e766a28b24bd762858a61aeb5dd309cb1b2a1f7887e4aa0e0d"
+      ]
+    },
+    {
+      "name": "ecc-challenges-web",
+      "desired": 2,
+      "running": 2,
+      "pending": 0,
+      "rollouts": [
+        "COMPLETED"
+      ],
+      "images": [
+        "ecc-challenges-web@sha256:3f706a75e623e10799fc1a70c5114fec695c54c1d798b65b7c615000009634da"
+      ]
+    }
+  ],
+  "queues": [
+    {
+      "name": "ecc-challenges-audit",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    },
+    {
+      "name": "ecc-challenges-audit-dead",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    },
+    {
+      "name": "ecc-challenges-collision",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    },
+    {
+      "name": "ecc-challenges-collision-dead",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    },
+    {
+      "name": "ecc-challenges-index",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    },
+    {
+      "name": "ecc-challenges-index-dead",
+      "ApproximateNumberOfMessages": "0",
+      "ApproximateNumberOfMessagesNotVisible": "0"
+    }
+  ],
+  "alarms": [
+    {
+      "name": "ecc-challenges-audit-dead-letter",
+      "state": "OK"
+    },
+    {
+      "name": "ecc-challenges-audit-oldest-over-hour",
+      "state": "OK"
+    },
+    {
+      "name": "ecc-challenges-collision-dead-letter",
+      "state": "OK"
+    },
+    {
+      "name": "ecc-challenges-index-dead-letter",
+      "state": "OK"
+    },
+    {
+      "name": "ecc-challenges-index-oldest-over-15-minutes",
+      "state": "OK"
+    },
+    {
+      "name": "ecc-challenges-v2-point-index-throttled",
+      "state": "OK"
+    }
+  ]
+}

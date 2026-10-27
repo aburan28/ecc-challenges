@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% import "_work.html" as work %}
+{% import "_names.html" as names %}
 {% block title %}Status · ECC Challenges{% endblock %}
 {% block description %}Live progress of the public ECC Challenges search: estimated work against each Certicom challenge, points per hour, active runs and queue depth.{% endblock %}
 {% block content %}
-<div class="kicker">Status</div>
 <h1>Live status</h1>
 {% set imported = (snapshot.total_historical_points or 0) if snapshot else 0 %}
 <p class="lead">Counts for each challenge{% if imported %}, including the points imported from the earlier ECC2K-130 run{% endif %}. Figures update about once a minute while this page is open.</p>
@@ -14,14 +14,22 @@
 
 {% set v2 = snapshot and snapshot.compute_ready > 1 %}
 {% set open_rows = snapshot.campaigns|selectattr("received_points", "ne", none)|list if snapshot else [] %}
+{% set unsolved = challenges|rejectattr("solved_in_2009")|list|length %}
+{% set accepting = open_rows|rejectattr("solved_in_2009")|list|length %}
 <dl class="stats" aria-label="Totals">
-  <div class="stat"><dt>Open here</dt><dd>{{ snapshot.compute_ready if snapshot else "—" }}<small>of 24 challenges</small></dd></div>
-  <div class="stat"><dt>Points archived</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}{{ "{:,}".format(imported) }} imported · {{ "{:,}".format(snapshot.total_archived_points) }} uploaded here{% else %}stored durably{% endif %}</small></dd></div>
+  <div class="stat"><dt>Open challenges</dt><dd>{{ accepting if snapshot else unsolved }}<small>{% if snapshot and accepting < unsolved %}of {{ unsolved }} unsolved; {% endif %}{{ 24 - unsolved }} of 24 were solved by 2004</small></dd></div>
+  <div class="stat"><dt>Archived points</dt><dd>{% if snapshot %}{{ "{:,}".format(snapshot.total_archived_points + imported) }}{% else %}—{% endif %}<small>{% if imported %}{{ "{:,}".format(imported) }} imported · {{ "{:,}".format(snapshot.total_archived_points) }} uploaded here{% else %}stored durably{% endif %}</small></dd></div>
   <div class="stat"><dt>Points per hour</dt><dd>{% if snapshot %}{{ "{:,.0f}".format(snapshot.total_points_per_hour) }}{% else %}—{% endif %}<small>{{ snapshot.rate_window_hours if snapshot else 24 }} h average</small></dd></div>
   <div class="stat"><dt>Active runs</dt><dd>{% if snapshot %}{{ "{:,}".format(open_rows|sum(attribute="recent_runs_24h")) }}{% else %}—{% endif %}<small>seen in the last 24 hours</small></dd></div>
 </dl>
 
-{% set racing = open_rows|rejectattr("solved_in_2009")|list %}
+{# Cards only for challenges being worked on; an all-zero card says nothing the table below doesn't. #}
+{% set ns = namespace(racing=[]) %}
+{% for row in open_rows|rejectattr("solved_in_2009") %}
+  {% if (row.recent_runs_24h or 0) > 0 or (row.points_per_hour or 0) > 0 or (row.expected_work_percent or 0) >= 0.01 %}{% set ns.racing = ns.racing + [row] %}{% endif %}
+{% endfor %}
+{% set racing = ns.racing %}
+{% set waiting = (open_rows|rejectattr("solved_in_2009")|list|length) - racing|length %}
 {% if racing %}
 <section class="section">
   <div class="section-head"><h2>Progress</h2><p class="muted">Estimated work done, as a share of what each challenge's walk is expected to need. <a href="/pollard-rho#estimate">How this is estimated</a>.</p></div>
@@ -29,44 +37,48 @@
   {% for row in racing|sort(attribute="estimated_work_operations", reverse=true) %}
     {% set both = row.including_historical %}
     <article class="panel progress-card" aria-label="{{ row.name }} progress">
-      <div class="top"><h3 style="margin:0"><span class="name mono">{{ row.name }}</span></h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
+      <div class="top"><h3><span class="name mono">{{ row.name }}</span>{{ names.kind(row) }}</h3><span class="muted">of {{ row.expected_operations_log2|pow2 }} expected operations</span></div>
       {% for label, est, points in (([("Including imported points", both, row.received_points + row.historical_points)] if both else []) + [("Public uploads only", row, row.received_points)]) %}
       <div class="progress-line{% if loop.first %} primary{% else %} secondary{% endif %}">
         <div class="top"><span>{{ label }}<small>{{ est.estimated_work_log2|pow2 }} operations · {{ "{:,}".format(points) }} points</small></span><span class="pct">{{ est.expected_work_percent|percent }}</span></div>
-        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ [est.expected_work_percent or 0, 100]|min }}" aria-label="{{ label }}: share of expected work"><span style="width:{{ [est.expected_work_percent or 0, 100]|min }}%"></span></div>
+        <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ "%.10f"|format([est.expected_work_percent or 0, 100]|min) }}" aria-valuetext="{{ (est.expected_work_percent or 0)|percent }} of expected work" aria-label="{{ label }}: share of expected work"><span style="width:{{ [est.expected_work_percent or 0, 100]|min }}%"></span></div>
       </div>
       {% endfor %}
       <dl>
         <div><dt>Points per hour</dt><dd>{{ "{:,.0f}".format(row.points_per_hour) }}<small>{{ snapshot.rate_window_hours }} h average, DP{{ row.dp_bits|join("/") if row.dp_bits else "—" }}</small></dd></div>
         <div><dt>Speed</dt><dd>{{ row.operations_per_second_log2|pow2 }}<small>operations per second</small></dd></div>
-        <div><dt>Collision chance so far</dt><dd>{{ (both or row).estimated_completion_probability_percent|percent }}<small>{% if both %}public runs alone {{ row.estimated_completion_probability_percent|percent }}{% else %}if the walk is random{% endif %}</small></dd></div>
+        <div><dt>Collision odds</dt><dd>{{ (both or row).estimated_completion_probability_percent|percent }}<small>{% if both %}public runs alone {{ row.estimated_completion_probability_percent|percent }}{% else %}if the walk is random{% endif %}</small></dd></div>
         <div><dt>Expected work in</dt><dd>{% if (both or row).hours_to_expected_work == 0 %}reached{% else %}{{ (both or row).hours_to_expected_work|duration }}{% endif %}<small>at the current rate{% if both %}, with imported points{% endif %}</small></dd></div>
       </dl>
     </article>
   {% endfor %}
   </div>
+  {% if waiting %}<p class="table-note">{{ waiting }} other open challenge{{ "" if waiting == 1 else "s" }} {{ "has" if waiting == 1 else "have" }} had no worker activity in the last 24 hours. Pick one on your <a href="/dashboard">dashboard</a> to start its search.</p>{% endif %}
 </section>
 {% endif %}
 
 <section class="section" id="challenges">
   <div class="section-head"><h2>By challenge</h2><p class="muted">Expected operations are Certicom's 2009 figures, shown as powers of two. Hover for the published value.</p></div>
-  {% if not snapshot %}<div class="panel alert" style="margin-bottom:20px"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
-  <div class="table-wrap"><table class="challenge-status">
+  {{ names.key() }}
+  {% if not snapshot %}<div class="panel alert gap-bottom"><p>Live counts are unavailable right now. The challenge list below is still accurate.</p></div>{% endif %}
+  <div class="table-wrap" tabindex="0"><table class="challenge-status">
     <thead><tr><th>Challenge</th><th class="num">Bits</th><th class="num">Expected ops</th><th>Status</th><th>Progress</th><th class="num">Points/h</th><th class="num">Runs</th><th class="num">Active 24 h</th><th class="num">Points</th>{% if v2 %}<th class="num">Individually checked points</th>{% endif %}<th class="num">Queued</th></tr></thead>
     {% set rows = snapshot.campaigns if snapshot else challenges %}
-    {% for solved, group in rows|sort(attribute="field_bits")|groupby("solved_in_2009") %}
-    <tbody>
-    <tr><th scope="rowgroup" colspan="{{ 11 if v2 else 10 }}">{{ "Solved 1997–2004" if solved else "Unsolved challenges" }} · smallest to largest bit size</th></tr>
-    {% for challenge in group %}
+    {% for solved, group in rows|sort(attribute="family_order")|sort(attribute="field_bits")|groupby("solved_in_2009") %}
+    <tbody class="{{ 'solved' if solved else 'open' }}">
+    <tr><th scope="rowgroup" colspan="{{ 11 if v2 else 10 }}">{% if solved %}Solved<small>{{ group|length }} challenges, closed between 1997 and 2004</small>{% else %}Open<small>{{ group|length }} unsolved challenges, smallest first</small>{% endif %}</th></tr>
+    {% for bits, sized in group|groupby("field_bits") %}
+    {{ names.size_row(bits, sized|map(attribute="id")|map("upper")|map("replace", "ECCP-", "ECCp-")|list, 11 if v2 else 10) }}
+    {% for challenge in sized %}
       {% set row = challenge if snapshot else challenge.public() %}
       {% set is_open = row.received_points is defined and row.received_points is not none %}
       {% set state = "solved" if row.solved_in_2009 else "open" if is_open else "not-started" %}
       {% set primary = row.including_historical or row if is_open else row %}
       <tr class="{{ state }}">
-        <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a></td>
+        <td><a class="name" href="/{{ 'results' if row.solved_in_2009 else 'challenges' }}/{{ row.id }}">{{ row.name }}</a>{{ names.kind(row) }}</td>
         <td class="num">{{ row.field_bits }}</td>
         <td class="num" title="{{ row.estimated_operations_2009 or '' }} (Certicom 2009)">{{ work.expected(challenge) }}</td>
-        <td>{% if row.solved_in_2009 %}<a class="tag solved" href="/results/{{ row.id }}" aria-label="{{ row.name }} published result">Solved {{ solved_dates[row.id] }}</a>{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Open here</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
+        <td>{% if row.solved_in_2009 %}{{ work.solved_status(row, row.name) }}{% elif is_open %}<a class="tag open" href="/challenges/{{ row.id }}">Accepting work</a>{% else %}<a class="tag" href="/challenges/{{ row.id }}">Not open yet</a>{% endif %}</td>
         <td>{% if row.solved_in_2009 %}{{ work.solved(row) }}{% elif is_open %}<span class="bar mini" aria-hidden="true"><span style="width:{{ [primary.expected_work_percent or 0, 100]|min }}%"></span></span><span class="mono">{{ primary.expected_work_percent|percent }}</span>{% if row.including_historical %}<br><small class="muted">{{ row.expected_work_percent|percent }} public uploads only</small>{% endif %}{% else %}—{% endif %}</td>
         <td class="num">{{ "{:,.0f}".format(row.points_per_hour) if is_open else "—" }}</td>
         <td class="num">{{ "{:,}".format(row.total_runs) if is_open else "—" }}</td>
@@ -76,16 +88,17 @@
         <td class="num">{{ "{:,}".format(row.pending_batches) if is_open else "—" }}</td>
       </tr>
     {% endfor %}
+    {% endfor %}
     </tbody>
     {% endfor %}
   </table></div>
-  <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}Solved challenges show 100%: their published result closes them, and the test runs stored here do not change that. Solve dates are from section 6.1 of Certicom's 2009 report. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
+  <p class="table-note">{% if imported %}ECC2K-130's points include the {{ "{:,}".format(imported) }} imported from the earlier run; runs and queue cover this gateway only. {% endif %}A solved challenge is done: its published result closes it, and the test runs stored here do not change that. Solve dates and names are from section 6.1 of Certicom's 2009 challenge document. Machine-readable data: <a href="/v1/status">/v1/status</a>.</p>
 </section>
 
 <section class="section" id="verification">
   <div class="section-head"><h2>Verification and queue health</h2><p class="muted">Individual point checks and sampled replay are different checks. Imported points are reported separately.</p></div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>Challenge</th><th>Individual checks / indexed points</th><th>Original-worker sampled / indexed batches</th><th>Failed or quarantined batches</th><th>Oldest awaiting processing</th><th>Last successful check</th></tr></thead>
+  <div class="table-wrap" tabindex="0"><table>
+    <thead><tr><th>Challenge</th><th>Individual checks / indexed points</th><th>Protocol 1 sampled / indexed batches</th><th>Failed or quarantined batches</th><th>Oldest awaiting processing</th><th>Last successful check</th></tr></thead>
     <tbody>{% for row in open_rows %}{% set check = row.verification %}
       <tr><th><a href="/challenges/{{ row.id }}">{{ row.name }}</a></th>
         <td>{{ "{:,}".format(check.individually_verified_points) if check.individually_verified_points is not none else "Unavailable" }} / {{ "{:,}".format(check.individually_indexed_points) if check.individually_indexed_points is not none else "Unavailable" }}</td>
@@ -95,14 +108,14 @@
         <td>{{ check.last_checked_at|isoago if check.last_checked_at else "No successful check recorded" }}</td>
       </tr>{% endfor %}</tbody>
   </table></div>
-  <p class="table-note">Individual checks cover new-worker points only. Original-worker sampling replays selected records; it does not verify every point or every iteration. {% if imported %}The {{ "{:,}".format(imported) }} imported points are stored separately; archive audit counts are unavailable here.{% endif %} Reserved uploads have not reached verification yet. Queue age includes checks and indexing still waiting; it is not a failure diagnosis.</p>
+  <p class="table-note">Individual checks cover protocol 2 points only. Protocol 1 sampling replays selected records; it does not verify every point or every iteration. Unresolved batches reached a replay timeout or error: they remain archived but are not indexed or queued for automatic retry and need operator review. {% if imported %}The {{ "{:,}".format(imported) }} imported points are stored separately; archive audit counts are unavailable here.{% endif %} Reserved uploads have not reached verification yet. Queue age includes checks and indexing still waiting, excludes unresolved batches, and is not a failure diagnosis.</p>
 </section>
-<section class="section two">
+<section class="section two" id="reading">
   <div>
     <h2>Reading these numbers</h2>
     <p class="muted">A point is counted once it is stored. {% if v2 %}Points from the new worker are also checked one by one against the curve before they enter collision search; {% endif %}ECC2K-130 points from the original worker are checked by replaying sampled batches.</p>
-    <p class="muted">Each distinguished point stands for the average number of walk steps between them, so estimated work is points times that length: 2<sup>28.4</sup> at DP32 on the ECC2K-130 walk, where DP32 means the x-coordinate has Hamming weight 32 or less. DP30 and DP34 runs use their own stored thresholds. The all-curve walk uses 2<sup>d</sup> with d DP bits. The percentage compares that with the expected work of the walk being run, which is Certicom's figure for ECC2K-130 and somewhat more for the all-curve walk, since it does not yet use the negation or Frobenius maps. ECC2K-130 shows two figures: the combined progress including points imported from the earlier private run first, with public uploads alone underneath. The imported points walk the same function and count toward the same collision. It is an estimate from point counts, not a count of verified steps.</p>
-    <p class="muted">Rho is a random search, so 100% is not a finish line: a collision can arrive earlier or later. "Collision chance so far" is the probability that one would have appeared by now, 1 − e<sup>−π/4·x²</sup> for work fraction x (<a href="/pollard-rho#estimate">details</a>). Points per hour is averaged over the last {{ snapshot.rate_window_hours if snapshot else 24 }} hours because workers upload in large batches.</p>
+    <p class="muted">Each distinguished point (DP) stands for the average walk length between two of them, so estimated work is points times that length. On the ECC2K-130 walk that is 2<sup>28.4</sup> at DP32, where DP32 means the x-coordinate has Hamming weight 32 or less. DP30 and DP34 runs use their own stored thresholds. The all-curve walk uses 2<sup>t</sup> for a threshold of t zero bits. The percentage compares that with the expected work of the walk being run. For ECC2K-130 that is Certicom's figure. The all-curve walk does not yet use the negation or Frobenius maps, so it expects √2 times Certicom's figure on most curves and √(2m) times on Koblitz curves over GF(2<sup>m</sup>). ECC2K-130 shows two figures: the combined progress including points imported from the earlier private run first, with public uploads alone underneath. The imported points walk the same function and count toward the same collision. It is an estimate from point counts, not a count of verified steps.</p>
+    <p class="muted">Rho is a random search, so 100% is not a finish line: a collision can arrive earlier or later. "Collision odds" is the probability that one would have appeared by now, 1 − e<sup>−π/4·x²</sup> for work fraction x (<a href="/pollard-rho#estimate">details</a>). Points per hour is averaged over the last {{ snapshot.rate_window_hours if snapshot else 24 }} hours because workers upload in large batches.</p>
     {% if imported %}
     <p class="muted">Point totals include {{ "{:,}".format(imported) }} distinct DP32 points from the earlier private ECC2K-130 run{% if snapshot.historical_imported_at %}, last loaded {{ snapshot.historical_imported_at[:10] }}{% endif %}. Every new public point is matched against them. Runs and queue depth count this gateway only.</p>
     {% else %}

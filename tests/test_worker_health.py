@@ -1,6 +1,8 @@
 """Run-scoped health, protocol-correct rates and private detail pages."""
 from dataclasses import replace
+from html import unescape
 import math
+import re
 from uuid import uuid4
 
 import pytest
@@ -96,6 +98,51 @@ def test_generic_rate_health_and_owner_lookup(platform):
     from ecc_challenges.service import Rejected
     with pytest.raises(Rejected):
         service.record_heartbeat(key, payload)
+
+
+def test_terminal_audit_needs_attention_but_is_not_queued(database, aws_resources, settings):
+    service = Service(database, aws_resources[0], settings)
+    service.upsert_account(12, "owner")
+    key = service.authenticate(service.create_key(12, "worker"))
+    run = service.register(key, str(uuid4()))["run_id"]
+    service.upload_batch(key, run, 0, record(run, 1))
+    with database.connection() as conn:
+        conn.execute("UPDATE ecc_public.batches SET audit_state='unverified',audit_finished_at=now()")
+    detail = service.worker_detail(12, "v1", str(run), include_generic=False)
+    assert detail["pending"] == 0 and detail["oldest_pending_at"] is None
+    assert detail["unresolved"] == 1 and detail["verification_state"] == "Needs attention"
+    campaign = next(r for r in StatusReader(database).read()["campaigns"] if r["id"] == "ecc2k-130")
+    assert campaign["verification"]["unverified_batches"] == 1
+    assert campaign["verification"]["oldest_pending_at"] is None
+    with TestClient(create_app(settings, db=database, storage=aws_resources[0]),
+                    base_url=settings.public_origin) as client:
+        client.cookies.set("ecc_session", session_cookie(12, settings))
+        page = client.get(f"/dashboard/workers/v1/{run}")
+        assert page.status_code == 200
+        assert "1 batch unresolved" in page.text and "not queued for automatic retry" in page.text
+    # New work still contributes queue age even when an older audit timed out.
+    service.upload_batch(key, run, 32, record(run, 2))
+    detail = service.worker_detail(12, "v1", str(run), include_generic=False)
+    assert detail["pending"] == 1 and detail["oldest_pending_at"] is not None
+    assert detail["unresolved"] == 1
+
+
+def test_issued_key_page_refreshes_selected_dashboard(database, aws_resources, settings):
+    settings = replace(settings, multicurve_enabled=True)
+    service = Service(database, aws_resources[0], settings)
+    service.upsert_account(12, "owner")
+    with TestClient(create_app(settings, db=database, storage=aws_resources[0]),
+                    base_url=settings.public_origin) as client:
+        client.cookies.set("ecc_session", session_cookie(12, settings))
+        issued = client.post("/keys", data={"csrf": "test-csrf", "label": "launch worker",
+                                           "campaign": "eccp-131"})
+        assert issued.status_code == 200 and "Copy your new key now" in issued.text
+        target = unescape(re.search(r'data-live-url="([^"]+)"', issued.text).group(1))
+        refreshed = client.get(target)
+        assert refreshed.status_code == 200
+        assert 'value="eccp-131" selected' in refreshed.text
+        assert "Copy your new key now" not in refreshed.text
+        assert len(service.account_keys(12)) == 1
 
 
 def test_campaign_survives_oauth_without_open_redirect(database, aws_resources, settings, monkeypatch):

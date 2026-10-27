@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="360" viewBox="0 0 1180 360">
+  <rect width="1180" height="360" fill="#f8fafc"/>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #172033; }
+    .title { font-size: 22px; font-weight: 700; }
+    .sub { font-size: 13px; }
+    .box-title { font-size: 15px; font-weight: 700; }
+    .box-sub { font-size: 12px; }
+  </style>
+  <text x="30" y="37" class="title">Rho131 and nine-curve validation gates</text>
+  <text x="30" y="60" class="sub">L4 source e77c242; green is observed, amber needs another control, red is a hosted failure.</text>
+  <path d="M230 135 H248 M458 135 H476 M686 135 H704 M914 135 H932" stroke="#64748b" stroke-width="3"/>
+  <rect x="20" y="82" width="210" height="106" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="35" y="111" class="box-title">CPU reference / fast</text>
+  <text x="35" y="133" class="box-sub">54 passed, 1 skipped</text>
+  <text x="35" y="151" class="box-sub">all 24 curve instances</text>
+  <rect x="248" y="82" width="210" height="106" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="263" y="111" class="box-title">M4 Pro Metal</text>
+  <text x="263" y="133" class="box-sub">33 passed, 2 toolchain skips</text>
+  <text x="263" y="151" class="box-sub">336 native CPU/Metal checks</text>
+  <rect x="476" y="82" width="210" height="106" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="491" y="111" class="box-title">Packaged amd64</text>
+  <text x="491" y="133" class="box-sub">CUDA engine compiled</text>
+  <text x="491" y="151" class="box-sub">168 offline CPU checks</text>
+  <rect x="704" y="82" width="210" height="106" rx="12" fill="#dcfce7" stroke="#15803d" stroke-width="2"/>
+  <text x="719" y="111" class="box-title">L4 CUDA</text>
+  <text x="719" y="133" class="box-sub">168 / 168 controls passed</text>
+  <text x="719" y="151" class="box-sub">all 24 curves; e77c242</text>
+  <rect x="932" y="82" width="228" height="106" rx="12" fill="#fef3c7" stroke="#b45309" stroke-width="2"/>
+  <text x="947" y="111" class="box-title">Live nine-curve canary</text>
+  <text x="947" y="133" class="box-sub">fresh contributor key pending</text>
+  <text x="947" y="151" class="box-sub">full pipeline rate pending</text>
+  <rect x="20" y="225" width="546" height="96" rx="12" fill="#fee2e2" stroke="#b91c1c" stroke-width="2"/>
+  <text x="35" y="254" class="box-title">Hosted macOS x86_64 Metal failure</text>
+  <text x="35" y="277" class="box-sub">ECCp-131 walk 4 produced an off-curve state on Apple Paravirtual device.</text>
+  <text x="35" y="297" class="box-sub">Split multiply did not fix it; 32-bit carry / borrow PR #57 is under CI.</text>
+  <rect x="596" y="225" width="564" height="96" rx="12" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>
+  <text x="611" y="254" class="box-title">Release decision</text>
+  <text x="611" y="277" class="box-sub">Published image remains pinned; PR #57 Metal CI is pending.</text>
+  <text x="611" y="297" class="box-sub">Per-run accepted points and verifier cost remain unmeasured.</text>
+</svg>

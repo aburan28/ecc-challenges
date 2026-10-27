@@ -1,0 +1,414 @@
+{
+  "label": "after",
+  "views": [
+    {
+      "path": "/",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/status",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/help",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/dashboard",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 320,
+      "scheme": "light"
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/status",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/help",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/dashboard",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 390,
+      "scheme": "light"
+    },
+    {
+      "path": "/",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/status",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/help",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/dashboard",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 768,
+      "scheme": "light"
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/status",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/help",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/dashboard",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 1440,
+      "scheme": "light"
+    },
+    {
+      "path": "/",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/status",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/help",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/dashboard",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 320,
+      "scheme": "dark"
+    },
+    {
+      "path": "/",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/status",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/help",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/dashboard",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 390,
+      "scheme": "dark"
+    },
+    {
+      "path": "/",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/status",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/help",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/dashboard",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 768,
+      "scheme": "dark"
+    },
+    {
+      "path": "/",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/status",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/agents",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/docs/running-a-worker",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/help",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/dashboard",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/ecc2k-130",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/challenges/eccp-359",
+      "width": 1440,
+      "scheme": "dark"
+    },
+    {
+      "path": "/results/eccp-79",
+      "width": 1440,
+      "scheme": "dark"
+    }
+  ],
+  "controls": [
+    "Mobile sign-in keeps its button background on hover",
+    "Mobile navigation opens, exposes guides, and closes with Escape and focus restoration",
+    "OS radio options support keyboard arrow navigation",
+    "Copied command is byte-for-byte the displayed command",
+    "Clipboard denial selects the exact command and explains manual copying",
+    "OS setup selection works",
+    "Navigation, setup selection, and commands remain usable without JavaScript"
+  ]
+}

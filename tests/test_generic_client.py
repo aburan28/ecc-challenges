@@ -99,7 +99,7 @@ def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
     monkeypatch.setattr(heartbeat, 'HEARTBEAT_SECONDS', 0.02)
     monkeypatch.setattr(heartbeat, 'build_opener', lambda *_: type('Opener', (), {'open': open_ping})())
     seen=[]
-    def run_round(engine,backend,ns_,states,steps,temporary,timeout):
+    def run_round(engine,backend,ns_,states,steps,temporary,timeout,session=None):
         seen.append(len(states))
         assert pinged.wait(2), "heartbeat must run during a round without points"
         raise Stop
@@ -114,9 +114,9 @@ def test_resume_keeps_saved_lane_count_when_unset(tmp_path,monkeypatch):
 def test_negation_walk_is_opt_in_and_v2_requests_are_unchanged(tmp_path,monkeypatch):
     import pytest
     import generic.client as client
-    from ecc_challenges.multicurve.codec import WALK_NEGATION,WALK_V2
+    from ecc_challenges.multicurve.codec import WALK_IDS,WALK_NEGATION,WALK_V2
     monkeypatch.delenv('ECC_WALK',raising=False)
-    assert client.selected_walk()==WALK_V2
+    assert client.selected_walk()==WALK_IDS[WALK_V2]
     monkeypatch.setenv('ECC_WALK','negation')
     assert client.selected_walk()==WALK_NEGATION
     monkeypatch.setenv('ECC_WALK','bogus')

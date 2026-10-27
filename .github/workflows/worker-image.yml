@@ -127,7 +127,7 @@ jobs:
           PY
 
   mirror:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_image && github.repository == 'aburan28/ecc-challenges' && github.actor == 'aburan28' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.source_image && github.repository == 'isogeny-labs/ecc-challenges' && github.actor == 'aburan28' }}
     runs-on: ${{ inputs.runner_label || 'ubuntu-22.04' }}
     timeout-minutes: 20
     permissions:

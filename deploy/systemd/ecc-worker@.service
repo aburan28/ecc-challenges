@@ -3,7 +3,7 @@
 # State: /var/lib/ecc-challenges/%i (kept across restarts; never share it).
 [Unit]
 Description=ECC Challenges worker (%i)
-Documentation=https://github.com/aburan28/ecc-challenges/blob/main/docs/running-a-worker.md
+Documentation=https://github.com/isogeny-labs/ecc-challenges/blob/main/docs/running-a-worker.md
 Wants=network-online.target
 After=network-online.target
 

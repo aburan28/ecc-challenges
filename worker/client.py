@@ -16,10 +16,18 @@ import time
 import uuid
 from urllib.error import HTTPError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from protocol import CAMPAIGN, DP_WEIGHT, DP_WEIGHTS, WALK_ID, MAX_BATCH_BYTES, check_checkpoint
 from generic.heartbeat import Heartbeat
+
+
+class NoRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise RuntimeError("unexpected gateway redirect; preserve local contributor state")
+
+
+OPENER = build_opener(NoRedirect)
 
 
 def log(message: str) -> None:
@@ -79,7 +87,7 @@ class API:
             headers["Content-Type"] = "application/octet-stream"
         req = Request(self.url + path, data=data, headers=headers, method=method)
         try:
-            with urlopen(req, timeout=600 if "/checkpoint" in path else 90) as response:
+            with OPENER.open(req, timeout=600 if "/checkpoint" in path else 90) as response:
                 body = response.read()
                 if response.headers.get("Content-Type", "").startswith("application/json"):
                     return json.loads(body)
@@ -228,12 +236,26 @@ def upload_checkpoint(api: API, root: Path, state: dict, *, force: bool = False)
     log(f"run {api.run_id}: checkpoint saved at DP cursor {state['remote_cursor']}")
 
 
+# A new state directory with no ECC_CAMPAIGN starts on the same challenge as
+# the installers and dashboard commands. Directories created before that
+# default changed ran ecc2k-130, so they keep resuming it.
+NEW_RUN_CAMPAIGN = "eccp-131"
+STATE_FILES = ("state.json", "generic-state.json", "generic-registration.json")
+
+
+def default_campaign(root: Path) -> str:
+    if any((root / name).exists() for name in STATE_FILES):
+        return CAMPAIGN
+    return NEW_RUN_CAMPAIGN
+
+
 def main() -> int:
     root = Path(os.environ.get("ECC_STATE_DIR", "/data"))
     root.mkdir(parents=True, exist_ok=True)
     key = read_api_key()
-    campaign = os.environ.get("ECC_CAMPAIGN", CAMPAIGN).lower()
     protocol = os.environ.get("ECC_PROTOCOL")
+    fallback = CAMPAIGN if protocol == "1" else default_campaign(root)
+    campaign = (os.environ.get("ECC_CAMPAIGN") or fallback).lower()
     if protocol not in (None, "1", "2"):
         raise ValueError("ECC_PROTOCOL must be 1 or 2")
     legacy_resume = (root / "state.json").exists()

@@ -3,9 +3,11 @@
 Status: implemented for the CPU engine and the Python reference; the CUDA
 kernel dispatches to the same shared code but **has not been compiled or run**
 (this change was built on a host with no GPU and no `nvcc`); the Metal backend
-refuses the walk. Nothing is enabled: the v2 adding walk stays the default for
-every campaign, v2 namespaces, records and receipts are byte for byte
-unchanged, and the production ECC2K-130 v1 Frobenius walk is not touched. The
+refuses the walk. The generic negation walk is opt-in and disabled by default.
+The v2 namespaces, records and receipts are byte for byte unchanged. On
+ECC2-131 and ECCp-131, new runs use the separately implemented V4 x-only
+negation walk by default; all other campaigns retain V2. The production
+ECC2K-130 v1 Frobenius walk is not touched. The
 measurement behind the claims below is in
 [`verification/negation-walk-20261024`](../verification/negation-walk-20261024/README.md).
 
@@ -144,11 +146,14 @@ Server: `MULTICURVE_NEGATION_ENABLED=true`, or key IDs in
 `MULTICURVE_NEGATION_CANARY_KEYS` (both default off, and the v2 gate
 `MULTICURVE_ENABLED` or its canary list must also admit the key). `GET
 /v2/config?campaign=...&walk=<id>` and `POST /v2/register` with an optional
-`"walk"` field select it; without it everything is v2. Worker: `ECC_WALK=negation`
-(default `v2`); a state directory bound to one namespace is never reused for
-another. Engines: `ECCJOB04` jobs need an engine built from this source;
-older engines reject the magic. The status page groups work per namespace and
-uses `sqrt(pi*n/4)` for negation-walk namespaces.
+`"walk"` field select it; omitting the field uses the campaign default. Worker:
+when `ECC_WALK` is unset it uses the campaign default; set `ECC_WALK=v2` to
+force V2 or `ECC_WALK=negation` to request this walk. A state directory bound
+to one namespace is never reused for another. This generic walk uses the
+6,568-byte `ECCJOB04` body with `reserved=1`; the V3/V4 fast walks use the
+6,776-byte extended `ECCJOB04` body with `reserved=0`, so the engine dispatches
+them by both size and header. Older engines reject the magic. The status page
+groups work per namespace and uses `sqrt(pi*n/4)` for negation-walk namespaces.
 
 A negation namespace starts with zero points and its DPs never combine with v2
 DPs, so enabling it for a campaign does not use work already done there.

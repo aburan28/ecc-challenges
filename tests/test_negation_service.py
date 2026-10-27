@@ -14,7 +14,7 @@ import pytest
 
 from ecc_challenges.multicurve import negation_walk as nw
 from ecc_challenges.multicurve.archive import Archive
-from ecc_challenges.multicurve.codec import WALK_NEGATION, WALK_V2, Record, namespace
+from ecc_challenges.multicurve.codec import WALK_NEGATION, WALK_V2, WALK_V2_ID, Record, namespace
 from ecc_challenges.multicurve.index import PointIndex
 from ecc_challenges.multicurve.instances import registry_metadata
 from ecc_challenges.multicurve.pipeline import Pipeline
@@ -40,7 +40,7 @@ def make_platform(database, aws_resources, settings, monkeypatch, *, negation_en
                        AttributeDefinitions=[{'AttributeName': 'pk', 'AttributeType': 'S'}])
     import ecc_challenges.multicurve.service as service_module
     monkeypatch.setattr(service_module, 'namespace',
-                        lambda campaign, dp_bits=None, walk=WALK_V2: namespace(campaign, 1, walk))
+                        lambda campaign, dp_bits=None, walk=WALK_V2_ID: namespace(campaign, 1, walk))
     settings = replace(settings, multicurve_negation_enabled=negation_enabled)
     legacy = Service(database, storage, settings)
     legacy.upsert_account(123, 'test-contributor')
@@ -65,10 +65,10 @@ def test_negation_walk_is_disabled_by_default(database, aws_resources, settings,
         service.config('eccp-79', 'made-up-walk', key)
     assert error.value.status == 400
     # v2 is unaffected: no walk, or the v2 walk named explicitly, is the v2 namespace.
-    assert service.config('eccp-79')['walk']['id'] == WALK_V2
-    assert service.config('eccp-79', WALK_V2, key) == service.config('eccp-79')
+    assert service.config('eccp-79')['walk']['id'] == WALK_V2_ID
+    assert service.config('eccp-79', WALK_V2_ID, key) == service.config('eccp-79')
     run = service.register(key, 'eccp-79', str(uuid4()))
-    assert run['config']['walk']['id'] == WALK_V2 and run['namespace_id'] == namespace('eccp-79', 1).id
+    assert run['config']['walk']['id'] == WALK_V2_ID and run['namespace_id'] == namespace('eccp-79', 1).id
 
 
 def test_canary_key_opens_the_gate_for_that_key_only(database, aws_resources, settings, monkeypatch):

@@ -11,7 +11,7 @@ from time import monotonic
 from psycopg import errors
 
 from .catalog import CHALLENGES
-from .multicurve.codec import WALK_V2, expected_steps_log2
+from .multicurve.codec import DEFAULT_WALKS, WALK_IDS, WALK_V2, expected_steps_log2
 from .multicurve.instances import get_instance
 from .protocol import CAMPAIGN, DP_WEIGHT, RECORD_BYTES
 from .work import SIGMA_DP_LOG2, Walk, progress, sigma_dp_log2, sigma_expected_log2
@@ -87,7 +87,7 @@ class StatusReader:
                       count(*) FILTER (WHERE audit_state IN ('failed','quarantined')) AS failed_batches,
                       count(*) FILTER (WHERE audit_state='unverified') AS unverified_batches,
                       count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed_batches,
-                      min(created_at) FILTER (WHERE audit_state IN ('pending','unverified')
+                      min(created_at) FILTER (WHERE audit_state='pending'
                         OR (audit_state IN ('sampled','not_selected') AND indexed_at IS NULL)) AS oldest_pending_at,
                       max(audit_finished_at) FILTER (WHERE audit_state='sampled') AS last_checked_at
                     FROM ecc_public.batches
@@ -133,7 +133,7 @@ class StatusReader:
                         FROM ecc_public.dp_namespaces n
                         LEFT JOIN ecc_public.dp_namespace_stats s ON s.namespace_id=n.id
                         GROUP BY n.id
-                    """, (WALK_V2, RATE_WINDOW_HOURS)).fetchall():
+                    """, (WALK_IDS[WALK_V2], RATE_WINDOW_HOURS)).fetchall():
                         work.setdefault(row["campaign_id"], []).append(
                             (int(row["dp_bits"]), int(row["points"]), int(row["recent"]), row["walk_id"]))
                     for row in conn.execute("""
@@ -163,11 +163,12 @@ class StatusReader:
                 enabled = legacy or self.multicurve_enabled
                 current = generic.get(challenge.id, {})
                 order = get_instance(challenge.id).n
-                generic_walk = expected_steps_log2(order)
-                # Each namespace is its own walk with its own expected steps:
-                # the negation-class walk searches half as many classes.
-                walks = [Walk(bits, points, recent, -bits,
-                              generic_walk if walk_id == WALK_V2 else expected_steps_log2(order, walk_id))
+                # The headline expectation follows the default for new runs;
+                # each stored namespace retains its own collision expectation.
+                generic_walk = expected_steps_log2(order, DEFAULT_WALKS.get(challenge.id, WALK_V2))
+                walks = [Walk(bits, points, recent, -bits, expected_steps_log2(
+                            order, next((version for version, identity in WALK_IDS.items()
+                                         if identity == walk_id), WALK_V2)))
                          for bits, points, recent, walk_id in work.get(challenge.id, ())]
                 # Imported from the earlier private run (same DP32 walk); not in received_points.
                 historical_points = int(historical["points"]) if legacy and historical else 0

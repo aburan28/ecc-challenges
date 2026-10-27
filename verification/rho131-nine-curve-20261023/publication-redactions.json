@@ -1,0 +1,8 @@
+{
+  "format": "rho131-publication-redactions-v1",
+  "local_logs": {
+    "local/matched-metal-selective-sandbox-unavailable.log": 3
+  },
+  "matched_manifests": "host.node removed from four local manifest JSON files",
+  "tar_headers": "uid/gid zero, blank user/group, mtime zero, regular file mode 0644"
+}

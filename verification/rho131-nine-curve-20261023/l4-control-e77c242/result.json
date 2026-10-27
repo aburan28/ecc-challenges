@@ -1,0 +1,20 @@
+{
+  "archive": {
+    "archive_sha256": "123559357af6495961de5951a078b2790dafc47f21b4356c0454753c76752355",
+    "campaigns": 24,
+    "files": 1969,
+    "receipt_sha256": "4e8fd5dc70bff0d255d63796e0925c191e22304131336fe9af0b38386f0a9fea"
+  },
+  "format": "rho131-current-head-l4-control-result-v1",
+  "modal_returncode": 0,
+  "ok": true,
+  "receipt": "cuda-receipt.json",
+  "source_sha256": {
+    "core_source_sha256": "b20f3ae4e47ba25576a4353d374a131333f1b8584c42ca39925baf24c381999a",
+    "engine_source_sha256": "30ea42815eee7cbdf6d45abbe706adfd4871a3a2484a60000418de127d93e3b2",
+    "fast131_host_source_sha256": "df15cbbd440867dbe3d21d1aa6e9bb6666102d8ebd82f4d0b462c0069f6ef924",
+    "fast131_source_sha256": "117e838eb9f2dfe6294b78ef313f864a08255ab1707828be54f89f07dff2194c"
+  },
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "d3572f667049229e2473b92b76c7110b86fca755a5d62a6b6ff3689d6ad83cc4"
+}

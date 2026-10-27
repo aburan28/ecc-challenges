@@ -1,0 +1,12 @@
+{# Plain-language names for Certicom's challenge IDs, shared by every challenge table. #}
+{% macro kind(row) -%}
+<small class="curve-kind">{{ row.curve_label }}</small>
+{%- endmacro %}
+
+{% macro size_row(bits, members, colspan) -%}
+<tr class="size-row"><th scope="rowgroup" colspan="{{ colspan }}">{{ bits }}-bit field<small>{{ members|join(", ") }}</small></th></tr>
+{%- endmacro %}
+
+{% macro key() -%}
+<p class="note names-key"><strong>Reading the names.</strong> ECC2K is a Koblitz curve, also called an anomalous binary curve; ECC2 is a randomly chosen curve over a binary field GF(2<sup>m</sup>); ECCp is a randomly chosen curve over a prime field GF(p). The number is roughly the size in bits of the group being attacked, so challenges are grouped by field size: ECC2K-130, ECC2-131 and ECCp-131 are the three 131-bit curves. Koblitz curves are the easiest of each size, because the Frobenius map lets rho skip work.</p>
+{%- endmacro %}

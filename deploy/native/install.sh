@@ -49,6 +49,8 @@ if ! printf 'int main() { return 0; }\n' \
   echo "$cxx has no OpenMP; the CPU backend uses std::thread instead"
 fi
 
+# Optional carry-less multiplication instructions are selected at runtime.
+
 echo "building CPU engine with $cxx"
 mkdir -p "$prefix/bin"
 # shellcheck disable=SC2086 # CXXFLAGS, openmp and threads hold flags on purpose
@@ -74,6 +76,9 @@ if [ "$os" = Darwin ] && [ "${METAL:-auto}" != no ]; then
   {
     printf 'static const char core_source[] = R"ECCMSL(\n'
     cat "$repo/worker/generic/ec_core.h"
+    printf ')ECCMSL";\n'
+    printf 'static const char fast_source[] = R"ECCMSL(\n'
+    cat "$repo/worker/generic/fast131.h"
     printf ')ECCMSL";\n'
   } > "$generated/metal_core_source.inc"
   # shellcheck disable=SC2086

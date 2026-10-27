@@ -1,36 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Help · ECC Challenges{% endblock %}
-{% block description %}Troubleshooting worker setup, upload errors, API keys and checkpoints.{% endblock %}
+{% block description %}Fixes for common worker problems: rejected API keys, stalled uploads, runs that will not resume and dashboard states.{% endblock %}
 {% block content %}
-<div class="kicker">Support</div>
 <h1>Help with your worker</h1>
-<p class="lead">Start with the worker log and the <a href="/status">live status page</a>. Keep the worker's data directory between restarts so it can resume.</p>
-<section class="section two" style="margin-top:36px">
+<p class="lead">Start with the worker log and the run's page on your <a href="/dashboard">dashboard</a>. Keep the worker's state directory between restarts; it holds the run ID and checkpoint.</p>
+<section class="section two first">
   <div>
-    <h2>Set up your system</h2>
+    <h2>Setup guides</h2>
     <ul class="links">
       <li><a href="/docs/running-a-worker#docker">Linux and Docker</a></li>
       <li><a href="/docs/running-a-worker#macos">macOS</a></li>
       <li><a href="/docs/running-a-worker#windows">Windows</a></li>
       <li><a href="/docs/running-a-worker#kubernetes">Kubernetes</a>, <a href="/docs/running-a-worker#native-install-and-systemd">systemd</a> and <a href="/docs/running-a-worker#apptainer-and-slurm">Slurm</a></li>
       <li><a href="/docs/modal-workers">Modal and cloud workers</a></li>
+      <li><a href="/docs/agents">Set up with a coding agent</a> and the <a href="/skill.md">worker skill</a></li>
     </ul>
   </div>
   <div class="panel">
     <h3>Before changing anything</h3>
-    <p>Record the campaign, run ID, worker image or version, operating system, and exact error message. Keep the surrounding log lines and the time the problem occurred.</p>
-    <p class="note">Keep API keys, authorization headers and signed upload URLs private. Never delete a checkpoint to get past an error.</p>
+    <p>Write down the challenge ID, run ID, worker image digest or version, operating system and the exact error line. Keep the log lines around it and the time it happened.</p>
+    <p class="note">Keep API keys, authorization headers and signed upload URLs private. Never delete a checkpoint or state directory to get past an error.</p>
   </div>
 </section>
 <section class="section document">
   <h2>Common problems</h2>
-  <h3 id="uploads">Uploads are waiting or the count has not changed</h3>
-  <p>The worker logs accepted uploads and keeps unsent points on disk. A 429 response asks it to slow down; a temporary 503 makes it wait and retry. Check the campaign's availability on the <a href="/status">status page</a>. The status counts refresh about once a minute and cover this gateway.</p>
-  <h3 id="keys">A key is rejected</h3>
-  <p>Check that the worker reads the intended key file and that the key has not been revoked. Manage keys in your <a href="/dashboard">dashboard</a>. Revoking a key stops uploads from every worker using it.</p>
+  <h3 id="keys">The worker exits with <code>gateway HTTP 401</code> or <code>contributor API key is invalid</code></h3>
+  <p>The gateway did not accept the API key. Open your <a href="/dashboard">dashboard</a> and check that the key is listed and not revoked; create a new one if needed. Check that the worker reads the file you expect (<code>~/.config/ecc-challenges/api-key</code>, mounted at <code>/run/secrets/ecc_api_key</code> in Docker) and that the file holds only the key, starting <code>ecc1_</code>. Restart the worker with the same state directory; local state is kept.</p>
+  <h3 id="key-twice">The worker says <code>provide the API key by file or environment, not both</code></h3>
+  <p>Both <code>ECC_API_KEY</code> and a key file are set. Unset <code>ECC_API_KEY</code> or remove the key-file mount, then start the worker again.</p>
+  <h3 id="uploads">The log shows <code>upload-paused</code>, or the points count has not changed</h3>
+  <p>An <code>upload-paused</code> event with status 429 or 503 (<code>upload pending</code> on protocol 1 workers) means the gateway asked the worker to back off. Leave it running: it retries on its own and keeps unsent points on disk. If the count stays flat and the log shows no errors, the worker has not found a distinguished point yet; on larger curves the first one takes longer. Check the challenge on the <a href="/status">status page</a>, which refreshes about once a minute.</p>
+  <h3 id="disconnected">The run shows Disconnected or the key shows Offline</h3>
+  <p>No heartbeat has arrived for three minutes. Check that the worker process or container is still running (<code>docker ps</code>, <code>docker logs</code>) and that the machine can reach <code>https://ecc-challenges.com</code>. Restart it with the same state directory.</p>
+  <h3 id="reporting">The run shows Reporting unavailable</h3>
+  <p>The worker is too old to send per-run health reports. Update it and keep the state directory: rerun the native installer, or recreate the container with the image from your dashboard. See <a href="/docs/running-a-worker#worker-health-and-detail-pages">worker health</a>.</p>
+  <h3 id="container-name">Docker says the container name is already in use</h3>
+  <p>The container from your first <code>docker run</code> still exists. Find it with <code>docker ps -a</code> (dashboard commands name it <code>ecc-gpu-…</code> or <code>ecc-cpu-…</code>) and resume it with <code>docker start &lt;name&gt;</code> instead of running the creation command again.</p>
   <h3 id="state">A worker will not resume</h3>
-  <p>Use the same data directory, campaign and worker identity. Only one process may use a worker's directory at a time. Stop the duplicate process cleanly; preserve all state if the worker reports conflicting checkpoints. The <a href="/docs/modal-workers">cloud guide</a> covers persistent volumes and migration errors.</p>
+  <p>Use the same state directory, challenge, protocol and distinguished-point threshold that started the run. The worker's message says which one differs:</p>
+  <ul>
+    <li><code>state directory belongs to another campaign</code> or <code>another namespace</code>: set <code>ECC_CAMPAIGN</code> back to the challenge that created the directory, or use a new directory for the new challenge.</li>
+    <li><code>existing run has a different reporting threshold</code>: set <code>ECC_DP_WEIGHT</code> back to the run's value, or use a new directory.</li>
+    <li><code>worker and gateway namespaces differ; update the pinned image</code>: for Docker, remove the container and recreate it with the image digest on your dashboard and the same state directory (<code>docker restart</code> keeps the old image). For a native install, rerun the installer.</li>
+    <li><code>run is closed</code>: the run was retired with <code>ECC_ACTION=close</code>. Keep that directory as a record and start a new run in a new one.</li>
+    <li><code>public worker failed (BlockingIOError: …)</code> right after start (a <code>PermissionError</code> or <code>OSError</code> on Windows): another worker holds the directory's lock. Stop the duplicate; only one worker may use a directory at a time.</li>
+  </ul>
+  <p>If a message asks you to preserve state for recovery, stop the worker and leave the directory untouched. The <a href="/docs/modal-workers">cloud guide</a> covers persistent volumes on Modal and RunPod.</p>
   <h3 id="results">A result or count looks wrong</h3>
-  <p>Archived points and independently verified work are different counts. The <a href="/status#main">status page</a> explains the figures, and <a href="/docs/problems">open problems</a> records known validation and capacity gaps. Historical solved results link to their published key and public point from the challenge tables.</p>
+  <p>Archived points and independently verified work are different counts. The <a href="/status#reading">status page</a> explains each figure, and <a href="/docs/problems">open problems</a> lists known validation and capacity gaps. Solved challenges link to their published key and public point from the challenge tables.</p>
 </section>
 {% endblock %}

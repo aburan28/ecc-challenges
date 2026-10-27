@@ -10,10 +10,10 @@
 # ECC_PREFIX, ECC_STATE_DIR, ECC_REF (git ref, default tested release), ECC_START=no.
 # Needs curl, tar, python3 3.10+ and a C++17 compiler; this script names the
 # packages to install if one is missing. Source: deploy/native/install.sh at
-# https://github.com/aburan28/ecc-challenges
+# https://github.com/isogeny-labs/ecc-challenges
 set -eu
 
-repo=aburan28/ecc-challenges
+repo=isogeny-labs/ecc-challenges
 api=${ECC_API_URL:-https://ecc-challenges.com}
 ref=${ECC_REF:-988b0cf7e326697a81615d6721ba83b935fec654}
 campaign=${ECC_CAMPAIGN:-eccp-131}

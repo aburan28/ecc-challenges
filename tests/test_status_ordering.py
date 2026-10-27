@@ -23,11 +23,15 @@ def test_tables_group_numeric_sizes_without_moving_counts_or_results(monkeypatch
         response = client.get(path)
     assert response.status_code == 200
     table = re.search(r'<table class="challenge-status">(.*?)</table>', response.text, re.S).group(1)
-    headings = re.findall(r'<th scope="rowgroup"[^>]*>(.*?)</th>', table)
+    headings = re.findall(r'<tbody[^>]*>\s*<tr><th scope="rowgroup"[^>]*>(.*?)</th>', table)
     assert headings == [
-        "Unsolved challenges · smallest to largest bit size",
-        "Solved 1997–2004 · smallest to largest bit size",
+        "Open<small>14 unsolved challenges, smallest first</small>",
+        "Solved<small>10 challenges, closed between 1997 and 2004</small>",
     ]
+    # Within each group, curves of the same field size sit together under one heading.
+    size_rows = re.findall(r'<tr class="size-row"><th[^>]*>(\d+)-bit field<small>([^<]*)</small>', table)
+    assert size_rows[0] == ("131", "ECC2K-130, ECC2-131, ECCp-131")
+    assert [int(bits) for bits, _ in size_rows] == [131, 163, 191, 239, 359, 79, 89, 97, 109]
     rows = re.findall(r'<tr class="(solved|open|not-started)">(.*?)</tr>', table, re.S)
     assert len(rows) == 24
     assert [state == "solved" for state, _ in rows] == [False] * 14 + [True] * 10
@@ -47,10 +51,19 @@ def test_tables_group_numeric_sizes_without_moving_counts_or_results(monkeypatch
                 assert '&lt;0.01% public uploads only' in cells[4]
                 assert cells[6:] == ["3", "2", "338,034,801", "4"]
             else:
-                assert '<span class="pct progress-primary">5.96%</span>' in cells[5]
-                assert '&lt;0.01% public uploads only' in cells[5]
+                assert '<span class="pct progress-primary">5.96%</span>' in cells[4]
+                assert '&lt;0.01% public uploads only' in cells[4]
         else:
             assert destination == "challenges"
             assert state == "not-started"
             if path == "/":
-                assert cells[5].strip() == "—"
+                assert cells[4].strip() == "—"
+
+
+def test_curve_families_are_named_in_plain_language():
+    from ecc_challenges.catalog import BY_ID
+
+    assert BY_ID["ecc2k-130"].curve_label == "Koblitz curve, binary field"
+    assert BY_ID["ecc2-131"].curve_label == "Random curve, binary field"
+    assert BY_ID["eccp-131"].curve_label == "Random curve, prime field"
+    assert {challenge.curve_type for challenge in BY_ID.values()} == {"koblitz", "binary", "prime"}

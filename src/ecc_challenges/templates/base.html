@@ -2,11 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Google Tag Manager -->
+  <script nonce="{{ request.state.csp_nonce }}">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelector('[nonce]');
+  n&&j.setAttribute('nonce',n.nonce||n.getAttribute('nonce'));f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-KTWXXVPF');</script>
+  <!-- End Google Tag Manager -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#131311" media="(prefers-color-scheme: dark)">
-  {% set page_description %}{% block description %}A distributed Pollard rho search on the Certicom ECC challenges. Run a worker on your GPU and help find the next discrete logarithm.{% endblock %}{% endset %}
+  <meta name="theme-color" content="#f4f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#101b2b" media="(prefers-color-scheme: dark)">
+  {% set page_description %}{% block description %}A distributed Pollard rho search on the 24 Certicom ECC challenges. Run a worker on a CPU or GPU and upload distinguished points.{% endblock %}{% endset %}
   <title>{% block title %}ECC Challenges{% endblock %}</title>
   <meta name="description" content="{{ page_description|trim }}">
   <meta property="og:type" content="website">
@@ -15,22 +23,22 @@
   <meta property="og:description" content="{{ page_description|trim }}">
   <meta property="og:url" content="https://ecc-challenges.com{{ request.url.path }}">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b4441f'/%3E%3Cpath d='M24 5c-3 4-7 6-9 9s-2 6 0 7 7 2 9 6' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='9' cy='16' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23254dc0'/%3E%3Cpath d='M24 5c-3 4-7 6-9 9s-2 6 0 7 7 2 9 6' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='9' cy='16' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
   <style>
     :root{
-      --bg:#f6f3ec;--surface:#fffdf8;--sunk:#efebe1;--ink:#1b1a17;--muted:#5f5a50;--faint:#8a8477;
-      --line:#ddd6c8;--accent:#b4441f;--accent-ink:#fff;--accent-soft:#b4441f14;--ok:#2d6a4c;--ok-soft:#2d6a4c14;
+      --bg:#f4f7fc;--surface:#fff;--sunk:#eaf0f8;--ink:#152642;--muted:#4e607c;--faint:#5c6e88;
+      --line:#ced8e6;--accent:#254dc0;--accent-ink:#fff;--accent-soft:#254dc00a;--ok:#17634f;--ok-soft:#17634f0d;
       --warn:#8a5700;--warn-soft:#d99a1614;--danger:#a52c2c;--danger-soft:#c43d3d0d;
-      --code-bg:#1c1b18;--code-ink:#ece6d8;--code-dim:#9a9384;
+      --code-bg:#142b47;--code-ink:#edf3ff;--code-dim:#b1c6df;
       --serif:"Iowan Old Style","Charter","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
-      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+      --sans:"Avenir Next","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
       --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
     }
     @media (prefers-color-scheme:dark){:root{
-      --bg:#131311;--surface:#1b1b18;--sunk:#0f0f0d;--ink:#ebe6da;--muted:#a59f92;--faint:#7b766b;
-      --line:#2f2d28;--accent:#e57a50;--accent-ink:#1a0c05;--accent-soft:#e57a501c;--ok:#80c39b;--ok-soft:#80c39b1a;
+      --bg:#101b2b;--surface:#16263b;--sunk:#0d1726;--ink:#e8effa;--muted:#b5c4d8;--faint:#a0b2ca;
+      --line:#33465f;--accent:#a4c1ff;--accent-ink:#101b2b;--accent-soft:#a4c1ff12;--ok:#8ad8bf;--ok-soft:#8ad8bf12;
       --warn:#f0be58;--warn-soft:#f0be5814;--danger:#f28b82;--danger-soft:#f28b820d;
-      --code-bg:#0c0c0b;--code-ink:#e6e0d2;--code-dim:#8a8476;
+      --code-bg:#091321;--code-ink:#edf3ff;--code-dim:#b1c6df;
     }}
     *{box-sizing:border-box}
     html{-webkit-text-size-adjust:100%}
@@ -39,16 +47,16 @@
     a:hover{text-decoration-thickness:2px}
     :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
     .wrap{width:min(1080px,100% - 48px);margin-inline:auto}
-    h1,h2,h3{font-family:var(--serif);font-weight:500;line-height:1.15;letter-spacing:-.01em;margin:0 0 .5em}
-    h1{font-size:clamp(2.3rem,5.2vw,3.7rem);letter-spacing:-.02em}
-    h2{font-size:clamp(1.6rem,3vw,2.15rem)}
+    h1,h2,h3{font-family:var(--sans);font-weight:650;line-height:1.18;letter-spacing:-.025em;margin:0 0 .5em}
+    h1{font-size:clamp(2rem,4.5vw,3.4rem);max-width:24ch}
+    h2{font-size:clamp(1.45rem,2.5vw,1.9rem)}
     h3{font-size:1.2rem}
     p{margin:0 0 1em}
     code,.mono{font-family:var(--mono);font-size:.9em}
     .muted{color:var(--muted)}
     .faint{color:var(--faint)}
     .lead{font-size:clamp(1.06rem,1.6vw,1.2rem);color:var(--muted);max-width:36em}
-    .kicker{font:600 .74rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+    .kicker{font:600 .88rem/1.4 var(--sans);color:var(--muted);margin-bottom:12px}
     .skip{position:absolute;left:-999px}.skip:focus{left:12px;top:12px;background:var(--surface);padding:8px 12px;z-index:9}
 
     /* header */
@@ -60,6 +68,19 @@
     nav a{color:var(--muted);text-decoration:none;font-size:.93rem;white-space:nowrap}
     nav a:hover,nav a[aria-current=page]{color:var(--ink)}
 
+    .desktop-nav a[aria-current=page]:not(.button){text-decoration:underline;text-underline-offset:.4em}
+    .mobile-nav{display:none}
+    .mobile-nav summary{cursor:pointer;padding:8px 12px;border:1px solid var(--line);border-radius:6px;min-height:44px;font-weight:600}
+    .mobile-nav nav{position:absolute;top:100%;left:0;right:0;z-index:5;display:grid;gap:0;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:0 0 10px 10px;box-shadow:0 12px 24px #15264218}
+    .mobile-nav nav a{padding:12px;border-radius:5px}
+    .mobile-nav nav a:not(.button):hover{background:var(--sunk)}
+    .mobile-nav nav a.button{justify-content:center;margin-top:6px}
+    @media (max-width:760px){
+      .site-header .wrap{position:relative}
+      .site-header .desktop-nav{display:none}
+      .mobile-nav{display:block}
+    }
+
     /* buttons */
     .button{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);border-radius:6px;background:var(--accent);color:var(--accent-ink);padding:10px 16px;font:600 .95rem/1.2 var(--sans);text-decoration:none;cursor:pointer;white-space:nowrap}
     .button:hover{filter:brightness(1.07)}
@@ -69,14 +90,42 @@
     .button.danger{background:transparent;color:var(--accent);border-color:var(--line);padding:5px 10px;font-size:.84rem}
     .actions{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0 0}
 
+    .page-shortcuts{flex-wrap:wrap;gap:8px 20px;margin:24px 0;padding:12px 0;border-block:1px solid var(--line)}
+    .page-shortcuts a{padding:4px 0;color:var(--accent)}
+    [id]{scroll-margin-top:24px}
+
     /* layout */
     main{padding:56px 0 88px}
     .section{margin-top:76px;padding-top:44px;border-top:1px solid var(--line)}
     .section-head{display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap;margin-bottom:22px}
     .section-head h2{margin:0}
     .section-head p{margin:0;max-width:34em}
+    /* Shared page and section rhythm: every page uses these instead of inline spacing. */
+    .page-head{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+    .page-head h1{margin:0}
+    .page-head .lead{margin:12px 0 0}
+    .crumbs{font-size:.88rem;color:var(--muted);margin-bottom:14px}
+    .section.first{margin-top:36px}
+    .gap-top{margin-top:24px}
+    .gap-bottom{margin-bottom:20px}
+    .subhead{margin-top:36px}
+    .stats.flush{margin-top:0}
+    .stat dd.word{font-size:1.25rem}
+    .grow{flex:1 1 200px}
+    .fixed{flex:0 1 280px}
+    .narrow{max-width:560px}
+    .wrap-any{overflow-wrap:anywhere}
+    .live-controls{margin:20px 0}
+    .top h3{margin:0}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:48px}
-    .hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:48px;align-items:center}
+    .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px;align-items:center}
+    .hero h1{max-width:18ch}
+    .hero-help{margin:18px 0 0}
+    .setup-options{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;padding:0;margin:0 0 34px}
+    .setup-options a{display:block;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none}
+    .setup-options a:hover strong{text-decoration:underline;text-underline-offset:.2em}
+    .setup-options strong{display:block;color:var(--accent);font-size:1.05rem}
+    .setup-options span{display:block;color:var(--muted);font-size:.9rem;margin-top:4px}
 
     /* curve figure */
     .figure{margin:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px}
@@ -94,8 +143,15 @@
     .stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:44px}
     .stat{min-width:0;padding:18px 20px;border-left:1px solid var(--line)}
     .stat:first-child{border-left:0}
+    /* Four cards per row; a row of two or three cards spans the full width on wide screens. */
+    .stat:nth-child(4n+1){border-left:0}
+    .stat:nth-child(n+5){border-top:1px solid var(--line)}
+    @media (min-width:861px){
+      .stats:has(>.stat:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
+      .stats:has(>.stat:nth-child(3):last-child){grid-template-columns:repeat(3,1fr)}
+    }
     .stat dt{font-size:.8rem;color:var(--muted)}
-    .stat dd{margin:4px 0 0;font:500 1.75rem/1.2 var(--serif);font-variant-numeric:tabular-nums}
+    .stat dd{margin:6px 0 0;font:600 1.65rem/1.25 var(--sans);font-variant-numeric:tabular-nums}
     .stat dd small{display:block;font:400 .78rem var(--sans);color:var(--faint);margin-top:2px}
 
     /* steps */
@@ -117,10 +173,19 @@
     .links{list-style:none;padding:0;margin:0;display:grid;gap:10px}
     .links a{font-weight:600}
 
-    /* setup tabs: radio buttons, no script (the CSP allows none) */
+    .command{min-width:0;margin-bottom:1em;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--code-bg)}
+    .command pre{margin:0;border-radius:0}
+    pre:focus-visible{outline:2px solid var(--code-ink);outline-offset:-3px}
+    .command-tools{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:7px 12px;border-bottom:1px solid #ffffff24;color:var(--code-ink);font-size:.8rem}
+    .command-tools [role=status]{flex:1;font-size:.8rem}
+    .copy-code{flex:none;border:1px solid var(--code-dim);border-radius:4px;color:var(--code-ink);background:transparent;font:600 .8rem var(--sans);padding:6px 12px;min-height:44px;cursor:pointer}
+    .copy-code:hover{background:#ffffff14}
+    .copy-code:focus-visible{outline-color:var(--code-ink)}
+
+    /* setup tabs: radio buttons, no script */
     .os-tabs{display:flex;flex-wrap:wrap;gap:6px}
     .os-tabs>input{position:absolute;opacity:0;pointer-events:none}
-    .os-tabs>label{margin:0;padding:8px 14px;border:1px solid var(--line);border-radius:6px;font:600 .9rem var(--sans);color:var(--muted);cursor:pointer}
+    .os-tabs>label{display:inline-flex;align-items:center;min-height:44px;margin:0;padding:8px 14px;border:1px solid var(--line);border-radius:6px;font:600 .9rem var(--sans);color:var(--muted);cursor:pointer}
     .os-tabs>label:hover{color:var(--ink);border-color:var(--ink)}
     .os-tabs>input:checked+label{background:var(--ink);border-color:var(--ink);color:var(--bg)}
     .os-tabs>input:focus-visible+label{outline:2px solid var(--accent);outline-offset:2px}
@@ -146,12 +211,22 @@
     .tag{display:inline-block;border-radius:999px;padding:2px 9px;font-size:.76rem;font-weight:600;border:1px solid var(--line);color:var(--muted)}
     .tag.open{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
     .tag.solved{color:var(--faint)}
-    .challenge-status tr.open{--state:var(--warn);--state-soft:var(--warn-soft)}
+    .challenge-status tr.open{--state:var(--accent);--state-soft:var(--accent-soft)}
     .challenge-status tr.solved{--state:var(--ok);--state-soft:var(--ok-soft)}
     .challenge-status tr.not-started{--state:var(--danger);--state-soft:var(--danger-soft)}
     .challenge-status tr td{background:var(--state-soft)}
     .challenge-status .name,.challenge-status .tag{color:var(--state)}
     .challenge-status .tag{border-color:currentColor;background:var(--state-soft)}
+    .challenge-status th[scope=rowgroup]{font-size:.8rem;letter-spacing:0;color:var(--ink);background:var(--sunk)}
+    .challenge-status th[scope=rowgroup] small{font-weight:400;color:var(--muted);margin-left:8px}
+    .challenge-status tr.size-row th{font:600 .74rem/1.4 var(--sans);color:var(--muted);background:transparent;padding-top:14px;padding-bottom:4px;border-bottom:0}
+    .challenge-status tr.size-row th small{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+    .curve-kind{display:block;font:400 .74rem/1.35 var(--sans);color:var(--muted);margin-top:2px;letter-spacing:0}
+    .names-key{max-width:52em;margin:0 0 18px}
+    .challenge-status tr.solved td{color:var(--muted)}
+    .challenge-status tr.solved .name{font-weight:500}
+    .done{display:inline-flex;align-items:center;gap:6px;color:var(--ok);font-weight:600;white-space:nowrap}
+    .done svg{width:14px;height:14px;flex:none}
     .table-note{font-size:.84rem;color:var(--faint);margin-top:10px}
     .result-values{table-layout:fixed}
     .result-values th{width:30%;white-space:normal;letter-spacing:0;text-transform:none;vertical-align:top}
@@ -194,7 +269,7 @@
     .doc-head{max-width:46em;margin-bottom:44px}
     .doc{display:grid;grid-template-columns:184px minmax(0,1fr);gap:56px;align-items:start}
     .toc{display:block;position:sticky;top:24px;font-size:.88rem}
-    .toc-title{font:600 .72rem/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:4px 0 12px}
+    .toc-title{font:600 .86rem/1.4 var(--sans);color:var(--muted);margin:4px 0 12px}
     .toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
     .toc a{display:block;padding:5px 0 5px 14px;margin-left:-1px;border-left:2px solid transparent;color:var(--muted);text-decoration:none}
     .toc a:hover{color:var(--ink);border-left-color:var(--accent)}
@@ -239,7 +314,7 @@
     /* forms */
     label{display:block;font-size:.88rem;font-weight:600;margin-bottom:6px}
     input[type=text],select{width:100%;max-width:420px;padding:9px 11px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--ink);font:inherit}
-    input[type=text]:focus,select:focus{border-color:var(--accent);outline:none}
+    input[type=text]:focus,select:focus{border-color:var(--accent)}
     .row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
     form.inline{display:inline}
 
@@ -252,7 +327,8 @@
     .document blockquote{margin:1.5em 0;padding:10px 18px;border-left:3px solid var(--accent);background:var(--accent-soft)}
     .document blockquote>:last-child{margin-bottom:0}
     .document th,.document td{white-space:normal;vertical-align:top}
-    .document table{min-width:560px}
+    .document table{min-width:0}
+    .document th,.document td{overflow-wrap:anywhere}
     .document .table-wrap{margin-bottom:1.5em}
     .document-contents{max-width:78ch;margin-bottom:24px;color:var(--muted)}
     .document-contents summary{cursor:pointer}
@@ -275,8 +351,10 @@
       .hero,.two{grid-template-columns:1fr;gap:36px}
       .hero .figure{max-width:420px}
       .steps{grid-template-columns:1fr;gap:22px}
+      .setup-options{gap:16px}
       .stats{grid-template-columns:repeat(2,1fr)}
-      .stat:nth-child(3){border-left:0}
+      .stat:nth-child(odd){border-left:0}
+      .stat:nth-child(even){border-left:1px solid var(--line)}
       .stat:nth-child(n+3){border-top:1px solid var(--line)}
     }
     @media (max-width:560px){
@@ -284,33 +362,50 @@
       main{padding:36px 0 64px}
       .section{margin-top:52px;padding-top:32px}
       nav{gap:16px}
-      .site-header nav a.wide{display:none}
       th,td{padding:9px 10px}
       .parameter-table th{width:112px;font-size:.7rem;letter-spacing:0}
       .parameter-table td{font-size:.85rem}
       .os-panel{padding:16px}
+      .setup-options{grid-template-columns:1fr;gap:0}
+      .setup-options a{padding:12px 0}
+      .hero .actions .button{justify-content:center;flex:1 1 auto}
     }
     @media (max-width:360px){
-      .site-header nav{gap:8px}
-      .site-header nav a:not(.button){display:none}
       .stat{padding:14px 12px}
-      .stat dd{font-size:1.2rem;overflow-wrap:anywhere}
+      .stat dd{font-size:1.08rem;overflow-wrap:anywhere}
       .stat:nth-child(2) dd{font-size:1.05rem}
     }
   </style>
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KTWXXVPF"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
   <a class="skip" href="#main">Skip to content</a>
   {% set signed_in_nav = request.session.get('github_id') %}
   <header class="site-header"><div class="wrap">
     <a class="brand" href="/" aria-label="ECC Challenges home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" style="fill:var(--accent)"/><path d="M24 5c-3 4-7 6-9 9s-2 6 0 7 7 2 9 6" style="fill:none;stroke:var(--accent-ink);stroke-width:2.4;stroke-linecap:round"/><circle cx="9" cy="16" r="2.6" style="fill:var(--accent-ink)"/></svg>ECC Challenges</a>
-    <nav aria-label="Main">
-      <a class="wide" href="/#how">Take part</a>
-      <a class="wide" href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
+    <nav class="desktop-nav" aria-label="Main">
+      <a href="/#how">Take part</a>
+      <a href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
       <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
-      <a class="wide" href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
+      <a href="/leaderboard"{% if request.url.path == '/leaderboard' %} aria-current="page"{% endif %}>Leaderboard</a>
+      <a href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
       {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in</a>{% endif %}
     </nav>
+    <details class="mobile-nav">
+      <summary>Menu</summary>
+      <nav aria-label="Mobile navigation">
+        <a href="/#how">Take part</a>
+        <a href="/docs/agents">Set up with an agent</a>
+        <a href="/pollard-rho"{% if request.url.path == '/pollard-rho' %} aria-current="page"{% endif %}>Pollard rho</a>
+        <a href="/status"{% if request.url.path == '/status' %} aria-current="page"{% endif %}>Status</a>
+      <a href="/leaderboard"{% if request.url.path == '/leaderboard' %} aria-current="page"{% endif %}>Leaderboard</a>
+        <a href="/docs"{% if request.url.path.startswith('/docs') %} aria-current="page"{% endif %}>Docs</a>
+        {% if signed_in_nav %}<a class="button small" href="/dashboard">Dashboard</a>{% else %}<a class="button small" href="/auth/github">Sign in with GitHub</a>{% endif %}
+      </nav>
+    </details>
   </div></header>
   <main id="main" class="wrap">{% block content %}{% endblock %}</main>
   <footer class="site-footer"><div class="wrap">
@@ -332,5 +427,6 @@
       </picture>
     </a>
   </div></footer>
+  <script src="/assets/ui.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Launch ECC runners"
+  short_description: "Install host runtimes and launch ECC workers on boxes"
+  default_prompt: "Use $ecc-launch-runners to install the required host stack and launch or resume ECC Challenges workers on my box."

@@ -85,7 +85,8 @@ def bootstrap(args) -> None:
                     cursor.execute("""
                         GRANT SELECT,INSERT,UPDATE ON
                           ecc_public.accounts,ecc_public.api_keys,ecc_public.runs,
-                          ecc_public.key_usage_day,ecc_public.batches
+                          ecc_public.key_usage_day,ecc_public.account_usage_day,
+                          ecc_public.batches
                         TO ecc_site_web
                     """)
                     cursor.execute("GRANT SELECT,UPDATE ON ecc_public.pressure_shards TO ecc_site_web")

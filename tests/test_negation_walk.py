@@ -15,7 +15,7 @@ import pytest
 
 from ecc_challenges.multicurve import negation_walk as nw
 from ecc_challenges.multicurve.codec import (
-    NEGATION_PARAMETERS, WALK_NEGATION, WALK_V2, Namespace, Record, canonical,
+    NEGATION_PARAMETERS, WALK_IDS, WALK_NEGATION, WALK_V2, Namespace, Record, canonical,
     dp_bits_for, expected_steps_log2, namespace, pinned_namespace)
 from ecc_challenges.multicurve.instances import all_instances
 from toy_curves import load_toy_instances
@@ -42,13 +42,13 @@ def test_v2_namespaces_unchanged():
     golden = json.loads((FIXTURES / "v2_golden.json").read_text())["namespaces"]
     assert len(golden) == 24
     for instance in all_instances():
-        ns = Namespace(instance.id)
+        ns = Namespace(instance.id, walk_version=WALK_V2)
         expected = golden[instance.id]
         assert ns.id == expected["namespace_id"]
         assert ns.dp_bits == expected["dp_bits"] == dp_bits_for(instance.n)
         assert hashlib.sha256(canonical(ns.public())).hexdigest() == expected["public_sha256"]
         assert ns.record_bytes == expected["record_bytes"]
-        assert ns.walk["id"] == WALK_V2 and ns.walk["native_job"] == "ECCJOB03"
+        assert ns.walk["id"] == WALK_IDS[WALK_V2] and ns.walk["native_job"] == "ECCJOB03"
         assert not ns.negation
 
 
@@ -66,7 +66,7 @@ def test_v1_walk_sources_unchanged():
 
 def test_negation_namespace_is_separate_and_v2_resolution_is_unchanged():
     for campaign in ("eccp-79", "ecc2-131", "ecc2k-130"):
-        v2, negation = namespace(campaign), namespace(campaign, None, WALK_NEGATION)
+        v2, negation = namespace(campaign, None, WALK_V2), namespace(campaign, None, WALK_NEGATION)
         assert v2.id != negation.id
         assert negation.walk["id"] == WALK_NEGATION and negation.walk["native_job"] == "ECCJOB04"
         assert negation.walk["automorphism_quotient"] == "negation"

@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from ecc_challenges.multicurve.codec import Namespace, Record
+from ecc_challenges.multicurve.codec import WALK_V2, Namespace, Record
 from ecc_challenges.multicurve.instances import (
     instance_ids,
     registry_metadata,
@@ -92,7 +92,7 @@ def coefficient_cases(n):
 
 @pytest.mark.parametrize("campaign", instance_ids())
 def test_all24_native_cpu_wide_arithmetic(cpu_engine, campaign):
-    ns = UnitJumpNamespace(campaign, dp_bits=40)
+    ns = UnitJumpNamespace(campaign, dp_bits=40, walk_version=WALK_V2)
     instance = ns.instance
     cases = list(coefficient_cases(instance.n))
     negative_g = instance.neg(instance.G)
@@ -211,7 +211,7 @@ def test_openmp_engine_matches_serial_engine(cpu_engine, tmp_path, monkeypatch):
         pytest.skip("compiler has no OpenMP support")
     monkeypatch.setenv("OMP_NUM_THREADS", "4")
     for campaign in ("eccp-79", "ecc2k-130"):
-        ns = Namespace(campaign, dp_bits=4)
+        ns = Namespace(campaign, dp_bits=4, walk_version=WALK_V2)
         initial = tuple(
             runtime.NativeState(ns.start("18c3053b-96df-4879-a49d-18a52b8fdf8b", trail))
             for trail in range(37)
@@ -225,7 +225,7 @@ def test_openmp_engine_matches_serial_engine(cpu_engine, tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("campaign", ("eccp-79", "ecc2-79"))
 def test_real_walk_first_dp_and_round_resume(cpu_engine, campaign):
-    ns = Namespace(campaign, dp_bits=2)
+    ns = Namespace(campaign, dp_bits=2, walk_version=WALK_V2)
     run_id = "18c3053b-96df-4879-a49d-18a52b8fdf8b"
     initial = tuple(
         runtime.NativeState(ns.start(run_id, trail))

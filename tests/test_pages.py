@@ -51,6 +51,53 @@ def test_each_document_renders_without_a_database(slug):
     assert "h1" in Links(response.text).tags
 
 
+@pytest.mark.parametrize("path,status", [
+    ("/", 200), ("/status", 200), ("/pollard-rho", 200), ("/docs", 200),
+    ("/docs/contributing", 200), ("/help", 200), ("/challenges/eccp-131", 200),
+    ("/results/ecc2k-95", 200), ("/dashboard", 401), ("/missing-page", 404),
+])
+def test_tag_manager_is_rendered_with_a_matching_csp_nonce(path, status):
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        response = client.get(path)
+    assert response.status_code == status
+    policy = response.headers["content-security-policy"]
+    directives = dict(part.strip().split(" ", 1) for part in policy.split(";"))
+    scripts = re.findall(r'<script nonce="([A-Za-z0-9_-]+)">(.*?)</script>', response.text, re.S)
+    assert len(scripts) == 1
+    nonce, bootstrap = scripts[0]
+    assert len(nonce) >= 32 and f"'nonce-{nonce}'" in directives["script-src"].split()
+    assert "'unsafe-inline'" not in directives["script-src"].split()
+    assert "'unsafe-eval'" not in directives["script-src"].split()
+    assert "GTM-KTWXXVPF" in bootstrap
+    assert response.text.index("<!-- Google Tag Manager -->") < response.text.index("<title>")
+    assert response.text.split("<body>", 1)[1].lstrip().startswith(
+        '<!-- Google Tag Manager (noscript) -->\n  <noscript><iframe '
+        'src="https://www.googletagmanager.com/ns.html?id=GTM-KTWXXVPF"\n'
+        '  height="0" width="0" style="display:none;visibility:hidden">')
+    for name in ("script-src", "img-src", "connect-src", "frame-src"):
+        assert "https://www.googletagmanager.com" in directives[name].split()
+    sources = {name: set(value.split()) for name, value in directives.items()}
+    # A GA4 tag published in the container can send hits, including to regional endpoints.
+    assert {"https://*.google-analytics.com"} <= sources["img-src"]
+    assert {"https://*.google-analytics.com", "https://*.analytics.google.com"} <= sources["connect-src"]
+    # Tag Manager preview mode loads its badge, styles and fonts from Google hosts.
+    assert {"https://tagmanager.google.com"} <= sources["script-src"]
+    assert {"https://fonts.gstatic.com"} <= sources["font-src"]
+    assert directives["default-src"] == "'none'"
+    assert "'unsafe-eval'" not in policy and "*;" not in policy
+    assert directives["frame-ancestors"] == "'none'"
+
+
+def test_tag_manager_nonce_is_fresh_for_each_response():
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        first = client.get("/")
+        second = client.get("/")
+    nonces = [re.search(r'<script nonce="([A-Za-z0-9_-]+)">', response.text)[1]
+              for response in (first, second)]
+    assert nonces[0] != nonces[1]
+    assert nonces[0] not in second.headers["content-security-policy"]
+
+
 def test_all_site_documentation_links_and_fragments_resolve():
     paths = ["/", "/status", "/docs", "/help", "/pollard-rho"]
     paths += [f"/challenges/{challenge.id}" for challenge in CHALLENGES]
@@ -101,8 +148,9 @@ def test_document_renderer_escapes_html_and_preserves_readable_content():
 <script>alert("unsafe")</script>
 
 [Worker](running-a-worker.md#macos)
-[GitHub](https://github.com/aburan28/ecc-challenges)
-[GitHub issue](https://github.com/aburan28/ecc-challenges/issues/123)
+[GitHub](https://github.com/isogeny-labs/ecc-challenges)
+[GitHub issue](https://github.com/isogeny-labs/ecc-challenges/issues/123)
+[Old owner](https://github.com/aburan28/ecc-challenges/blob/main/docs/agents.md)
 [Unsafe](javascript:alert(1))
 
 ```sh
@@ -117,6 +165,29 @@ echo '<img src=x onerror=alert(1)>'
     assert "script" not in parsed.tags and "img" not in parsed.tags
     assert '/docs/running-a-worker#macos' in parsed.hrefs
     assert '/docs/project' in parsed.hrefs
+    assert '/docs/agents' in parsed.hrefs
     assert all(not href.startswith(("javascript:", "https://github.com/")) for href in parsed.hrefs)
     assert "GitHub issue" in html
     assert {"repeat", "repeat-1"} <= parsed.ids
+
+
+def test_small_progress_is_a_valid_accessible_number():
+    from decimal import Decimal
+
+    class ProgressValues(HTMLParser):
+        def __init__(self, html):
+            super().__init__()
+            self.values = []
+            self.feed(html)
+
+        def handle_starttag(self, tag, attrs):
+            attrs = dict(attrs)
+            if attrs.get("role") == "progressbar":
+                self.values.append(attrs)
+
+    with TestClient(application(), base_url="https://ecc-challenges.com") as client:
+        values = ProgressValues(client.get("/status").text).values
+    public = next(value for value in values if "Public uploads" in value["aria-label"])
+    assert re.fullmatch(r"\d+(\.\d+)?", public["aria-valuenow"])
+    assert 0 < Decimal(public["aria-valuenow"]) < Decimal("0.01")
+    assert public["aria-valuetext"] == "<0.01% of expected work"

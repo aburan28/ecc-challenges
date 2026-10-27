@@ -20,7 +20,7 @@ import sys
 import pytest
 
 from ecc_challenges.multicurve import negation_walk as nw
-from ecc_challenges.multicurve.codec import WALK_NEGATION, Namespace, Record
+from ecc_challenges.multicurve.codec import WALK_NEGATION, WALK_V2, Namespace, Record
 from ecc_challenges.multicurve.instances import instance_ids
 from generic.runtime import NativeState, pack_job, pack_state, run_round
 
@@ -44,7 +44,7 @@ def toy_namespace(instance_id, dp_bits=40):
 
 @pytest.mark.parametrize("campaign", instance_ids())
 def test_v2_engine_output_is_byte_identical_to_the_pre_change_golden(engine, campaign):
-    ns = Namespace(campaign, dp_bits=3)
+    ns = Namespace(campaign, dp_bits=3, walk_version=WALK_V2)
     expected = GOLDEN[campaign]
     starts = tuple(NativeState(ns.start(RUN, t)) for t in range(3))
     job = pack_job(ns, 3, 12)

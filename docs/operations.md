@@ -21,9 +21,9 @@ Never put a secret value in chat, a shell command, a PR, or a tracked file.
 The historical-point table starts empty. New public uploads are archived,
 audited, indexed, and matched against other new public points. Matches with the
 original campaign's existing points are unavailable until the historical import
-and backmatch below have run. This is not a reason to leave the new index queue
-stopped: every new batch and candidate is preserved, and the backmatch covers
-the interval before import.
+and backmatch below have run. Leave the new index queue running: every
+new batch and candidate is preserved, and the backmatch covers the interval
+before import.
 
 The old campaign's run registry currently has no entries in the public range
 50000–65534 (read-only check on 2026-10-14). Reserve that range for the public
@@ -41,8 +41,9 @@ original RDS table is a derived view that can lag it.
 
 1. `export --dry-run` lists and checks the whole corpus and writes nothing. It
    refuses any object whose `.bin.json` marker or key sha256 disagrees with its
-   body, and drops (and counts) records that are not canonical DP32 keys or whose
-   seed falls in the public run range 50000–65534. Read its summary before going on.
+   body. It drops and counts records that are not canonical distinguished-point
+   (DP) keys of weight 32 (DP32) or whose seed falls in the public run range
+   50000–65534. Read its summary before going on.
 2. `export --parts s3://<public archive>/historical-import/<date>` writes each
    source object as a checksum-bound part with a JSON sidecar. It resumes by
    skipping source keys that already have a sidecar.
@@ -62,7 +63,7 @@ original RDS table is a derived view that can lag it.
 
 First run, 2026-10-17, from `historical-import/20261017/`: 40,309 objects exported
 (the 68 `<sha256>-<start>-<end>.bin` runner deltas included), one witness-format
-object refused, 189,871,706 DP34 records dropped as `above_dp32_weight`.
+object refused, 189,871,706 weight-34 records dropped as `above_dp32_weight`.
 384,765,103 records loaded in two admin-task runs, 338,034,791 distinct points
 inserted, 0 historical conflicts. Backmatch: 0 matches, as no public ECC2K-130
 points had been indexed yet. The original fleet was still writing, so later
@@ -74,8 +75,8 @@ The status page reads the import's totals through
 `ecc_public.historical_import_totals` (`sql/007_historical_totals.sql`), which
 the database bootstrap creates and grants to `ecc_site_web`. Run the bootstrap
 admin task once after merging that migration. Until it runs, the page shows
-gateway-only counts and logs `historical import totals unavailable`; order
-against the web deploy doesn't matter. Each later load raises the figure within
+gateway-only counts and logs `historical import totals unavailable`. The order
+relative to the web deploy does not matter. Each later load raises the figure within
 a minute, with no deploy.
 
 Size the database before loading: every historical point is one
@@ -88,9 +89,9 @@ the new account. Check that STS reports the expected account:
 
     aws --profile NEW_PROFILE sts get-caller-identity --query Account --output text
 
-The first deploy creates the foundation, VPC, private database, archive, and
-admin ECR repository. It also creates an empty OAuth secret. The scripts print
-resource IDs and ARNs, never secret values.
+The first deploy creates the foundation, VPC, private database, archive, admin
+ECR repository and an empty OAuth secret. The scripts print resource IDs and
+ARNs, never secret values.
 
     python3 scripts/deploy_data.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID
     python3 scripts/deploy_data.py --profile NEW_PROFILE --account-id NEW_ACCOUNT_ID --apply
@@ -120,7 +121,9 @@ existing marker.
 
 ## 2. Configure GitHub login and TLS
 
-Use a public GitHub App for contributor sign-in, with homepage
+Use the public [ECDLP Challenges](https://github.com/apps/ecdlp-challenges)
+GitHub App (slug `ecdlp-challenges`, owned by the isogeny-labs organization,
+client ID `Iv23lidHKj83gpKEi74i`) for contributor sign-in, with homepage
 https://ecc-challenges.com and callback
 https://ecc-challenges.com/auth/callback. The site needs only the authenticated
 user's numeric ID and login from `GET /user`; this endpoint requires no GitHub
@@ -180,9 +183,9 @@ reported IDs, certificate ARN, and image tag:
 
 Add `--alert-email ADDRESS` to the deploy command to subscribe an operator to
 audit-age, index-age, and dead-letter alarms. The recipient must confirm the
-Amazon SNS subscription email before notifications can arrive. The alert topic
-and alarm actions exist even when no email is configured; an unconfirmed or
-missing subscription is not an operational alert path. Check the subscription
+Amazon SNS subscription email before notifications arrive. The alert topic and
+alarm actions exist even when no email is configured, but an unconfirmed or
+missing subscription is not an alert path. Check the subscription
 status with `aws sns list-subscriptions-by-topic` using the service stack's
 `AlertTopicArn` output, and verify alarm actions before DNS cutover.
 
@@ -191,18 +194,18 @@ Before routing DNS, exercise the ALB with the intended hostname and TLS SNI:
     curl --connect-to ecc-challenges.com:443:ALB_DNS:443 \
       https://ecc-challenges.com/health
 
-Require healthy web targets in both zones; GitHub sign-in and key creation; a
-real NVIDIA contributor container run; first-batch exact replay; indexing of
-new public candidates; invalid-seed quarantine; and an outbox/SQS restart
-drill. Verify the contributor image can be pulled anonymously. The dashboard
-uses the same pinned public digest that the service deployer verified belongs
-to the new account.
+Before cutover, require all of these: healthy web targets in both zones; GitHub
+sign-in and key creation; a real NVIDIA contributor container run; first-batch
+exact replay; indexing of new public candidates; invalid-seed quarantine; an
+outbox/SQS restart drill; and an anonymous pull of the contributor image. The
+dashboard uses the pinned public digest that the service deployer verified
+belongs to the new account.
 
 The service stack outputs two Global Accelerator IPv4 addresses and its DNS
-name. Set both apex A records in Squarespace, use the accelerator DNS name for
-the www CNAME, and remove conflicting Squarespace defaults. Verify /health,
-login, and the dashboard through ordinary DNS from outside AWS. The addresses
-stay stable across ALB changes.
+name. Set both apex A records in Squarespace, point the www CNAME at the
+accelerator DNS name, and remove conflicting Squarespace defaults. Verify
+`/health`, login and the dashboard through ordinary DNS from outside AWS. The
+addresses stay stable across ALB changes.
 
 ## 4. Watch and respond
 
@@ -220,8 +223,8 @@ stay stable across ALB changes.
 
 Until the historical import above has run and its backmatch has finished,
 describe collision coverage as new-public-to-new-public only. While the original
-fleet is still writing, catch up by rerunning export, load and backmatch: export
-skips source keys it has already copied and picks up new ones.
+fleet is still writing, rerun export, load and backmatch to catch up; export
+skips source keys it has already copied.
 
 ## All-curve release builds and canary gate
 
@@ -229,28 +232,29 @@ skips source keys it has already copied and picks up new ones.
 clones an explicit public commit, verifies HEAD, builds the four images, runs
 the native self-test, and writes pinned digests to
 `release-builds/<commit>/manifest.json` in the isolated bucket. The build role
-has image-push and release-manifest permissions, with no database-secret access.
-No contributor credential enters that build context.
+can push images and write the release manifest and has no database-secret
+access. No contributor credential enters the build.
 
-Deploy migration 003 and worker/web images before enabling v2. A rollout can set
+Deploy migration 003 and the worker and web images before enabling v2. A rollout can set
 `MulticurveCanaryKey` to the ID portion of the designated key while
 `MulticurveEnabled=false`. Only that authenticated key can use v2; public catalog
-availability stays unchanged. The worker queue still processes its batches.
-After combined-container, contributor and capacity gates, enable v2 and clear
-the canary parameter. Keep existing v1 workers on their bound namespace.
+availability stays unchanged, and the worker queue still processes its batches.
+After the combined-container, contributor and capacity gates pass, enable v2 and
+clear the canary parameter. Existing v1 workers stay on their bound namespace.
 
 ### Retiring a generic contributor run
 
 An ordinary container stop preserves its run for resumption. To switch a worker
-permanently to another challenge, stop it gracefully and then launch the same
+permanently to another challenge, stop it gracefully, then launch the same
 pinned image, key, campaign and state volume with `ECC_PROTOCOL=2` and
 `ECC_ACTION=close`. This authenticates ownership and retires the run without
-removing its checkpoints, uploaded points or verification work. The command
-refuses a local pending outbox; resume normal work to flush it first. An unfinished
-server upload intent must commit or expire before closure. Closed runs remain
-readable and their admitted batches continue processing. Use a new state volume
-for a new run. Closing releases an active slot; it does not reset the account's
-lifetime anti-abuse limit.
+removing its checkpoints, uploaded points or verification work.
+
+The command refuses a local pending outbox; resume normal work to flush it
+first. An unfinished server upload intent must commit or expire before closure.
+Closed runs remain readable and their admitted batches continue processing. Use
+a new state volume for a new run. Closing releases an active slot but does not
+reset the account's lifetime run limit.
 
 ### V2 admission and verifier scaling
 
@@ -258,22 +262,23 @@ lifetime anti-abuse limit.
 512), sharded across sixteen pressure rows. At the maximum 1 MiB batch size this
 bounds v2 pending raw payload near 512 MiB; account and daily-byte quotas apply
 as well. Choose the bound from measured drain time. Contributors keep their
-outbox and pause on retryable refusal.
+outbox and pause on a retryable refusal.
 
 The audit pool performs all v2 relation checks and DynamoDB insertion. The
-separate legacy index pool does not add v2 processing capacity. Audit scale-out
-uses visible queue depth and CPU utilization, up to 32 tasks. Automatic audit
-scale-in is disabled during the initial rollout to avoid interrupting long,
+separate legacy index pool adds no v2 processing capacity. Audit scale-out uses
+visible queue depth and CPU utilization, up to 32 tasks. Automatic audit
+scale-in is disabled during the initial rollout so it cannot interrupt long,
 in-flight verification batches. Review pending work and retained leases before
-an operator reduces the pool. This can leave extra tasks running after a burst;
-monitor cost and tune after the sustained capacity gate. The existing
+reducing the pool by hand. Extra tasks can keep running after a burst, so
+monitor cost and tune after the sustained capacity gate.
+
 `scripts/capacity.py` models the legacy sampled verifier and cannot establish v2
 throughput. A production DP/s claim requires measurements of every distinct
 witness under the deployed curve mix and fleet size.
 
 ### Switching the point index to compact S3 parts
 
-The compact index (see `docs/multicurve-storage.md`, "Compact point index")
+The compact index (see [Compact point index](multicurve-storage.md#compact-point-index))
 replaces DynamoDB items with sorted 16-byte entries in S3.
 
 1. Update the data stack so the bucket gets the lifecycle rule for superseded
@@ -284,7 +289,7 @@ replaces DynamoDB items with sorted 16-byte entries in S3.
    `--reconcile-tasks 1`. In compact mode the reconcile task grows to 1 vCPU and
    4 GB, and merges every `--point-index-merge-seconds` (default 3600).
 4. Watch the reconcile log for `point-index-merge` lines. Each one names the
-   generation, the entry count and any `collision_leads`.
+   namespace, the generation, the entry count and the match count.
 
 Batches indexed into DynamoDB earlier stay there, so switch before public
 contribution starts. If the index is ever in doubt, call
@@ -293,8 +298,9 @@ rebuild it from the raw batches.
 
 ### Public image mirrors
 
-ECR Public anonymous consumers have a fixed monthly data allowance. Shared cloud
-provider importers can exhaust that allowance before starting a container.
+ECR Public gives anonymous consumers a fixed monthly data allowance. Importers
+that share a cloud provider's address space can exhaust it before a container
+starts.
 `infra/registry.yaml` supplies a public-image authentication role with no push,
 private-image, bucket, database or application-secret permissions. Its GitHub
 OIDC trust binds the repository's verified immutable IDs and the release refs.
@@ -302,26 +308,26 @@ OIDC trust binds the repository's verified immutable IDs and the release refs.
 The existing contributor-image workflow accepts an optional `source_image`
 dispatch input. It copies the exact ECR image to
 `ghcr.io/aburan28/ecc-challenges-worker` with digest preservation and checks an
-anonymous pull. First-time GHCR package publication can require the package
-owner to make it public in GitHub's package settings. Do not advertise the
-mirror until the anonymous check passes. The deployment helper requires the
-mirror's manifest bytes to match an image digest in the isolated AWS account.
+anonymous pull. For the first GHCR publication, the package owner may need to make the package
+public in GitHub's package settings. Do not advertise the mirror until the
+anonymous check passes. The deployment helper requires the mirror's manifest
+bytes to match an image digest in the isolated AWS account.
 
-Internal Modal checks can optionally use a mode-0600 `ECC_REGISTRY_AUTH_FILE`
-containing a temporary pull-only token. Sending that token to a third-party
-importer requires explicit authorization; an automatic approval rejection does
-not authorize another transport. No AWS access keys belong in a contributor
-container. The public release must work with an anonymous provider pull.
+Internal Modal checks can use a mode-0600 `ECC_REGISTRY_AUTH_FILE` containing a
+temporary pull-only token. Sending that token to a third-party importer requires
+explicit authorization, and an automatic approval rejection does not authorize
+another transport. No AWS access keys belong in a contributor container. The
+public release must work with an anonymous provider pull.
 
 ## Reusing legacy DP30/DP32 records with sigma DP34 runs
 
 Migration `008_sigma_compatibility.sql` binds each protocol-1 run to Hamming
 weight 30, 32 or 34. The dashboard recommends DP34 for new NVIDIA sigma workers;
 `/v1/config` advertises `recommended_dp_weight: 34`. The original `dp_weight: 32`
-and registration fallback remain for older clients, and existing runs retain
-their registered threshold. Historical records retain their
-seed and may retain an unknown original threshold: the weight of an endpoint
-alone cannot establish which stopping rule generated it. The resolver reaches
+and registration fallback remain for older clients, and existing runs keep
+their registered threshold. Historical records keep their seed and may have an
+unknown original threshold: the weight of an endpoint alone cannot establish
+which stopping rule generated it. The resolver reaches
 the stored endpoint when that threshold is unknown, with a finite replay bound.
 A bound or timeout leaves the collision unresolved. Every proposed scalar is
 checked separately using the pinned FPGA-model arithmetic.
@@ -351,7 +357,7 @@ matching witnesses, independent scalar checks, and completion/budget status in
 S3 and `ecc_public.sigma_continuations`. Completed jobs check the historical
 index as it exists at that moment, so import and backmatch first. There is no
 unbounded background continuation service. Production continuation throughput
-and benefit have not yet been measured; begin with a single bounded job.
+and benefit are unmeasured; begin with a single bounded job.
 
 To export directly from the old `rho-dp` database, give the operator a read-only
 `SOURCE_DSN` through its environment, then run:
@@ -363,9 +369,9 @@ python scripts/historical_import.py export-database --source-id rho-dp \
   --parts-account DESTINATION_ACCOUNT
 ```
 
-The exporter uses a read-only, consistent snapshot and bounded chunks. It keeps
-canonical endpoints with weight at most 32, counts excluded records, and makes
-no changes to the source database. Omit `--source-dp-weight` when source run
+The exporter reads a consistent snapshot in bounded chunks. It keeps canonical
+endpoints with weight at most 32, counts excluded records, and makes no changes
+to the source database. Omit `--source-dp-weight` when source run
 configuration has not established it. After export, use the existing `load`
 and `backmatch` commands. Duplicate points are retained once; different seeds
 at the same point remain collision witnesses. The website's historical totals

@@ -22,8 +22,9 @@ OUTPUT = ROOT / "src/ecc_challenges/site_docs.json"
 DOCUMENTS = {
     "README.md": "project",
     "CONTRIBUTING.md": "contributing",
+    "skills/ecc-challenges-worker/references/prerequisites.md": "worker-prerequisites",
     **{f"docs/{name}.md": name for name in (
-        "running-a-worker", "modal-workers", "local-stack", "campaigns",
+        "running-a-worker", "agents", "modal-workers", "sandbox-runtimes", "local-stack", "campaigns",
         "admission-and-capacity", "multicurve-storage", "negation-walk", "operations",
     )},
     "problems/README.md": "problems",
@@ -40,8 +41,9 @@ def site_link(href: str, source: str) -> str | None:
         return urlunsplit(("", "", url.path or "/", url.query, url.fragment))
     if host == "github.com" or host.endswith(".github.com") or host == "raw.githubusercontent.com":
         path = unquote(url.path)
-        for prefix in ("/aburan28/ecc-challenges/blob/main/", "/aburan28/ecc-challenges/tree/main/",
-                       "/aburan28/ecc-challenges/main/"):
+        # The repository moved to isogeny-labs; links to the old owner still redirect.
+        for prefix in (f"/{owner}/ecc-challenges/{ref}" for owner in ("isogeny-labs", "aburan28")
+                       for ref in ("blob/main/", "tree/main/", "main/")):
             if path.startswith(prefix):
                 document = path.removeprefix(prefix).rstrip("/")
                 if document == "problems":
@@ -50,7 +52,7 @@ def site_link(href: str, source: str) -> str | None:
                 if slug is None:
                     return None
                 return f"/docs/{slug}" + (f"#{quote(unquote(url.fragment))}" if url.fragment else "")
-        if path.rstrip("/") == "/aburan28/ecc-challenges":
+        if path.rstrip("/") in ("/isogeny-labs/ecc-challenges", "/aburan28/ecc-challenges"):
             return "/docs/project"
         return None
     if url.scheme or url.netloc or not url.path or url.path.startswith("/"):
@@ -93,7 +95,7 @@ def render_document(source: str, markdown: str) -> dict:
                 toc.append({"title": label, "id": anchor})
         if token.type == "table_open":
             token.type = "html_block"
-            token.content = '<div class="table-wrap"><table>\n'
+            token.content = '<div class="table-wrap" tabindex="0"><table>\n'
         elif token.type == "table_close":
             token.type = "html_block"
             token.content = "</table></div>\n"
@@ -111,12 +113,15 @@ def render_document(source: str, markdown: str) -> dict:
                     child.hidden = True
     return {"title": title, "source": source, "account_placeholders": public_markdown != markdown,
             "source_sha256": source_sha256,
-            "toc": toc, "html": parser.renderer.render(tokens, parser.options, {})}
+            "toc": toc, "html": parser.renderer.render(tokens, parser.options, {}).replace(
+                "<pre>", '<pre tabindex="0">')}
 
 
 def build_bundle() -> str:
     pages = {slug: render_document(source, (ROOT / source).read_text())
              for source, slug in DOCUMENTS.items()}
+    # Ship the canonical contributor skill in the existing package/image asset.
+    pages["agents"]["skill_markdown"] = (ROOT / "skills/ecc-challenges-worker/SKILL.md").read_text()
     return json.dumps(pages, ensure_ascii=False, indent=2) + "\n"
 
 

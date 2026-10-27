@@ -38,6 +38,22 @@ class Service:
                 ON CONFLICT(github_id) DO UPDATE SET login=excluded.login, updated_at=now()
             """, (github_id, login))
 
+    def leaderboard_visible(self, account_id: int) -> bool | None:
+        """Whether the account is named on the leaderboard; None before migration 012."""
+        with self.db.connection() as conn:
+            row = conn.execute("""
+                SELECT (to_jsonb(a)->>'leaderboard_visible')::boolean AS visible
+                FROM ecc_public.accounts a WHERE github_id=%s
+            """, (account_id,)).fetchone()
+        return None if row is None else row["visible"]
+
+    def set_leaderboard_visible(self, account_id: int, visible: bool) -> None:
+        if self.leaderboard_visible(account_id) is None:
+            raise Rejected(503, "leaderboard settings are not available yet")
+        with self.db.connection() as conn:
+            conn.execute("UPDATE ecc_public.accounts SET leaderboard_visible=%s, updated_at=now() "
+                         "WHERE github_id=%s", (visible, account_id))
+
     def account_keys(self, account_id: int) -> list[dict]:
         with self.db.connection() as conn:
             keys = conn.execute("""
@@ -210,7 +226,7 @@ class Service:
         table = "batches" if protocol == "v1" else "dp_batches"
         state = "audit_state" if protocol == "v1" else "state"
         finished = "audit_finished_at" if protocol == "v1" else "verified_counted_at"
-        pending = ("(audit_state IN ('pending','unverified') OR "
+        pending = ("(audit_state='pending' OR "
                    "(audit_state IN ('sampled','not_selected') AND indexed_at IS NULL))"
                    if protocol == "v1" else "state IN ('admitted','verified')")
         good = "'sampled'" if protocol == "v1" else "'verified','indexed'"
@@ -219,6 +235,7 @@ class Service:
             summary = conn.execute(f"""
                 SELECT count(*) AS batches,
                   count(*) FILTER (WHERE {pending}) AS pending,
+                  count(*) FILTER (WHERE {state}='unverified') AS unresolved,
                   count(*) FILTER (WHERE {state} IN ('failed','quarantined')) AS failed,
                   count(*) FILTER (WHERE {state} IN ({good})) AS checked,
                   count(*) FILTER (WHERE indexed_at IS NOT NULL) AS indexed,
@@ -232,7 +249,7 @@ class Service:
             """, (identity,)).fetchall()
         run.update(summary)
         run["batches_recent"] = batches
-        run["verification_state"] = ("Needs attention" if run["failed"] else
+        run["verification_state"] = ("Needs attention" if run["failed"] or run["unresolved"] else
             "Waiting for checks" if run["pending"] else "Up to date" if run["batches"] else "No submissions yet")
         return run
 
@@ -246,12 +263,6 @@ class Service:
                                    (account_id,)).fetchone()
             if not account or account["suspended_at"]:
                 raise Rejected(403, "account is unavailable")
-            row = conn.execute("""
-                SELECT count(*) AS active, max(created_at) AS newest
-                FROM ecc_public.api_keys WHERE account_id=%s AND revoked_at IS NULL
-            """, (account_id,)).fetchone()
-            if row["active"] >= 3:
-                raise Rejected(429, "revoke an existing key before creating another")
             recent = conn.execute("""
                 SELECT EXISTS(SELECT 1 FROM ecc_public.api_keys
                               WHERE account_id=%s AND created_at > now()-interval '1 minute') AS recent
@@ -393,6 +404,19 @@ class Service:
                     "campaign": CAMPAIGN, "walk_id": WALK_ID}
 
     def _charge_daily_bytes(self, conn, key: dict, length: int) -> None:
+        # The former three-key cap bounded total account uploads indirectly.
+        # Keep that same aggregate ceiling when accounts can issue more keys.
+        account_quota = conn.execute("""
+            INSERT INTO ecc_public.account_usage_day(account_id,day,bytes)
+            SELECT %s,current_date,%s WHERE %s<=%s
+            ON CONFLICT(account_id,day) DO UPDATE
+              SET bytes=ecc_public.account_usage_day.bytes+excluded.bytes
+            WHERE ecc_public.account_usage_day.bytes+excluded.bytes<=%s
+            RETURNING bytes
+        """, (key["account_id"], length, length, 3 * self.settings.max_key_bytes_per_day,
+              3 * self.settings.max_key_bytes_per_day)).fetchone()
+        if not account_quota:
+            raise Rejected(429, "account daily upload quota reached", 3600)
         quota = conn.execute("""
             INSERT INTO ecc_public.key_usage_day(key_id,day,bytes)
             SELECT %s,current_date,%s WHERE %s<=%s

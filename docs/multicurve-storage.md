@@ -2,7 +2,8 @@
 
 Implementation status: v2 is being integrated and is disabled by default. The
 production ECC2K-130 v1 walk keeps its existing encoding and namespace. A catalog
-entry alone never enables a worker. The ECC2K-130 v1 historical import is separate; see operations.md.
+entry alone never enables a worker. The ECC2K-130 v1 historical import is
+separate; see [operations](operations.md#historical-point-import).
 
 ## Scope and identities
 
@@ -14,7 +15,7 @@ polynomial basis, coefficients, G, Q, subgroup order and cofactor. Recorded sour
 normalizations are reproducible with `extract_parameters.py`. Probable-prime
 checks are arithmetic admission checks, not primality certificates.
 
-A namespace SHA-256 binds the exact instance digest, target Q, walk, DP predicate,
+A namespace SHA-256 binds the exact instance digest, target Q, walk, distinguished-point (DP) predicate,
 coefficient derivation and record codec. UUID runs and 64-bit trail IDs remove the
 legacy 16-bit run allocation constraint. No record crosses namespaces, including
 records for the same curve using different walks. The generic affine walk uses
@@ -23,13 +24,16 @@ rejection sampling. Binary arithmetic uses the published polynomial basis.
 
 Each record stores `trail_id:u64le | steps:u64le | x:BE | y:BE | a:BE | b:BE`,
 where `R=aG+bQ`. Widths are fixed per namespace, derived from field and subgroup
-sizes: 56–196 bytes for this registry. Scalars are binary, avoiding database
-numeric precision limits. Finite points whose SHA-256 of canonical x||y has trailing DP bits zero qualify; the first hash byte selects the walk partition.
-V1 uses the Frobenius Hamming-weight predicate with per-run limits 30, 32 or 34;
-new NVIDIA sigma runs are recommended to use 34. Its thresholds are distinct
-from V2's hash-bit predicate and never change an existing run.
+sizes: 56–196 bytes for this registry. Scalars are binary, which avoids database
+numeric precision limits.
 
-DP bits are set per curve (`dp_bits_for` in `multicurve/codec.py`). This walk
+In walk 2, a finite point is a DP when the SHA-256 of its canonical x||y has
+trailing zero bits; the first hash byte selects the walk partition. V1 uses the
+Frobenius Hamming-weight predicate with per-run limits 30, 32 or 34, and new
+NVIDIA sigma runs should use 34. Those thresholds are distinct from the v2
+hash-bit predicate and never change an existing run.
+
+DP bits are set per curve (`dp_bits_for` in `multicurve/codec.py`). Walk 2
 has no automorphism quotient, so a solve takes about E = sqrt(pi*n/2) steps.
 The rule is d = floor(log2 E) - 23, capped at 34. With up to 2^16 walks running
 at once, the steps left in unfinished walks stay under 1% of E, and each curve
@@ -45,11 +49,46 @@ applies the same rule to that E). It is opt-in and disabled by default
 (`MULTICURVE_NEGATION_ENABLED`, `ECC_WALK=negation`), has its own namespaces
 (`walk.id`, `ECCJOB04`), uploads the same record format with the class
 representative as the point, and never mixes its points with v2's.
+The generic walk uses the 6,568-byte `ECCJOB04` body with `reserved=1`; the
+131-bit V3/V4 fast walks use the 6,776-byte extended body with `reserved=0`.
 
 Every trail keeps the `b` of its start, because jumps add only multiples of G.
 Verification therefore also checks that each DP's `b` equals the start derived
 from its run ID and trail ID, which ties the DP to a server-assigned trail
 without replaying the walk. It does not check the trail's `a` or step count.
+### Walk versions
+
+A namespace names its walk, so records of different walks never meet. Walk 2
+(`certicom-affine-radding32-v2`, the SHA-256 walk above) is defined for every
+curve and stays valid: runs registered under it keep their namespace, manifest
+and verification. ECC2-131 and ECCp-131 register new runs under walk 4 by
+default (`DEFAULT_WALKS` in `multicurve/codec.py`); `Namespace(campaign,
+walk_version=2)` still builds the old namespace.
+
+| Walk | Partition | DP test | Group |
+| --- | --- | --- | --- |
+| 2 | first SHA-256 byte of x‖y, low 5 bits | trailing DP bits of the digest | points |
+| 3 `…-xonly-v3` | `((x mod 2^64) * 0x9e3779b97f4a7c15 mod 2^64) >> 59` | bits 64..64+d-1 of x are zero | points |
+| 4 `…-negmap-v4` | as walk 3 | as walk 3 | classes {P, -P} |
+
+Walk 4 stores the canonical point of each class (prime: `y <= (p-1)/2`; binary:
+`y <= x XOR y`, since -(x, y) = (x, x + y)) and negates `a` and `b` together with
+the point, so a stored record still satisfies `R = aG + bQ` exactly. The
+collision rule, the scalar recovery `(a1-a2)/(b2-b1)` and the DP codec are
+unchanged; a collision of P with -P is the same stored point. A trail's `b` is
+its start's `b` or `n - b`, which `check_trail` accepts for walk 4 only. Because
+the group is halved, the ideal birthday model predicts sqrt(pi*n/4) steps;
+cycle handling adds work whose cost must be measured. A canonical walk
+can fall into short cycles; the engine detects 2-cycles and cycles that return to
+a periodic anchor and leaves them through a 33rd jump (the escape jump) at the
+cycle's smallest low 64-bit x word, so walks that share a cycle also share its
+exit. Cycle state is local to one engine call and does not enter any record.
+
+Walks 2 and 3 keep the `b` of their start, because jumps add only multiples of G.
+Walk 4 may negate it. Verification checks that each DP's `b` matches the
+permitted sign of the start derived from its run ID and trail ID, which ties the
+DP to a server-assigned trail without replaying the walk. It does not check the
+trail's `a` or step count.
 
 ## Submission and processing
 
@@ -83,7 +122,7 @@ flowchart LR
    receipts describe the accepted bytes. Successful acknowledgment requires the
    admission receipt. A durable database outbox repairs interrupted queue sends.
 4. A verifier checks the raw SHA-256 and namespace binding, canonical coordinates
-   and scalars, DP predicate, curve equation, and **every** `R=aG+bQ` relation.
+   and scalars, DP predicate, curve equation, and every `R=aG+bQ` relation.
    Only fully validated batches produce verified receipts and index writes.
    A lease token guards progress and terminal updates. Retry cannot skip an
    unfinished record or use another verifier's uncommitted progress.
@@ -152,7 +191,7 @@ public-gateway/<stream>/v2/pointindex/<namespace>/generation-<n>/<receipt-sha256
    `python -m ecc_challenges.queues merge` once). For each namespace with
    pending batches it reads their raw objects (version- and SHA-256-pinned),
    makes one entry per distinct (point, witness), and merges them into parts:
-   4,096 sorted files, one per top 12 fingerprint bits.
+   4,096 sorted files, one per value of the top 12 fingerprint bits.
 3. Each new fingerprint is looked up in its part. A shared fingerprint is
    resolved from the full records: the same point with another witness becomes
    a collision lead and is solved as before; the same witness is duplicate work,
@@ -166,7 +205,7 @@ public-gateway/<stream>/v2/pointindex/<namespace>/generation-<n>/<receipt-sha256
    days. Parts live outside `v2/`, which forbids deletes.
 
 The index is derived. `Merger.rebuild(namespace)` discards it, and the next
-merges rebuild it from every indexed batch; counters are adjusted by the
+merges rebuild it from every indexed batch. Counters are adjusted by the
 difference, so a rebuild leaves them unchanged. Batches indexed while the mode
 was `dynamodb` have no `index_seq` and stay in DynamoDB only.
 
@@ -253,7 +292,7 @@ Provision the destination rebuild table with the same `pk` string schema.
 The operator must compare complete source coverage and collision receipts
 before switching a service to the rebuilt table. Account/run metadata comes
 from PostgreSQL backups; the index tool does not restore OAuth or quota history.
-For archives beyond one256MiB group, run disjoint explicit receipt groups against
+For archives beyond one 256 MiB group, run disjoint explicit receipt groups against
 the same destination with `--resume`; retain every group's completion receipt.
 
 Verification workers bind the DynamoDB creation UUID (`TableId`) to a durable

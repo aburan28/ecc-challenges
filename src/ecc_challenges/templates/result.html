@@ -3,24 +3,23 @@
 {% block description %}Published solution for {{ result.challenge.name }}: the recovered private scalar, public point, curve parameters and Certicom's original source.{% endblock %}
 {% block content %}
 {% set curve = result.instance %}
-<div class="kicker">Published result</div>
+<p class="crumbs"><a href="/status#challenges">All challenges</a> / {{ result.challenge.name }}</p>
 <h1>{{ result.challenge.name }}</h1>
 <p class="lead">The solution to this {{ result.challenge.field_bits }}-bit challenge, as recorded by Certicom.</p>
-<p><span class="tag result-solved">Solved</span> <span class="muted">on <time datetime="{{ result.solved_on }}">{{ result.solved_date }}</time></span></p>
-<a href="/status">← All challenges</a>
+<p><span class="tag result-solved">Solved</span> <span class="muted">on <time datetime="{{ result.solved_on }}">{{ result.solved_date }}</time>, reported by {{ result.communicated_by }}</span></p>
 
 <section class="section">
   <div class="section-head"><h2>The result</h2></div>
-  <p class="muted">The recovered private key is the scalar <code>k</code> below. Multiplying the generator <code>P</code> by this value gives the challenge's public key <code>Q</code>: <code>k × P = Q</code>.</p>
-  <div class="table-wrap"><table class="result-values" aria-label="Published solution">
+  <p class="muted">The recovered private key is the scalar <code>d</code> below. Multiplying the generator <code>G</code> by it gives the challenge's public key: <code>Q = dG</code>.</p>
+  <div class="table-wrap" tabindex="0"><table class="result-values" aria-label="Published solution">
     <tbody>
-      <tr><th scope="row">Private key k · hex</th><td><code id="scalar-hex">{{ result.scalar_hex }}</code></td></tr>
-      <tr><th scope="row">Private key k · decimal</th><td><code id="scalar-decimal">{{ result.scalar_decimal }}</code></td></tr>
+      <tr><th scope="row">Private key d · hex</th><td><code id="scalar-hex">{{ result.scalar_hex }}</code></td></tr>
+      <tr><th scope="row">Private key d · decimal</th><td><code id="scalar-decimal">{{ result.scalar_decimal }}</code></td></tr>
       <tr><th scope="row">Public key Q · x</th><td><code>{{ curve.Q[0] }}</code></td></tr>
       <tr><th scope="row">Public key Q · y</th><td><code>{{ curve.Q[1] }}</code></td></tr>
     </tbody>
   </table></div>
-  <p class="table-note">Values beginning with 0x are hexadecimal. Select any value to copy it.</p>
+  <p class="table-note">Values beginning with 0x are hexadecimal. Click a value to select all of it.</p>
 </section>
 
 <section class="section">
@@ -30,10 +29,10 @@
   {% else %}
   <p class="muted">The curve is <code>y² = x³ + ax + b</code> over GF(p), using residues modulo the prime p.</p>
   {% endif %}
-  <div class="table-wrap"><table class="result-values" aria-label="Curve parameters">
+  <div class="table-wrap" tabindex="0"><table class="result-values" aria-label="Curve parameters">
     <tbody>
-      <tr><th scope="row">Generator P · x</th><td><code>{{ curve.G[0] }}</code></td></tr>
-      <tr><th scope="row">Generator P · y</th><td><code>{{ curve.G[1] }}</code></td></tr>
+      <tr><th scope="row">Generator G · x</th><td><code>{{ curve.G[0] }}</code></td></tr>
+      <tr><th scope="row">Generator G · y</th><td><code>{{ curve.G[1] }}</code></td></tr>
       <tr><th scope="row">Coefficient a</th><td><code>{{ curve.a }}</code></td></tr>
       <tr><th scope="row">Coefficient b</th><td><code>{{ curve.b }}</code></td></tr>
       <tr><th scope="row">{{ "Reduction polynomial" if curve.field_kind == "binary" else "Prime p" }}</th><td><code>{{ curve.modulus }}</code></td></tr>
@@ -46,7 +45,7 @@
 
 <section class="section">
   <h2>Original record</h2>
-  <p>Certicom's <a href="{{ result.source_url }}">ECC Challenge report, section {{ result.source_section }}</a>, publishes the solution and date above. The result was communicated by {{ result.communicated_by }}. The curve and public point are listed in <a href="{{ result.parameter_source_url }}">Appendix A</a>.</p>
+  <p>Section {{ result.source_section }} of <a href="{{ result.source_url }}">Certicom's 2009 challenge document</a> publishes the solution, the date and the name above. The curve and public point are listed in <a href="{{ result.parameter_source_url }}">Appendix A</a>.</p>
   <p class="muted">This is a historical result from before this gateway began collecting work.</p>
 </section>
 {% endblock %}

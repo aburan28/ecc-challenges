@@ -90,11 +90,11 @@ def main() -> None:
     cert_prefix = f"arn:aws:acm:{args.region}:{args.account_id}:certificate/"
     if not args.certificate_arn.startswith(cert_prefix):
         parser.error("--certificate-arn must belong to the destination account and region")
-    if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker@sha256:[0-9a-f]{64}",
+    if not re.fullmatch(r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker@sha256:[0-9a-f]{64}",
                         args.public_worker_image):
         parser.error("--public-worker-image must be a pinned public worker image")
     if args.public_cpu_worker_image and not re.fullmatch(
-        r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/aburan28)/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
+        r"(?:public\.ecr\.aws/[A-Za-z0-9_-]+|ghcr\.io/(?:aburan28|isogeny-labs))/ecc-challenges-worker-cpu@sha256:[0-9a-f]{64}",
         args.public_cpu_worker_image,
     ):
         parser.error("--public-cpu-worker-image must be a pinned public CPU worker image")
@@ -111,7 +111,8 @@ def main() -> None:
     public_repo = public_ecr.describe_repositories(
         registryId=args.account_id, repositoryNames=["ecc-challenges-worker"]
     )["repositories"][0]
-    mirrored = args.public_worker_image.startswith("ghcr.io/aburan28/ecc-challenges-worker@")
+    mirror = re.match(r"ghcr\.io/(aburan28|isogeny-labs)/ecc-challenges-worker@", args.public_worker_image)
+    mirrored = mirror is not None
     if public_repo["registryId"] != args.account_id or (not mirrored and not args.public_worker_image.startswith(
         public_repo["repositoryUri"] + "@"
     )):
@@ -123,9 +124,10 @@ def main() -> None:
     if mirrored:
         # An allowed mirror must remain an anonymous, byte-identical copy of an
         # image in this account. No GitHub or AWS credential goes to the mirror.
-        with urlopen("https://ghcr.io/token?service=ghcr.io&scope=repository:aburan28/ecc-challenges-worker:pull",timeout=30) as response:
+        namespace=mirror.group(1)
+        with urlopen(f"https://ghcr.io/token?service=ghcr.io&scope=repository:{namespace}/ecc-challenges-worker:pull",timeout=30) as response:
             token=json.load(response)["token"]
-        request=Request("https://ghcr.io/v2/aburan28/ecc-challenges-worker/manifests/"+worker_digest,
+        request=Request(f"https://ghcr.io/v2/{namespace}/ecc-challenges-worker/manifests/"+worker_digest,
                         headers={"Authorization":"Bearer "+token,"Accept":"application/vnd.oci.image.index.v1+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json"})
         with urlopen(request,timeout=30) as response:
             manifest=response.read(4*1024*1024+1)

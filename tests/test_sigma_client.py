@@ -1,8 +1,44 @@
 """Threshold selection must not silently change an existing or pending walk."""
 import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import threading
 
 import pytest
+
+
+@pytest.mark.parametrize("status,method", [(301, "GET"), (302, "GET"), (303, "POST"),
+                                          (307, "GET"), (308, "GET")])
+def test_gateway_redirect_does_not_forward_key(sigma_client, status, method):
+    received = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            received.append((self.path, self.headers.get("Authorization")))
+            if self.path == "/start":
+                self.send_response(status)
+                # A different hostname models a redirect outside the configured origin.
+                self.send_header("Location", f"http://localhost:{self.server.server_port}/sink")
+            else:
+                self.send_response(200)
+            self.end_headers()
+
+        do_POST = do_GET
+
+        def log_message(self, *_):
+            pass
+
+    with ThreadingHTTPServer(("127.0.0.1", 0), Handler) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            api = sigma_client.API(f"http://127.0.0.1:{server.server_port}", "local-test-credential")
+            with pytest.raises(RuntimeError, match="redirect"):
+                api.request(method, "/start", b"" if method == "POST" else None)
+            assert received == [("/start", "Bearer local-test-credential")]
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
 
 
 @pytest.fixture
